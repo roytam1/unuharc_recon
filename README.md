@@ -48,20 +48,40 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   (magic `UHA\x03`, same 44B decrypt/CRC as 0.4, key=raw42).
   `uharc_u.uha`: 1 file, 1047398 bytes unpacked (= extracted size),
   base 151747, ndirs 1, names 11, cmp 15/4/8, layout
-  44+151747+4+15+4+8=151822 verified. Header +10 = 0x3C (60, core5).
+  44+151747+4+15+4+8=151822 verified. Header +10 = 0x3C (60;
+  table maps 36..79 to core5 - see open question below).
   Ground truth via extraction with `uharc_u.exe x -y+ -o+ -d0`
   (console silent, exit 0; file `uharc_u.c`, 1047398 bytes).
-  Console output is suppressed when piped (likely WriteConsole vs pipe;
-  winpty fails with size assert in headless env) - ground truth via
-  filesystem effects instead. Updated `uharc_u.exe` (218112 bytes,
-  2026-10-24; original 218592 silent no-op for `a`) creates correctly:
-  test vectors `03_m0/m1/m2/m3/mx/mz.uha` (6-file corpus, 5840 bytes)
-  via `a -d0 -y+ -o+ -p- -m*`, all round-trip byte-exact (6/6 MATCH).
-  Header methods: m0->00 core0 STORE, m1->27 core4, m2/mx/mz->35 core4,
-  m3->43 core5 (content-selected, not 1:1 with -m switch; ALZ CLI modes
-  yield PPM/LZP methods on mixed corpus - same pattern as 0.4/0.6).
-  Directory tables identical across modes (names 62, cmp 50/13/25,
-  crc BD63/25CA/3CF2).
+  Console output IS capturable via pywinpty (needs absolute exe path;
+  earlier `winpty` CLI failure was a headless-env/argv issue, not the
+  archiver - see `pty_run.py` harness in temp). Captured ground truth:
+  `l -d2 uharc_u.uha` = 1 file, 1047398B, 24-Oct-2026 10:29:04, ---A,
+  crc32 D9BA98B4, packed 151747 `(ALZ:2-mode)`; `t` => `All files OK`.
+  Updated `uharc_u.exe` (218112 bytes, 2026-10-24; original 218592
+  silent no-op for `a`) creates correctly: test vectors
+  `03_m0/m1/m2/m3/mx/mz.uha` (6-file corpus, 5840 bytes)
+  via `a -d0 -y+ -o+ -p- -m*`, all round-trip byte-exact (6/6 MATCH);
+  `t` re-confirms `All files OK` (uharc_u.uha, 03_m1.uha).
+  Per-file ground truth (`l -d2 03_m0.uha`, display order):
+  binary.bin 1024 B70B4C26, call.bin 512 6F3BDB8B, empty.bin 0 00000000,
+  random.bin 1024 021E1879, repeat.txt 1000 51A02E01, text.txt 2280 7125DAA3
+  (all 24-Oct-2026 11:49:40, ---A); m0 STORE stream tiles exactly with
+  the corpus in non-empty order [text,repeat,binary,random,call]
+  (+ empty.bin, 0 bytes: its slot is unobservable - directory order
+  TBD by decoders).
+  Header +10 bytes: m0 0x00, m1 0x27, m2/mx/mz 0x35, m3 0x43;
+  `l` reports STORE / ALZ:1 / ALZ:2 / ALZ:2 / ALZ:2 / ALZ:3.
+  OPEN QUESTION: header byte vs displayed mode vs codec table disagree
+  (e.g. 0x27=39 falls in core5 range 36..79, yet `l` says ALZ:1).
+  Either the byte is a mode tag (not the codec ID) or the table's ALZ
+  range is wider than 8..21. Resolves once entry+2 methods decode
+  (per-file ground truth, pending core2/3 ports).
+  Directory tables byte-identical across all six modes (112B).
+  NOTE: 03_m2, 03_mx, 03_mz are byte-identical (same MD5) - this
+  "CLASS EDiTiON" build collapses x/z modes onto ALZ:2 (banner:
+  "FOR CLASS/BACKSLASH RELEASES ONLY"), so vectors cover ALZ:1/2/3 only,
+  NOT PPM/LZP. Header +10 follows 36+(k-1)*14+3 (k=switch, 3=dict idx):
+  0x27/0x35/0x43 for k=1/2/3. 0.4 build does honour x/z (all four differ).
 * Directory: framework DONE (mirrors 0.4: 4 tables, methods 0/17/2/7,
   19B entries, delta sizes). Decode PENDING: needs 0.3-specific
   core3 (14 methods 8..21, ALZ:1/2/3 split) + core2 ports
@@ -78,17 +98,21 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   48+11656+28+65+28+35=11860 verified. Header +9 = 0x19 (25, core3).
   DOS32 executable cannot run here; test vectors via MAKE02.BAT
   (run on a DOS machine next to UHARC02.EXE): builds text corpus
-  (EMPTY.BIN 0B, T1 362B + T2 353B lorem, REPEAT 528B = 8x64 A + CRLF)
-  + archives 02_m0/m1/m2/m3.uha (modes STORE/FAST/NORM/BEST),
-  self-tested with t on DOS (exit 0).
+  (EMPTY.BIN 0B, T1 362B + T2 353B lorem/pangram lines, REPEAT 528B =
+  8x64 A + CRLF) + archives 02_m0/m1/m2/m3.uha (modes STORE/FAST/NORM/BEST).
   Vectors received in workarea root and verified here: headers parse rc=0,
   methods m0->00 core0 STORE, m1->09, m2->21, m3->33 (all core3);
   base m0 1243 (= total, STORE), m1 491, m2/m3 487;
-  directory identical across modes (names 36, cmp 32/11/18,
-  contents CRC identical, tables byte-identical 77B).
-  m0 STORE file data is plain concatenation in directory order
-  (EMPTY,REPEAT,T1,T2): byte-exact MATCH vs MAKE02.BAT corpus definitions.
-  Ground truth travels as files (same pattern as 03/04/06 vectors).
+  directory tables byte-identical across modes (names 36, cmp 32/11/18,
+  77B total).
+  m0 STORE file data is plain: it tiles exactly with the MAKE02.BAT corpus
+  (non-empty order uniquely [REPEAT,T1,T2]; EMPTY.BIN contributes 0 bytes,
+  so its slot is unobservable - directory order TBD by decoders).
+  Ground truth travels as files (same pattern as 03/04/06 vectors);
+  per-file names/CRCs await directory decoders. The batch runs `t`
+  self-checks on DOS; here `l`/`t` output is uncapturable (DOS32 binary,
+  headless env), so there is no per-file listing ground truth yet -
+  unlike 0.3/0.4/0.6 (pywinpty / native console output).
 * Directory: framework DONE (mirrors 0.6 solid model: 4 tables methods
   0/7/2/7, 19B entries, delta sizes, cumulative contents CRC).
   Decode PENDING: tab1/tab3 method 7 + tab2 method 2 need 0.2-specific
