@@ -1,6 +1,29 @@
-# UHARC 0.4/0.6 archive formats (from UHARC04/UNUHARC06)
+# UHARC 0.3/0.4/0.6 archive formats (from uharc_u/UHARC04/UNUHARC06)
 
 All integers little-endian. CRC32 IEEE ED pennies (init FFFFFFFF).
+
+## 0.3 summary (uharc_u.c / uharc_u.lst, UHARC 0.3 full archiver)
+
+Same 44-byte layout as 0.4 (sub_404B14), magic 0x03414855 UHA03.
+Decrypt 36 bytes 4..39 key=raw42, CRC32 over 4..39 low16==raw42..43.
+Fields: same offsets as 0.4 (+0 magic, +4 time, +6 date, +8 pw, +9 filt,
++10 unk/method 0x3C=60 core5, +11 ndirs, +13 unk, +17 base, +21 nfiles u24,
++24 names_len, +27 cmp1, +30 cmp2, +33 cmp3, +36 crc1, +38 crc2, +40 crc3,
++42 hdr_crc). Sample uharc_u.uha 151822 bytes: ndirs 1, nfiles 1,
+names 11, cmp 15/4/8, layout 44+151747+4+15+4+8=151822 verified.
+Extracted ground truth (uharc_u.exe x -y+ -o+ -d0, silent console):
+single file `uharc_u.c`, 1047398 bytes (= unk_dfd total).
+Test vectors (updated uharc_u.exe 218112 bytes creates correctly;
+original 218592 silent no-op): 6-file corpus (5840 bytes), modes
+m0/m1/m2/m3/mx/mz -> 03_m*.uha (5996/1598/1598/1597/1598/1598 bytes).
+Headers: unk_dfa m0 00, m1 27, m2/mx/mz 35, m3 43; base m0 5840 STORE,
+others 1441-1442; names 62, cmp 50/13/25, crc BD63/25CA/3CF2 identical
+across modes (directory method-independent). All round-trip byte-exact
+via original (6/6 MATCH per mode).
+Tables: tab0 STORE 4*N, tab1 method17 names, tab2 method2 4*N,
+tab3 method7 7*N (same methods as 0.4 directory). Per-file methods.
+Method->core table differs: 0->0,1->1,2..7->2,8..21->3,22..35->4,
+36..79->5 (+80->0). Cores differ from 0.4/0.6 (different models/tables).
 
 ## 0.4 summary (UHARC04.c / UHARC04.lst, UHARC 0.4 BETA)
 
