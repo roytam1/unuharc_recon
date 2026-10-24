@@ -2,8 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
 #include "uharc06.h"
 #include "uharc_dec.h"
+#include "uhcrypt06.h"
 
 /* ---------- CRC32 (IEEE, matches dword_421EB3) ---------- */
 static unsigned long crc_tab[256];
@@ -164,25 +171,69 @@ static int mw_write(void *ctx, const unsigned char *buf, unsigned len)
     return 0;
 }
 
-/* decode one table */
+typedef struct mem_reader_s {
+    const unsigned char *buf;
+    unsigned long len;
+    unsigned long pos;
+} mem_reader;
+
+static int mr_read(void *ctx, unsigned char *buf, unsigned want)
+{
+    mem_reader *m = (mem_reader *)ctx;
+    unsigned long avail = m->len - m->pos;
+    if (avail == 0) return 0;
+    if (want > avail) want = (unsigned)avail;
+    memcpy(buf, m->buf + m->pos, want);
+    m->pos += want;
+    return (int)want;
+}
+
+/* decode one table: read cmp_len bytes at off, decrypt with fresh
+ * default-password S-box (sub_4017BE/sub_40367A, fresh per table),
+ * then decode from memory. crc_init is incoming CRC (FFFFFFFF for
+ * fresh, or accumulated for cumulative tab0+tab1 check). */
 static int decode_table(FILE *fp, long off, unsigned long cmp_size,
                         int method, unsigned char *out,
-                        unsigned long dec_size, unsigned long *crc_out)
+                        unsigned long dec_size, unsigned long crc_init,
+                        unsigned long *crc_out)
 {
-    file_reader fr;
+    mem_reader mr;
     mem_writer mw;
+    unsigned char *cmp = 0;
+    unsigned long cmp_len;
+    uhcrypt06_t *cr = 0;
     int rc;
+    size_t got;
     if (fseek(fp, off, SEEK_SET) != 0) return UHARC06_ERR_IO;
-    fr.fp = fp;
-    fr.remaining = (method == 0) ? dec_size : cmp_size;
-    /* for STORE, cmp==dec; for method 17, cmp from header */
-    if (method == 0) fr.remaining = dec_size;
-    fr.use_crypt = 0;
+    cmp_len = (method == 0) ? dec_size : cmp_size;
+    if (cmp_len == 0 && dec_size == 0) {
+        if (crc_out) *crc_out = crc_init;
+        return UHARC06_OK;
+    }
+    cmp = (unsigned char *)malloc(cmp_len ? cmp_len : 1);
+    if (!cmp) return UHARC06_ERR_NOMEM;
+    got = fread(cmp, 1, cmp_len, fp);
+    if (got != cmp_len) {
+        free(cmp);
+        return UHARC06_ERR_IO;
+    }
+    /* fresh default-password cipher per table (sub_4017BE), in-place */
+    cr = uhcrypt06_init();
+    if (!cr) {
+        free(cmp);
+        return UHARC06_ERR_NOMEM;
+    }
+    uhcrypt06_update(cr, cmp, cmp_len);
+    uhcrypt06_free(cr);
+    mr.buf = cmp;
+    mr.len = cmp_len;
+    mr.pos = 0;
     mw.buf = out;
     mw.cap = dec_size;
     mw.pos = 0;
-    mw.crc = 0xFFFFFFFFUL;
-    rc = uharc_dec_decode(method, fr_read, &fr, mw_write, &mw, dec_size);
+    mw.crc = crc_init;
+    rc = uharc_dec_decode(method, mr_read, &mr, mw_write, &mw, dec_size);
+    free(cmp);
     if (rc != 0) {
         if (rc == 2) return UHARC06_ERR_NOMEM;
         return UHARC06_ERR_DATA;
@@ -305,9 +356,11 @@ int uharc06_open(const char *path, uharc06_t **ph)
         return UHARC06_ERR_NOMEM;
     }
 
-    /* table0: method 0 STORE, 4*nfiles (file CRCs) */
+    /* table0: method 0 STORE, 4*nfiles (file CRCs).
+     * CRC accumulates across tab0+tab1 for hdr.tab1_crc check
+     * (sub_403840 keeps dword_433DD4 across first two tables). */
     rc = decode_table(fp, tab0_off, 4 * nfiles, 0,
-                      tab0, 4 * nfiles, 0);
+                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHARC06_OK) {
         free(tab0);
         free(tab1);
@@ -315,9 +368,10 @@ int uharc06_open(const char *path, uharc06_t **ph)
         uharc06_close(h);
         return rc;
     }
-    /* table1: method 17 (core3 ALZ), dec=tab1_dec, cmp=tab1_cmp */
+    /* table1: method 17 (core3 ALZ), dec=tab1_dec, cmp=tab1_cmp.
+     * Pass accumulated tab0 CRC so output CRC is cumulative. */
     rc = decode_table(fp, tab1_off, hdr.tab1_cmp_size, 17,
-                      tab1, hdr.tab1_dec_size, &crc);
+                      tab1, hdr.tab1_dec_size, crc, &crc);
     if (rc != UHARC06_OK) {
         free(tab0);
         free(tab1);
@@ -332,9 +386,10 @@ int uharc06_open(const char *path, uharc06_t **ph)
         uharc06_close(h);
         return UHARC06_ERR_CRC;
     }
-    /* table2: method 17, dec=11*nfiles, cmp=tab2_cmp */
+    /* table2: method 17, dec=11*nfiles, cmp=tab2_cmp.
+     * CRC reset before third table (sub_403840 sets dword_433DD4=-1). */
     rc = decode_table(fp, tab2_off, hdr.tab2_cmp_size, 17,
-                      tab2, 11 * nfiles, &crc);
+                      tab2, 11 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHARC06_OK) {
         free(tab0);
         free(tab1);
@@ -463,10 +518,11 @@ int uharc06_open(const char *path, uharc06_t **ph)
                 e->date = d;
                 e->dir_index = w0;
                 e->method = m;
-                e->size = sz;
+                /* raw var (negative cumulative, sub_403C28 var-=dword).
+                 * Converted to sizes below via differences. */
+                e->size = sz & 0xFFFFFFFFUL;
                 e->crc = crcf;
-                e->offset = off;
-                off += sz;
+                e->offset = 0;
                 /* filename from tab1 second part */
                 {
                     unsigned l;
@@ -486,6 +542,32 @@ int uharc06_open(const char *path, uharc06_t **ph)
                 e->dir = "";
                 e->name = "";
                 e->path = "";
+            }
+            /* entry+3 on disk is delta (prev_size - curr_size, sub_403C28
+             * var-=dword pattern with var holding previous size? Actually
+             * var_i = size_{i-1} - size_i, var_0 = 0 - size_0.
+             * Recover sizes iteratively: size_0 = -var_0,
+             * size_i = size_{i-1} - var_i (32-bit wrap). Validated on
+             * 06_m1 corpus (vars [0,-2280,1280,-24,0,512] -> sizes
+             * [0,2280,1000,1024,1024,512], sum 5840). */
+            {
+                unsigned long k2;
+                unsigned long prev_sz = 0;
+                for (k2 = 0; k2 < nfiles; k2++) {
+                    unsigned long var = h->entries[k2].size & 0xFFFFFFFFUL;
+                    unsigned long sz2;
+                    if (k2 == 0) sz2 = (0UL - var) & 0xFFFFFFFFUL;
+                    else sz2 = (prev_sz - var) & 0xFFFFFFFFUL;
+                    h->entries[k2].size = sz2;
+                    prev_sz = sz2;
+                }
+                {
+                    unsigned long off2 = 0;
+                    for (k2 = 0; k2 < nfiles; k2++) {
+                        h->entries[k2].offset = off2;
+                        off2 = (off2 + h->entries[k2].size) & 0xFFFFFFFFUL;
+                    }
+                }
             }
             /* second pass for names: walk tab1 again */
             {
@@ -510,10 +592,14 @@ int uharc06_open(const char *path, uharc06_t **ph)
                     } else {
                         e->dir = "";
                     }
-                    /* path */
+                    /* path: strip trailing slashes from dir to avoid // */
                     e->path = sp;
                     if (e->dir[0]) {
+                        char *dend;
                         strcpy(sp, e->dir);
+                        dend = sp + strlen(sp);
+                        while (dend > sp && (dend[-1] == '/' || dend[-1] == '\\'))
+                            *--dend = 0;
                         strcat(sp, "/");
                         strcat(sp, e->name);
                     } else {
@@ -551,12 +637,239 @@ void uharc06_close(uharc06_t *h)
     free(h);
 }
 
+/* ---- solid-stream splitter (mirrors sub_4051A2) ----
+ * Single-threaded globals pointing at extract() locals. */
+static uharc06_t *g_sp_h;
+static const char *g_sp_outdir;
+static int g_sp_with_paths;
+static int g_sp_test_only;
+static unsigned long *g_sp_pidx;
+static unsigned long *g_sp_prem;
+static FILE **g_sp_pcur;
+static unsigned long *g_sp_pcrc;
+static char *g_sp_curpath;
+static unsigned g_sp_curpath_cap;
+static int g_sp_crc_err;
+
+static void g_sp_mkdir_parents(char *path)
+{
+    char *p;
+    for (p = path; *p; p++) {
+        if (*p == '/') {
+            char save = *p;
+            *p = 0;
+#ifdef _WIN32
+            mkdir(path);
+#else
+            mkdir(path, 0755);
+#endif
+            *p = save;
+        }
+    }
+}
+
+static int g_sp_open_cur(void)
+{
+    uharc06_t *h = g_sp_h;
+    unsigned long i = *g_sp_pidx;
+    const uharc06_entry *e = &h->entries[i];
+    char *dst = g_sp_curpath;
+    dst[0] = 0;
+    if (g_sp_with_paths && e->path[0]) {
+        size_t od = strlen(g_sp_outdir);
+        size_t need = od + 1 + strlen(e->path) + 1;
+        if (need > g_sp_curpath_cap) return 1;
+        memcpy(dst, g_sp_outdir, od);
+        dst[od] = '/';
+        strcpy(dst + od + 1, e->path);
+    } else {
+        size_t od = strlen(g_sp_outdir);
+        size_t need = od + 1 + strlen(e->name) + 1;
+        if (need > g_sp_curpath_cap) return 1;
+        memcpy(dst, g_sp_outdir, od);
+        dst[od] = '/';
+        strcpy(dst + od + 1, e->name);
+    }
+    if (!g_sp_test_only) {
+        g_sp_mkdir_parents(dst);
+        *g_sp_pcur = fopen(dst, "wb");
+        if (!*g_sp_pcur) return 1;
+    } else {
+        *g_sp_pcur = 0;
+    }
+    *g_sp_pcrc = 0xFFFFFFFFUL;
+    return 0;
+}
+
+/* returns 0 ok, 1 io/error (decoder maps non-zero to err 4; CRC flag distinguishes) */
+static int uharc06_split_write(void *ctx, const unsigned char *buf, unsigned len)
+{
+    uharc06_t *h = g_sp_h;
+    (void)ctx;
+    while (len > 0) {
+        unsigned long chunk;
+        unsigned long ci;
+        if (*g_sp_pidx >= h->nfiles) {
+            return 1;
+        }
+        /* TODO skip marker method 0xFF: no test vectors; size should be 0.
+         * Fail fast on size>0 with method FF rather than mis-extract. */
+        if (h->entries[*g_sp_pidx].method == 0xFF &&
+            (h->entries[*g_sp_pidx].size & 0xFFFFFFFFUL) != 0) {
+            return 1;
+        }
+        chunk = len;
+        if (chunk > *g_sp_prem) chunk = *g_sp_prem;
+        if (!g_sp_test_only) {
+            if (!*g_sp_pcur) {
+                if (g_sp_open_cur() != 0) return 1;
+            }
+            if (chunk > 0) {
+                size_t w = fwrite(buf, 1, (size_t)chunk, *g_sp_pcur);
+                if (w != (size_t)chunk) return 1;
+                *g_sp_pcrc = uharc06_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
+            }
+        } else {
+            if (chunk > 0)
+                *g_sp_pcrc = uharc06_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
+        }
+        buf += chunk;
+        len -= (unsigned)chunk;
+        *g_sp_prem -= chunk;
+        if (*g_sp_prem == 0) {
+            ci = *g_sp_pidx;
+            if (*g_sp_pcur) { fclose(*g_sp_pcur); *g_sp_pcur = 0; }
+            if (((~(*g_sp_pcrc)) & 0xFFFFFFFFUL) !=
+                (h->entries[ci].crc & 0xFFFFFFFFUL)) {
+                g_sp_crc_err = 1;
+                return 1;
+            }
+            (*g_sp_pidx)++;
+            /* skip empties: create empty file unless test, check crc==0 */
+            while (*g_sp_pidx < h->nfiles &&
+                   (h->entries[*g_sp_pidx].size & 0xFFFFFFFFUL) == 0) {
+                unsigned long zi = *g_sp_pidx;
+                /* TODO method 0xFF skip marker: treated like normal empty */
+                if ((h->entries[zi].crc & 0xFFFFFFFFUL) != 0) {
+                    g_sp_crc_err = 1;
+                    return 1;
+                }
+                if (!g_sp_test_only) {
+                    if (g_sp_open_cur() != 0) return 1;
+                    if (*g_sp_pcur) { fclose(*g_sp_pcur); *g_sp_pcur = 0; }
+                }
+                (*g_sp_pidx)++;
+            }
+            if (*g_sp_pidx < h->nfiles) {
+                /* TODO method 0xFF with size>0 fails fast at top of loop */
+                *g_sp_prem = h->entries[*g_sp_pidx].size;
+                if (g_sp_open_cur() != 0) return 1;
+                if (g_sp_test_only) *g_sp_pcur = 0;
+            } else {
+                *g_sp_pcur = 0;
+                *g_sp_prem = 0;
+            }
+        }
+    }
+    return 0;
+}
+
 int uharc06_extract(uharc06_t *h, const char *outdir,
                     int with_paths, int test_only)
 {
-    (void)h;
-    (void)outdir;
-    (void)with_paths;
-    (void)test_only;
-    return UHARC06_ERR_METHOD;
+    FILE *fp;
+    unsigned char *packed = 0;
+    unsigned long packed_len;
+    size_t got;
+    unsigned long idx = 0;
+    unsigned long remaining = 0;
+    FILE *cur = 0;
+    unsigned long cur_crc = 0xFFFFFFFFUL;
+    char curpath[2048];
+    mem_reader mr;
+    int drc;
+    int rc = UHARC06_OK;
+    unsigned long k;
+
+    if (!h || !h->fp) return UHARC06_ERR_IO;
+    if (!outdir) outdir = ".";
+    fp = h->fp;
+
+    /* wire globals to locals */
+    g_sp_h = h;
+    g_sp_outdir = outdir;
+    g_sp_with_paths = with_paths;
+    g_sp_test_only = test_only;
+    g_sp_pidx = &idx;
+    g_sp_prem = &remaining;
+    g_sp_pcur = &cur;
+    g_sp_pcrc = &cur_crc;
+    g_sp_curpath = curpath;
+    g_sp_curpath_cap = (unsigned)sizeof(curpath);
+    g_sp_crc_err = 0;
+
+    /* TODO skip marker method 0xFF: fail fast if size>0 */
+    for (k = 0; k < h->nfiles; k++) {
+        if (h->entries[k].method == 0xFF &&
+            (h->entries[k].size & 0xFFFFFFFFUL) != 0) {
+            rc = UHARC06_ERR_DATA;
+            goto done;
+        }
+    }
+
+    /* skip leading empties: create empty file unless test, crc must be 0.
+     * Do not consume input for them. */
+    while (idx < h->nfiles &&
+           (h->entries[idx].size & 0xFFFFFFFFUL) == 0) {
+        if ((h->entries[idx].crc & 0xFFFFFFFFUL) != 0) {
+            rc = UHARC06_ERR_CRC;
+            goto done;
+        }
+        if (!test_only) {
+            if (g_sp_open_cur() != 0) { rc = UHARC06_ERR_IO; goto done; }
+            if (cur) { fclose(cur); cur = 0; }
+        }
+        idx++;
+    }
+    if (idx < h->nfiles) {
+        remaining = h->entries[idx].size;
+        if (g_sp_open_cur() != 0) { rc = UHARC06_ERR_IO; goto done; }
+        if (test_only) cur = 0;
+    } else {
+        remaining = 0;
+    }
+
+    /* packed file-data range: 39 .. 39+hdr.data_off (data_off = packed len) */
+    packed_len = h->hdr.data_off;
+    if (fseek(fp, 39L, SEEK_SET) != 0) { rc = UHARC06_ERR_IO; goto done; }
+    packed = (unsigned char *)malloc(packed_len ? packed_len : 1);
+    if (!packed) { rc = UHARC06_ERR_NOMEM; goto done; }
+    got = fread(packed, 1, packed_len, fp);
+    if (got != packed_len) { rc = UHARC06_ERR_IO; goto done; }
+    /* File data is NOT default-encrypted (unlike tables which use fresh
+     * default S-box per table via sub_4017BE). File stream uses
+     * sub_4017BE(byte_422579): plain when no -pw password.
+     * TODO password archives: decrypt with user password when set. */
+
+    /* TODO filters (sub_404DCE: exe E8E9, multimedia) gated by flags.
+     * 06_m0 (flags 00/00) needs none; D3X (flags 00/01) needs exe filter.
+     * Currently raw decompressed bytes are split as-is. */
+    mr.buf = packed;
+    mr.len = packed_len;
+    mr.pos = 0;
+    drc = uharc_dec_decode((int)h->hdr.method, mr_read, &mr,
+                           uharc06_split_write, 0, h->hdr.total_size);
+    if (g_sp_crc_err) rc = UHARC06_ERR_CRC;
+    else if (drc == 2) rc = UHARC06_ERR_NOMEM;
+    else if (drc != 0) rc = UHARC06_ERR_DATA;
+    else rc = UHARC06_OK;
+    if (rc != UHARC06_OK) goto done;
+    /* all files must be accounted for */
+    if (idx != h->nfiles) { rc = UHARC06_ERR_DATA; goto done; }
+
+done:
+    if (packed) free(packed);
+    if (cur) { fclose(cur); cur = 0; }
+    g_sp_h = 0;
+    return rc;
 }

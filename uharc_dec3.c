@@ -51,17 +51,8 @@
  */
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "uharc_dec.h"
-
-static int tr_steps = 0;
-static long tr_lit = 0, tr_match = 0, tr_binlit = 0;
-static int tr_errat = 0;
-static int tr_dump = 0;
-static int tr_check = 1;
-static long tr_esc = 0;
-static long tr_resc = 0;
 
 #define D3_M32 0xFFFFFFFFUL
 
@@ -248,7 +239,6 @@ void uharc_dec3_free(void *ctx)
 }
 
 /* ---- I/O pump ---- */
-static int d3_bitcheck(dec3 *d, unsigned ctxidx);
 static int d3_get(dec3 *d)
 {
     int n;
@@ -284,7 +274,6 @@ static void d3_rc_init(dec3 *d)
     for (i = 0; i < 5; i++) {
         d->code = ((d->code << 8) | (unsigned long)d3_get(d)) & D3_M32;
     }
-    if (tr_steps) fprintf(stderr, "rcinit code=%08lX range=%08lX\n", d->code, d->range);
 }
 
 /* zoom (code,range) into sub-range [lo,hi); renormalize; 0 = data error */
@@ -292,14 +281,15 @@ static int d3_renorm(dec3 *d, unsigned long lo, unsigned long hi)
 {
     unsigned long rng;
     unsigned long code;
-    unsigned long rb = d->range;
     if (hi <= lo) {
-        { d->err = 7; tr_errat = __LINE__; return 0; }
+        d->err = 7;
+        return 0;
     }
     rng = (d->range * ((hi - lo) & D3_M32)) & D3_M32;
     code = (d->code - ((d->range * lo) & D3_M32)) & D3_M32;
     if (rng == 0) {
-        { d->err = 7; tr_errat = __LINE__; return 0; }
+        d->err = 7;
+        return 0;
     }
     while (rng < 0x1000000UL) {
         code = ((code << 8) | (unsigned long)d3_get(d)) & D3_M32;
@@ -397,108 +387,74 @@ static void d3_update(dec3 *d, unsigned ctxidx, unsigned sym)
         idx = (idx + (idx & (0u - idx))) & 0xFFu;
     }
     f[0] = (unsigned short)(f[0] + 32);
-    if (ctxidx == 107) fprintf(stderr, "UPD107 f0=%u out=%lu\n", f[0], d->out_total);
     t = d->escw[ctxidx] + f[0];
-    if (t >= 0x4000) { tr_resc++; d3_rescale(d, ctxidx); }
-}
-
-/* debug: verify freq is a valid Fenwick tree of raw for ctx (0=ok) */
-static int d3_bitcheck(dec3 *d, unsigned ctxidx)
-{
-    unsigned short *fr = d->freq + ctxidx * 256u;
-    unsigned short *rw = d->raw + ctxidx * 256u;
-    unsigned b;
-    for (b = 1; b < 256; b++) {
-        unsigned lo = b & (0u - b);
-        unsigned long s = 0;
-        unsigned j;
-        unsigned start = (b >= lo) ? (b - lo + 1) : 1;
-        if (start < 1) start = 1;
-        for (j = start; j <= b; j++) s += rw[j];
-        if ((fr[b] & 0xFFFFu) != (s & 0xFFFFu)) return (int)b;
-    }
-    {
-        unsigned long s = 0;
-        unsigned j;
-        for (j = 0; j < 256; j++) s += rw[j];
-        if ((fr[0] & 0xFFFFu) != (s & 0xFFFFu)) return -1;
-    }
-    return 0;
+    if (t >= 0x4000) d3_rescale(d, ctxidx);
 }
 
 /* ---- literal decode (sub_40C35C); returns byte, sets err 7 on bad data */
 static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
 {
-    unsigned short *f = d->freq + ctxidx * 256u;
-    unsigned short *r = d->raw + ctxidx * 256u;
-    unsigned long total = f[0];
+    unsigned short *f;
+    unsigned short *r;
+    unsigned long total;
     unsigned long scaled;
-    int have_eb = (d->excl >= 0);
-    if (d->out_total == 17) fprintf(stderr, "DBG17 ctx=%u f0=%u have_eb=%d\n", ctxidx, d->freq[ctxidx*256u], have_eb);
-    if (d->out_total == 17 && tr_dump == 0) {
-        FILE *ff;
-        {
-            unsigned long hh[4];
-            hh[0] = (unsigned long)d->dict[d->excl >= 0 ? d->excl : 0];
-            hh[1] = (unsigned long)d->hval[(d->ctx ^ (d->ctx >> 13)) & 0x3FFFFUL];
-            hh[2] = d->range;
-            hh[3] = d->code;
-/* FIX:                    ctxidx, (unsigned long)f[0], (long)d->excl, hh[0], hh[1]); */
-        }
-        tr_dump = 1;
-        ff = fopen("c_state.bin", "wb");
-        if (ff) {
-            fwrite(d->freq, 2, 319u * 256u, ff);
-            fwrite(d->raw, 2, 319u * 256u, ff);
-            fwrite(d->escw, 2, 318, ff);
-            fwrite(d->litm, 2, 50u * 4u, ff);
-            fwrite(d->prob, 4, 5121u, ff);
-            {
-                unsigned long hdr[8];
-                hdr[0] = d->code; hdr[1] = d->range; hdr[2] = (unsigned long)d->excl;
-                hdr[3] = (unsigned long)d->match_pos; hdr[4] = d->ctx; hdr[5] = d->dict_pos;
-                hdr[6] = d->run_len; hdr[7] = d->last_dist;
-                fwrite(hdr, 4, 8, ff);
-            }
-            fclose(ff);
-        }
-    }
-
-    unsigned eb = have_eb ? d->dict[d->excl] : 0;
+    unsigned long esc_total;
+    unsigned long v42;
+    int have_eb;
+    int eb_on;
+    unsigned eb;
+    unsigned p;
+    unsigned rem;
+    unsigned step;
+    unsigned sym;
+    unsigned q;
+    unsigned short *r318;
+    unsigned short *f318;
+    unsigned short xsum;
+    unsigned i;
+    unsigned long v17;
+    unsigned long s2;
+    unsigned short acc;
+    unsigned v40;
+    unsigned target;
+    int is_fallback;
+    f = d->freq + ctxidx * 256u;
+    r = d->raw + ctxidx * 256u;
+    total = f[0];
+    have_eb = (d->excl >= 0);
+    eb = have_eb ? (unsigned)(unsigned char)d->dict[d->excl] : 0;
     if (have_eb) total = (total - r[eb]) & 0xFFFFUL;
+    is_fallback = 0;
     if (total == 0) {
         ctxidx = 0x13E;
         f = d->freq + ctxidx * 256u;
         r = d->raw + ctxidx * 256u;
         total = f[0];
         if (have_eb) total = (total - r[eb]) & 0xFFFFUL;
+        is_fallback = 1;
     }
     if (total == 0) {
-        { d->err = 7; tr_errat = __LINE__; return 0; }
+        d->err = 7;
+        return 0;
     }
-    {
-        unsigned long rb = d->range;
-        d->range /= total;
-        if (d->range == 0) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
-        }
+    if (is_fallback) d->range /= total;
+    else {
+        esc_total = total + (unsigned long)d->escw[ctxidx];
+        d->range /= esc_total;
+    }
+    if (d->range == 0) {
+        d->err = 7;
+        return 0;
     }
     scaled = d->code / d->range;
-    if (d->out_total < 5)
-/* BROKEN-DEBUG-REMOVED:                ctxidx, total, d->range, d->code, scaled); */
     if ((scaled & 0xFFFFUL) < total) {
-        /* direct symbol via Fenwick search (mirrored: rem = total - scaled) */
-        unsigned p = 0;
-        unsigned rem = (unsigned)(total - scaled);
-        unsigned step;
-        unsigned sym;
+        p = 0;
+        rem = (unsigned)(total - scaled);
         if (have_eb) {
-            unsigned long v42 = r[eb];
-            int eb_on = 1;
-            if (d->out_total < 300)
-/* BROKEN-DEBUG-REMOVED:                        d->out_total, ctxidx, total, scaled, eb, r[eb], d->code, d->range); */
+            v42 = r[eb];
+            eb_on = 1;
             for (step = 128; step != 0; step >>= 1) {
-                unsigned q = p + step;
+                q = p + step;
                 if (!eb_on || q <= eb) {
                     if (rem > f[q]) {
                         p = q;
@@ -512,7 +468,7 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
             }
         } else {
             for (step = 128; step != 0; step >>= 1) {
-                unsigned q = p + step;
+                q = p + step;
                 if (rem > f[q]) {
                     p = q;
                     rem -= f[q];
@@ -521,47 +477,44 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
         }
         sym = p;
         if (sym > 255) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         d->sym_hi = (scaled + rem) & 0xFFFFUL;
         if (r[sym] > d->sym_hi) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         d->sym_lo = d->sym_hi - r[sym];
         if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
         return sym;
     } else {
-        /* escape to order-0 model with exclusion */
-        tr_esc++;
-        unsigned short *r318 = d->raw + 318u * 256u;
-        unsigned short *f318 = d->freq + 318u * 256u;
-        unsigned short xsum = 0;
-        unsigned i;
-        unsigned long v17;
-        unsigned long s2;
-        unsigned short acc = 0;
-        unsigned v40 = 256;
+        r318 = d->raw + 318u * 256u;
+        f318 = d->freq + 318u * 256u;
+        xsum = 0;
+        acc = 0;
+        v40 = 256;
         d->sym_lo = total;
         d->sym_hi = (unsigned long)d->escw[ctxidx] + total;
         if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
         for (i = 0; i < 256; i++) {
-            if (r[i] == 0) xsum = (unsigned short)(xsum + r318[i]);
+            if (r[i] != 0) xsum = (unsigned short)(xsum + r318[i]);
         }
         if (have_eb && r[eb] == 0) xsum = (unsigned short)(xsum + r318[eb]);
         v17 = (f318[0] - xsum) & D3_M32;
         if (v17 == 0) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         d->range /= v17;
         if (d->range == 0) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         s2 = d->code / d->range;
-        if (tr_steps > 0 && d->out_total < 200)
-/* BROKEN-DEBUG-REMOVED:                    ctxidx, total, v17, s2, d->excl, eb); */
         if (have_eb) {
-            int target = (int)eb + 1;
-            while ((int)v40 != target) {
+            target = eb + 1;
+            while (v40 != target) {
                 --v40;
                 if (r[v40] == 0) {
                     acc = (unsigned short)(acc + r318[v40]);
@@ -570,20 +523,17 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
             }
             if (acc <= (unsigned short)(s2 & 0xFFFFUL)) {
                 if (v40 == 0) {
-                    { d->err = 7; tr_errat = __LINE__; return 0; }
+                    d->err = 7;
+                    return 0;
                 }
                 --v40;
             }
         }
         if (acc <= (unsigned short)(s2 & 0xFFFFUL)) {
-            if (tr_steps >= 0) {
-                unsigned zzi, zzc = 0;
-                for (zzi = 0; zzi < 256; zzi++) if (r[zzi] == 0) zzc++;
-/* BROKEN-DEBUG-REMOVED:                        v40, s2 & 0xFFFFUL, acc, ctxidx, zzc, f318[0]); */
-            }
             for (;;) {
                 if (v40 == 0) {
-                    { d->err = 7; tr_errat = __LINE__; return 0; }
+                    d->err = 7;
+                    return 0;
                 }
                 --v40;
                 if (r[v40] == 0) break;
@@ -593,7 +543,8 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
                 if (acc > (unsigned short)(s2 & 0xFFFFUL)) break;
                 for (;;) {
                     if (v40 == 0) {
-                        { d->err = 7; tr_errat = __LINE__; return 0; }
+                        d->err = 7;
+                        return 0;
                     }
                     --v40;
                     if (r[v40] == 0) break;
@@ -601,15 +552,14 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
             }
         }
         if (v40 > 255) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         d->sym_hi = acc;
         d->sym_lo = (acc - r318[v40]) & 0xFFFFUL;
-        {
-            unsigned sym = v40;
-            if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
-            return sym;
-        }
+        sym = v40;
+        if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
+        return sym;
     }
 }
 
@@ -674,19 +624,20 @@ static int d3_match(dec3 *d)
     he[0] = d->dict_pos;
     d->ord[d->ctx & 0xFFFFUL] = d->dict_pos;
     he[1] = d->ctx;
-    /* debug removed */
     if (v1 == 0 || ((mpos - d->dict_pos) & d->dict_mask) < 0x100UL) {
         d->run_len = 0;
         return 0;
     }
     if (!d->run_len) {
-        int adj = d->hval[h] ? -1 : 23;
-        v1 += d->state + adj;
+        if (d->hval[h]) v1 += d->state - 1;
+        else v1 += d->state + 23;
     }
     mp = d->dict + (mpos & d->dict_mask);
     if (d->excl >= 0 && d->dict[d->excl] == *mp) {
         /* exclusion hit: literal, update entry total only */
-        unsigned short *e = d->litm[v1];
+        {
+        unsigned short *e;
+        e = d->litm[v1];
         e[2] = (unsigned short)(e[2] + 64);
         if (e[2] >= 0x4000) {
             e[1] = (unsigned short)((e[1] + 1) >> 1);
@@ -695,6 +646,7 @@ static int d3_match(dec3 *d)
         d->state = tab_st0[2 * d->state + 1];
         d->run_len = 0;
         return 0;
+        }
     }
     {
         unsigned v42;
@@ -709,15 +661,14 @@ static int d3_match(dec3 *d)
         if (nxt != d->dict_pos) v42 |= d->dict[nxt];
         d->match_pos = (long)(mpos & d->dict_mask);
         e = d->litm[v1];
-        if (d->code >= d->range)
-        if (tr_steps > 0 && d->out_total < 40)
-/* BROKEN-DEBUG-REMOVED:                    v1, e[1], e[2], d->range, d->code); */
         if (e[2] == 0) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         d->range /= e[2];
         if (d->range == 0) {
-            { d->err = 7; tr_errat = __LINE__; return 0; }
+            d->err = 7;
+            return 0;
         }
         scaled = d->code / d->range;
         bit = ((scaled & 0xFFFFUL) >= e[1]) ? 1 : 0;
@@ -735,14 +686,11 @@ static int d3_match(dec3 *d)
             e[2] = (unsigned short)((e[2] + 2) >> 1);
         }
         d->state = tab_st0[2 * d->state + bit];
-        if (tr_steps > 0 && d->out_total < 40)
-/* BROKEN-DEBUG-REMOVED:                    bit, lo, hi, d->code, d->range); */
         if (!d3_renorm(d, lo, hi)) return 0;
         if (bit) {
             d->hval[h] = 0;
             d->mval[v42] = 0;
             d->run_len = 0;
-            tr_binlit++;
             return 0;
         }
         {
@@ -760,12 +708,12 @@ static int d3_match(dec3 *d)
             else v23 = (v45 ? d->hval[h] : d->mval[v42]) < 12
                 ? tab_grp[v45 ? d->hval[h] : d->mval[v42]] : 7;
             for (;;) {
-                unsigned cond = (v22 <= v46) ? 1 : 0;
-                cell = d->prob + 1 + 512u * v23 + (cond ? 256u : 0u) + v46;
+                cell = d->prob + 1 + 512u * v23 + ((v22 <= v46) ? 256u : 0u) + v46;
                 pv = *cell;
                 d->range >>= 12;
                 if (d->range == 0) {
-                    { d->err = 7; tr_errat = __LINE__; return 0; }
+                    d->err = 7;
+                    return 0;
                 }
                 scaled = d->code / d->range;
                 if ((scaled & 0xFFFFUL) >= pv) {
@@ -792,24 +740,24 @@ static int d3_match(dec3 *d)
                 d->run_len = 0;
                 d->excl = (long)((mpos + v51) & d->dict_mask);
             }
-            n = v51 + 1; /* 1..256 */
+            n = v51 == 0 ? 256 : v51;
             mcx = d->ctx;
             mdp = d->dict_pos;
             mmp = mpos & d->dict_mask;
             while (n--) {
-                unsigned b = d->dict[mmp];
+                {
+                unsigned b;
+                b = d->dict[mmp];
                 d->dict[mdp] = (unsigned char)b;
                 if (mdp < 0x100) d->dict[d->dict_sz + mdp] = (unsigned char)b;
                 mcx = ((mcx << 8) + b) & D3_M32;
                 d3_emit(d, b ^ 0xFFu);
                 mdp = (mdp + 1) & d->dict_mask;
                 mmp = (mmp + 1) & d->dict_mask;
+                }
             }
             d->ctx = mcx;
             d->dict_pos = mdp;
-            tr_match++;
-            /* debug removed */
-/* BROKEN-DEBUG-REMOVED:                        v51, mcx, d->out_total); */
             return 1;
         }
     }
@@ -831,11 +779,6 @@ static void d3_literal(dec3 *d)
     else midx = lo;
     b = d3_dec_sym(d, midx);
     if (d->err) return;
-    tr_lit++;
-    if (tr_steps > 0) {
-/* BROKEN-DEBUG-REMOVED:                d->ctx & 0xFFFFUL, midx, b, d->out_total); */
-        if (d->out_total > 40) tr_steps = 0;
-    }
     d3_update(d, midx, b);
     d->excl = -1;
     if (d->match_pos >= 0 && d->dict[d->match_pos] == (unsigned char)b) {
@@ -889,8 +832,6 @@ int uharc_dec3_decode(void *ctx,
         }
     }
     err = d->err;
-    if (err) {
-    }
     if (!err && d->out_fill) {
         if (wcb(wctx, d->outb, d->out_fill) != 0) err = 4;
     }
@@ -898,11 +839,5 @@ int uharc_dec3_decode(void *ctx,
     free(d->outb);
     d->inb = 0;
     d->outb = 0;
-/* BROKEN-DEBUG-REMOVED:            tr_lit, tr_binlit, tr_match, tr_esc, tr_resc, d->out_total, tr_errat); */
-    tr_lit = tr_binlit = tr_match = 0;
-    tr_esc = 0;
-    tr_resc = 0;
-    tr_errat = 0;
-    tr_esc = 0;
     return err;
 }

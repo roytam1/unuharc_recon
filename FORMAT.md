@@ -1,6 +1,28 @@
+# UHARC 0.4/0.6 archive formats (from UHARC04/UNUHARC06)
+
+All integers little-endian. CRC32 IEEE ED pennies (init FFFFFFFF).
+
+## 0.4 summary (UHARC04.c / UHARC04.lst, UHARC 0.4 BETA)
+
+44-byte header (sub_4051B0), magic 0x04414855 UHA04.
+Decrypt 36 bytes 4..39 with key=raw42: raw[4+i] ^= (key+i*i)&FF.
+CRC32 over 4..39, low16 == raw42..43.
+Fields: +0 magic, +4 time, +6 date, +8 flags_pw bit1,
++9 flags_filt, +10 unk, +11 ndirs u16, +13 unk u32,
++17 base_e01 u32 (tables at base+44), +21 nfiles u24,
++24 names_len u24, +27 cmp1 u24, +30 cmp2 u24, +33 cmp3 u24,
++36 crc1, +38 crc2, +40 crc3, +42 hdr_crc.
+Sample uha04.UHA 21687 bytes: ndirs 1, nfiles 8, base 21470,
+names 88, cmp 69/32/40, layout 44+21426+32+69+32+40=21687 verified.
+Tables: tab0 STORE 4*N CRCs, tab1 method17 names,
+tab2 method2 dates, tab3 method7 dir/size/method.
+Per-file methods via sub_4091E0. Method->core same as 0.6.
+
+---
+
 # UHARC 0.6 archive format (reverse engineered from UNUHARC06.EXE)
 
-All integers little-endian. All CRC32 are IEEE (`EDB88320`, init `FFFFFFFF`,
+All integers little-endian. All CRC32 are IEEE (EDB88320, init FFFFFFFF,
 table at `00421EB3`), matching `sub_403035`.
 
 ## 1. SFX overlay
