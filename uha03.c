@@ -7,6 +7,7 @@
 #include "uha03.h"
 #include "uharc_dec.h"
 #include "uharc_split.h"
+#include "uharc_filter.h"
 /* Crypt reuses uhcrypt04 (byte-identical to uhcrypt06 per test;
  * 0.3 assumed same - TODO verify via directory CRC once 03 cores work;
  * split to uhcrypt03.* if divergence found). */
@@ -550,6 +551,14 @@ static int u3_read(void *ctx, unsigned char *buf, unsigned want)
     return (int)want;
 }
 
+/* header +9 flags_filt bit0 is the EXE filter switch (original:
+ * byte_436DE1 & 1 -> byte_428B8A); the splitter additionally requires
+ * each file to be at least 0x400 bytes, and the filter checks MZ/ZM. */
+static void uha03_unfilter(unsigned char *buf, unsigned long len)
+{
+    uharc_filter_exe(buf, len, 3);
+}
+
 int uha03_extract(uha03_t *h, const char *outdir,
                   int with_paths, int test_only)
 {
@@ -587,7 +596,9 @@ int uha03_extract(uha03_t *h, const char *outdir,
     }
     mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
-                         (int)h->hdr.unk_dfa, 3, u3_read, &mr, total);
+                         (int)h->hdr.unk_dfa, 3,
+                         (h->hdr.flags_filt & 1) ? uha03_unfilter : 0,
+                         u3_read, &mr, total);
     free(packed);
     free(se);
     switch (rc) {

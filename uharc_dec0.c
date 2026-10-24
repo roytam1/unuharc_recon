@@ -264,6 +264,13 @@ int uharc_dec5u_decode(void *ctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
 void uharc_dec5u_free(void *ctx);
+/* 0.4 core5 (verified: byte-exact on 04_m1/m2/m3) */
+int uharc_dec5v_init(void **pctx, int method);
+int uharc_dec5v_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+void uharc_dec5v_free(void *ctx);
 /* 0.2 core3 (verified: byte-exact on 02_M1/M2/M3 streams) */
 int uharc_dec3t_init(void **pctx, int method);
 int uharc_dec3t_decode(void *ctx,
@@ -390,6 +397,14 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
             if (ret == 0) {
                 ret = uharc_dec5u_decode(c5, rcb, rctx, wcb, wctx, out_len);
                 uharc_dec5u_free(c5);
+            }
+        } else if (ver == 4) {
+            /* 0.4 has its own PPM/LZW coder too */
+            void *c5 = 0;
+            ret = uharc_dec5v_init(&c5, method);
+            if (ret == 0) {
+                ret = uharc_dec5v_decode(c5, rcb, rctx, wcb, wctx, out_len);
+                uharc_dec5v_free(c5);
             }
         } else {
             uharc_dec5_t *c5 = uharc_dec5_init(method);

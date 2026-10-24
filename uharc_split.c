@@ -22,8 +22,13 @@ typedef struct split_ctx_s {
     const char *outdir;
     int with_paths;
     int test_only;
+    void (*unfilter)(unsigned char *, unsigned long);
     FILE *cur;
     unsigned long crc;
+    unsigned char *fbuf;       /* whole-file buffer when filtering */
+    unsigned long fcap;
+    unsigned long fpos;
+    int factive;
     char path[2048];
     int err;
 } split_ctx;
@@ -68,6 +73,7 @@ static int build_path(split_ctx *s, unsigned long i)
 
 static int open_cur(split_ctx *s)
 {
+    const uharc_split_entry *e = &s->ents[s->idx];
     if (!build_path(s, s->idx)) return 0;
     if (!s->test_only) {
         mkdir_parents(s->path);
@@ -77,6 +83,25 @@ static int open_cur(split_ctx *s)
         s->cur = 0;
     }
     s->crc = 0xFFFFFFFFUL;
+    s->factive = 0;
+    s->fpos = 0;
+    /* Mirror the original 0.3/0.4 filter setup: only files of at least
+     * 0x400 bytes get the whole-file EXE pass (the filter itself then
+     * checks the MZ/ZM magic). */
+    if (s->unfilter && (e->size & 0xFFFFFFFFUL) >= 0x400UL) {
+        unsigned long need = e->size & 0xFFFFFFFFUL;
+        if (s->fcap < need) {
+            unsigned char *nb = (unsigned char *)realloc(s->fbuf,
+                                                         (size_t)need);
+            if (!nb) {
+                s->err = USPLIT_ERR_NOMEM;
+                return 0;
+            }
+            s->fbuf = nb;
+            s->fcap = need;
+        }
+        s->factive = 1;
+    }
     return 1;
 }
 
@@ -119,22 +144,51 @@ static int split_write(void *ctx, const unsigned char *buf, unsigned len)
             if (!open_cur(s)) return 1;
         }
         if (chunk > 0) {
-            if (!s->test_only) {
-                size_t w = fwrite(buf, 1, (size_t)chunk, s->cur);
-                if (w != (size_t)chunk) {
-                    s->err = USPLIT_ERR_IO;
+            if (s->factive) {
+                /* buffer the whole file; CRC/write happen after unfilter */
+                if (s->fpos > s->fcap || chunk > s->fcap - s->fpos) {
+                    s->err = USPLIT_ERR_DATA;
                     return 1;
                 }
+                memcpy(s->fbuf + s->fpos, buf, (size_t)chunk);
+                s->fpos += chunk;
+            } else {
+                if (!s->test_only) {
+                    size_t w = fwrite(buf, 1, (size_t)chunk, s->cur);
+                    if (w != (size_t)chunk) {
+                        s->err = USPLIT_ERR_IO;
+                        return 1;
+                    }
+                }
+                s->crc = crc32b(buf, chunk, s->crc);
             }
-            s->crc = crc32b(buf, chunk, s->crc);
         }
         buf += chunk;
         len -= (unsigned)chunk;
         s->remaining -= chunk;
         if (s->remaining == 0) {
+            unsigned long ci = s->idx;
+            if (s->factive) {
+                unsigned long sz = s->ents[ci].size & 0xFFFFFFFFUL;
+                s->unfilter(s->fbuf, s->fpos);
+                if (!s->test_only && s->cur) {
+                    size_t w = fwrite(s->fbuf, 1, (size_t)s->fpos, s->cur);
+                    if (w != (size_t)s->fpos) {
+                        s->err = USPLIT_ERR_IO;
+                        return 1;
+                    }
+                }
+                s->crc = crc32b(s->fbuf, s->fpos, s->crc);
+                if (s->fpos != sz) {
+                    s->err = USPLIT_ERR_CRC;
+                    return 1;
+                }
+                s->factive = 0;
+                s->fpos = 0;
+            }
             if (s->cur) { fclose(s->cur); s->cur = 0; }
             if (((~s->crc) & 0xFFFFFFFFUL) !=
-                (s->ents[s->idx].crc & 0xFFFFFFFFUL)) {
+                (s->ents[ci].crc & 0xFFFFFFFFUL)) {
                 s->err = USPLIT_ERR_CRC;
                 return 1;
             }
@@ -156,6 +210,7 @@ static int split_write(void *ctx, const unsigned char *buf, unsigned len)
 int uharc_split_run(const char *outdir, int with_paths, int test_only,
                     const uharc_split_entry *ents, unsigned long nfiles,
                     int method, int ver,
+                    void (*unfilter)(unsigned char *, unsigned long),
                     uharc_dec_read_cb rcb, void *rctx,
                     unsigned long out_expected)
 {
@@ -167,16 +222,25 @@ int uharc_split_run(const char *outdir, int with_paths, int test_only,
     s.outdir = outdir ? outdir : ".";
     s.with_paths = with_paths;
     s.test_only = test_only;
+    s.unfilter = unfilter;
     s.crc = 0xFFFFFFFFUL;
 
     /* leading empty files */
     while (s.idx < s.nfiles && s.ents[s.idx].size == 0) {
-        if (!emit_empty(&s)) return s.err ? s.err : USPLIT_ERR_IO;
+        if (!emit_empty(&s)) {
+            int e = s.err ? s.err : USPLIT_ERR_IO;
+            free(s.fbuf);
+            return e;
+        }
         s.idx++;
     }
     if (s.idx < s.nfiles) {
         s.remaining = s.ents[s.idx].size;
-        if (!open_cur(&s)) return USPLIT_ERR_IO;
+        if (!open_cur(&s)) {
+            int e = s.err ? s.err : USPLIT_ERR_IO;
+            free(s.fbuf);
+            return e;
+        }
     } else {
         s.remaining = 0;
     }
@@ -184,6 +248,8 @@ int uharc_split_run(const char *outdir, int with_paths, int test_only,
     rc = uharc_dec_decode_v(method, 1, ver, rcb, rctx, split_write, &s,
                             out_expected);
     if (s.cur) { fclose(s.cur); s.cur = 0; }
+    free(s.fbuf);
+    s.fbuf = 0;
     if (s.err) return s.err;
     if (rc == 2) return USPLIT_ERR_NOMEM;
     if (rc != 0) return USPLIT_ERR_DATA;

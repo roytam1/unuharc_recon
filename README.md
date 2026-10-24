@@ -44,10 +44,12 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   and as the m0 stream tiling.
   Ground truth via `UHARC04 l -d2` (names/sizes/dates/CRCs, e.g. text
   7125DAA3, repeat 51A02E01, binary B70B4C26, random 021E1879).
-* File data: EXTRACTION DONE for 04_m0 (STORE) and 04_mz (core3 via
-  uha04_dec3.c) - byte-exact vs corpus. 04_m1/m2/m3/mx still need the
-  0.4 core5/core4 coders. Filters (exe/multimedia) not yet applied, so
-  uha04.UHA (contains a 29 KB EXE) will fail its CRC.
+* File data: EXTRACTION DONE and byte-exact for 04_m0 (STORE), 04_mz
+  (core3) and 04_m1/m2/m3 (core5 via uha04_dec5.c). The 0.4 EXE filter
+  (uharc_filter.c, shared with 0.3) is applied and verified against
+  native extractions. GAPS in 0.4 core5: length-predictor groups 5..9
+  are unimplemented, so uha04.UHA (method 62, first block picks such a
+  group) still fails DATA; 04_mx needs the 0.4 core4 coder.
 
 0.3:
 * Header parsing: DONE, verified on `uharc_u.uha`
@@ -252,7 +254,7 @@ Decompressors (method->core tables are version-specific:
   0.3 extract (all six vectors, methods 0/39/67) and 0.4 extract
   (04_m0 STORE, 04_mz core3) are now byte-exact too.
   Remaining: 0.3 uharc_u.uha (method 60, 1 MB dict path),
-  0.4 m1/m2/m3/mx (need 0.4 core5/core4), and 0.6 compressed
+  0.4 uha04.UHA (core5 groups 5-9) + 04_mx (core4), and 0.6 compressed
   data (core4/5 + filters).
 
 ## Files
@@ -268,7 +270,9 @@ Decompressors (method->core tables are version-specific:
   decrypt/CRC/parse, directory (solid like 0.6; `uha02*` avoids
   clashing with `Uharc02.*`)
 * `uharc_split.h/.c` - shared solid-stream splitter for 0.3/0.4 (decode,
-  per-file split, CRC verify, empty files)
+  per-file split, CRC verify, empty files, optional whole-file filter)
+* `uharc_filter.h/.c` - 0.3/0.4 EXE post-filter (E8/E9 + MZ relocation
+  table), identical for both versions; 0.2 uses its own simpler pass
 * `uharc_dec.h` - decoder interface (method -> core, version-specific tables)
 * `uharc_dec0.c` - dispatch + core0/1 (shared logic, table differs per version)
 * `uharc_dec2.c` - 0.6 core2 (MSB-first bit order)
@@ -350,17 +354,19 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
 1. core3 multi-block: tables are single-block (thresh=out_len works);
    larger ALZ file streams (e.g. 06_mz method 11) need block reset
    via progress table (`sub_40807F`/`dword_4396F4`) like original.
-2. 0.3 extraction is COMPLETE (all six vectors + uharc_u.uha, across all
-   dictionary sizes). Next: 0.3/0.4 exe filter (sub_407D44 / sub_4090A0)
-   then the multimedia layer; both verified against native extractions.
-   Remaining core2 item: 0.6 MSB-first is still unexercised (no 0.6
+2. 0.3 is COMPLETE (listing + extraction, all dictionary sizes) and
+   the 0.3/0.4 EXE filter is DONE and native-verified. 0.4 core5
+   still lacks the length-predictor groups 5-9 (uha04.UHA) and
+   04_mx needs the 0.4 core4 coder.
+   Remaining core2 item: 0.6 MSB-first is unexercised (no 0.6
    archive uses methods 2..7).
    0.2 is COMPLETE: byte-exact against every oracle, including
    archives made by the real DOS archiver under MS-DOS Player.
 3. core4/5 file data: 0.6 `06_mx` (m27 core4) DATA, `06_m1` (m43 core5)
    + `D3X` (m34 core4) CRC fail (model gap). Port full PPM trees +
    `40D6D1` prefilter. 0.4 needs `41CE30/415130` + `412130/40E380`;
-   0.3 core5 is DONE (uha03_dec5.c) and works as a reference for 0.4.
+   0.3 core5 is DONE (uha03_dec5.c); 0.4 core5 is DONE for groups 0-4
+   (uha04_dec5.c) and still needs groups 5-9.
    0.2 has no core4/5 (max method 43->core3).
 4. Filters: 0.6 `sub_404665/40481E/404DCE` (exe E8E9/multimedia) for
    flags like D3X 00/01; 0.4 `sub_4085A0/408380/408D20`;

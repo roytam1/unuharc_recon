@@ -5,6 +5,7 @@
 #include "uha04.h"
 #include "uharc_dec.h"
 #include "uharc_split.h"
+#include "uharc_filter.h"
 #include "uhcrypt04.h"
 
 static unsigned long crc_tab[256];
@@ -545,6 +546,14 @@ static int u4_read(void *ctx, unsigned char *buf, unsigned want)
     return (int)want;
 }
 
+/* header +9 flags_filt bit0 is the EXE filter switch (original:
+ * byte_430ED2); the splitter additionally requires each file to be at
+ * least 0x400 bytes, and the filter checks MZ/ZM. */
+static void uha04_unfilter(unsigned char *buf, unsigned long len)
+{
+    uharc_filter_exe(buf, len, 4);
+}
+
 int uha04_extract(uha04_t *h, const char *outdir,
                   int with_paths, int test_only)
 {
@@ -582,7 +591,9 @@ int uha04_extract(uha04_t *h, const char *outdir,
     }
     mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
-                         (int)h->hdr.unk_dfa, 4, u4_read, &mr, total);
+                         (int)h->hdr.unk_dfa, 4,
+                         (h->hdr.flags_filt & 1) ? uha04_unfilter : 0,
+                         u4_read, &mr, total);
     free(packed);
     free(se);
     switch (rc) {
