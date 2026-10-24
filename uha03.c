@@ -6,6 +6,7 @@
 #include <string.h>
 #include "uha03.h"
 #include "uharc_dec.h"
+#include "uharc_split.h"
 /* Crypt reuses uhcrypt04 (byte-identical to uhcrypt06 per test;
  * 0.3 assumed same - TODO verify via directory CRC once 03 cores work;
  * split to uhcrypt03.* if divergence found). */
@@ -533,9 +534,67 @@ void uha03_close(uha03_t *h)
     free(h);
 }
 
+typedef struct u3_mr_s {
+    const unsigned char *b;
+    unsigned long n, p;
+} u3_mr;
+
+static int u3_read(void *ctx, unsigned char *buf, unsigned want)
+{
+    u3_mr *m = (u3_mr *)ctx;
+    unsigned long avail = m->n - m->p;
+    if (!avail) return 0;
+    if (want > avail) want = (unsigned)avail;
+    memcpy(buf, m->b + m->p, want);
+    m->p += want;
+    return (int)want;
+}
+
 int uha03_extract(uha03_t *h, const char *outdir,
                   int with_paths, int test_only)
 {
-    (void)h; (void)outdir; (void)with_paths; (void)test_only;
-    return UHA03_ERR_DATA;
+    unsigned char *packed = 0;
+    uharc_split_entry *se = 0;
+    u3_mr mr;
+    unsigned long i, total = 0;
+    size_t got;
+    int rc;
+
+    if (!h || !h->fp) return UHA03_ERR_IO;
+    if (!h->nfiles) return UHA03_OK;
+
+    packed = (unsigned char *)malloc(h->hdr.base_e01 ? h->hdr.base_e01 : 1);
+    se = (uharc_split_entry *)calloc(h->nfiles, sizeof(*se));
+    if (!packed || !se) {
+        free(packed); free(se);
+        return UHA03_ERR_NOMEM;
+    }
+    if (fseek(h->fp, 44L, SEEK_SET) != 0) {
+        free(packed); free(se);
+        return UHA03_ERR_IO;
+    }
+    got = fread(packed, 1, h->hdr.base_e01, h->fp);
+    if (got != h->hdr.base_e01) {
+        free(packed); free(se);
+        return UHA03_ERR_IO;
+    }
+    for (i = 0; i < h->nfiles; i++) {
+        se[i].name = h->entries[i].name;
+        se[i].path = h->entries[i].path;
+        se[i].size = h->entries[i].size & 0xFFFFFFFFUL;
+        se[i].crc = h->entries[i].crc & 0xFFFFFFFFUL;
+        total += se[i].size;
+    }
+    mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
+    rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
+                         (int)h->hdr.unk_dfa, 3, u3_read, &mr, total);
+    free(packed);
+    free(se);
+    switch (rc) {
+    case USPLIT_OK: return UHA03_OK;
+    case USPLIT_ERR_NOMEM: return UHA03_ERR_NOMEM;
+    case USPLIT_ERR_CRC: return UHA03_ERR_CRC;
+    case USPLIT_ERR_IO: return UHA03_ERR_IO;
+    default: return UHA03_ERR_DATA;
+    }
 }

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "uha04.h"
 #include "uharc_dec.h"
+#include "uharc_split.h"
 #include "uhcrypt04.h"
 
 static unsigned long crc_tab[256];
@@ -180,7 +181,8 @@ static int mr_read(void *ctx, unsigned char *buf, unsigned want)
  * standalone per table; validate once 0.4 core3/2 decode. */
 static int decode_table(FILE *fp, long off, unsigned long cmp_len,
                         int method, unsigned char *out,
-                        unsigned long dec_len, unsigned long *crc_out)
+                        unsigned long dec_len, unsigned long crc_seed,
+                        unsigned long *crc_out)
 {
     mr_t mr;
     mw_t mw;
@@ -192,7 +194,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     if (fseek(fp, off, SEEK_SET) != 0) return UHA04_ERR_IO;
     clen = (method == 0) ? dec_len : cmp_len;
     if (clen == 0 && dec_len == 0) {
-        if (crc_out) *crc_out = 0xFFFFFFFFUL;
+        if (crc_out) *crc_out = crc_seed;
         return UHA04_OK;
     }
     cmp = (unsigned char *)malloc(clen ? clen : 1);
@@ -215,7 +217,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     mw.buf = out;
     mw.cap = dec_len;
     mw.pos = 0;
-    mw.crc = 0xFFFFFFFFUL;
+    mw.crc = crc_seed;
     rc = uharc_dec_decode_v(method, 1, 4, mr_read, &mr, mw_write, &mw, dec_len);
     free(cmp);
     if (rc != 0) {
@@ -315,14 +317,15 @@ int uha04_open(const char *path, uha04_t **ph)
     }
 
     rc = decode_table(fp, tab0_off, 4 * nfiles, 0,
-                      tab0, 4 * nfiles, 0);
+                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
         return rc;
     }
+    /* 0.4 tab1 CRC is cumulative over tab0+tab1 (as in 0.3/0.6) */
     rc = decode_table(fp, tab1_off, hdr.cmp_sz1, 17,
-                      tab1, hdr.names_len, &crc);
+                      tab1, hdr.names_len, crc, &crc);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -334,7 +337,7 @@ int uha04_open(const char *path, uha04_t **ph)
         return UHA04_ERR_CRC;
     }
     rc = decode_table(fp, tab2_off, hdr.cmp_sz2, 2,
-                      tab2, 4 * nfiles, &crc);
+                      tab2, 4 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -346,7 +349,7 @@ int uha04_open(const char *path, uha04_t **ph)
         return UHA04_ERR_CRC;
     }
     rc = decode_table(fp, tab3_off, hdr.cmp_sz3, 7,
-                      tab3, 7 * nfiles, &crc);
+                      tab3, 7 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -526,9 +529,67 @@ void uha04_close(uha04_t *h)
     free(h);
 }
 
+typedef struct u4_mr_s {
+    const unsigned char *b;
+    unsigned long n, p;
+} u4_mr;
+
+static int u4_read(void *ctx, unsigned char *buf, unsigned want)
+{
+    u4_mr *m = (u4_mr *)ctx;
+    unsigned long avail = m->n - m->p;
+    if (!avail) return 0;
+    if (want > avail) want = (unsigned)avail;
+    memcpy(buf, m->b + m->p, want);
+    m->p += want;
+    return (int)want;
+}
+
 int uha04_extract(uha04_t *h, const char *outdir,
                   int with_paths, int test_only)
 {
-    (void)h; (void)outdir; (void)with_paths; (void)test_only;
-    return UHA04_ERR_DATA;
+    unsigned char *packed = 0;
+    uharc_split_entry *se = 0;
+    u4_mr mr;
+    unsigned long i, total = 0;
+    size_t got;
+    int rc;
+
+    if (!h || !h->fp) return UHA04_ERR_IO;
+    if (!h->nfiles) return UHA04_OK;
+
+    packed = (unsigned char *)malloc(h->hdr.base_e01 ? h->hdr.base_e01 : 1);
+    se = (uharc_split_entry *)calloc(h->nfiles, sizeof(*se));
+    if (!packed || !se) {
+        free(packed); free(se);
+        return UHA04_ERR_NOMEM;
+    }
+    if (fseek(h->fp, 44L, SEEK_SET) != 0) {
+        free(packed); free(se);
+        return UHA04_ERR_IO;
+    }
+    got = fread(packed, 1, h->hdr.base_e01, h->fp);
+    if (got != h->hdr.base_e01) {
+        free(packed); free(se);
+        return UHA04_ERR_IO;
+    }
+    for (i = 0; i < h->nfiles; i++) {
+        se[i].name = h->entries[i].name;
+        se[i].path = h->entries[i].path;
+        se[i].size = h->entries[i].size & 0xFFFFFFFFUL;
+        se[i].crc = h->entries[i].crc & 0xFFFFFFFFUL;
+        total += se[i].size;
+    }
+    mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
+    rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
+                         (int)h->hdr.unk_dfa, 4, u4_read, &mr, total);
+    free(packed);
+    free(se);
+    switch (rc) {
+    case USPLIT_OK: return UHA04_OK;
+    case USPLIT_ERR_NOMEM: return UHA04_ERR_NOMEM;
+    case USPLIT_ERR_CRC: return UHA04_ERR_CRC;
+    case USPLIT_ERR_IO: return UHA04_ERR_IO;
+    default: return UHA04_ERR_DATA;
+    }
 }

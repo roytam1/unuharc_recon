@@ -44,8 +44,10 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   and as the m0 stream tiling.
   Ground truth via `UHARC04 l -d2` (names/sizes/dates/CRCs, e.g. text
   7125DAA3, repeat 51A02E01, binary B70B4C26, random 021E1879).
-* File data: per-file methods (entry+2), solid helpers. PENDING (needs
-  cores + filters). `uha04_extract` stub returns DATA.
+* File data: EXTRACTION DONE for 04_m0 (STORE) and 04_mz (core3 via
+  uha04_dec3.c) - byte-exact vs corpus. 04_m1/m2/m3/mx still need the
+  0.4 core5/core4 coders. Filters (exe/multimedia) not yet applied, so
+  uha04.UHA (contains a 29 KB EXE) will fail its CRC.
 
 0.3:
 * Header parsing: DONE, verified on `uharc_u.uha`
@@ -95,9 +97,11 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   0.3's coder is NOT 0.6's: 24-bit range/offset, 328 contexts,
   multi-exclusion escapes, discarded first byte = ~out_len
   (see uha03_dec3.c header). crc1 is cumulative over tab0+tab1.
-  File data needs 0.3 core5 for the compressed modes (header method 39
-  etc.), still pending -> `x 03_m1` fails DATA; 03_m0 (STORE) is plain.
-  Tables use default-password crypt, VERIFIED byte-identical to 0.4/0.6:
+  File data: EXTRACTION DONE for all six vectors (03_m0 STORE..03_mz,
+  methods 0/39/67) via uha03_dec5.c - byte-exact vs corpus.
+  Exception: uharc_u.uha (method 60 = 1 MB dictionary) still fails
+  immediately (rc=7, out=0) - the 0.3 core5 port only covers the
+  8 KB-dictionary methods exercised by the vectors.
   tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs
   (00000000, 7125DAA3, 51A02E01, B70B4C26, 021E1879, 6F3BDB8B), which
   also fixes the directory/stream order as
@@ -237,8 +241,11 @@ Decompressors (method->core tables are version-specific:
   Working end to end: 0.2 list + extract
   (every oracle byte-exact, incl. real DOS-made -mm+ archives);
   0.6 STORE extract (byte-exact); 0.3 + 0.4 list (all vectors/samples).
-  Still failing: 0.3/0.4 extract (container stubs - decoders ready) and
-  0.6 compressed extract (core4/5 + filters).
+  0.3 extract (all six vectors, methods 0/39/67) and 0.4 extract
+  (04_m0 STORE, 04_mz core3) are now byte-exact too.
+  Remaining: 0.3 uharc_u.uha (method 60, 1 MB dict path),
+  0.4 m1/m2/m3/mx (need 0.4 core5/core4), and 0.6 compressed
+  data (core4/5 + filters).
 
 ## Files
 
@@ -252,6 +259,8 @@ Decompressors (method->core tables are version-specific:
 * `uha02.h/.c` - 0.2 API, 48-byte header (magic 02, full32 CRCs)
   decrypt/CRC/parse, directory (solid like 0.6; `uha02*` avoids
   clashing with `Uharc02.*`)
+* `uharc_split.h/.c` - shared solid-stream splitter for 0.3/0.4 (decode,
+  per-file split, CRC verify, empty files)
 * `uharc_dec.h` - decoder interface (method -> core, version-specific tables)
 * `uharc_dec0.c` - dispatch + core0/1 (shared logic, table differs per version)
 * `uharc_dec2.c` - 0.6 core2 (MSB-first bit order)
