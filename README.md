@@ -37,7 +37,10 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
 * Directory: framework DONE (offsets/CRC slots), decode PENDING.
   Needs 04-specific core3 (330 contexts vs 06 319, order-0 at 328 vs 318)
   + core2 LSB-first (vs 06 MSB-first) ports (`uha04_dec3/2.c` TODO).
-  Tables use same default-password crypt as 0.6 (byte-identical cipher).
+  Tables use default-password crypt, VERIFIED byte-identical to 0.6:
+  04_m0 tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs in
+  order [empty, text, repeat, binary, random, call] - same order as 0.3
+  and as the m0 stream tiling.
   Ground truth via `UHARC04 l -d2` (names/sizes/dates/CRCs, e.g. text
   7125DAA3, repeat 51A02E01, binary B70B4C26, random 021E1879).
 * File data: per-file methods (entry+2), solid helpers. PENDING (needs
@@ -87,8 +90,16 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   core3 (14 methods 8..21, ALZ:1/2/3 split) + core2 ports
   (`uha03_dec3/2.c` TODO; do not reuse 0.6/0.4 verbatim - different
   models/ranges; 0.3 core table `0/1/2..7/8..21/22..35/36..79+80=>0`).
-  Tables use default-password crypt (assumed byte-identical to 0.4/0.6,
-  TODO verify via directory CRC once cores work).
+  Tables use default-password crypt, VERIFIED byte-identical to 0.4/0.6:
+  tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs
+  (00000000, 7125DAA3, 51A02E01, B70B4C26, 021E1879, 6F3BDB8B), which
+  also fixes the directory/stream order as
+  [empty.bin, text.txt, repeat.txt, binary.bin, random.bin, call.bin]
+  (matches the m0 STORE tiling - empty.bin contributes 0 bytes).
+  Decoding 0.3 tab1/tab2 with the verified 0.6 core3/core2 returns
+  rc=3 (input short) even though the cipher is proven correct, so the
+  0.3/0.4 codecs genuinely differ from 0.6 (330-vs-319 context claim
+  now evidence-backed): separate ports required.
 
 0.2:
 * Header parsing: DONE, verified on `uha02.UHA`
@@ -122,6 +133,13 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   Crypt: 0.2-specific S-box/stream (NOT byte-identical to 04/06;
   implemented as static in-file functions per binary,
   `sub_108C8`/`sub_12AE0`), fresh per table like later versions.
+  VERIFIED via tab0: decrypting the STORE CRC table with this cipher
+  yields exactly the archive's own measured file CRCs
+  (00000000 EMPTY.BIN, 9166788F REPEAT.TXT, 3CD931D7 T1.TXT,
+  5FC97467 T2.TXT), i.e. entry order == stream order. Key schedule
+  (asm sub_10840): S[i]=pwd[i%22], then 32 rounds of
+  crc=CRC32(S,256); S[k..k+3]^=crc, S[k+4..k+7]^=~crc (32-bit LE),
+  k+=8. Stream (sub_12AE0): a=S[p++]; S[p]+=a; out=S[p]^in.
 
 Decompressors (method->core tables are version-specific:
 0.6/0.4 `0->0,1->1,2..7->2,8..23->3,24..39->4,40..87->5`;
@@ -143,6 +161,10 @@ Decompressors (method->core tables are version-specific:
     (14 methods, ALZ:1/2/3 split, different tables; `uha03_dec3.c` TODO).
     0.2 needs separate port (8..43 PPM/LZ+range, 3 submodes,
     dict `1<<((m-8)%12+10)`; `uha02_dec3.c` TODO).
+    EVIDENCE (2026-10-24): correctly decrypted 0.3 tab1 (method 17) and
+    tab2 (method 2) fed to the verified 0.6 core3/core2 give rc=3
+    (input short), i.e. the mismatch is the codec, not the cipher
+    (cipher proven by recovering tab0 CRCs). No shortcut - ports needed.
   - core 4 (0.6 24..39 LZP/PPM; 0.4 24..39 PPM/LZP; 0.3 22..35 LZP/PPM;
     0.2 has no core4 - max method 43->core3):
     0.6 skeleton + 0.4 (`UHARC04 sub_41CE30/415130`) + 0.3
@@ -155,12 +177,15 @@ Decompressors (method->core tables are version-specific:
     (`06_m1` m43 decodes but CRC fails) + 0.4 (`sub_412130/40E380`) +
     0.3 (`uharc_u sub_4103BC/40F6F0`) NOT ported bit-exact.
   - crypt `uhcrypt06/04`: default-password S-box, fresh per table,
-    CRC over evolving S-box each 8 bytes (32 rounds). Byte-identical
-    for 0.4/0.6; 0.3 reuses `uhcrypt04` (assumed identical,
-    TODO verify via directory CRC once 03 cores work);
-    0.2 has own in-file cipher (NOT byte-identical;
-    S-box cycles all 256 bytes, different stream),
-    fresh per table like later versions. Tables
+    CRC over evolving S-box each 8 bytes (32 rounds).
+    VERIFIED for 0.3, 0.4, 0.6: their tab0 (STORE CRC table) decrypts to
+    the archive's own measured file CRCs (0.3/0.4 corpus: 00000000,
+    7125DAA3, 51A02E01, B70B4C26, 021E1879, 6F3BDB8B; uharc_u.uha:
+    D9BA98B4 == its `l -d2` CRC). 0.3 can therefore drop the "assumed"
+    caveat and use `uhcrypt04` outright.
+    0.2 has a distinct in-file cipher, ALSO VERIFIED the same way
+    (tab0 -> 00000000, 9166788F, 3CD931D7, 5FC97467 from 02_M0's own
+    plaintext STORE stream). Tables
     decrypt-then-decode; file data plain without -pw
     (password archives TODO).
 * Tool `uharc06_unpack` (source `uharc06_main.c`) auto-detects

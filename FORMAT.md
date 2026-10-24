@@ -21,6 +21,14 @@ Solid stream like 0.6 (header method, demux by delta sizes).
 Method->core: 0->0,1->1,2..7->2,8..43->3 (44 methods, 4 cores, no PPM).
 DOS32 executable cannot run here - no console/listing ground truth;
 header layout verified arithmetically + decrypt/CRC self-consistent.
+Table cipher (verified 2026-10-24): S[i]=pwd[i%22]; 32 rounds of
+crc=CRC32(S,256) then S[k..k+3]^=crc, S[k+4..k+7]^=~crc (32-bit LE),
+k+=8 (asm sub_10840); stream a=S[p++]; S[p]+=a; out=S[p]^in (sub_12AE0).
+Proof: 02_M0 tab0 decrypts to 00000000 9166788F 3CD931D7 5FC97467,
+which equal CRCs measured from the archive's own plaintext STORE data
+(EMPTY.BIN, REPEAT.TXT, T1.TXT, T2.TXT) - so entry order == stream order.
+Note: XOR is 32-bit per 8-byte chunk, not byte-wide (decompiler narrowed
+this; byte-wide versions fail).
 Test vectors (MAKE02.BAT, DOS side; files in workarea root): text corpus
 (EMPTY 0B, T1 362B, T2 353B, REPEAT 528B) + 02_m0/m1/m2/m3.uha, all `t`
 self-tested on DOS. Headers: m0->00 core0 STORE base 1243 (= total),
@@ -51,6 +59,12 @@ OPEN QUESTION: header byte vs displayed mode vs codec table disagree
 either the byte is a mode tag, not the codec ID, or the ALZ range is
 wider than 8..21. Resolves once entry+2 methods decode.
 Directory tables byte-identical across all six modes (112B).
+Table cipher VERIFIED identical to 0.4/0.6 (not assumed): 03_m0 tab0
+decrypts to exactly the corpus CRCs in order
+[empty, text, repeat, binary, random, call] - same as the m0 tiling.
+Feeding correctly decrypted 0.3 tab1 (method 17) / tab2 (method 2) to
+the verified 0.6 core3/core2 gives rc=3 (input short): the codecs
+differ, so separate 0.3 ports are required (cipher is not the cause).
 NOTE: 03_m2, 03_mx, 03_mz are byte-identical (CLASS build collapses
 x/z onto ALZ:2) - vectors cover ALZ:1/2/3 only, not PPM/LZP.
 Header +10 = 36+(k-1)*14+3 (k=switch, 3=dict index): 0x27/0x35/0x43.
