@@ -216,7 +216,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     mw.cap = dec_len;
     mw.pos = 0;
     mw.crc = 0xFFFFFFFFUL;
-    rc = uharc_dec_decode(method, mr_read, &mr, mw_write, &mw, dec_len);
+    rc = uharc_dec_decode_v(method, 1, 4, mr_read, &mr, mw_write, &mw, dec_len);
     free(cmp);
     if (rc != 0) {
         if (rc == 2) return UHA04_ERR_NOMEM;

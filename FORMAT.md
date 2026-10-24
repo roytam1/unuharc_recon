@@ -16,9 +16,16 @@ base(data_len) 11656, names 80, cmp 65/28/35, layout
 48+11656+28+65+28+35=11860 verified.
 Tables: tab0 STORE 4*N file CRCs, tab1 method7 names, tab2 method2 dates,
 tab3 method7 dir/size/method (note method7 for names vs 17 in 0.3/0.4/0.6).
+tab3 layout (VERIFIED): [0..4N) size deltas, consecutive 32-bit LE dwords
+(size_i = size_{i-1} - var_i, size_{-1}=0); [4N..6N) dir index (u16/entry);
+[6N..7N) method/attr byte (0x20/0x22/0x27 seen). NOT byte planes here.
 19B entries like later versions (dir/method/size/crc/date/time/ptr).
 Solid stream like 0.6 (header method, demux by delta sizes).
 Method->core: 0->0,1->1,2..7->2,8..43->3 (44 methods, 4 cores, no PPM).
+Directory fully decodable: 0.2 uses only STORE + core2 (methods 0/7/2/7).
+core2 is LSB-first for 0.2/0.3/0.4 (0.6 is MSB-first); verified by
+decoding tab1 names (EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT), tab2 dates
+(5D58/963B), tab3 sizes, and uha02.UHA's 7 real names summing to 31447.
 DOS32 executable cannot run here - no console/listing ground truth;
 header layout verified arithmetically + decrypt/CRC self-consistent.
 Table cipher (verified 2026-10-24): S[i]=pwd[i%22]; 32 rounds of

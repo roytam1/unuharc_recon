@@ -34,9 +34,10 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   Layout verified: 44 + base + tab0(4N) + cmp1+cmp2+cmp3 = filesize.
   `uha04.UHA`: 8 files, 43307 bytes, base 21470. Test corpus: 6 files,
   5840 bytes, base varies by mode (m0 5840 STORE, m1 1153, mx 1120, mz 1540).
-* Directory: framework DONE (offsets/CRC slots), decode PENDING.
-  Needs 04-specific core3 (330 contexts vs 06 319, order-0 at 328 vs 318)
-  + core2 LSB-first (vs 06 MSB-first) ports (`uha04_dec3/2.c` TODO).
+* Directory: tab0/tab2/tab3 DONE (STORE + LSB-first core2). Only tab1
+  (names, method 17 = core3) remains, needing a 0.4-specific core3
+  (330 contexts vs 06 319; order-0 at 328 vs 318). tab3 verified:
+  sizes 0/2280/1000/1024/1024/512 (sum 5840).
   Tables use default-password crypt, VERIFIED byte-identical to 0.6:
   04_m0 tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs in
   order [empty, text, repeat, binary, random, call] - same order as 0.3
@@ -85,11 +86,10 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   "FOR CLASS/BACKSLASH RELEASES ONLY"), so vectors cover ALZ:1/2/3 only,
   NOT PPM/LZP. Header +10 follows 36+(k-1)*14+3 (k=switch, 3=dict idx):
   0x27/0x35/0x43 for k=1/2/3. 0.4 build does honour x/z (all four differ).
-* Directory: framework DONE (mirrors 0.4: 4 tables, methods 0/17/2/7,
-  19B entries, delta sizes). Decode PENDING: needs 0.3-specific
-  core3 (14 methods 8..21, ALZ:1/2/3 split) + core2 ports
-  (`uha03_dec3/2.c` TODO; do not reuse 0.6/0.4 verbatim - different
-  models/ranges; 0.3 core table `0/1/2..7/8..21/22..35/36..79+80=>0`).
+* Directory: tab0/tab2/tab3 DONE (STORE + LSB-first core2). Only tab1
+  (names, method 17 = core3) remains -> needs 0.3-specific core3
+  (14 methods 8..21, ALZ:1/2/3 split). tab3 verified: deltas
+  0/-2280/+1280/-24/0/+512 -> sizes 0/2280/1000/1024/1024/512 (sum 5840).
   Tables use default-password crypt, VERIFIED byte-identical to 0.4/0.6:
   tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs
   (00000000, 7125DAA3, 51A02E01, B70B4C26, 021E1879, 6F3BDB8B), which
@@ -124,12 +124,18 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   self-checks on DOS; here `l`/`t` output is uncapturable (DOS32 binary,
   headless env), so there is no per-file listing ground truth yet -
   unlike 0.3/0.4/0.6 (pywinpty / native console output).
-* Directory: framework DONE (mirrors 0.6 solid model: 4 tables methods
-  0/7/2/7, 19B entries, delta sizes, cumulative contents CRC).
-  Decode PENDING: tab1/tab3 method 7 + tab2 method 2 need 0.2-specific
-  core2 (`uha02_dec2.c` TODO; window matches 0.6 `1023..32767` but verify
-  bit order); file data method 25 needs 0.2-specific core3
-  (`uha02_dec3.c` TODO; 8..43 PPM/LZ+range, dict `1<<((m-8)%12+10)`).
+* Directory: DONE. All four tables decode (0.2 uses only STORE + core2,
+  so no core3 is needed here). VERIFIED:
+  `l 02_M0.uha` -> EMPTY.BIN 0, REPEAT.TXT 528, T1.TXT 362, T2.TXT 353
+  (sum 1243 = header total); `l uha02.UHA` -> 7 real names
+  (BOOTLOG.TXT 621, BIG5-2.TXT 265, BIG5.TXT 49, BOOT.INI 185,
+  BAK-KA~1.EXE 29696, BOOKMA~1.BMK 10, BOOTLOG.PRV 621; sum 31447).
+  tab3 layout (VERIFIED): [0..4N) size deltas as consecutive 32-bit LE
+  words, [4N..6N) dir index, [6N..7N) method/attr byte
+  (0x20/0x22/0x27 in uha02.UHA, 0x20 in the corpus vectors).
+  Sizes are deltas: size_i = size_{i-1} - var_i (size_{-1} = 0).
+  File data still needs 0.2 core3 (header method 25; 8..43 PPM/LZ+range,
+  dict `1<<((m-8)%12+10)`) - `uha02_dec3.c` TODO.
   Crypt: 0.2-specific S-box/stream (NOT byte-identical to 04/06;
   implemented as static in-file functions per binary,
   `sub_108C8`/`sub_12AE0`), fresh per table like later versions.
@@ -147,10 +153,13 @@ Decompressors (method->core tables are version-specific:
 0.2 `0->0,1->1,2..7->2,8..43->3` (44 methods, 4 cores, no PPM):
   - core 0 STORE (method 0): DONE, byte-exact (`06_m0` 6/6 MATCH)
   - core 1 RLE/delta (method 1): DONE (from 0.6 sub_40B504), no test vector yet
-  - core 2 Huffman/LZ (methods 2..7 all versions): 0.6 MSB-first port compiles;
-    0.4 needs LSB-first port (`uha04_dec2.c` TODO, `sar` vs `shr` in lst);
-    0.3 needs own port (same 2..7 range, verify bit order; `uha03_dec2.c` TODO);
-    0.2 needs own port (same 2..7 range, window matches 0.6; `uha02_dec2.c` TODO)
+  - core 2 Huffman/LZ (methods 2..7 all versions): SOLVED for 0.2/0.3/0.4.
+    Identical algorithm to the 0.6 port with an LSB-first bit reader
+    (`uharc_dec2_lsb.c`, symbols uharc_dec2l_*). 0.6 stays MSB-first
+    (`uharc_dec2.c`). Select with `uharc_dec_decode_v(method, lsb, ...)`.
+    VERIFIED: 0.2 tab1 names (EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT),
+    0.2 tab2 dates 5D58/963B, 0.2 tab3 sizes, 0.3+0.4 tab2 crc16 25CA
+    exact and tab3 sizes summing to 5840. MSB-first fails all of these.
   - core 3 ALZ (0.6/0.4 methods 8..23 incl. 17; 0.3 methods 8..21 incl. 17):
     0.6 FIXED (denominator +escw,
     fallback 0x13E, xsum, len `v51?v51:256`; verified 06_m1 tab1/tab2 +
@@ -207,9 +216,9 @@ Decompressors (method->core tables are version-specific:
   clashing with `Uharc02.*`)
 * `uharc_dec.h` - decoder interface (method -> core, version-specific tables)
 * `uharc_dec0.c` - dispatch + core0/1 (shared logic, table differs per version)
-* `uharc_dec2.c` - 0.6 core2 (0.4 needs LSB-first `uha04_dec2.c` TODO;
-  0.3 needs own port `uha03_dec2.c` TODO; 0.2 needs own port
-  `uha02_dec2.c` TODO)
+* `uharc_dec2.c` - 0.6 core2 (MSB-first bit order)
+* `uharc_dec2_lsb.c` - core2 for 0.2/0.3/0.4 (LSB-first; same algorithm).
+  Selected via `uharc_dec_decode_v(method, core2_lsb, ...)`. VERIFIED.
 * `uharc_dec3.c` - 0.6 core3 FIXED for tables (0.4 needs `uha04_dec3.c`,
   0.3 needs `uha03_dec3.c`, 0.2 needs `uha02_dec3.c` TODO)
 * `uharc_dec4.c` - 0.6 core4 skeleton (0.4/0.3 cores separate TODO;
@@ -280,14 +289,12 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
 1. core3 multi-block: tables are single-block (thresh=out_len works);
    larger ALZ file streams (e.g. 06_mz method 11) need block reset
    via progress table (`sub_40807F`/`dword_4396F4`) like original.
-2. core2: 0.6 MSB-first works? (0.6 directory needs only core3, so core2
-   unverified for 0.6 file data). 0.4 needs LSB-first `uha04_dec2.c`
-   for tab2/tab3 (methods 2/7) + `uha04_dec3.c` (330 contexts).
-   0.3 needs `uha03_dec2.c` + `uha03_dec3.c` (14-method ALZ,
-   different tables; 0.3 core table above).
-   0.2 needs `uha02_dec2.c` + `uha02_dec3.c` (methods 2..7 core2,
-   8..43 core3 PPM/LZ+range; window matches 0.6 but verify bit order
-   and dict formula `1<<((m-8)%12+10)`).
+2. core2: SOLVED for 0.2/0.3/0.4 (LSB-first `uharc_dec2_lsb.c`).
+   Remaining: verify 0.6 MSB-first core2 (no 0.6 archive uses methods 2..7,
+   so it is still unexercised).
+   Next: 0.3/0.4 core3 (`uha03_dec3.c` / `uha04_dec3.c`) to decode tab1
+   (names) and finish those directories; 0.2 core3 for file data
+   (8..43 PPM/LZ+range, dict `1<<((m-8)%12+10)`).
 3. core4/5 file data: 0.6 `06_mx` (m27 core4) DATA, `06_m1` (m43 core5)
    + `D3X` (m34 core4) CRC fail (model gap). Port full PPM trees +
    `40D6D1` prefilter. 0.4 cores differ, need `41CE30/415130`

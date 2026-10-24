@@ -272,7 +272,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_size,
     mw.cap = dec_size;
     mw.pos = 0;
     mw.crc = crc_init;
-    rc = uharc_dec_decode(method, mr_read, &mr, mw_write, &mw, dec_size);
+    rc = uharc_dec_decode_v(method, 1, 2, mr_read, &mr, mw_write, &mw, dec_size);
     free(cmp);
     if (rc != 0) {
         if (rc == 2) return UHA02_ERR_NOMEM;
@@ -474,11 +474,19 @@ int uha02_open(const char *path, uha02_t **ph)
             tt = (unsigned)(tab2[2 * i] | (tab2[2 * i + 1] << 8));
             dd = (unsigned)(tab2[2 * nfiles + 2 * i] |
                             (tab2[2 * nfiles + 2 * i + 1] << 8));
-            w0 = (unsigned)(tab3[i] | (tab3[nfiles + i] << 8));
-            sz = (unsigned long)(tab3[2 * nfiles + i] |
-                                 (tab3[3 * nfiles + i] << 8) |
-                                 (tab3[4 * nfiles + i] << 16) |
-                                 (tab3[5 * nfiles + i] << 24));
+            /* tab3 layout (VERIFIED 2026-10-24 on 02_M0/M1/M2/M3):
+             *   [0 .. 4N)  size deltas as consecutive 32-bit LE dwords
+             *   [4N .. 6N) dir index (u16 per entry)
+             *   [6N .. 7N) attribute/method byte (0x20 for all test files;
+             *              solid archive, per-file method not used)
+             * Evidence: deltas [0, -528, 166, 9] reconstruct to
+             * 0/528/362/353 = EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT sizes. */
+            w0 = (unsigned)(tab3[4 * nfiles + i] |
+                            (tab3[5 * nfiles + i] << 8));
+            sz = (unsigned long)(tab3[4 * i] |
+                                 (tab3[4 * i + 1] << 8) |
+                                 (tab3[4 * i + 2] << 16) |
+                                 (tab3[4 * i + 3] << 24));
             m = tab3[6 * nfiles + i];
             c32 = (unsigned long)(tab0[4 * i] | (tab0[4 * i + 1] << 8) |
                                   (tab0[4 * i + 2] << 16) |
@@ -793,7 +801,7 @@ int uha02_extract(uha02_t *h, const char *outdir,
     mr.buf = packed;
     mr.len = packed_len;
     mr.pos = 0;
-    drc = uharc_dec_decode((int)h->hdr.method, mr_read, &mr,
+    drc = uharc_dec_decode_v((int)h->hdr.method, 1, 2, mr_read, &mr,
                            uha02_split_write, 0, h->hdr.total_size);
     if (g_sp_crc_err) rc = UHA02_ERR_CRC;
     else if (drc == 2) rc = UHA02_ERR_NOMEM;

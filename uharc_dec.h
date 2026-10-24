@@ -19,6 +19,18 @@ int uharc_dec_decode(int method,
                      uharc_dec_write_cb wcb, void *wctx,
                      unsigned long out_len);
 
+/* Same as above but selects the core2 bit order and the version's
+ * method->core table (they differ: 0.2 = 8..43 all core3,
+ * 0.3 = 8..21/22..35/36..79, 0.4/0.6 = 8..23/24..39/40..87).
+ * ver: 2, 3, 4 or 6. core2_lsb: 1 for 0.2/0.3/0.4, 0 for 0.6. */
+int uharc_dec_decode_v(int method, int core2_lsb, int ver,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+
+/* version-aware core selector (-1 = unknown method) */
+int uharc_dec_core_v(int method, int ver);
+
 /* core selectors (for tests) */
 int uharc_dec_core(int method);
 

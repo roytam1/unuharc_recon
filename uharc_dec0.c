@@ -21,6 +21,32 @@ int uharc_dec_core(int method)
     return (int)method_to_core[method];
 }
 
+/* Version-specific method -> core tables (verified from each binary's
+ * dispatch table: 0.2 byte_3A520, 0.3 byte_428EE0, 0.4 byte_431210,
+ * 0.6 byte_4228C2). */
+int uharc_dec_core_v(int method, int ver)
+{
+    if (method < 0) return -1;
+    if (ver == 2) {
+        if (method > 43) return -1;          /* 0.2: 44 methods, no PPM */
+        if (method <= 1) return method;      /* 0,1 */
+        if (method <= 7) return 2;           /* 2..7 */
+        return 3;                            /* 8..43 ALZ/PPM/LZ */
+    }
+    if (ver == 3) {
+        if (method == 80) return 0;          /* alias */
+        if (method > 79) return -1;
+        if (method <= 1) return method;
+        if (method <= 7) return 2;           /* 2..7 */
+        if (method <= 21) return 3;          /* 8..21 */
+        if (method <= 35) return 4;          /* 22..35 */
+        return 5;                            /* 36..79 */
+    }
+    /* 0.4 and 0.6 share the layout */
+    if (method > 87) return -1;
+    return (int)method_to_core[method];
+}
+
 /* ---------- shared bit/byte pump state ---------- */
 typedef struct dec_state_s {
     uharc_dec_read_cb rcb;
@@ -210,12 +236,19 @@ int uharc_dec5_decode(uharc_dec5_t *d,
                       uharc_dec_write_cb wcb, void *wctx,
                       unsigned long out_len);
 void uharc_dec5_free(uharc_dec5_t *d);
+/* LSB-first core2 (0.2/0.3/0.4, verified) */
+int uharc_dec2l_init(void **pctx, int method);
+int uharc_dec2l_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+void uharc_dec2l_free(void *ctx);
 
 /* public dispatch: mirrors sub_40705C/sub_40717F buffer policy */
-int uharc_dec_decode(int method,
-                     uharc_dec_read_cb rcb, void *rctx,
-                     uharc_dec_write_cb wcb, void *wctx,
-                     unsigned long out_len)
+int uharc_dec_decode_v(int method, int core2_lsb, int ver,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
 {
     dec_state s;
     unsigned char *inb;
@@ -227,7 +260,7 @@ int uharc_dec_decode(int method,
     if (!rcb || !wcb) return 1;
     if (method < 0 || method > 87) return 1;
 
-    core = uharc_dec_core(method);
+    core = uharc_dec_core_v(method, ver);
     if (core < 0) return 1;
 
     /* buffer sizing mirrors sub_40717F: ~2*out_len+1034, split for method!=0 */
@@ -270,10 +303,17 @@ int uharc_dec_decode(int method,
     case 1: ret = dec1_decode(&s); break;
     case 2: {
         void *c2 = 0;
-        ret = uharc_dec2_init(&c2, method);
+        if (core2_lsb)
+            ret = uharc_dec2l_init(&c2, method);
+        else
+            ret = uharc_dec2_init(&c2, method);
         if (ret == 0) {
-            ret = uharc_dec2_decode(c2, rcb, rctx, wcb, wctx, out_len);
-            uharc_dec2_free(c2);
+            if (core2_lsb)
+                ret = uharc_dec2l_decode(c2, rcb, rctx, wcb, wctx, out_len);
+            else
+                ret = uharc_dec2_decode(c2, rcb, rctx, wcb, wctx, out_len);
+            if (core2_lsb) uharc_dec2l_free(c2);
+            else uharc_dec2_free(c2);
         }
         break;
     }
@@ -312,4 +352,13 @@ int uharc_dec_decode(int method,
     free(inb);
     free(outb);
     return ret;
+}
+
+/* MSB-first (0.6) entry point kept for existing callers */
+int uharc_dec_decode(int method,
+                     uharc_dec_read_cb rcb, void *rctx,
+                     uharc_dec_write_cb wcb, void *wctx,
+                     unsigned long out_len)
+{
+    return uharc_dec_decode_v(method, 0, 6, rcb, rctx, wcb, wctx, out_len);
 }
