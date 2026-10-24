@@ -26,6 +26,13 @@ Directory fully decodable: 0.2 uses only STORE + core2 (methods 0/7/2/7).
 core2 is LSB-first for 0.2/0.3/0.4 (0.6 is MSB-first); verified by
 decoding tab1 names (EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT), tab2 dates
 (5D58/963B), tab3 sizes, and uha02.UHA's 7 real names summing to 31447.
+File data: extraction WORKS for 02_M1/M2/M3 (methods 9/21/33) via the
+0.2 core3 port (uha02_dec3.c): 16-bit-init range coder, token/literal/
+match/run models, byte-exact vs the 02_M0 plaintext stream. uha02.UHA
+(method 25) decodes fully but 1 of 7 files differs in 10 bytes
+(offsets 1102-1105, 6457-6458, 14298-14299, 14340-14341) - residual
+model path. Entry+2 byte is NOT the codec for solid 0.2/0.3 archives
+(0x20 while header method is STORE); likely a level/attr tag.
 DOS32 executable cannot run here - no console/listing ground truth;
 header layout verified arithmetically + decrypt/CRC self-consistent.
 Table cipher (verified 2026-10-24): S[i]=pwd[i%22]; 32 rounds of
@@ -69,9 +76,15 @@ Directory tables byte-identical across all six modes (112B).
 Table cipher VERIFIED identical to 0.4/0.6 (not assumed): 03_m0 tab0
 decrypts to exactly the corpus CRCs in order
 [empty, text, repeat, binary, random, call] - same as the m0 tiling.
-Feeding correctly decrypted 0.3 tab1 (method 17) / tab2 (method 2) to
-the verified 0.6 core3/core2 gives rc=3 (input short): the codecs
-differ, so separate 0.3 ports are required (cipher is not the cause).
+Directory fully decodes now: tab1 (names, method 17) via the 0.3 core3
+port (uha03_dec3.c) and tab2/tab3 via LSB-first core2. 0.3 core3 is a
+different coder from 0.6: 24-bit range/offset, 328 contexts,
+multi-exclusion escapes, first stream byte = ~out_len. crc1 is
+cumulative over tab0+tab1. tab1 plaintext for 03_m* is 62 bytes:
+00 "empty.bin"(9) "text.txt"(8) "repeat.txt"(10) "binary.bin"(10)
+"random.bin"(10) "call.bin"(8) - entry order, not listing order.
+File data: compressed modes use 0.3 core5 (header method 39 etc.),
+still pending; 03_m0 (STORE) is plain.
 NOTE: 03_m2, 03_mx, 03_mz are byte-identical (CLASS build collapses
 x/z onto ALZ:2) - vectors cover ALZ:1/2/3 only, not PPM/LZP.
 Header +10 = 36+(k-1)*14+3 (k=switch, 3=dict index): 0x27/0x35/0x43.

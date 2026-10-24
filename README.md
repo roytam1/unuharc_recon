@@ -86,10 +86,17 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   "FOR CLASS/BACKSLASH RELEASES ONLY"), so vectors cover ALZ:1/2/3 only,
   NOT PPM/LZP. Header +10 follows 36+(k-1)*14+3 (k=switch, 3=dict idx):
   0x27/0x35/0x43 for k=1/2/3. 0.4 build does honour x/z (all four differ).
-* Directory: tab0/tab2/tab3 DONE (STORE + LSB-first core2). Only tab1
-  (names, method 17 = core3) remains -> needs 0.3-specific core3
-  (14 methods 8..21, ALZ:1/2/3 split). tab3 verified: deltas
-  0/-2280/+1280/-24/0/+512 -> sizes 0/2280/1000/1024/1024/512 (sum 5840).
+* Directory: DONE. All four tables decode (tab1 via the new 0.3 core3
+  port `uha03_dec3.c`, which is verified byte-exact against the known
+  62-byte name table on 03_m0..m3 and against uharc_u.uha's 11-byte
+  table). `l 03_m0.uha` -> empty.bin 0, text.txt 2280, repeat.txt 1000,
+  binary.bin 1024, random.bin 1024, call.bin 512 (sum 5840);
+  `l uharc_u.uha` -> uharc_u.c 1047398. Entry order matches tab0.
+  0.3's coder is NOT 0.6's: 24-bit range/offset, 328 contexts,
+  multi-exclusion escapes, discarded first byte = ~out_len
+  (see uha03_dec3.c header). crc1 is cumulative over tab0+tab1.
+  File data needs 0.3 core5 for the compressed modes (header method 39
+  etc.), still pending -> `x 03_m1` fails DATA; 03_m0 (STORE) is plain.
   Tables use default-password crypt, VERIFIED byte-identical to 0.4/0.6:
   tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs
   (00000000, 7125DAA3, 51A02E01, B70B4C26, 021E1879, 6F3BDB8B), which
@@ -134,8 +141,14 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   words, [4N..6N) dir index, [6N..7N) method/attr byte
   (0x20/0x22/0x27 in uha02.UHA, 0x20 in the corpus vectors).
   Sizes are deltas: size_i = size_{i-1} - var_i (size_{-1} = 0).
-  File data still needs 0.2 core3 (header method 25; 8..43 PPM/LZ+range,
-  dict `1<<((m-8)%12+10)`) - `uha02_dec3.c` TODO.
+  File data: EXTRACTION WORKS for the compressed modes. `x 02_M1/M2/M3.uha`
+  all byte-exact vs the 02_M0 plaintext stream (1243 bytes), per-file
+  CRCs verified (new `uha02_dec3.c`: 16-bit-init range coder, token/
+  literal/match/run models, methods 9/21/33 = dict sizes).
+  KNOWN LIMIT: `uha02.UHA` (method 25) decodes to the right length and
+  6/7 file CRCs match; BAK-KA~1.EXE differs in 10 bytes across 4
+  clusters (offsets 1102-1105, 6457-6458, 14298-14299, 14340-14341) -
+  a residual 0.2 model/context path, documented in uha02_dec3.c.
   Crypt: 0.2-specific S-box/stream (NOT byte-identical to 04/06;
   implemented as static in-file functions per binary,
   `sub_108C8`/`sub_12AE0`), fresh per table like later versions.
@@ -166,14 +179,17 @@ Decompressors (method->core tables are version-specific:
     D3X tab1/tab2 CRCs + 45 names). Multi-block (thresh) stubbed to
     single-block: tables OK, larger ALZ file streams (e.g. 06_mz m11)
     fail DATA. 0.4 needs separate port (330 vs 319 contexts, order-0 at
-    328 vs 318; `uha04_dec3.c` TODO). 0.3 needs separate port
-    (14 methods, ALZ:1/2/3 split, different tables; `uha03_dec3.c` TODO).
-    0.2 needs separate port (8..43 PPM/LZ+range, 3 submodes,
-    dict `1<<((m-8)%12+10)`; `uha02_dec3.c` TODO).
-    EVIDENCE (2026-10-24): correctly decrypted 0.3 tab1 (method 17) and
-    tab2 (method 2) fed to the verified 0.6 core3/core2 give rc=3
-    (input short), i.e. the mismatch is the codec, not the cipher
-    (cipher proven by recovering tab0 CRCs). No shortcut - ports needed.
+    328 vs 318; `uha04_dec3.c` TODO).
+    0.3: DONE (`uha03_dec3.c`) - byte-exact on 03_m* and uharc_u tab1.
+    Different coder: 24-bit range/offset, 328 contexts, multi-exclusion
+    escapes, first stream byte = ~out_len.
+    0.2: DONE (`uha02_dec3.c`) - byte-exact on 02_M1/M2/M3 streams
+    (methods 9/21/33); uha02.UHA (method 25) gives 6/7 file CRCs, one
+    10-byte discrepancy in BAK-KA~1.EXE (residual model path).
+    0.3 and 0.4 coders differ, so 0.4 still needs its own port.
+    EVIDENCE: correctly decrypted 0.3 tab1/tab2 fed to the 0.6
+    core3/core2 returned rc=3, so the gap is codec-level, not cipher
+    (cipher proven by recovering tab0 CRCs).
   - core 4 (0.6 24..39 LZP/PPM; 0.4 24..39 PPM/LZP; 0.3 22..35 LZP/PPM;
     0.2 has no core4 - max method 43->core3):
     0.6 skeleton + 0.4 (`UHARC04 sub_41CE30/415130`) + 0.3
@@ -198,9 +214,11 @@ Decompressors (method->core tables are version-specific:
     decrypt-then-decode; file data plain without -pw
     (password archives TODO).
 * Tool `uharc06_unpack` (source `uharc06_main.c`) auto-detects
-  `UHA 0.2` vs `UHA 0.3` vs `UHA 0.4` vs `UHA 0.6`, supports `x/e/t/l`
-  (l = list, extension beyond original 0.6 `x/e/t`). `l` + `t` work for 0.6 STORE;
-  `x` byte-exact for 0.6 STORE (`06_m0`).
+  `UHA 0.2` vs `UHA 0.3` vs `UHA 0.4` vs `UHA 0.6`, supports `x/e/t/l`.
+  Working end to end: 0.6 STORE extract (byte-exact); 0.2 list + extract
+  (02_M1/M2/M3 byte-exact); 0.3 list (all 6 vectors + uharc_u.uha).
+  Still failing: 0.4 list (core3), 0.3 extract (core5), 0.6 compressed
+  extract (core4/5 + filters), 0.2 uha02.UHA extract (10-byte outlier).
 
 ## Files
 
@@ -219,8 +237,10 @@ Decompressors (method->core tables are version-specific:
 * `uharc_dec2.c` - 0.6 core2 (MSB-first bit order)
 * `uharc_dec2_lsb.c` - core2 for 0.2/0.3/0.4 (LSB-first; same algorithm).
   Selected via `uharc_dec_decode_v(method, core2_lsb, ...)`. VERIFIED.
-* `uharc_dec3.c` - 0.6 core3 FIXED for tables (0.4 needs `uha04_dec3.c`,
-  0.3 needs `uha03_dec3.c`, 0.2 needs `uha02_dec3.c` TODO)
+* `uharc_dec3.c` - 0.6 core3 (tables verified)
+* `uha03_dec3.c` - 0.3 core3, verified byte-exact (own 24-bit coder)
+* `uha02_dec3.c` - 0.2 core3, verified byte-exact on 02_M1/M2/M3
+* 0.4 core3 still TODO (`uha04_dec3.c`)
 * `uharc_dec4.c` - 0.6 core4 skeleton (0.4/0.3 cores separate TODO;
   0.2 has no core4)
 * `uharc_dec5.c` - 0.6 core5 (0.4/0.3 cores separate TODO;
@@ -289,12 +309,11 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
 1. core3 multi-block: tables are single-block (thresh=out_len works);
    larger ALZ file streams (e.g. 06_mz method 11) need block reset
    via progress table (`sub_40807F`/`dword_4396F4`) like original.
-2. core2: SOLVED for 0.2/0.3/0.4 (LSB-first `uharc_dec2_lsb.c`).
-   Remaining: verify 0.6 MSB-first core2 (no 0.6 archive uses methods 2..7,
-   so it is still unexercised).
-   Next: 0.3/0.4 core3 (`uha03_dec3.c` / `uha04_dec3.c`) to decode tab1
-   (names) and finish those directories; 0.2 core3 for file data
-   (8..43 PPM/LZ+range, dict `1<<((m-8)%12+10)`).
+2. core3: 0.6 (tables) / 0.3 / 0.2 done. Next is 0.4 core3, which
+   finishes the last directory and unlocks 0.4 ALZ file data.
+   Remaining core2 item: 0.6 MSB-first is still unexercised (no 0.6
+   archive uses methods 2..7).
+   Remaining 0.2 item: the 10-byte discrepancy on uha02.UHA method 25.
 3. core4/5 file data: 0.6 `06_mx` (m27 core4) DATA, `06_m1` (m43 core5)
    + `D3X` (m34 core4) CRC fail (model gap). Port full PPM trees +
    `40D6D1` prefilter. 0.4 cores differ, need `41CE30/415130`

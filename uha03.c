@@ -181,11 +181,12 @@ static int mr_read(void *ctx, unsigned char *buf, unsigned want)
     return (int)want;
 }
 
-/* TODO 0.3 CRC accumulation across tab0+tab1 like 0.6? Currently
- * standalone per table; validate once 0.3 core3/2 decode. */
+/* crc_init: incoming CRC. 0.3 tab1_crc is cumulative over tab0+tab1
+ * (verified: 03_m0 tab0+tab1 -> BD63 == crc1); tab2/tab3 are standalone. */
 static int decode_table(FILE *fp, long off, unsigned long cmp_len,
                         int method, unsigned char *out,
-                        unsigned long dec_len, unsigned long *crc_out)
+                        unsigned long dec_len, unsigned long crc_seed,
+                        unsigned long *crc_out)
 {
     mr_t mr;
     mw_t mw;
@@ -197,7 +198,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     if (fseek(fp, off, SEEK_SET) != 0) return UHA03_ERR_IO;
     clen = (method == 0) ? dec_len : cmp_len;
     if (clen == 0 && dec_len == 0) {
-        if (crc_out) *crc_out = 0xFFFFFFFFUL;
+        if (crc_out) *crc_out = crc_seed;
         return UHA03_OK;
     }
     cmp = (unsigned char *)malloc(clen ? clen : 1);
@@ -220,7 +221,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     mw.buf = out;
     mw.cap = dec_len;
     mw.pos = 0;
-    mw.crc = 0xFFFFFFFFUL;
+    mw.crc = crc_seed;
     rc = uharc_dec_decode_v(method, 1, 3, mr_read, &mr, mw_write, &mw, dec_len);
     free(cmp);
     if (rc != 0) {
@@ -320,14 +321,15 @@ int uha03_open(const char *path, uha03_t **ph)
     }
 
     rc = decode_table(fp, tab0_off, 4 * nfiles, 0,
-                      tab0, 4 * nfiles, 0);
+                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHA03_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha03_close(h);
         return rc;
     }
+    /* crc1 is cumulative over tab0+tab1 */
     rc = decode_table(fp, tab1_off, hdr.cmp_sz1, 17,
-                      tab1, hdr.names_len, &crc);
+                      tab1, hdr.names_len, crc, &crc);
     if (rc != UHA03_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha03_close(h);
@@ -339,7 +341,7 @@ int uha03_open(const char *path, uha03_t **ph)
         return UHA03_ERR_CRC;
     }
     rc = decode_table(fp, tab2_off, hdr.cmp_sz2, 2,
-                      tab2, 4 * nfiles, &crc);
+                      tab2, 4 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHA03_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha03_close(h);
@@ -351,7 +353,7 @@ int uha03_open(const char *path, uha03_t **ph)
         return UHA03_ERR_CRC;
     }
     rc = decode_table(fp, tab3_off, hdr.cmp_sz3, 7,
-                      tab3, 7 * nfiles, &crc);
+                      tab3, 7 * nfiles, 0xFFFFFFFFUL, &crc);
     if (rc != UHA03_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha03_close(h);

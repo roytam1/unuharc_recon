@@ -243,6 +243,20 @@ int uharc_dec2l_decode(void *ctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
 void uharc_dec2l_free(void *ctx);
+/* 0.3 core3 (verified: exact on 03_m* and uharc_u tab1) */
+int uharc_dec3u_init(void **pctx, int method);
+int uharc_dec3u_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+void uharc_dec3u_free(void *ctx);
+/* 0.2 core3 (verified: byte-exact on 02_M1/M2/M3 streams) */
+int uharc_dec3t_init(void **pctx, int method);
+int uharc_dec3t_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+void uharc_dec3t_free(void *ctx);
 
 /* public dispatch: mirrors sub_40705C/sub_40717F buffer policy */
 int uharc_dec_decode_v(int method, int core2_lsb, int ver,
@@ -319,10 +333,24 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
     }
     case 3: {
         void *c3 = 0;
-        ret = uharc_dec3_init(&c3, method);
+        /* version-specific core3: 0.2 and 0.3 use their own coders;
+         * 0.4/0.6 fall back to the 0.6 port (0.4 still pending). */
+        if (ver == 2)
+            ret = uharc_dec3t_init(&c3, method);
+        else if (ver == 3)
+            ret = uharc_dec3u_init(&c3, method);
+        else
+            ret = uharc_dec3_init(&c3, method);
         if (ret == 0) {
-            ret = uharc_dec3_decode(c3, rcb, rctx, wcb, wctx, out_len);
-            uharc_dec3_free(c3);
+            if (ver == 2)
+                ret = uharc_dec3t_decode(c3, rcb, rctx, wcb, wctx, out_len);
+            else if (ver == 3)
+                ret = uharc_dec3u_decode(c3, rcb, rctx, wcb, wctx, out_len);
+            else
+                ret = uharc_dec3_decode(c3, rcb, rctx, wcb, wctx, out_len);
+            if (ver == 2) uharc_dec3t_free(c3);
+            else if (ver == 3) uharc_dec3u_free(c3);
+            else uharc_dec3_free(c3);
         }
         break;
     }
