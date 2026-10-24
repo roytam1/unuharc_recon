@@ -132,11 +132,15 @@ static const unsigned char d5_subrescale[96] = {
     0x00, 0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x01, 0x04, 0x02, 0x00, 0x00, 0x06, 0x04, 0x02, 0x00,
     0x00, 0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x01, 0x04, 0x02, 0x00, 0x00, 0x06, 0x04, 0x02, 0x00,
 };
-static const unsigned char d5_lenbase[16] = {
-    0xFF, 0xBF, 0x7F, 0x5F, 0x3F, 0x2F, 0x1F, 0x17, 0x13, 0x0F, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08,
+/* 22 entries: the length model has 21 symbols (lenA) plus the padded 22nd
+ * (lenB).  4290F8 and 42910E; the old 16-entry cut read past the end. */
+static const unsigned char d5_lenbase[22] = {
+    0xFF, 0xBF, 0x7F, 0x5F, 0x3F, 0x2F, 0x1F, 0x17, 0x13, 0x0F, 0x0D, 0x0C,
+    0x0B, 0x0A, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02,
 };
-static const unsigned char d5_lenbits[16] = {
-    0x00, 0x40, 0x40, 0x20, 0x20, 0x10, 0x10, 0x08, 0x04, 0x04, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+static const unsigned char d5_lenbits[22] = {
+    0x00, 0x40, 0x40, 0x20, 0x20, 0x10, 0x10, 0x08, 0x04, 0x04, 0x02,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 static const unsigned short d5_lenmodel[23] = {
     0x0000, 0x0010, 0x0018, 0x0028, 0x0038, 0x0058, 0x007C, 0x00CC, 0x0130, 0x018C, 0x0244, 0x02EF,
@@ -241,7 +245,6 @@ typedef struct dec5u_s {
     unsigned char lit0mode;    /* 437094 */
     unsigned char lithmode;    /* 437096 */
     unsigned char sign;        /* 437098 */
-    unsigned char b099;        /* 437099 */
     unsigned char dmode;       /* 4370A6 */
     unsigned char length;      /* 4370A7 */
     unsigned long lag4;        /* 436F40 */
@@ -390,7 +393,8 @@ static void d5_rescale(dec5u *d, unsigned ctx)
     unsigned long total;
     unsigned i, k, j;
     total = d5_halve(raw);
-    for (i = 1; i < 256; i++) fr[i] = raw[i];
+    /* sub_40F0DC copies raw[0..254] to fen+2..: fr[i] = raw[i-1] */
+    for (i = 1; i < 256; i++) fr[i] = raw[i - 1];
     fr[0] = (unsigned short)(((total & D5_M16) + ((total >> 16) & D5_M16)) & D5_M16);
     for (k = 1; k <= 64; k *= 2) {
         j = 256 - 2 * k;
@@ -436,10 +440,8 @@ static void d5_update(dec5u *d, unsigned sym)
     if (fr[0] >= 0x4000u) d5_rescale(d, ctx);
 
     if (d->group == 0 || d->group == 5) {
-        if (d->b099)
-            ctx = ((((ctx & 0xC0u) == (sym & 0xC0u)) ? 1u : 0u) << 8) | sym;
-        else
-            ctx = sym;
+        /* sub_40F278: always the "same high bits" flag, 512 contexts */
+        ctx = ((((ctx & 0xC0u) == (sym & 0xC0u)) ? 1u : 0u) << 8) | sym;
     } else if (d->group == 1) {
         ctx = (unsigned)d5_lit0[ctx & 0xFu] * 16u + (unsigned)d5_lit1[sym];
     } else if (d->group == 3) {
@@ -797,13 +799,18 @@ static void d5_len_update(dec5u *d, unsigned sym)
     }
 }
 
-/* sub_40F3C0: update the short-distance model */
+/* sub_40F3C0: update the short-distance model
+ *
+ * sym < 3 indexes the 3-entry "small distance" model (437024), sym >= 3
+ * indexes the mru_max+1 entry MRU distance model (436FC8).  The two are
+ * distinct arrays; the old code used the MRU array for both. */
 static void d5_sdist_update(dec5u *d, unsigned sym)
 {
-    unsigned short *p = d->sdist;
-    unsigned c = d->mru_max;
+    unsigned short *p;
+    unsigned c;
     unsigned i;
     if (sym < 3u) {
+        p = d->smalld;
         if (sym == 2u) p[1] = (unsigned short)(p[1] + 32);
         p[2] = (unsigned short)(p[2] + 32);
         if (p[2] >= 0x4000u) {
@@ -815,7 +822,10 @@ static void d5_sdist_update(dec5u *d, unsigned sym)
             p[2] = (unsigned short)(p[1] + d2);
         }
     } else {
-        unsigned a = (unsigned)d->mru_n - 1u - sym;
+        unsigned a;
+        p = d->sdist;
+        c = d->mru_max;
+        a = (unsigned)d->mru_n - 1u - sym;
         for (;;) {
             a++;
             if (a >= c) break;
@@ -1091,7 +1101,6 @@ int uharc_dec5u_init(void **pctx, int method)
     d->lit0mode = 0;
     d->lithmode = 0;
     d->sign = 1;
-    d->b099 = 0;
     d->dmode = 0;
     d->length = 0;
     d->lag4 = D5_M32;

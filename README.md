@@ -99,9 +99,17 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   (see uha03_dec3.c header). crc1 is cumulative over tab0+tab1.
   File data: EXTRACTION DONE for all six vectors (03_m0 STORE..03_mz,
   methods 0/39/67) via uha03_dec5.c - byte-exact vs corpus.
-  Exception: uharc_u.uha (method 60 = 1 MB dictionary) still fails
-  immediately (rc=7, out=0) - the 0.3 core5 port only covers the
-  8 KB-dictionary methods exercised by the vectors.
+  uharc_u.uha (method 60, 1 MB dictionary) is now byte-exact too:
+  1047398 bytes, CRC32 D9BA98B4, identical to a fresh official
+  extraction by uharc_u.exe. The earlier failure was not a
+  dictionary-size limit but four defects that the short 8 KB
+  vectors never reached: a context index gated on an
+  encoder-only flag, length tables truncated to 16 of 22
+  entries, a Fenwick rescale off by one (fr[i]=raw[i-1]), and
+  short-distance symbols polluting the wrong model.
+  NOTE: 0.3 post-filters MZ/ZM/MQ files via sub_407D44 (E8/E9),
+  which uha03.c does not implement yet - archives holding EXEs
+  will extract with wrong CRC until that layer is added.
   tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs
   (00000000, 7125DAA3, 51A02E01, B70B4C26, 021E1879, 6F3BDB8B), which
   also fixes the directory/stream order as
@@ -342,10 +350,9 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
 1. core3 multi-block: tables are single-block (thresh=out_len works);
    larger ALZ file streams (e.g. 06_mz method 11) need block reset
    via progress table (`sub_40807F`/`dword_4396F4`) like original.
-2. core3 is now DONE for all four versions (0.6 covers tables only).
-   Next: wire 0.3/0.4 extraction (uha03_extract/uha04_extract are
-   still stubs) using the verified core3/core5 decoders, then add
-   their exe/multimedia filters (uha02_mm.c is the verified base).
+2. 0.3 extraction is COMPLETE (all six vectors + uharc_u.uha, across all
+   dictionary sizes). Next: 0.3/0.4 exe filter (sub_407D44 / sub_4090A0)
+   then the multimedia layer; both verified against native extractions.
    Remaining core2 item: 0.6 MSB-first is still unexercised (no 0.6
    archive uses methods 2..7).
    0.2 is COMPLETE: byte-exact against every oracle, including
