@@ -592,6 +592,10 @@ static unsigned long *g_sp_pidx;
 static unsigned long *g_sp_prem;
 static FILE **g_sp_pcur;
 static unsigned long *g_sp_pcrc;
+static unsigned char *g_sp_fbuf;
+static unsigned long g_sp_fcap;
+static unsigned long g_sp_fpos;
+static int g_sp_factive;
 static char *g_sp_curpath;
 static unsigned g_sp_curpath_cap;
 static int g_sp_crc_err;
@@ -610,6 +614,50 @@ static void g_sp_mkdir_parents(char *path)
 #endif
             *p = save;
         }
+    }
+}
+
+/* ---- 0.2 E8/E9 executable filter (inverse of sub_150A4; sub_15AD0) ----
+ * Applied per file when the archive says filters are on and the file is at
+ * least 0x400 bytes with an MZ/ZM header (same gate as the original).
+ * VERIFIED: makes BAK-KA~1.EXE's CRC match tab0 exactly on uha02.UHA. */
+static void uha02_unfilter(unsigned char *b, long len)
+{
+    long v2, i, end;
+    if (len <= 15) return;
+    if (!((b[0] == 0x4D && b[1] == 0x5A) || (b[0] == 0x5A && b[1] == 0x4D)))
+        return;
+    v2 = len;
+    end = len - 15;
+    i = 0;
+    while (i < end) {
+        long v7, adv, v9;
+        if (b[i] != 0xE8 && b[i] != 0xE9) { i++; continue; }
+        v7 = (long)((unsigned long)b[i + 1] | ((unsigned long)b[i + 2] << 8) |
+                    ((unsigned long)b[i + 3] << 16) | ((unsigned long)b[i + 4] << 24));
+        if (v7 >= 0x80000000L) v7 -= 0x100000000LL;
+        adv = 4;
+        if (v7 != 0) {
+            int done = 0;
+            if (v7 > 0 && v7 <= v2 - 1) {
+                long t = v7;
+                if (t == i) t ^= i;
+                v9 = t - i;
+                done = 1;
+            } else if (v7 < 0 && v7 >= -i) {
+                v9 = v2 + v7;
+                done = 1;
+            }
+            if (done) {
+                unsigned long u = (unsigned long)v9;
+                b[i + 1] = (unsigned char)(u & 0xFFUL);
+                b[i + 2] = (unsigned char)((u >> 8) & 0xFFUL);
+                b[i + 3] = (unsigned char)((u >> 16) & 0xFFUL);
+                b[i + 4] = (unsigned char)((u >> 24) & 0xFFUL);
+                adv = 5;
+            }
+        }
+        i += adv;
     }
 }
 
@@ -643,6 +691,20 @@ static int g_sp_open_cur(void)
         *g_sp_pcur = 0;
     }
     *g_sp_pcrc = 0xFFFFFFFFUL;
+    g_sp_factive = 0;
+    g_sp_fpos = 0;
+    /* 0.2 stores no filter flag: the original applies the E8/E9 pass
+     * unconditionally, gated only by an MZ/ZM header and len >= 0x400
+     * (uha02_unfilter is a no-op otherwise). Buffer such files whole. */
+    if ((e->size & 0xFFFFFFFFUL) >= 0x400UL) {
+        if (g_sp_fcap < e->size) {
+            unsigned char *nb = (unsigned char *)realloc(g_sp_fbuf, (size_t)e->size);
+            if (!nb) return 1;
+            g_sp_fbuf = nb;
+            g_sp_fcap = e->size;
+        }
+        g_sp_factive = 1;
+    }
     return 0;
 }
 
@@ -670,19 +732,45 @@ static int uha02_split_write(void *ctx, const unsigned char *buf, unsigned len)
                 if (g_sp_open_cur() != 0) return 1;
             }
             if (chunk > 0) {
-                size_t w = fwrite(buf, 1, (size_t)chunk, *g_sp_pcur);
-                if (w != (size_t)chunk) return 1;
-                *g_sp_pcrc = uha02_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
+                if (g_sp_factive) {
+                    if (g_sp_fpos + chunk > g_sp_fcap) return 1;
+                    memcpy(g_sp_fbuf + g_sp_fpos, buf, (size_t)chunk);
+                    g_sp_fpos += chunk;
+                } else {
+                    size_t w = fwrite(buf, 1, (size_t)chunk, *g_sp_pcur);
+                    if (w != (size_t)chunk) return 1;
+                    *g_sp_pcrc = uha02_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
+                }
             }
         } else {
-            if (chunk > 0)
-                *g_sp_pcrc = uha02_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
+            if (chunk > 0) {
+                if (g_sp_factive) {
+                    if (g_sp_fpos + chunk > g_sp_fcap) return 1;
+                    memcpy(g_sp_fbuf + g_sp_fpos, buf, (size_t)chunk);
+                    g_sp_fpos += chunk;
+                } else {
+                    *g_sp_pcrc = uha02_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
+                }
+            }
         }
         buf += chunk;
         len -= (unsigned)chunk;
         *g_sp_prem -= chunk;
         if (*g_sp_prem == 0) {
             ci = *g_sp_pidx;
+            if (g_sp_factive) {
+                /* whole file buffered: run the E8/E9 inverse, then write/CRC */
+                unsigned long sz = (h->entries[ci].size & 0xFFFFFFFFUL);
+                uha02_unfilter(g_sp_fbuf, (long)g_sp_fpos);
+                if (!g_sp_test_only && *g_sp_pcur) {
+                    size_t w = fwrite(g_sp_fbuf, 1, (size_t)g_sp_fpos, *g_sp_pcur);
+                    if (w != (size_t)g_sp_fpos) return 1;
+                }
+                *g_sp_pcrc = uha02_crc32(g_sp_fbuf, (unsigned)g_sp_fpos, *g_sp_pcrc);
+                if (g_sp_fpos != sz) { g_sp_crc_err = 1; return 1; }
+                g_sp_factive = 0;
+                g_sp_fpos = 0;
+            }
             if (*g_sp_pcur) { fclose(*g_sp_pcur); *g_sp_pcur = 0; }
             if (((~(*g_sp_pcrc)) & 0xFFFFFFFFUL) !=
                 (h->entries[ci].crc & 0xFFFFFFFFUL)) {

@@ -26,13 +26,14 @@ Directory fully decodable: 0.2 uses only STORE + core2 (methods 0/7/2/7).
 core2 is LSB-first for 0.2/0.3/0.4 (0.6 is MSB-first); verified by
 decoding tab1 names (EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT), tab2 dates
 (5D58/963B), tab3 sizes, and uha02.UHA's 7 real names summing to 31447.
-File data: extraction WORKS for 02_M1/M2/M3 (methods 9/21/33) via the
-0.2 core3 port (uha02_dec3.c): 16-bit-init range coder, token/literal/
-match/run models, byte-exact vs the 02_M0 plaintext stream. uha02.UHA
-(method 25) decodes fully but 1 of 7 files differs in 10 bytes
-(offsets 1102-1105, 6457-6458, 14298-14299, 14340-14341) - residual
-model path. Entry+2 byte is NOT the codec for solid 0.2/0.3 archives
-(0x20 while header method is STORE); likely a level/attr tag.
+File data: extraction WORKS for 02_M1/M2/M3 (methods 9/21/33) and for
+uha02.UHA (method 25, all 7 files, CRCs verified) via the 0.2 core3
+port (uha02_dec3.c): 16-bit-init range coder, token/literal/match/run
+models. 0.2 also applies an E8/E9 executable filter (sub_150A4 encode /
+sub_15AD0 decode) with no stored flag: gate is MZ/ZM header + len>=0x400,
+scan while pos < len-15, advance 4 bytes per byte and 5 after an E8/E9
+whose operand got rewritten. Entry+2 byte is NOT the codec for solid
+0.2/0.3 archives (0x20 while header method is STORE); likely level/attr.
 DOS32 executable cannot run here - no console/listing ground truth;
 header layout verified arithmetically + decrypt/CRC self-consistent.
 Table cipher (verified 2026-10-24): S[i]=pwd[i%22]; 32 rounds of

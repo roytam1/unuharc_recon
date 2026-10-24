@@ -145,10 +145,14 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   all byte-exact vs the 02_M0 plaintext stream (1243 bytes), per-file
   CRCs verified (new `uha02_dec3.c`: 16-bit-init range coder, token/
   literal/match/run models, methods 9/21/33 = dict sizes).
-  KNOWN LIMIT: `uha02.UHA` (method 25) decodes to the right length and
-  6/7 file CRCs match; BAK-KA~1.EXE differs in 10 bytes across 4
-  clusters (offsets 1102-1105, 6457-6458, 14298-14299, 14340-14341) -
-  a residual 0.2 model/context path, documented in uha02_dec3.c.
+  uha02.UHA (genuine archive made on DOS with `uharc02 a uha02.uha b*.*`)
+  extracts completely: all 7 file CRCs verify. The earlier 10-byte
+  discrepancy in BAK-KA~1.EXE was NOT a decoder bug: it was the missing
+  0.2 E8/E9 executable filter (sub_150A4/sub_15AD0). 0.2 stores no
+  filter flag, so the pass is applied unconditionally, gated only by an
+  MZ/ZM header and len >= 0x400; on non-MZ data it is a no-op.
+  Implemented as uha02_unfilter() in uha02.c (whole-file buffer for
+  len >= 0x400, then filter, write and CRC).
   Crypt: 0.2-specific S-box/stream (NOT byte-identical to 04/06;
   implemented as static in-file functions per binary,
   `sub_108C8`/`sub_12AE0`), fresh per table like later versions.
@@ -184,8 +188,7 @@ Decompressors (method->core tables are version-specific:
     Different coder: 24-bit range/offset, 328 contexts, multi-exclusion
     escapes, first stream byte = ~out_len.
     0.2: DONE (`uha02_dec3.c`) - byte-exact on 02_M1/M2/M3 streams
-    (methods 9/21/33); uha02.UHA (method 25) gives 6/7 file CRCs, one
-    10-byte discrepancy in BAK-KA~1.EXE (residual model path).
+    (methods 9/21/33) and on uha02.UHA (method 25, all 7 files).
     0.3 and 0.4 coders differ, so 0.4 still needs its own port.
     EVIDENCE: correctly decrypted 0.3 tab1/tab2 fed to the 0.6
     core3/core2 returned rc=3, so the gap is codec-level, not cipher
@@ -216,9 +219,9 @@ Decompressors (method->core tables are version-specific:
 * Tool `uharc06_unpack` (source `uharc06_main.c`) auto-detects
   `UHA 0.2` vs `UHA 0.3` vs `UHA 0.4` vs `UHA 0.6`, supports `x/e/t/l`.
   Working end to end: 0.6 STORE extract (byte-exact); 0.2 list + extract
-  (02_M1/M2/M3 byte-exact); 0.3 list (all 6 vectors + uharc_u.uha).
+  (02_M1/M2/M3 and uha02.UHA byte-exact); 0.3 list (all 6 vectors + uharc_u.uha).
   Still failing: 0.4 list (core3), 0.3 extract (core5), 0.6 compressed
-  extract (core4/5 + filters), 0.2 uha02.UHA extract (10-byte outlier).
+  extract (core4/5 + filters), 
 
 ## Files
 
@@ -313,7 +316,7 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
    finishes the last directory and unlocks 0.4 ALZ file data.
    Remaining core2 item: 0.6 MSB-first is still unexercised (no 0.6
    archive uses methods 2..7).
-   Remaining 0.2 item: the 10-byte discrepancy on uha02.UHA method 25.
+   0.2 is complete for the tested vectors (filters now included).
 3. core4/5 file data: 0.6 `06_mx` (m27 core4) DATA, `06_m1` (m43 core5)
    + `D3X` (m34 core4) CRC fail (model gap). Port full PPM trees +
    `40D6D1` prefilter. 0.4 cores differ, need `41CE30/415130`
