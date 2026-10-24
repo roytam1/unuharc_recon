@@ -31,18 +31,28 @@
  *
  * Initial context model: a fresh context block is the Fenwick tree of a
  * uniform 256-symbol distribution (tree[0] = 256, tree[k] = lowbit(k)).
- * This is what the 0.2 streams in the test vectors use.  The listing's
- * 512-byte template at dseg02:3A6BC (copied by sub_18AC8) is a different
- * prior; feeding it instead shifts the first decoded literal (and fails
- * the vectors), so the uniform build is used for both initial setup and
- * model reset.  See the header note in the test report.
+ * sub_18AC8 really does build it that way: it tiles the 512-byte template
+ * at dseg02:3A6BC over all 256 contexts and that template is exactly the
+ * uniform Fenwick tree (0x100,1,2,1,4,1,2,1,8,...).  Same build on reset.
  *
- * Verified: 02_M1 (method 9), 02_M2 (21), 02_M3 (33) each decode the
- * 1243-byte solid file stream byte-exactly, CRCs 9166788F/3CD931D7/
- * 5FC97467.  uha02.UHA (method 25, 31447 bytes) matches 6 of its 7
- * per-file CRCs; the 29696-byte binary entry differs in 10 bytes
- * (localized: 1102-1105, 6457-6458, 14298-14299, 14340-14341), so a
- * rare model/context path remains unresolved for some binary data.
+ * Fixed for larger archives (verified against real 0.2 oracles):
+ *  - byte_3ADF8 (d3_df8) is a 256-byte symbol table, not 16 entries:
+ *    sub_1B8D4 does `mov ah, ds:byte_3ADF8[sym]` with the full symbol.
+ *    The old 16-entry table read past its end for sym >= 16, so every
+ *    non-zero mode (multimedia "delta" predictor context) used a wrong
+ *    literal context.
+ *  - sub_1BAC4's smallm rescale halves (m2-m1) and (m3-m2) around the
+ *    fixed base m1 (=0), flooring each gap at 0x400 and updating m2 too
+ *    (the old code used m1-m0 and m3-m1 and only rewrote m1/m3).
+ *
+ * Verified: 02_M1 (method 9), 02_M2 (21), 02_M3 (33) decode the
+ * 1243-byte solid file stream byte-exactly (same bytes as the STORE
+ * vector, CRCs 9166788F/3CD931D7/5FC97467); uha02.UHA (method 25)
+ * extracts all 7 files with tab0 CRCs matching.
+ * Larger oracles (V_MMOFF.UHA method 31, 2048K dict, 1462013 bytes /
+ * 10 files; UHA02EXE.UHA method 28, one 198723-byte exe) now decode
+ * byte-exactly after the 0.2 E8/E9 filter pass (uha02.c), incl.
+ * UHARC02.EXE CRC FB1BE745; UH02MMP.UHA (mm+) verifies 9/9 too.
  */
 #include <stdlib.h>
 #include <string.h>
@@ -98,8 +108,25 @@ static const unsigned char d3_de8[16] = {
     0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00
 };
 
-static const unsigned char d3_df8[16] = {
-    0x00, 0x01, 0x01, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x04
+/* byte_3ADF8: symbol -> nibble class, indexed by the FULL symbol
+ * (sub_1B8D4 uses ds:byte_3ADF8[sym], sym = 0..255), 256 entries. */
+static const unsigned char d3_df8[256] = {
+    0x00, 0x01, 0x01, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x04,
+    0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+    0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+    0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+    0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+    0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x0A, 0x0A, 0x0A, 0x0A,
+    0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+    0x0A, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0C, 0x0C,
+    0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0D, 0x0D, 0x0D, 0x0D, 0x0D, 0x0E, 0x0E, 0x0E, 0x0F, 0x0F
 };
 
 static const unsigned char d3_ef8[256] = {
@@ -263,7 +290,20 @@ static int d3_bit(d3ctx *c)
 static void d3_flush(d3ctx *c)
 {
     if (c->out_fill) {
-        if (c->wcb(c->wctx, c->outbuf, c->out_fill) != 0)
+        unsigned long n = c->out_fill;
+        /* The last block may overrun the expected size (a run/match can
+         * cross the end); clamp so the writer never sees more than
+         * out_expect bytes in total. */
+        if (c->out_expect && c->out_total >= c->out_expect &&
+            c->out_total - n >= c->out_expect) {
+            c->out_fill = 0;
+            return;
+        }
+        if (c->out_expect && c->out_total - n < c->out_expect &&
+            c->out_total > c->out_expect) {
+            n = c->out_expect - (c->out_total - n);
+        }
+        if (c->wcb(c->wctx, c->outbuf, n) != 0)
             c->err = 4;
         c->out_fill = 0;
     }
@@ -638,14 +678,16 @@ static void d3_upd_distlist(d3ctx *c, unsigned v) /* sub_1BAC4 */
         if (v == 2) c->smallm[2] = (unsigned short)(c->smallm[2] + 0x20);
         c->smallm[3] = (unsigned short)(c->smallm[3] + 0x20);
         if (c->smallm[3] >= 0x4000) {
-            unsigned long f1 = (unsigned)(c->smallm[1] - c->smallm[0]);
-            unsigned long f2 = (unsigned)(c->smallm[3] - c->smallm[1]);
-            unsigned long h1 = (f1 + 1) >> 1;
-            unsigned long h2 = (f2 + 1) >> 1;
-            if (h1 < 0x400) h1 = 0x400;
+            /* sub_1BAC4 rescale: smallm[1] (0) is the fixed base; the
+             * gaps halved are (m2-m1) and (m3-m2), each floored at
+             * 0x400, and m2 is rebuilt too (the listing uses
+             * word_3C566/3C568/3C56A, i.e. m1/m2/m3). */
+            unsigned long h2 = ((unsigned)(c->smallm[2] - c->smallm[1]) + 1) >> 1;
+            unsigned long h3 = ((unsigned)(c->smallm[3] - c->smallm[2]) + 1) >> 1;
             if (h2 < 0x400) h2 = 0x400;
-            c->smallm[1] = (unsigned short)(c->smallm[0] + h1);
-            c->smallm[3] = (unsigned short)(c->smallm[1] + h2);
+            if (h3 < 0x400) h3 = 0x400;
+            c->smallm[2] = (unsigned short)(c->smallm[1] + h2);
+            c->smallm[3] = (unsigned short)(c->smallm[2] + h3);
         }
     } else {
         unsigned a = (unsigned)c->list_max - 1 - v;

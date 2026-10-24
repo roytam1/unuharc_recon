@@ -228,8 +228,8 @@ int uharc_dec4_decode(void *ctx,
                       uharc_dec_write_cb wcb, void *wctx,
                       unsigned long out_len);
 void uharc_dec4_free(void *ctx);
-struct uharc_dec5_s;
-typedef struct uharc_dec5_s uharc_dec5_t;
+struct uharc_dec5;
+typedef struct uharc_dec5 uharc_dec5_t;
 uharc_dec5_t *uharc_dec5_init(int method);
 int uharc_dec5_decode(uharc_dec5_t *d,
                       uharc_dec_read_cb rcb, void *rctx,
@@ -250,6 +250,20 @@ int uharc_dec3u_decode(void *ctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
 void uharc_dec3u_free(void *ctx);
+/* 0.4 core3 (verified: exact on 04_m* and uha04.UHA tab1) */
+int uharc_dec3v_init(void **pctx, int method);
+int uharc_dec3v_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+void uharc_dec3v_free(void *ctx);
+/* 0.3 core5 (verified: byte-exact on 03_m1/m2/m3/mx/mz file data) */
+int uharc_dec5u_init(void **pctx, int method);
+int uharc_dec5u_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+void uharc_dec5u_free(void *ctx);
 /* 0.2 core3 (verified: byte-exact on 02_M1/M2/M3 streams) */
 int uharc_dec3t_init(void **pctx, int method);
 int uharc_dec3t_decode(void *ctx,
@@ -333,12 +347,14 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
     }
     case 3: {
         void *c3 = 0;
-        /* version-specific core3: 0.2 and 0.3 use their own coders;
-         * 0.4/0.6 fall back to the 0.6 port (0.4 still pending). */
+        /* version-specific core3: 0.2, 0.3 and 0.4 each have their own
+         * coder; 0.6 uses the 0.6 port. */
         if (ver == 2)
             ret = uharc_dec3t_init(&c3, method);
         else if (ver == 3)
             ret = uharc_dec3u_init(&c3, method);
+        else if (ver == 4)
+            ret = uharc_dec3v_init(&c3, method);
         else
             ret = uharc_dec3_init(&c3, method);
         if (ret == 0) {
@@ -346,10 +362,13 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
                 ret = uharc_dec3t_decode(c3, rcb, rctx, wcb, wctx, out_len);
             else if (ver == 3)
                 ret = uharc_dec3u_decode(c3, rcb, rctx, wcb, wctx, out_len);
+            else if (ver == 4)
+                ret = uharc_dec3v_decode(c3, rcb, rctx, wcb, wctx, out_len);
             else
                 ret = uharc_dec3_decode(c3, rcb, rctx, wcb, wctx, out_len);
             if (ver == 2) uharc_dec3t_free(c3);
             else if (ver == 3) uharc_dec3u_free(c3);
+            else if (ver == 4) uharc_dec3v_free(c3);
             else uharc_dec3_free(c3);
         }
         break;
@@ -364,11 +383,21 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
         break;
     }
     case 5: {
-        uharc_dec5_t *c5 = uharc_dec5_init(method);
-        if (!c5) ret = 1;
-        else {
-            ret = uharc_dec5_decode(c5, rcb, rctx, wcb, wctx, out_len);
-            uharc_dec5_free(c5);
+        if (ver == 3) {
+            /* 0.3 has its own PPM/LZW coder */
+            void *c5 = 0;
+            ret = uharc_dec5u_init(&c5, method);
+            if (ret == 0) {
+                ret = uharc_dec5u_decode(c5, rcb, rctx, wcb, wctx, out_len);
+                uharc_dec5u_free(c5);
+            }
+        } else {
+            uharc_dec5_t *c5 = uharc_dec5_init(method);
+            if (!c5) ret = 1;
+            else {
+                ret = uharc_dec5_decode(c5, rcb, rctx, wcb, wctx, out_len);
+                uharc_dec5_free(c5);
+            }
         }
         break;
     }

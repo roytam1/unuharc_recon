@@ -32,7 +32,10 @@ port (uha02_dec3.c): 16-bit-init range coder, token/literal/match/run
 models. 0.2 also applies an E8/E9 executable filter (sub_150A4 encode /
 sub_15AD0 decode) with no stored flag: gate is MZ/ZM header + len>=0x400,
 scan while pos < len-15, advance 4 bytes per byte and 5 after an E8/E9
-whose operand got rewritten. Entry+2 byte is NOT the codec for solid
+whose operand got rewritten. -mm+ in 0.2 is NOT a post-decode filter: it only selects an encoder-side
+literal predictor mode (in-stream control token 0..5, delta at byte
+distance ((mode-1)&3)+1). Output after core3 is already original data.
+Entry+2 byte is NOT the codec for solid
 0.2/0.3 archives (0x20 while header method is STORE); likely level/attr.
 DOS32 executable cannot run here - no console/listing ground truth;
 header layout verified arithmetically + decrypt/CRC self-consistent.

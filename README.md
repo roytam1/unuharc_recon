@@ -145,14 +145,25 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   all byte-exact vs the 02_M0 plaintext stream (1243 bytes), per-file
   CRCs verified (new `uha02_dec3.c`: 16-bit-init range coder, token/
   literal/match/run models, methods 9/21/33 = dict sizes).
-  uha02.UHA (genuine archive made on DOS with `uharc02 a uha02.uha b*.*`)
-  extracts completely: all 7 file CRCs verify. The earlier 10-byte
-  discrepancy in BAK-KA~1.EXE was NOT a decoder bug: it was the missing
-  0.2 E8/E9 executable filter (sub_150A4/sub_15AD0). 0.2 stores no
-  filter flag, so the pass is applied unconditionally, gated only by an
-  MZ/ZM header and len >= 0x400; on non-MZ data it is a no-op.
-  Implemented as uha02_unfilter() in uha02.c (whole-file buffer for
-  len >= 0x400, then filter, write and CRC).
+  0.2 is now COMPLETE and byte-exact against every oracle, including
+  archives produced by the real DOS archiver (runnable through MS-DOS
+  Player, msdos.exe):
+  - uha02.UHA (`a uha02.uha b*.*`)               7/7 files MATCH
+  - UH02MMP.UHA (`a -mm+ ... b*.*`)              9/9 files MATCH (WAV+BMP)
+  - UHA02EXE.UHA (`a -mm+ ... Uha02d3x.exe`)     extracted EXE MD5 == Uharc02.exe
+  - V_MMOFF.UHA (`a -mm- -m2 ...`)               10/10 files MATCH (incl. 1.15 MB msdos.exe)
+  - 02_M1/M2/M3                                  byte-exact
+  The earlier 10-byte BAK-KA~1.EXE gap was the missing E8/E9 executable
+  filter (sub_150A4/sub_15AD0); 0.2 stores no filter flag, so it is
+  applied unconditionally, gated by an MZ/ZM header and len >= 0x400
+  (no-op otherwise). Implemented as uha02_unfilter() in uha02.c.
+  Two genuine core3 defects were also found and fixed in uha02_dec3.c:
+  (1) the symbol->nibble table byte_3ADF8 is 256 entries (was truncated
+  to 16, breaking every non-zero -mm predictor mode), and (2) the
+  small-distance rescale (sub_1BAC4) halves (m2-m1)/(m3-m2) around m1
+  with a 0x400 floor and rewrites m2, not (m1-m0)/(m3-m1)/m1.
+  NOTE: 0.2's -mm+ gain is a codec-internal literal predictor, NOT a
+  post-decode multimedia filter - output is already original data.
   Crypt: 0.2-specific S-box/stream (NOT byte-identical to 04/06;
   implemented as static in-file functions per binary,
   `sub_108C8`/`sub_12AE0`), fresh per table like later versions.
@@ -182,14 +193,19 @@ Decompressors (method->core tables are version-specific:
     fallback 0x13E, xsum, len `v51?v51:256`; verified 06_m1 tab1/tab2 +
     D3X tab1/tab2 CRCs + 45 names). Multi-block (thresh) stubbed to
     single-block: tables OK, larger ALZ file streams (e.g. 06_mz m11)
-    fail DATA. 0.4 needs separate port (330 vs 319 contexts, order-0 at
-    328 vs 318; `uha04_dec3.c` TODO).
+    fail DATA.
+    0.4: DONE (`uha04_dec3.c`) - byte-exact on 04_m*/uha04.UHA tab1 and a
+    5840-byte solid stream. 330 contexts (order-0 at 328/329), lengths as
+    ordinary symbols, 1-based Fenwick rescale fill.
+    0.3 core5: DONE (`uha03_dec5.c`) - byte-exact on 03_m1/m2/m3/mx/mz file
+    data (methods 39 and 67, all per-file CRCs). 3-way decision model,
+    PPM/Fenwick contexts, delta literals, 61-symbol distance + MRU.
     0.3: DONE (`uha03_dec3.c`) - byte-exact on 03_m* and uharc_u tab1.
     Different coder: 24-bit range/offset, 328 contexts, multi-exclusion
     escapes, first stream byte = ~out_len.
     0.2: DONE (`uha02_dec3.c`) - byte-exact on 02_M1/M2/M3 streams
     (methods 9/21/33) and on uha02.UHA (method 25, all 7 files).
-    0.3 and 0.4 coders differ, so 0.4 still needs its own port.
+    0.2, 0.3, 0.4 and 0.6 core3 are all distinct coders, each now ported.
     EVIDENCE: correctly decrypted 0.3 tab1/tab2 fed to the 0.6
     core3/core2 returned rc=3, so the gap is codec-level, not cipher
     (cipher proven by recovering tab0 CRCs).
@@ -218,10 +234,11 @@ Decompressors (method->core tables are version-specific:
     (password archives TODO).
 * Tool `uharc06_unpack` (source `uharc06_main.c`) auto-detects
   `UHA 0.2` vs `UHA 0.3` vs `UHA 0.4` vs `UHA 0.6`, supports `x/e/t/l`.
-  Working end to end: 0.6 STORE extract (byte-exact); 0.2 list + extract
-  (02_M1/M2/M3 and uha02.UHA byte-exact); 0.3 list (all 6 vectors + uharc_u.uha).
-  Still failing: 0.4 list (core3), 0.3 extract (core5), 0.6 compressed
-  extract (core4/5 + filters), 
+  Working end to end: 0.2 list + extract
+  (every oracle byte-exact, incl. real DOS-made -mm+ archives);
+  0.6 STORE extract (byte-exact); 0.3 + 0.4 list (all vectors/samples).
+  Still failing: 0.3/0.4 extract (container stubs - decoders ready) and
+  0.6 compressed extract (core4/5 + filters).
 
 ## Files
 
@@ -243,7 +260,11 @@ Decompressors (method->core tables are version-specific:
 * `uharc_dec3.c` - 0.6 core3 (tables verified)
 * `uha03_dec3.c` - 0.3 core3, verified byte-exact (own 24-bit coder)
 * `uha02_dec3.c` - 0.2 core3, verified byte-exact on 02_M1/M2/M3
-* 0.4 core3 still TODO (`uha04_dec3.c`)
+* `uha04_dec3.c` - 0.4 core3, verified byte-exact (330 contexts)
+* `uha03_dec5.c` - 0.3 core5, verified byte-exact on 03_m* file data
+* `uha02_mm.c` - 0.3/0.4/0.6 multimedia filter (BMP/WAV/VOC), verified by
+  encoder-inverse round-trip. NOT wired in: 0.2 needs no post-filter
+  (its -mm+ gain is a codec-internal predictor), staged for later versions.
 * `uharc_dec4.c` - 0.6 core4 skeleton (0.4/0.3 cores separate TODO;
   0.2 has no core4)
 * `uharc_dec5.c` - 0.6 core5 (0.4/0.3 cores separate TODO;
@@ -312,16 +333,18 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
 1. core3 multi-block: tables are single-block (thresh=out_len works);
    larger ALZ file streams (e.g. 06_mz method 11) need block reset
    via progress table (`sub_40807F`/`dword_4396F4`) like original.
-2. core3: 0.6 (tables) / 0.3 / 0.2 done. Next is 0.4 core3, which
-   finishes the last directory and unlocks 0.4 ALZ file data.
+2. core3 is now DONE for all four versions (0.6 covers tables only).
+   Next: wire 0.3/0.4 extraction (uha03_extract/uha04_extract are
+   still stubs) using the verified core3/core5 decoders, then add
+   their exe/multimedia filters (uha02_mm.c is the verified base).
    Remaining core2 item: 0.6 MSB-first is still unexercised (no 0.6
    archive uses methods 2..7).
-   0.2 is complete for the tested vectors (filters now included).
+   0.2 is COMPLETE: byte-exact against every oracle, including
+   archives made by the real DOS archiver under MS-DOS Player.
 3. core4/5 file data: 0.6 `06_mx` (m27 core4) DATA, `06_m1` (m43 core5)
    + `D3X` (m34 core4) CRC fail (model gap). Port full PPM trees +
-   `40D6D1` prefilter. 0.4 cores differ, need `41CE30/415130`
-   and `412130/40E380` ports; 0.3 cores differ, need `419E9C/415F6C`
-   and `4103BC/40F6F0` ports (do not reuse 0.6 verbatim).
+   `40D6D1` prefilter. 0.4 needs `41CE30/415130` + `412130/40E380`;
+   0.3 core5 is DONE (uha03_dec5.c) and works as a reference for 0.4.
    0.2 has no core4/5 (max method 43->core3).
 4. Filters: 0.6 `sub_404665/40481E/404DCE` (exe E8E9/multimedia) for
    flags like D3X 00/01; 0.4 `sub_4085A0/408380/408D20`;
