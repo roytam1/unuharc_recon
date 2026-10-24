@@ -1,6 +1,33 @@
-# UHARC 0.3/0.4/0.6 archive formats (from uharc_u/UHARC04/UNUHARC06)
+# UHARC 0.2/0.3/0.4/0.6 archive formats (from Uharc02/uharc_u/UHARC04/UNUHARC06)
 
 All integers little-endian. CRC32 IEEE ED pennies (init FFFFFFFF).
+
+## 0.2 summary (Uharc02.c / Uharc02.lst, DOS32 full archiver, not runnable here)
+
+48-byte header (sub_12848), magic 0x02414855 UHA02.
+Decrypt 40 bytes 4..43 key=raw44: raw[4+i] ^= (key+i*i)&FF.
+CRC32 over decrypted 4..43, full32 == raw44..47 (header) - unlike later low16.
+Fields: +0 magic, +4 time u16, +6 date u16, +8 reserved u8 (0),
++9 method u8 0..43 (sample 25 core3), +10 ndirs u16, +12 nfiles u32,
++16 total u32, +20 data_len u32 (tables at 48+len), +24 names_len u32,
++28 cmp1 u32, +32 cmp2 u32, +36 cmp3 u32, +40 contents_crc full32,
++44 hdr_crc full32. Sample uha02.UHA 11860 bytes: 7 files, 31447 total,
+base(data_len) 11656, names 80, cmp 65/28/35, layout
+48+11656+28+65+28+35=11860 verified.
+Tables: tab0 STORE 4*N file CRCs, tab1 method7 names, tab2 method2 dates,
+tab3 method7 dir/size/method (note method7 for names vs 17 in 0.3/0.4/0.6).
+19B entries like later versions (dir/method/size/crc/date/time/ptr).
+Solid stream like 0.6 (header method, demux by delta sizes).
+Method->core: 0->0,1->1,2..7->2,8..43->3 (44 methods, 4 cores, no PPM).
+DOS32 executable cannot run here - no console/listing ground truth;
+header layout verified arithmetically + decrypt/CRC self-consistent.
+Test vectors (MAKE02.BAT, DOS side; files in workarea root): text corpus
+(EMPTY 0B, T1 362B, T2 353B, REPEAT 528B) + 02_m0/m1/m2/m3.uha, all `t`
+self-tested on DOS. Headers: m0->00 core0 STORE base 1243 (= total),
+m1->09, m2->21, m3->33 (all core3); directory identical across modes
+(names 36, cmp 32/11/18, contents CRC identical, tables byte-identical
+77B). m0 STORE file data is plain concatenation in directory order
+(EMPTY,REPEAT,T1,T2): byte-exact MATCH vs batch definitions.
 
 ## 0.3 summary (uharc_u.c / uharc_u.lst, UHARC 0.3 full archiver)
 

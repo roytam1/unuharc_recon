@@ -1,4 +1,4 @@
-/* uharc tool - UHARC 0.3/0.4/0.6 unpacker (C89, portable)
+/* uharc tool - UHARC 0.2/0.3/0.4/0.6 unpacker (C89, portable)
  * Auto-detects UHA\\x04 vs UHA\\x06 via magic, dispatches to uha04 / uharc06.
  * Matches UNUHARC06 x/e/t plus UHARC04 l (list) for both versions.
  * File named uharc06_main.c to avoid clashing with UNUHARC06.c
@@ -10,11 +10,12 @@
 #include "uharc06.h"
 #include "uha04.h"
 #include "uha03.h"
+#include "uha02.h"
 
 static void banner(void)
 {
-    printf("UHARC 0.3/0.4/0.6 (C port) ---- high compression multimedia archiver ----\n");
-    printf("Portable C89 unpacker, derived from uharc_u/UHARC04/UNUHARC06 reverse engineering.\n");
+    printf("UHARC 0.2/0.3/0.4/0.6 (C port) ---- high compression multimedia archiver ----\n");
+    printf("Portable C89 unpacker, derived from Uharc02/uharc_u/UHARC04/UNUHARC06 reverse engineering.\n");
 }
 
 static void usage(void)
@@ -217,6 +218,48 @@ int main(int argc, char **argv)
         uha03_close(h);
         if (rc != UHA03_OK) {
             printf("ERROR: %s\n", uha03_strerror(rc));
+            printf("Process aborted.\n");
+            return 255;
+        }
+        printf("Completed successfully. All files OK\n");
+        return 0;
+    } else if (ver == 0x02) {
+        uha02_t *h = 0;
+        unsigned long i, n;
+        const uha02_header *hh;
+        rc = uha02_open(arc, &h);
+        if (rc != UHA02_OK) {
+            printf("ERROR: %s (%s)\n", uha02_strerror(rc), arc);
+            printf("Process aborted.\n");
+            if (rc == UHA02_ERR_METHOD || rc == UHA02_ERR_DATA
+                || rc == UHA02_ERR_CRC) {
+                printf("Note: 0.2 directory needs 0.2-specific cores 2/3.\n");
+                printf("See README, FORMAT.md for status.\n");
+            }
+            return 255;
+        }
+        hh = uha02_header_get(h);
+        n = uha02_nfiles(h);
+        printf("Processing archive \"%s\" (UHA 0.2, %lu files).\n",
+            arc, n);
+        printf("header: ndirs=%u base=%lu names=%lu cmp=%lu/%lu/%lu\n",
+            hh->ndirs, hh->data_len, hh->names_len,
+            hh->cmp_sz1, hh->cmp_sz2, hh->cmp_sz3);
+        for (i = 0; i < n; i++) {
+            const uha02_entry *e = uha02_entry_get(h, i);
+            if (e) printf("  %s (%lu bytes, m=%u)\n", e->path, e->size, e->method);
+        }
+        if (list_only) {
+            uha02_close(h);
+            printf("Completed successfully. All files OK\n");
+            return 0;
+        }
+        if (test_only) printf("Testing %lu files...\n", n);
+        else printf("Extracting %lu files...\n", n);
+        rc = uha02_extract(h, outdir, with_paths, test_only);
+        uha02_close(h);
+        if (rc != UHA02_OK) {
+            printf("ERROR: %s\n", uha02_strerror(rc));
             printf("Process aborted.\n");
             return 255;
         }

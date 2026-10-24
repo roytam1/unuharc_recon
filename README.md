@@ -1,4 +1,4 @@
-# UHARC 0.3/0.4/0.6 unpacker (portable C89)
+# UHARC 0.2/0.3/0.4/0.6 unpacker (portable C89)
 
 Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
 `UNUHARC06.lst`/`UNUHARC06.c`, `UHARC04` (UHARC 0.4 BETA,
@@ -70,14 +70,45 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   Tables use default-password crypt (assumed byte-identical to 0.4/0.6,
   TODO verify via directory CRC once cores work).
 
+0.2:
+* Header parsing: DONE, verified on `uha02.UHA`
+  (magic `UHA\x02`, 48B header, decrypt 40B key=raw44, full32 CRCs).
+  `uha02.UHA`: 7 files, 31447 bytes total, base(data_len) 11656,
+  ndirs 1, names_len 80, cmp 65/28/35, layout
+  48+11656+28+65+28+35=11860 verified. Header +9 = 0x19 (25, core3).
+  DOS32 executable cannot run here; test vectors via MAKE02.BAT
+  (run on a DOS machine next to UHARC02.EXE): builds text corpus
+  (EMPTY.BIN 0B, T1 362B + T2 353B lorem, REPEAT 528B = 8x64 A + CRLF)
+  + archives 02_m0/m1/m2/m3.uha (modes STORE/FAST/NORM/BEST),
+  self-tested with t on DOS (exit 0).
+  Vectors received in workarea root and verified here: headers parse rc=0,
+  methods m0->00 core0 STORE, m1->09, m2->21, m3->33 (all core3);
+  base m0 1243 (= total, STORE), m1 491, m2/m3 487;
+  directory identical across modes (names 36, cmp 32/11/18,
+  contents CRC identical, tables byte-identical 77B).
+  m0 STORE file data is plain concatenation in directory order
+  (EMPTY,REPEAT,T1,T2): byte-exact MATCH vs MAKE02.BAT corpus definitions.
+  Ground truth travels as files (same pattern as 03/04/06 vectors).
+* Directory: framework DONE (mirrors 0.6 solid model: 4 tables methods
+  0/7/2/7, 19B entries, delta sizes, cumulative contents CRC).
+  Decode PENDING: tab1/tab3 method 7 + tab2 method 2 need 0.2-specific
+  core2 (`uha02_dec2.c` TODO; window matches 0.6 `1023..32767` but verify
+  bit order); file data method 25 needs 0.2-specific core3
+  (`uha02_dec3.c` TODO; 8..43 PPM/LZ+range, dict `1<<((m-8)%12+10)`).
+  Crypt: 0.2-specific S-box/stream (NOT byte-identical to 04/06;
+  implemented as static in-file functions per binary,
+  `sub_108C8`/`sub_12AE0`), fresh per table like later versions.
+
 Decompressors (method->core tables are version-specific:
 0.6/0.4 `0->0,1->1,2..7->2,8..23->3,24..39->4,40..87->5`;
-0.3 `0->0,1->1,2..7->2,8..21->3,22..35->4,36..79->5` + `80->0` alias):
+0.3 `0->0,1->1,2..7->2,8..21->3,22..35->4,36..79->5` + `80->0` alias;
+0.2 `0->0,1->1,2..7->2,8..43->3` (44 methods, 4 cores, no PPM):
   - core 0 STORE (method 0): DONE, byte-exact (`06_m0` 6/6 MATCH)
   - core 1 RLE/delta (method 1): DONE (from 0.6 sub_40B504), no test vector yet
   - core 2 Huffman/LZ (methods 2..7 all versions): 0.6 MSB-first port compiles;
     0.4 needs LSB-first port (`uha04_dec2.c` TODO, `sar` vs `shr` in lst);
-    0.3 needs own port (same 2..7 range, verify bit order; `uha03_dec2.c` TODO)
+    0.3 needs own port (same 2..7 range, verify bit order; `uha03_dec2.c` TODO);
+    0.2 needs own port (same 2..7 range, window matches 0.6; `uha02_dec2.c` TODO)
   - core 3 ALZ (0.6/0.4 methods 8..23 incl. 17; 0.3 methods 8..21 incl. 17):
     0.6 FIXED (denominator +escw,
     fallback 0x13E, xsum, len `v51?v51:256`; verified 06_m1 tab1/tab2 +
@@ -86,24 +117,31 @@ Decompressors (method->core tables are version-specific:
     fail DATA. 0.4 needs separate port (330 vs 319 contexts, order-0 at
     328 vs 318; `uha04_dec3.c` TODO). 0.3 needs separate port
     (14 methods, ALZ:1/2/3 split, different tables; `uha03_dec3.c` TODO).
-  - core 4 (0.6 24..39 LZP/PPM; 0.4 24..39 PPM/LZP; 0.3 22..35 LZP/PPM):
+    0.2 needs separate port (8..43 PPM/LZ+range, 3 submodes,
+    dict `1<<((m-8)%12+10)`; `uha02_dec3.c` TODO).
+  - core 4 (0.6 24..39 LZP/PPM; 0.4 24..39 PPM/LZP; 0.3 22..35 LZP/PPM;
+    0.2 has no core4 - max method 43->core3):
     0.6 skeleton + 0.4 (`UHARC04 sub_41CE30/415130`) + 0.3
     (`uharc_u sub_419E9C/415F6C`) NOT ported bit-exact (different models).
     `06_mx` (m27) fails DATA; `D3X` (m34) decodes but CRC fails
     (model + missing exe filter).
-  - core 5 (0.6 40..87 PPM2; 0.4 40..87 PPM2/LZW; 0.3 36..79 PPM2/LZW):
+  - core 5 (0.6 40..87 PPM2; 0.4 40..87 PPM2/LZW; 0.3 36..79 PPM2/LZW;
+    0.2 has no core5):
     0.6 ported (fuzz-clean, tables OK) but file-data model gap
     (`06_m1` m43 decodes but CRC fails) + 0.4 (`sub_412130/40E380`) +
     0.3 (`uharc_u sub_4103BC/40F6F0`) NOT ported bit-exact.
   - crypt `uhcrypt06/04`: default-password S-box, fresh per table,
     CRC over evolving S-box each 8 bytes (32 rounds). Byte-identical
     for 0.4/0.6; 0.3 reuses `uhcrypt04` (assumed identical,
-    TODO verify via directory CRC once 03 cores work). Tables
+    TODO verify via directory CRC once 03 cores work);
+    0.2 has own in-file cipher (NOT byte-identical;
+    S-box cycles all 256 bytes, different stream),
+    fresh per table like later versions. Tables
     decrypt-then-decode; file data plain without -pw
     (password archives TODO).
 * Tool `uharc06_unpack` (source `uharc06_main.c`) auto-detects
-  `UHA 0.3` vs `UHA 0.4` vs `UHA 0.6`, supports `x/e/t/l` (l = list,
-  extension beyond original 0.6 `x/e/t`). `l` + `t` work for 0.6 STORE;
+  `UHA 0.2` vs `UHA 0.3` vs `UHA 0.4` vs `UHA 0.6`, supports `x/e/t/l`
+  (l = list, extension beyond original 0.6 `x/e/t`). `l` + `t` work for 0.6 STORE;
   `x` byte-exact for 0.6 STORE (`06_m0`).
 
 ## Files
@@ -115,27 +153,35 @@ Decompressors (method->core tables are version-specific:
 * `uha03.h/.c` - 0.3 API, 44-byte header (magic 03) decrypt/CRC/parse,
   directory (mirrors 0.4; file names use `uha03*` to avoid clashing
   with `uharc_u.*`)
+* `uha02.h/.c` - 0.2 API, 48-byte header (magic 02, full32 CRCs)
+  decrypt/CRC/parse, directory (solid like 0.6; `uha02*` avoids
+  clashing with `Uharc02.*`)
 * `uharc_dec.h` - decoder interface (method -> core, version-specific tables)
 * `uharc_dec0.c` - dispatch + core0/1 (shared logic, table differs per version)
 * `uharc_dec2.c` - 0.6 core2 (0.4 needs LSB-first `uha04_dec2.c` TODO;
-  0.3 needs own port `uha03_dec2.c` TODO)
+  0.3 needs own port `uha03_dec2.c` TODO; 0.2 needs own port
+  `uha02_dec2.c` TODO)
 * `uharc_dec3.c` - 0.6 core3 FIXED for tables (0.4 needs `uha04_dec3.c`,
-  0.3 needs `uha03_dec3.c` TODO)
-* `uharc_dec4.c` - 0.6 core4 skeleton (0.4/0.3 cores separate TODO)
-* `uharc_dec5.c` - 0.6 core5 (0.4/0.3 cores separate TODO)
+  0.3 needs `uha03_dec3.c`, 0.2 needs `uha02_dec3.c` TODO)
+* `uharc_dec4.c` - 0.6 core4 skeleton (0.4/0.3 cores separate TODO;
+  0.2 has no core4)
+* `uharc_dec5.c` - 0.6 core5 (0.4/0.3 cores separate TODO;
+  0.2 has no core5)
 * `uhcrypt06.h/.c`, `uhcrypt04.h/.c` - default-password table cipher
-  (0.3 reuses 04 cipher pending verification)
+  (0.3 reuses 04 cipher pending verification; 0.2 has own in-file
+  cipher, NOT byte-identical)
 * `uharc06_main.c` - unified CLI tool x/e/t/l with version auto-detect
 * `hdrtest.c` - 0.6 header test (passes)
 * `hdrtest04.c` - 0.4 header test (passes)
 * `hdrtest03.c` - 0.3 header test (passes)
+* `hdrtest02.c` - 0.2 header test (passes)
 * `test_tab.c`, `test_dec3.c` - 0.6 directory tests (tab1/tab2 PASS now)
 * `FORMAT.md` - reverse-engineered 0.4 + 0.6 format spec
 
 ## Build (MSYS2 mingw64)
 
   set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
-  gcc -std=c89 -Wall -Wextra -o uharc06_unpack.exe uharc06_main.c uharc06.c uha04.c uha03.c uhcrypt06.c uhcrypt04.c ^
+  gcc -std=c89 -Wall -Wextra -o uharc06_unpack.exe uharc06_main.c uharc06.c uha04.c uha03.c uha02.c uhcrypt06.c uhcrypt04.c ^
     uharc_dec0.c uharc_dec2.c uharc_dec3.c uharc_dec4.c uharc_dec5.c
 
 Or `mingw32-make` / `make` with provided Makefile.
@@ -153,10 +199,21 @@ Tables at `base_e01+44`: tab0 STORE 4*N, tab1 method17 names_len,
 tab2 method2 4*N dates, tab3 method7 7*N dir/size/method.
 Per-file methods (entry+2), solid helpers; file data at 44..base_e01.
 
-0.3: same 44-byte layout as 0.4 (magic `UHA\x03`, decrypt/CRC identical).
+0.3: same 44-byte layout as 0.4 (magic 03, decrypt/CRC identical).
 Tables at `base+44`: tab0 STORE 4*N, tab1 method17 names, tab2 method2
 4*N, tab3 method7 7*N. Per-file methods. Sample `uharc_u.uha`: 1 file
 (`uharc_u.c`, 1047398 bytes), base 151747, names 11, cmp 15/4/8.
+
+0.2: 48-byte header, magic 02, decrypt 40 bytes 4..43 key=raw44,
+CRC32 full32 (header + contents, not low16). Fields: +0 magic,
++4 time, +6 date, +8 reserved, +9 method (sample 25 core3),
++10 ndirs u16, +12 nfiles u32, +16 total u32, +20 data_len u32,
++24 names_len u32, +28/+32/+36 cmp1/2/3 u32, +40 contents_crc full32,
++44 hdr_crc full32. Sample `uha02.UHA` 11860 bytes: 7 files,
+31447 total, base 11656, names 80, cmp 65/28/35, layout
+48+11656+28+65+28+35=11860. Tables: tab0 STORE 4*N, tab1 method7 names,
+tab2 method2 dates, tab3 method7 dir/size/method. Solid stream like 0.6
+(header method, demux by delta sizes). DOS32 exe not runnable here.
 
 ## Method -> core (version-specific tables)
 
@@ -166,6 +223,8 @@ Tables at `base+44`: tab0 STORE 4*N, tab1 method17 names, tab2 method2
 0.3: method 0->0 STORE, 1->1 RLE, 2..7->2 Huffman, 8..21->3 ALZ,
 22..35->4 LZP/PPM, 36..79->5 PPM2/LZW (+80->0 alias) - different
 models/ranges from 0.4/0.6, do not reuse verbatim.
+0.2: method 0->0 STORE, 1->1 RLE, 2..7->2 Huffman, 8..43->3 PPM/LZ+range
+(44 methods, 4 cores, no PPM) - different models/ranges, do not reuse.
 
 ## Next steps
 
@@ -177,12 +236,22 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
    for tab2/tab3 (methods 2/7) + `uha04_dec3.c` (330 contexts).
    0.3 needs `uha03_dec2.c` + `uha03_dec3.c` (14-method ALZ,
    different tables; 0.3 core table above).
+   0.2 needs `uha02_dec2.c` + `uha02_dec3.c` (methods 2..7 core2,
+   8..43 core3 PPM/LZ+range; window matches 0.6 but verify bit order
+   and dict formula `1<<((m-8)%12+10)`).
 3. core4/5 file data: 0.6 `06_mx` (m27 core4) DATA, `06_m1` (m43 core5)
    + `D3X` (m34 core4) CRC fail (model gap). Port full PPM trees +
    `40D6D1` prefilter. 0.4 cores differ, need `41CE30/415130`
    and `412130/40E380` ports; 0.3 cores differ, need `419E9C/415F6C`
    and `4103BC/40F6F0` ports (do not reuse 0.6 verbatim).
+   0.2 has no core4/5 (max method 43->core3).
 4. Filters: 0.6 `sub_404665/40481E/404DCE` (exe E8E9/multimedia) for
    flags like D3X 00/01; 0.4 `sub_4085A0/408380/408D20`;
-   0.3 `sub_407B44/407D44` + `sub_408EB8/4090A0` (same pairs).
+   0.3 `sub_407B44/407D44` + `sub_408EB8/4090A0` (same pairs);
+   0.2 `sub_150A4/15AD0` (+ wrappers `sub_151B0/15BC0`), gate `byte_32222&&len>=0x400`.
    `06_m0` (flags 00/00) needs none - already byte-exact.
+5. Test vectors: 0.6 (`06_m*` via UHARC06.EXE here) and 0.3
+   (`03_m*` via updated uharc_u.exe here) are byte-exact round-trips.
+   0.2 vectors come from MAKE02.BAT on a DOS machine (m0..m3,
+   text corpus; brings back CORPUS + 02_m*.uha). 0.4 vectors
+   (`04_m*`) already exist from earlier work - same corpus pattern.
