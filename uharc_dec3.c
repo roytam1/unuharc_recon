@@ -1,0 +1,908 @@
+/* UHARC 0.6 decompressor core 3 (ALZary/LZ+range coder, methods 8..23).
+ *
+ * Clean portable C89 port of UNUHARC06 core 3. No Windows API, no globals;
+ * all state lives in the dec3 struct (malloc/free). Progress callbacks
+ * (sub_408085/40815C/40819B) are stubbed to no-ops.
+ *
+ * Original -> port mapping (UNUHARC06.c / UNUHARC06.lst):
+ *  sub_40BC62 (init)        -> uharc_dec3_init
+ *    dict size = 1 << (((method-8) % 16) + 10); allocations:
+ *    0x200000 hash (dword_422DBC, init 0xFF), 0x40000 hval (dword_422DC4),
+ *    0x10000 mval (dword_422DC8), 0x40000 ord (dword_422DC0, init 0xFF),
+ *    dict+256 (dword_422DCC), 0x27E00 freq (dword_422DD0),
+ *    0x27E00 raw (dword_422DD4), 0x27C escw (dword_422DD8).
+ *    unk_439558 (50 x 8-byte literal entries) copied from unk_422DDC and
+ *    prob block (10 x 2048 bytes at 0x434554) filled with 2560-64*k.
+ *  sub_40BEC3 (free)        -> uharc_dec3_free
+ *  sub_419A4D (range init)  -> d3_rc_init (code=5 bytes BE, range=0xFFFFFFFF)
+ *  sub_40B093 (input byte)  -> d3_get (buffered via rcb; err 3 on short)
+ *  sub_40B0DA (output flush)-> d3_emit/d3_flush (buffered via wcb; err 4)
+ *  sub_4196E0 (memset)      -> memset; sub_416D40 (word fill) -> loops
+ *  sub_40BF64 (model reset) -> d3_model_reset (freq/raw zeroed, ctx318 =
+ *    uniform BIT lowbit(i)*8, raw318=8, escw=1, litm scaled, thresh=out_len)
+ *  sub_40C0F0 (rescale ctx) -> d3_rescale (halve raw pairs with the exact
+ *    ((d+0x10001)&0xFFFEFFFE)>>1 dword trick, rebuild BIT in place)
+ *  sub_40C21D (model update)-> d3_update (raw+=32, Fenwick update, escw+=32
+ *    + order-0 update on first occurrence, rescale at 0x4000)
+ *  sub_40C305 (main loop)   -> uharc_dec3_decode loop
+ *  sub_40C805 (match decision + copy) -> d3_match (binary choice via litm
+ *    entry, length via prob groups + tab_pair walk, ring copy dict->out
+ *    with output bytes bit-inverted exactly like the original)
+ *  sub_40C35C (literal decode, order1+order0 w/ exclusion) -> d3_dec_sym
+ *  sub_40C6E1 (literal emit)-> d3_literal (model index from ctx, update,
+ *    exclusion pointer, emit ~byte, dict store, ctx shift)
+ * Range renormalize pattern used everywhere:
+ *    while (range < 0x1000000) { code=(code<<8)|getbyte(); range<<=8; }
+ *
+ * Static data (from DGROUP in UNUHARC06.lst):
+ *  unk_422BA0 (512B ctx318 template) = w[0]=256, w[i]=lowbit(i) -> built.
+ *  unk_422DDC (400B litm template): w0=0,w1=tab_litw1,w2=777,w3=0.
+ *  0x422F6C (16B state pairs) -> tab_st0.
+ *  0x422F7C (512B length state pairs) -> tab_pair.
+ *  dword_42317C (256 x u32 group index, only first 12 != 7) -> tab_grp.
+ *  byte_42357C (256B, 0 in 133..158 and 165..190 else 1) -> tab_ord().
+ *
+ * NOTE on output inversion: the original stores ~byte into the output
+ * buffer in both d3_literal and the match copy loop; the dictionary keeps
+ * raw bytes. This port replicates that exactly.
+ *
+ * Return codes: 0 ok, 1 bad args, 2 nomem, 3 input short, 4 output short,
+ * 7 data error (corrupt stream; mirrors UHARC06_ERR_DATA).
+ */
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include "uharc_dec.h"
+
+static int tr_steps = 0;
+static long tr_lit = 0, tr_match = 0, tr_binlit = 0;
+static int tr_errat = 0;
+static int tr_dump = 0;
+static int tr_check = 1;
+static long tr_esc = 0;
+static long tr_resc = 0;
+
+#define D3_M32 0xFFFFFFFFUL
+
+typedef struct dec3_s {
+    uharc_dec_read_cb rcb;
+    void *rctx;
+    uharc_dec_write_cb wcb;
+    void *wctx;
+    unsigned char *inb;
+    unsigned in_pos;
+    unsigned in_avail;
+    unsigned in_cap;
+    unsigned char *outb;
+    unsigned out_fill;
+    unsigned out_cap;
+    unsigned long out_total;
+    unsigned long out_len;
+    int err;
+    unsigned long code;
+    unsigned long range;
+    unsigned long *htab;      /* 524288 u32 hash (pos,ctx per 18-bit key) */
+    unsigned char *hval;      /* 262144 bytes */
+    unsigned char *mval;      /* 65536 bytes */
+    unsigned long *ord;       /* 65536 u32 last-pos per 16-bit ctx */
+    unsigned char *dict;      /* dict_sz + 256 ring + mirror */
+    unsigned short *freq;     /* 81664 BIT words, 319 contexts */
+    unsigned short *raw;      /* 81664 raw words, 319 contexts */
+    unsigned short *escw;     /* 318 escape weights */
+    unsigned short litm[50][4];
+    unsigned long prob[5121]; /* 10 groups x 512 u32 + 1 (orig writes idx 5120) */
+    unsigned long dict_sz;
+    unsigned long dict_mask;
+    unsigned long dict_pos;
+    unsigned long ctx;
+    long excl;                /* -1 = none, else offset into dict */
+    long match_pos;           /* -1 = none */
+    unsigned long run_len;
+    unsigned long last_dist;
+    unsigned long sym_lo;
+    unsigned long sym_hi;
+    unsigned char state;
+    unsigned long thresh;
+} dec3;
+
+/* literal entry w1 seeds (unk_422DDC bytes 2..3 of each 8-byte entry) */
+static const unsigned short tab_litw1[50] = {
+     81,  89,  97, 105, 105, 105, 105, 105,
+     81,  89,  97, 105, 105, 105, 105, 105,
+     81,  89,  97, 105, 105, 105, 105, 105,
+     41,  49,  57,  65,  65,  65,  65,  65,
+     41,  49,  57,  65,  65,  65,  65,  65,
+     41,  49,  57,  65,  65,  65,  65,  65,
+    385, 625
+};
+
+/* state transition pairs (0x422F6C), indexed [2*state + bit], state < 8 */
+static const unsigned char tab_st0[16] = {
+    6, 0, 6, 0, 6, 1, 6, 2, 6, 3, 6, 3, 7, 4, 7, 5
+};
+
+/* length state pairs (0x422F7C), indexed [2*v46 + sel] */
+static const unsigned char tab_pair[512] = {
+      0,  0,  0,  0,  0,  4,  0,  0,  3,  5,  0,  0,  2, 14,  0,  0,
+      7,  9,  0,  0,  8, 12,  0,  0, 11, 13,  0,  0, 10, 30,  0,  0,
+     15, 17,  0,  0, 16, 20,  0,  0, 19, 21,  0,  0, 18, 26,  0,  0,
+     23, 25,  0,  0, 24, 28,  0,  0, 27, 29,  0,  0, 22, 62,  0,  0,
+     31, 33,  0,  0, 32, 36,  0,  0, 35, 37,  0,  0, 34, 42,  0,  0,
+     39, 41,  0,  0, 40, 44,  0,  0, 43, 45,  0,  0, 38, 54,  0,  0,
+     47, 49,  0,  0, 48, 52,  0,  0, 51, 53,  0,  0, 50, 58,  0,  0,
+     55, 57,  0,  0, 56, 60,  0,  0, 59, 61,  0,  0, 46,254,  0,  0,
+     63, 65,  0,  0, 64, 68,  0,  0, 67, 69,  0,  0, 66, 74,  0,  0,
+     71, 73,  0,  0, 72, 76,  0,  0, 75, 77,  0,  0, 70, 86,  0,  0,
+     79, 81,  0,  0, 80, 84,  0,  0, 83, 85,  0,  0, 82, 90,  0,  0,
+     87, 89,  0,  0, 88, 92,  0,  0, 91, 93,  0,  0, 78,110,  0,  0,
+     95, 97,  0,  0, 96,100,  0,  0, 99,101,  0,  0, 98,106,  0,  0,
+    103,105,  0,  0,104,108,  0,  0,107,109,  0,  0,102,118,  0,  0,
+    111,113,  0,  0,112,116,  0,  0,115,117,  0,  0,114,122,  0,  0,
+    119,121,  0,  0,120,124,  0,  0,123,125,  0,  0, 94,190,  0,  0,
+    127,129,  0,  0,128,132,  0,  0,131,133,  0,  0,130,138,  0,  0,
+    135,137,  0,  0,136,140,  0,  0,139,141,  0,  0,134,150,  0,  0,
+    143,145,  0,  0,144,148,  0,  0,147,149,  0,  0,146,154,  0,  0,
+    151,153,  0,  0,152,156,  0,  0,155,157,  0,  0,142,174,  0,  0,
+    159,161,  0,  0,160,164,  0,  0,163,165,  0,  0,162,170,  0,  0,
+    167,169,  0,  0,168,172,  0,  0,171,173,  0,  0,166,182,  0,  0,
+    175,177,  0,  0,176,180,  0,  0,179,181,  0,  0,178,186,  0,  0,
+    183,185,  0,  0,184,188,  0,  0,187,189,  0,  0,158,222,  0,  0,
+    191,193,  0,  0,192,196,  0,  0,195,197,  0,  0,194,202,  0,  0,
+    199,201,  0,  0,200,204,  0,  0,203,205,  0,  0,198,214,  0,  0,
+    207,209,  0,  0,208,212,  0,  0,211,213,  0,  0,210,218,  0,  0,
+    215,217,  0,  0,216,220,  0,  0,219,221,  0,  0,206,238,  0,  0,
+    223,225,  0,  0,224,228,  0,  0,227,229,  0,  0,226,234,  0,  0,
+    231,233,  0,  0,232,236,  0,  0,235,237,  0,  0,230,246,  0,  0,
+    239,241,  0,  0,240,244,  0,  0,243,245,  0,  0,242,250,  0,  0,
+    247,249,  0,  0,248,252,  0,  0,251,253,  0,  0,126,  0,  0,  0
+};
+
+/* length group index (dword_42317C): first 12 entries, rest is 7 */
+static const unsigned char tab_grp[12] = {
+    0, 0, 1, 2, 3, 4, 5, 5, 6, 6, 6, 6
+};
+
+/* order-0 context class (byte_42357C): 0 in two ranges, else 1 */
+static int tab_ord(unsigned c)
+{
+    if ((c >= 133 && c <= 158) || (c >= 165 && c <= 190)) return 0;
+    return 1;
+}
+
+int uharc_dec3_init(void **pctx, int method)
+{
+    dec3 *d;
+    unsigned long dictsz;
+    unsigned k;
+    unsigned j;
+    if (!pctx || method < 8 || method > 23) return 1;
+    dictsz = 1UL << (((method - 8) % 16) + 10);
+    d = (dec3 *)malloc(sizeof(*d));
+    if (!d) return 2;
+    memset(d, 0, sizeof(*d));
+    d->htab = (unsigned long *)malloc(0x200000UL);
+    d->hval = (unsigned char *)malloc(0x40000UL);
+    d->mval = (unsigned char *)malloc(0x10000UL);
+    d->ord = (unsigned long *)malloc(0x40000UL);
+    d->dict = (unsigned char *)calloc(dictsz + 256UL, 1);
+    d->freq = (unsigned short *)malloc(163328UL);
+    d->raw = (unsigned short *)malloc(163328UL);
+    d->escw = (unsigned short *)malloc(636UL);
+    if (!d->htab || !d->hval || !d->mval || !d->ord ||
+        !d->dict || !d->freq || !d->raw || !d->escw) {
+        free(d->htab);
+        free(d->hval);
+        free(d->mval);
+        free(d->ord);
+        free(d->dict);
+        free(d->freq);
+        free(d->raw);
+        free(d->escw);
+        free(d);
+        return 2;
+    }
+    memset(d->htab, 0xFF, 0x200000UL);
+    memset(d->hval, 0, 0x40000UL);
+    memset(d->mval, 0, 0x10000UL);
+    memset(d->ord, 0xFF, 0x40000UL);
+    for (k = 0; k < 50; k++) {
+        d->litm[k][0] = 0;
+        d->litm[k][1] = tab_litw1[k];
+        d->litm[k][2] = 777;
+        d->litm[k][3] = 0;
+    }
+    d->prob[0] = 0;
+    for (k = 0; k < 10; k++) {
+        for (j = 1; j <= 512; j++) d->prob[k * 512 + j] = 2560UL - 64UL * k;
+    }
+    d->dict_sz = dictsz;
+    d->dict_mask = dictsz - 1UL;
+    d->dict_pos = 0;
+    d->ctx = 0;
+    d->excl = -1;
+    d->match_pos = -1;
+    d->run_len = 0;
+    d->last_dist = D3_M32;
+    d->sym_lo = 0;
+    d->sym_hi = 0;
+    d->state = 0;
+    d->thresh = 0;
+    *pctx = d;
+    return 0;
+}
+
+void uharc_dec3_free(void *ctx)
+{
+    dec3 *d = (dec3 *)ctx;
+    if (!d) return;
+    free(d->htab);
+    free(d->hval);
+    free(d->mval);
+    free(d->ord);
+    free(d->dict);
+    free(d->freq);
+    free(d->raw);
+    free(d->escw);
+    free(d);
+}
+
+/* ---- I/O pump ---- */
+static int d3_bitcheck(dec3 *d, unsigned ctxidx);
+static int d3_get(dec3 *d)
+{
+    int n;
+    if (d->err) return 0;
+    if (d->in_pos >= d->in_avail) {
+        n = d->rcb(d->rctx, d->inb, d->in_cap);
+        if (n <= 0) {
+            d->err = 3;
+            return 0;
+        }
+        d->in_avail = (unsigned)n;
+        d->in_pos = 0;
+    }
+    return d->inb[d->in_pos++];
+}
+
+static void d3_emit(dec3 *d, unsigned b)
+{
+    d->outb[d->out_fill++] = (unsigned char)b;
+    d->out_total++;
+    if (d->out_fill == d->out_cap) {
+        if (d->wcb(d->wctx, d->outb, d->out_fill) != 0) d->err = 4;
+        d->out_fill = 0;
+    }
+}
+
+/* ---- range coder ---- */
+static void d3_rc_init(dec3 *d)
+{
+    int i;
+    d->code = 0;
+    d->range = D3_M32;
+    for (i = 0; i < 5; i++) {
+        d->code = ((d->code << 8) | (unsigned long)d3_get(d)) & D3_M32;
+    }
+    if (tr_steps) fprintf(stderr, "rcinit code=%08lX range=%08lX\n", d->code, d->range);
+}
+
+/* zoom (code,range) into sub-range [lo,hi); renormalize; 0 = data error */
+static int d3_renorm(dec3 *d, unsigned long lo, unsigned long hi)
+{
+    unsigned long rng;
+    unsigned long code;
+    unsigned long rb = d->range;
+    if (hi <= lo) {
+        { d->err = 7; tr_errat = __LINE__; return 0; }
+    }
+    rng = (d->range * ((hi - lo) & D3_M32)) & D3_M32;
+    code = (d->code - ((d->range * lo) & D3_M32)) & D3_M32;
+    if (rng == 0) {
+        { d->err = 7; tr_errat = __LINE__; return 0; }
+    }
+    while (rng < 0x1000000UL) {
+        code = ((code << 8) | (unsigned long)d3_get(d)) & D3_M32;
+        rng = (rng << 8) & D3_M32;
+        if (d->err) return 0;
+    }
+    d->code = code;
+    d->range = rng;
+    return 1;
+}
+
+/* ---- model reset (sub_40BF64, progress tail stubbed) ---- */
+static void d3_model_reset(dec3 *d)
+{
+    unsigned i;
+    memset(d->freq, 0, 162816UL);
+    memset(d->raw, 0, 162816UL);
+    for (i = 0; i < 256; i++) {
+        unsigned v = (i == 0) ? 256u : (i & (0u - i));
+        d->freq[318u * 256u + i] = (unsigned short)(v * 8u);
+    }
+    for (i = 0; i < 256; i++) d->raw[318u * 256u + i] = 8;
+    for (i = 0; i < 318; i++) d->escw[i] = 1;
+    for (i = 0; i < 50; i++) {
+        d->litm[i][1] = (unsigned short)((d->litm[i][1] + 7) >> 3);
+        d->litm[i][2] = (unsigned short)((d->litm[i][2] + 15) >> 3);
+    }
+    d->thresh = d->out_len;
+}
+
+/* ---- rescale context (sub_40C0F0) ---- */
+static void d3_rescale(dec3 *d, unsigned ctxidx)
+{
+    unsigned long total = 0;
+    unsigned i;
+    unsigned short *raw = d->raw + ctxidx * 256u;
+    unsigned short *fr = d->freq + ctxidx * 256u;
+    unsigned k;
+    unsigned j;
+    if (ctxidx < 0x13E) d->escw[ctxidx] = (unsigned short)((d->escw[ctxidx] >> 2) + 1);
+    for (i = 0; i < 256; i += 8) {
+        unsigned long d0 = (unsigned long)raw[i] | ((unsigned long)raw[i + 1] << 16);
+        unsigned long d1 = (unsigned long)raw[i + 2] | ((unsigned long)raw[i + 3] << 16);
+        unsigned long d2 = (unsigned long)raw[i + 4] | ((unsigned long)raw[i + 5] << 16);
+        unsigned long d3 = (unsigned long)raw[i + 6] | ((unsigned long)raw[i + 7] << 16);
+        unsigned long h0 = ((d0 + 0x10001UL) & 0xFFFEFFFEUL) >> 1;
+        unsigned long h1 = ((d1 + 0x10001UL) & 0xFFFEFFFEUL) >> 1;
+        unsigned long h2 = ((d2 + 0x10001UL) & 0xFFFEFFFEUL) >> 1;
+        unsigned long h3 = ((d3 + 0x10001UL) & 0xFFFEFFFEUL) >> 1;
+        raw[i] = (unsigned short)(h0 & 0xFFFFUL);
+        raw[i + 1] = (unsigned short)((h0 >> 16) & 0xFFFFUL);
+        raw[i + 2] = (unsigned short)(h1 & 0xFFFFUL);
+        raw[i + 3] = (unsigned short)((h1 >> 16) & 0xFFFFUL);
+        raw[i + 4] = (unsigned short)(h2 & 0xFFFFUL);
+        raw[i + 5] = (unsigned short)((h2 >> 16) & 0xFFFFUL);
+        raw[i + 6] = (unsigned short)(h3 & 0xFFFFUL);
+        raw[i + 7] = (unsigned short)((h3 >> 16) & 0xFFFFUL);
+        total = (total + h0 + h1) & D3_M32;
+        total = (total + h2 + h3) & D3_M32;
+    }
+    memcpy(fr, raw, 512);
+    fr[0] = (unsigned short)((total + (total >> 16)) & 0xFFFFUL);
+    for (k = 1; k <= 64; k *= 2) {
+        for (j = 256 - 2 * k; ; j -= 2 * k) {
+            fr[j] = (unsigned short)(fr[j] + fr[j - k]);
+            if (j == 2 * k) break;
+        }
+    }
+}
+
+/* ---- model update (sub_40C21D) ---- */
+static void d3_update(dec3 *d, unsigned ctxidx, unsigned sym)
+{
+    unsigned short *r = d->raw + ctxidx * 256u;
+    unsigned short *f = d->freq + ctxidx * 256u;
+    unsigned idx;
+    unsigned t;
+    if (r[sym] == 0) {
+        unsigned short *r318 = d->raw + 318u * 256u;
+        unsigned short *f318 = d->freq + 318u * 256u;
+        d->escw[ctxidx] = (unsigned short)(d->escw[ctxidx] + 32);
+        r318[sym] = (unsigned short)(r318[sym] + 16);
+        idx = (sym + 1) & 0xFFu;
+        while (idx != 0) {
+            f318[idx] = (unsigned short)(f318[idx] + 16);
+            idx = (idx + (idx & (0u - idx))) & 0xFFu;
+        }
+        f318[0] = (unsigned short)(f318[0] + 16);
+        if (f318[0] >= 0x4000) d3_rescale(d, 0x13E);
+    }
+    r[sym] = (unsigned short)(r[sym] + 32);
+    idx = (sym + 1) & 0xFFu;
+    while (idx != 0) {
+        f[idx] = (unsigned short)(f[idx] + 32);
+        idx = (idx + (idx & (0u - idx))) & 0xFFu;
+    }
+    f[0] = (unsigned short)(f[0] + 32);
+    if (ctxidx == 107) fprintf(stderr, "UPD107 f0=%u out=%lu\n", f[0], d->out_total);
+    t = d->escw[ctxidx] + f[0];
+    if (t >= 0x4000) { tr_resc++; d3_rescale(d, ctxidx); }
+}
+
+/* debug: verify freq is a valid Fenwick tree of raw for ctx (0=ok) */
+static int d3_bitcheck(dec3 *d, unsigned ctxidx)
+{
+    unsigned short *fr = d->freq + ctxidx * 256u;
+    unsigned short *rw = d->raw + ctxidx * 256u;
+    unsigned b;
+    for (b = 1; b < 256; b++) {
+        unsigned lo = b & (0u - b);
+        unsigned long s = 0;
+        unsigned j;
+        unsigned start = (b >= lo) ? (b - lo + 1) : 1;
+        if (start < 1) start = 1;
+        for (j = start; j <= b; j++) s += rw[j];
+        if ((fr[b] & 0xFFFFu) != (s & 0xFFFFu)) return (int)b;
+    }
+    {
+        unsigned long s = 0;
+        unsigned j;
+        for (j = 0; j < 256; j++) s += rw[j];
+        if ((fr[0] & 0xFFFFu) != (s & 0xFFFFu)) return -1;
+    }
+    return 0;
+}
+
+/* ---- literal decode (sub_40C35C); returns byte, sets err 7 on bad data */
+static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
+{
+    unsigned short *f = d->freq + ctxidx * 256u;
+    unsigned short *r = d->raw + ctxidx * 256u;
+    unsigned long total = f[0];
+    unsigned long scaled;
+    int have_eb = (d->excl >= 0);
+    if (d->out_total == 17) fprintf(stderr, "DBG17 ctx=%u f0=%u have_eb=%d\n", ctxidx, d->freq[ctxidx*256u], have_eb);
+    if (d->out_total == 17 && tr_dump == 0) {
+        FILE *ff;
+        {
+            unsigned long hh[4];
+            hh[0] = (unsigned long)d->dict[d->excl >= 0 ? d->excl : 0];
+            hh[1] = (unsigned long)d->hval[(d->ctx ^ (d->ctx >> 13)) & 0x3FFFFUL];
+            hh[2] = d->range;
+            hh[3] = d->code;
+/* FIX:                    ctxidx, (unsigned long)f[0], (long)d->excl, hh[0], hh[1]); */
+        }
+        tr_dump = 1;
+        ff = fopen("c_state.bin", "wb");
+        if (ff) {
+            fwrite(d->freq, 2, 319u * 256u, ff);
+            fwrite(d->raw, 2, 319u * 256u, ff);
+            fwrite(d->escw, 2, 318, ff);
+            fwrite(d->litm, 2, 50u * 4u, ff);
+            fwrite(d->prob, 4, 5121u, ff);
+            {
+                unsigned long hdr[8];
+                hdr[0] = d->code; hdr[1] = d->range; hdr[2] = (unsigned long)d->excl;
+                hdr[3] = (unsigned long)d->match_pos; hdr[4] = d->ctx; hdr[5] = d->dict_pos;
+                hdr[6] = d->run_len; hdr[7] = d->last_dist;
+                fwrite(hdr, 4, 8, ff);
+            }
+            fclose(ff);
+        }
+    }
+
+    unsigned eb = have_eb ? d->dict[d->excl] : 0;
+    if (have_eb) total = (total - r[eb]) & 0xFFFFUL;
+    if (total == 0) {
+        ctxidx = 0x13E;
+        f = d->freq + ctxidx * 256u;
+        r = d->raw + ctxidx * 256u;
+        total = f[0];
+        if (have_eb) total = (total - r[eb]) & 0xFFFFUL;
+    }
+    if (total == 0) {
+        { d->err = 7; tr_errat = __LINE__; return 0; }
+    }
+    {
+        unsigned long rb = d->range;
+        d->range /= total;
+        if (d->range == 0) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+    }
+    scaled = d->code / d->range;
+    if (d->out_total < 5)
+/* BROKEN-DEBUG-REMOVED:                ctxidx, total, d->range, d->code, scaled); */
+    if ((scaled & 0xFFFFUL) < total) {
+        /* direct symbol via Fenwick search (mirrored: rem = total - scaled) */
+        unsigned p = 0;
+        unsigned rem = (unsigned)(total - scaled);
+        unsigned step;
+        unsigned sym;
+        if (have_eb) {
+            unsigned long v42 = r[eb];
+            int eb_on = 1;
+            if (d->out_total < 300)
+/* BROKEN-DEBUG-REMOVED:                        d->out_total, ctxidx, total, scaled, eb, r[eb], d->code, d->range); */
+            for (step = 128; step != 0; step >>= 1) {
+                unsigned q = p + step;
+                if (!eb_on || q <= eb) {
+                    if (rem > f[q]) {
+                        p = q;
+                        rem -= f[q];
+                    }
+                } else if (f[q] < v42 + rem) {
+                    p = q;
+                    eb_on = 0;
+                    rem = (rem - f[q] + (unsigned)v42) & 0xFFFFU;
+                }
+            }
+        } else {
+            for (step = 128; step != 0; step >>= 1) {
+                unsigned q = p + step;
+                if (rem > f[q]) {
+                    p = q;
+                    rem -= f[q];
+                }
+            }
+        }
+        sym = p;
+        if (sym > 255) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        d->sym_hi = (scaled + rem) & 0xFFFFUL;
+        if (r[sym] > d->sym_hi) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        d->sym_lo = d->sym_hi - r[sym];
+        if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
+        return sym;
+    } else {
+        /* escape to order-0 model with exclusion */
+        tr_esc++;
+        unsigned short *r318 = d->raw + 318u * 256u;
+        unsigned short *f318 = d->freq + 318u * 256u;
+        unsigned short xsum = 0;
+        unsigned i;
+        unsigned long v17;
+        unsigned long s2;
+        unsigned short acc = 0;
+        unsigned v40 = 256;
+        d->sym_lo = total;
+        d->sym_hi = (unsigned long)d->escw[ctxidx] + total;
+        if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
+        for (i = 0; i < 256; i++) {
+            if (r[i] == 0) xsum = (unsigned short)(xsum + r318[i]);
+        }
+        if (have_eb && r[eb] == 0) xsum = (unsigned short)(xsum + r318[eb]);
+        v17 = (f318[0] - xsum) & D3_M32;
+        if (v17 == 0) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        d->range /= v17;
+        if (d->range == 0) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        s2 = d->code / d->range;
+        if (tr_steps > 0 && d->out_total < 200)
+/* BROKEN-DEBUG-REMOVED:                    ctxidx, total, v17, s2, d->excl, eb); */
+        if (have_eb) {
+            int target = (int)eb + 1;
+            while ((int)v40 != target) {
+                --v40;
+                if (r[v40] == 0) {
+                    acc = (unsigned short)(acc + r318[v40]);
+                    if (acc > (unsigned short)(s2 & 0xFFFFUL)) break;
+                }
+            }
+            if (acc <= (unsigned short)(s2 & 0xFFFFUL)) {
+                if (v40 == 0) {
+                    { d->err = 7; tr_errat = __LINE__; return 0; }
+                }
+                --v40;
+            }
+        }
+        if (acc <= (unsigned short)(s2 & 0xFFFFUL)) {
+            if (tr_steps >= 0) {
+                unsigned zzi, zzc = 0;
+                for (zzi = 0; zzi < 256; zzi++) if (r[zzi] == 0) zzc++;
+/* BROKEN-DEBUG-REMOVED:                        v40, s2 & 0xFFFFUL, acc, ctxidx, zzc, f318[0]); */
+            }
+            for (;;) {
+                if (v40 == 0) {
+                    { d->err = 7; tr_errat = __LINE__; return 0; }
+                }
+                --v40;
+                if (r[v40] == 0) break;
+            }
+            for (;;) {
+                acc = (unsigned short)(acc + r318[v40]);
+                if (acc > (unsigned short)(s2 & 0xFFFFUL)) break;
+                for (;;) {
+                    if (v40 == 0) {
+                        { d->err = 7; tr_errat = __LINE__; return 0; }
+                    }
+                    --v40;
+                    if (r[v40] == 0) break;
+                }
+            }
+        }
+        if (v40 > 255) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        d->sym_hi = acc;
+        d->sym_lo = (acc - r318[v40]) & 0xFFFFUL;
+        {
+            unsigned sym = v40;
+            if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
+            return sym;
+        }
+    }
+}
+
+/* ---- match/literal decision + match copy (sub_40C805) ----
+ * returns 1 when match bytes were copied, 0 when a literal is needed.
+ */
+static int d3_match(dec3 *d)
+{
+    unsigned long h;
+    unsigned long *he;
+    unsigned long mpos;
+    unsigned v1 = 0;
+    unsigned v45 = 0;
+    unsigned char *mp;
+    if (d->err) return 0;
+    d->match_pos = -1;
+    h = ((d->ctx ^ (d->ctx >> 13)) & 0x3FFFFUL);
+    he = d->htab + h * 2;
+    mpos = he[0];
+    if (d->run_len) {
+        mpos = (d->dict_pos - d->last_dist) & d->dict_mask;
+        v1 = (d->run_len > 2) + 48;
+    }
+    if (v1 == 0) {
+        if (mpos == D3_M32 || he[1] != d->ctx) {
+            unsigned long dist;
+            v45 = 0;
+            mpos = (d->dict_pos - d->last_dist) & d->dict_mask;
+            dist = (mpos - d->dict_pos) & d->dict_mask;
+            if (dist < 0x104UL) {
+                /* recent: try order table */
+                unsigned long o = d->ord[d->ctx & 0xFFFFUL];
+                if (o != D3_M32) {
+                    mpos = o;
+                    v1 = 17;
+                }
+            } else {
+                /* 4 bytes at (mpos-4)&mask vs ctx (big-endian, no wrap) */
+                unsigned long mp4 = (mpos - 4) & d->dict_mask;
+                unsigned long a0 = ((unsigned long)d->dict[mp4] << 24)
+                    | ((unsigned long)d->dict[mp4 + 1] << 16)
+                    | ((unsigned long)d->dict[mp4 + 2] << 8)
+                    | (unsigned long)d->dict[mp4 + 3];
+                unsigned long c = d->ctx;
+                if ((unsigned short)a0 != (unsigned short)c
+                    && (a0 & 0xFFFF00FFUL) != (c & 0xFFFF00FFUL)
+                    && (a0 & 0xFFFFFF00UL) != (c & 0xFFFFFF00UL)) {
+                    unsigned long o = d->ord[d->ctx & 0xFFFFUL];
+                    if (o != D3_M32) {
+                        mpos = o;
+                        v1 = 17;
+                    }
+                } else {
+                    v1 = 9;
+                }
+            }
+        } else {
+            v45 = 1;
+            v1 = 1;
+        }
+    }
+    he[0] = d->dict_pos;
+    d->ord[d->ctx & 0xFFFFUL] = d->dict_pos;
+    he[1] = d->ctx;
+    /* debug removed */
+    if (v1 == 0 || ((mpos - d->dict_pos) & d->dict_mask) < 0x100UL) {
+        d->run_len = 0;
+        return 0;
+    }
+    if (!d->run_len) {
+        int adj = d->hval[h] ? -1 : 23;
+        v1 += d->state + adj;
+    }
+    mp = d->dict + (mpos & d->dict_mask);
+    if (d->excl >= 0 && d->dict[d->excl] == *mp) {
+        /* exclusion hit: literal, update entry total only */
+        unsigned short *e = d->litm[v1];
+        e[2] = (unsigned short)(e[2] + 64);
+        if (e[2] >= 0x4000) {
+            e[1] = (unsigned short)((e[1] + 1) >> 1);
+            e[2] = (unsigned short)((e[2] + 2) >> 1);
+        }
+        d->state = tab_st0[2 * d->state + 1];
+        d->run_len = 0;
+        return 0;
+    }
+    {
+        unsigned v42;
+        unsigned nxt;
+        unsigned short *e;
+        unsigned long scaled;
+        unsigned bit;
+        unsigned long lo;
+        unsigned long hi;
+        v42 = ((unsigned)d->dict[mpos & d->dict_mask]) << 8;
+        nxt = (mpos + 1) & d->dict_mask;
+        if (nxt != d->dict_pos) v42 |= d->dict[nxt];
+        d->match_pos = (long)(mpos & d->dict_mask);
+        e = d->litm[v1];
+        if (d->code >= d->range)
+        if (tr_steps > 0 && d->out_total < 40)
+/* BROKEN-DEBUG-REMOVED:                    v1, e[1], e[2], d->range, d->code); */
+        if (e[2] == 0) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        d->range /= e[2];
+        if (d->range == 0) {
+            { d->err = 7; tr_errat = __LINE__; return 0; }
+        }
+        scaled = d->code / d->range;
+        bit = ((scaled & 0xFFFFUL) >= e[1]) ? 1 : 0;
+        if (bit == 0) {
+            lo = e[0];
+            hi = e[1];
+            e[1] = (unsigned short)(e[1] + 64);
+        } else {
+            lo = e[1];
+            hi = e[2];
+        }
+        e[2] = (unsigned short)(e[2] + 64);
+        if (e[2] >= 0x4000) {
+            e[1] = (unsigned short)((e[1] + 1) >> 1);
+            e[2] = (unsigned short)((e[2] + 2) >> 1);
+        }
+        d->state = tab_st0[2 * d->state + bit];
+        if (tr_steps > 0 && d->out_total < 40)
+/* BROKEN-DEBUG-REMOVED:                    bit, lo, hi, d->code, d->range); */
+        if (!d3_renorm(d, lo, hi)) return 0;
+        if (bit) {
+            d->hval[h] = 0;
+            d->mval[v42] = 0;
+            d->run_len = 0;
+            tr_binlit++;
+            return 0;
+        }
+        {
+            unsigned v46 = 6;
+            unsigned v51 = 0xFF;
+            unsigned v22 = d->mval[v42];
+            unsigned v23;
+            unsigned long *cell;
+            unsigned long pv;
+            unsigned n;
+            unsigned long mcx;
+            unsigned long mdp;
+            unsigned long mmp;
+            if (d->run_len) v23 = 8 + (d->run_len > 2 ? 1 : 0);
+            else v23 = (v45 ? d->hval[h] : d->mval[v42]) < 12
+                ? tab_grp[v45 ? d->hval[h] : d->mval[v42]] : 7;
+            for (;;) {
+                unsigned cond = (v22 <= v46) ? 1 : 0;
+                cell = d->prob + 1 + 512u * v23 + (cond ? 256u : 0u) + v46;
+                pv = *cell;
+                d->range >>= 12;
+                if (d->range == 0) {
+                    { d->err = 7; tr_errat = __LINE__; return 0; }
+                }
+                scaled = d->code / d->range;
+                if ((scaled & 0xFFFFUL) >= pv) {
+                    d->sym_lo = pv;
+                    d->sym_hi = 4096;
+                    *cell -= (pv >> 6);
+                } else {
+                    v51 = v46;
+                    d->sym_hi = pv;
+                    d->sym_lo = 0;
+                    *cell += ((4096UL - pv) >> 6);
+                }
+                if (!d3_renorm(d, d->sym_lo, d->sym_hi)) return 0;
+                v46 = tab_pair[2 * v46 + (v51 > v46 ? 1 : 0)];
+                if (v46 == 0) break;
+            }
+            d->hval[h] = (unsigned char)v51;
+            d->mval[v42] = (unsigned char)v51;
+            d->last_dist = (d->dict_pos - (mpos & d->dict_mask)) & d->dict_mask;
+            if (v51 == 0xFF) {
+                d->excl = -1;
+                d->run_len++;
+            } else {
+                d->run_len = 0;
+                d->excl = (long)((mpos + v51) & d->dict_mask);
+            }
+            n = v51 + 1; /* 1..256 */
+            mcx = d->ctx;
+            mdp = d->dict_pos;
+            mmp = mpos & d->dict_mask;
+            while (n--) {
+                unsigned b = d->dict[mmp];
+                d->dict[mdp] = (unsigned char)b;
+                if (mdp < 0x100) d->dict[d->dict_sz + mdp] = (unsigned char)b;
+                mcx = ((mcx << 8) + b) & D3_M32;
+                d3_emit(d, b ^ 0xFFu);
+                mdp = (mdp + 1) & d->dict_mask;
+                mmp = (mmp + 1) & d->dict_mask;
+            }
+            d->ctx = mcx;
+            d->dict_pos = mdp;
+            tr_match++;
+            /* debug removed */
+/* BROKEN-DEBUG-REMOVED:                        v51, mcx, d->out_total); */
+            return 1;
+        }
+    }
+}
+
+/* ---- literal emit (sub_40C6E1) ---- */
+static void d3_literal(dec3 *d)
+{
+    unsigned long c16 = d->ctx & 0xFFFFUL;
+    unsigned lo = (unsigned)(c16 & 0xFFUL);
+    unsigned hi = (unsigned)((c16 >> 8) & 0xFFUL);
+    unsigned midx;
+    unsigned b;
+    if (c16 == 0xFFFFUL) midx = 314;
+    else if (c16 == 0xD1DFUL) midx = 315;
+    else if (c16 == 0xD3DFUL) midx = 316;
+    else if (lo == 0xDF) midx = tab_ord(hi) ? 317 : 223;
+    else if (!tab_ord(lo) && tab_ord(hi)) midx = lo + 123;
+    else midx = lo;
+    b = d3_dec_sym(d, midx);
+    if (d->err) return;
+    tr_lit++;
+    if (tr_steps > 0) {
+/* BROKEN-DEBUG-REMOVED:                d->ctx & 0xFFFFUL, midx, b, d->out_total); */
+        if (d->out_total > 40) tr_steps = 0;
+    }
+    d3_update(d, midx, b);
+    d->excl = -1;
+    if (d->match_pos >= 0 && d->dict[d->match_pos] == (unsigned char)b) {
+        d->excl = (long)(((unsigned long)d->match_pos + 1UL) & d->dict_mask);
+    }
+    d3_emit(d, b ^ 0xFFu);
+    d->ctx = ((d->ctx << 8) + b) & D3_M32;
+    d->dict[d->dict_pos] = (unsigned char)b;
+    if (d->dict_pos < 0x100) d->dict[d->dict_sz + d->dict_pos] = (unsigned char)b;
+    d->dict_pos = (d->dict_pos + 1) & d->dict_mask;
+}
+
+int uharc_dec3_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
+{
+    dec3 *d = (dec3 *)ctx;
+    int err;
+    if (!d || !rcb || !wcb) return 1;
+    if (out_len == 0) return 0;
+    d->inb = (unsigned char *)malloc(65536UL);
+    d->outb = (unsigned char *)malloc(65536UL);
+    if (!d->inb || !d->outb) {
+        free(d->inb);
+        free(d->outb);
+        d->inb = 0;
+        d->outb = 0;
+        return 2;
+    }
+    d->rcb = rcb;
+    d->rctx = rctx;
+    d->wcb = wcb;
+    d->wctx = wctx;
+    d->in_cap = 65536;
+    d->out_cap = 65536;
+    d->in_pos = 0;
+    d->in_avail = 0;
+    d->out_fill = 0;
+    d->out_total = 0;
+    d->out_len = out_len;
+    d->err = 0;
+    d->thresh = 0;
+    d3_rc_init(d);
+    while (d->out_total < d->out_len && !d->err) {
+        if (d->out_total >= d->thresh) d3_model_reset(d);
+        if (d->err) break;
+        if (!d3_match(d)) {
+            if (d->err) break;
+            d3_literal(d);
+        }
+    }
+    err = d->err;
+    if (err) {
+    }
+    if (!err && d->out_fill) {
+        if (wcb(wctx, d->outb, d->out_fill) != 0) err = 4;
+    }
+    free(d->inb);
+    free(d->outb);
+    d->inb = 0;
+    d->outb = 0;
+/* BROKEN-DEBUG-REMOVED:            tr_lit, tr_binlit, tr_match, tr_esc, tr_resc, d->out_total, tr_errat); */
+    tr_lit = tr_binlit = tr_match = 0;
+    tr_esc = 0;
+    tr_resc = 0;
+    tr_errat = 0;
+    tr_esc = 0;
+    return err;
+}
