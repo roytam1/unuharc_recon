@@ -2613,8 +2613,10 @@ LABEL_24:
                      * ((G32(0x45D100) ^ ((unsigned int)G32(0x45D100) >> 15) ^ 16
                                                                            * (G32(0x45D0F8) ^ ((unsigned int)G32(0x45D0F8) >> 15)) ^ ((G32(0x45D0FC) ^ ((unsigned int)G32(0x45D0FC) >> 15)) << 6)) & 0x3FFFF)
                      + 4);
-      M32(v32) = M32(v32 - 1);
-      M32(v32 - 1) = v29;
+      /* asm 0x40DA63: ebx=[eax-4]; [eax]=ebx; [eax-4]=edx  (8-byte entries,
+       * eax = htab2 + 8*h + 4, so the two slots are -4 apart) */
+      M32(v32) = M32(v32 - 4);
+      M32(v32 - 4) = v29;
       v33 = G32(0x45D0F8);
       M32(v31) = v29;
       M32(v31 + 4) = v33;
@@ -3531,7 +3533,7 @@ static unsigned int d4_40E885(dec4_ctx *c)
 
 static int d4_40EBA7(dec4_ctx *c, char a1)
 {
-  char v1;
+  unsigned char v1;   /* byte value: compared with M8() (unsigned) */
   unsigned char v2;
   int v3;
   signed int result;
@@ -3669,6 +3671,8 @@ LABEL_54:
     if ( v15 < 0x38000 )
       M8(v14 + 32 * v15 + 0x100000) = 0;
     d4_4196E0(c, 32 * v13 + v14, 0, 0x20u);
+    /* asm 0x40F006: ecx += 32*edi, the freshly cleared bucket entry */
+    v1 = 32 * v13 + v14;
     M8(v1) = 1;
     v17 = G8(0x45E3A4);
     M8(v1 + 26) = 32;
@@ -3684,7 +3688,8 @@ LABEL_54:
       G8(0x45E3A3) = 0;
       do
       {
-        if ( M8(v1 + (unsigned char)G8(0x45E3A3) + 13) == a1 )
+        /* asm 0x40ED0E compares bytes (unsigned); a1 is a signed char */
+        if ( M8(v1 + (unsigned char)G8(0x45E3A3) + 13) == (unsigned char)a1 )
           break;
         ++G8(0x45E3A3);
       }
@@ -3832,9 +3837,12 @@ static char d4_40F049(dec4_ctx *c, int a1)
   if ( !M8(v1) )
   {
     d4_4196E0(c, c->p_684 + 20 * G32(0x45C69C), 0, 0x14u);
-    M16(v7) = 514;
-    M8(v7 + 18) = 4;
-    M8(v7 + 9) = a1;
+    /* asm 0x40F186: memset returns the destination (Hex-Rays lost it as v7);
+     * the head of the new 20-byte context entry gets 0x0202, +18 = 4 and
+     * +9 = the first candidate byte. */
+    M16(v1) = 514;
+    M8(v1 + 18) = 4;
+    M8(v1 + 9) = a1;
     return a1;
   }
   G8(0x45E3A5) = 0;
@@ -3853,7 +3861,8 @@ static char d4_40F049(dec4_ctx *c, int a1)
     {
       ++M8(v2);
       M8(v2) >>= 1;
-      v3 = M8(v2)--;
+      v3 = M8(v2);
+      --v2;
       M8(v1 + 18) += v3;
     }
     while ( v2 != (v1 - 1) );
@@ -3961,7 +3970,8 @@ static char d4_40F19A(dec4_ctx *c, int a1)
       {
         ++M8(v3);
         M8(v3) >>= 1;
-        v4 = M8(v3)--;
+        v4 = M8(v3);
+      --v3;   /* asm 0x40F252: the pointer walks down */
         M8(v1 + 18) += v4;
       }
       while ( v3 != (v1 - 1) );
@@ -4038,9 +4048,11 @@ static char d4_40F19A(dec4_ctx *c, int a1)
   else
   {
     d4_4196E0(c, c->p_684 + 20 * G32(0x45C69C), 0, 0x14u);
-    M16(v8) = 771;
-    M8(v8 + 18) = 6;
-    M8(v8 + 9) = a1;
+    /* asm 0x40F386: the memset destination (v1) gets 0x0303 at +0, 6 at +18
+     * and the decoded byte at +9 (Hex-Rays lost it as the unused v8). */
+    M16(v1) = 771;
+    M8(v1 + 18) = 6;
+    M8(v1 + 9) = a1;
   }
   return a1;
 }
@@ -4087,7 +4099,8 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
     M8(v7) = v8;
     if ( v2 >= 0x80u )
     {
-      if ( v2 == -1 )
+      /* asm 0x40F3F9 / 0x40F455 compare the byte with 0xff (v2 is unsigned) */
+      if ( v2 == 0xFF )
       {
         ++M8(v7);
         if ( M8(0x45DD6A + ((v3 == 0))) == 15 && M8(v7) == 15 )
@@ -4101,7 +4114,7 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
       }
     }
   }
-  if ( v2 && v2 != -1 )
+  if ( v2 && v2 != 0xFF )
   {
     v9 = G32(0x45D118) & (G32(0x45D110) - M32(0x4455AC + ((v2) * 4)));
     if ( v9 >= 0x100 )
@@ -4421,8 +4434,9 @@ LABEL_23:
     }
     if ( !v43 )
       break;
-    M32(v1) = M32(v1 - 1);
-    --v1;
+    /* asm 0x40FB63: [edx] = [edx-4]; edx -= 4 (the h2 entry's two dwords) */
+    M32(v1) = M32(v1 - 4);
+    v1 -= 4;
   }
   v8 = G32(0x45D110);
   M32(v1) = G32(0x45D110);
@@ -4571,7 +4585,7 @@ LABEL_63:
     G32(0x45D134) += v45;
   }
   M8(v38 + c->p_690) = v45;
-  if ( v45 == -1 )
+  if ( v45 == 0xFF )   /* asm 0x40FF2E: cmp dl,0xff (v45 is unsigned char) */
   {
     G32(0x45D11C) = 0;
     ++G32(0x45D114);
@@ -4588,9 +4602,11 @@ LABEL_63:
     d4_40F39A(c, v28, v45 <= 8u);
     v30 = c->p_dict;
     v31 = G32(0x45D110);
-    M8(c->p_dict + G32(0x45D110)) = v29;
+    /* asm 0x40FF97/0x40FFA7: both writes store the byte just copied (cl),
+     * which Hex-Rays left as the never assigned v29. */
+    M8(c->p_dict + G32(0x45D110)) = v28;
     if ( v31 < 0x100 )
-      M8(v30 + G32(0x45D10C) + v31) = v29;
+      M8(v30 + G32(0x45D10C) + v31) = v28;
     a1 = G32(0x45D118) & (a1 + 1);
     G32(0x45D110) = G32(0x45D118) & (G32(0x45D110) + 1);
     --v45;
@@ -4838,8 +4854,8 @@ static int d4_41030F(dec4_ctx *c)
   int v65;
   unsigned int v66;
   int v67;
-  char v68;
-  char v69;
+  unsigned char v68;   /* byte values: compared with M8() (unsigned) */
+  unsigned char v69;
   unsigned int v70;
   unsigned int v71;
   unsigned int v72;
@@ -5826,13 +5842,27 @@ LABEL_336:
               v155 = M8(v184);
               v110 = M8(v184 + 1);
             }
-            v156 = v110;
-            v156 = M32(0x4274CD + ((((signed int)M8(v184 + 3) >> 3) & 0xF) * 4)) + v110;
-            *(&v155 + (M8(v184 + 2) == v215)) += v160;
-            *(&v155 + (M8(v184 + 2) == v210)) += v161;
-            *(&v155 + (M8(v184 + 2) == v205)) += v162;
-            G32(0x45C67C) = v156 + v155;
-            G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), v156 + v155);
+            /* asm 0x411A3E..0x411A92: the table value is added into v110 in
+             * place and the three conditional adds may target v110 as well;
+             * rewrite the Hex-Rays (*(&v155 + cond)) trick explicitly. */
+            v156 = M32(0x4274CD + ((((signed int)M8(v184 + 3) >> 3) & 0xF) * 4));
+            v110 += v156;
+            /* asm 0x411A53/0x411A6C/0x411A85: pair[M8(v184+2)==cmp] += value,
+             * pair[0]=v155, pair[1]=v110 - the byte always lands in one. */
+            if ( M8(v184 + 2) == v215 )
+              v110 += v160;
+            else
+              v155 += v160;
+            if ( M8(v184 + 2) == v210 )
+              v110 += v161;
+            else
+              v155 += v161;
+            if ( M8(v184 + 2) == v205 )
+              v110 += v162;
+            else
+              v155 += v162;
+            G32(0x45C67C) = v155 + v110;
+            G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), v155 + v110);
             if ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) < v155 )
             {
               if ( G8(0x45E398) )
@@ -5993,7 +6023,8 @@ LABEL_394:
 LABEL_408:
   d4_40ECC7(c, v212);
   if ( G8(0x45E39D) )
-    d4_40F19A(c, v139);
+    d4_40F19A(c, v212);   /* asm 0x411E16: eax = edx = the decoded byte (was a
+                           * Hex-Rays leftover v139, never assigned) */
   if ( G8(0x45E393) )
     d4_40EBA7(c, v212);
   if ( v207 )
@@ -6523,9 +6554,10 @@ LABEL_43:
   {
     if ( M16(v29) || v64[v31] )
       v28 += M16(v30);
-    ++v29;
+    /* asm 0x41274e/0x412751: both tables advance one u16 entry (+2 bytes) */
+    v29 += 2;
     ++v31;
-    ++v30;
+    v30 += 2;
   }
   while ( v31 < 0x100 );
   v32 = 256;
@@ -6538,7 +6570,7 @@ LABEL_43:
   do
   {
     --v32;
-    --v35;
+    v35 -= 2;   /* asm 0x4127a4/0x4127a5: u16 table, two byte steps */
     if ( !M16(v35) && !v64[v32] )
       v34 += M16(v76 + 2 * v32);
   }
