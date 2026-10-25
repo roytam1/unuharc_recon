@@ -619,10 +619,11 @@ static const unsigned int d4_t42762D[8] = {
     20,36,45,51,56,60,62,63
 };
 
-static const unsigned int d4_t42764D[24] = {
+static const unsigned int d4_t42764D[33] = {
     63,63,62,61,60,59,58,57,53,49,
     46,43,40,36,33,30,30,30,30,26,
-    26,22,22,18
+    26,22,22,18,18,14,14,10,10,8,
+    7,6,5
 };
 
 static const unsigned short d4_t429ED4[16384] = {
@@ -2169,7 +2170,7 @@ static void d4_load_tables(dec4_ctx *c)
     for (i = 0; i < 16; i++) G32(0x4275CD + 4*i) = d4_t4275CD[i];
     for (i = 0; i < 8; i++) G32(0x42760D + 4*i) = d4_t42760D[i];
     for (i = 0; i < 8; i++) G32(0x42762D + 4*i) = d4_t42762D[i];
-    for (i = 0; i < 24; i++) G32(0x42764D + 4*i) = d4_t42764D[i];
+    for (i = 0; i < 33; i++) G32(0x42764D + 4*i) = d4_t42764D[i];
     for (i = 0; i < 16384U; i++) G16(0x429ED4 + 2*i) = d4_t429ED4[i];
     for (i = 0; i < 100U; i++) G32(0x426AC3 + 4*i) = 0x426957U + d4_sdicoff[i];
     CP(0x40CDA1, d4_t40CDA1, sizeof d4_t40CDA1);
@@ -6519,8 +6520,10 @@ LABEL_43:
   else
   {
     v1 = (0x453464)
-       + 4 * (32 * M16(c->p_6c8 + 2 * v63) / ((unsigned short)a1 + M16(c->p_6c8 + 2 * v63)));
-    G32(0x45C67C) = ((unsigned int)(unsigned short)a1 << 13) / M32(v1) + 1;
+       + 4 * (unsigned)d4_div(32u * M16(c->p_6c8 + 2 * v63),
+                              (unsigned short)a1 + M16(c->p_6c8 + 2 * v63));
+    G32(0x45C67C) = (unsigned)d4_div((unsigned int)(unsigned short)a1 << 13,
+                                     M32(v1)) + 1;
     if ( (unsigned int)G32(0x45C67C) >= 0x4000 )
       G32(0x45C67C) = 0x3FFF;
   }

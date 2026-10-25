@@ -419,11 +419,15 @@ becomes 2..7 accordingly.
    IN the repo (`uharc_dec4.c`): the x86-64 crash was 32-bit "pointers"
    truncated into int locals, fixed by a flat offset arena; the stream
    header (4228BE=894609) and the first output bytes now match native.
-   `06_mx` now decodes 4304 of 5840 output bytes identically to native
+   `06_mx` decodes 4304 of 5840 output bytes identically to native
    (the first 4303 bytes are byte-for-byte and range/code-for-range/
-   code). The first divergence is at out=4304, the first byte of
-   `random.bin`: from an identical state the native escapes and decodes
-   0xC1 where ours decodes 0xBE, inside `d4_41030F`/`d4_411F8B`.
+   code; 4 of 6 files are exact). The first divergence is at out=4304,
+   the first byte of `random.bin`: from an identical state the native
+   escapes and decodes 0xC1 where ours decodes 0xBE, inside
+   `d4_41030F`/`d4_411F8B`. D3X no longer crashes: the integer divide
+   by zero came from a truncated static table (0x42764D is 33 dwords;
+   our copy had 24, so the init loop left entry 26 at zero). D3X now
+   runs to completion and reports CRC failure on the first file.
    D3X/`gmud-06x` still give DATA. 0.4 core4 (`04_mx`) is still a
    skeleton. The dominant Hex-Rays artefacts so far: dropped pointer
    destinations (`memset`/walks), signed-`char` compares that miss
