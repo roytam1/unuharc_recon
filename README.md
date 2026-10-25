@@ -419,10 +419,14 @@ becomes 2..7 accordingly.
    IN the repo (`uharc_dec4.c`): the x86-64 crash was 32-bit "pointers"
    truncated into int locals, fixed by a flat offset arena; the stream
    header (4228BE=894609) and the first output bytes now match native.
-   Still failing: D3X stops at out=95 where the PPM tree goes
-   inconsistent (tree[0] = sum(raw)+32 at some contexts), so D3X gives
-   DATA, gmud-06x DATA. 0.4 core4 (04_mx) is still a skeleton. Watch
-   for aliased DGROUP arrays and for Hex-Rays dropping `++ptr`.
+   Still failing: `06_mx` stops at out=90 with the first 12 bytes exact
+   (`"Lorem ipsum "`); at out=12 our LZP candidate pass (d4_40F9D0)
+   rejects a match the native takes, so dword_45D11C/byte_45E39C stay
+   unset and the next literal range-decodes with the wrong exclusion.
+   The PPM core is in sync up to that point. D3X/`gmud-06x` give DATA
+   too. 0.4 core4 (`04_mx`) is still a skeleton. Watch for aliased
+   DGROUP arrays, tables used as addresses, and `BYTE1/HIWORD |=`
+   rendered as no-ops by Hex-Rays.
 4. Remaining filter: the multimedia layer (uha02_mm.c, verified by
    encoder round-trip) is not wired for 0.3/0.4/0.6. The EXE
    filters are done for all four versions (0.2/0.3/0.4 shared
