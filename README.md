@@ -31,10 +31,13 @@ only correct when translated from the listing.
 "Container" means header decryption, CRC, directory tables, listing, solid
 stream split and per-file CRC verification.
 
-0.6 core 4 is the only partially ported coder. It currently decodes method 27
-(`06_mx`) end to end; method 34 (`D3X.UHA`) and method 39 (`gmud-06x`) still
-fail. There is no 0.3- or 0.4-specific core 4 port; the dispatcher routes those
-methods to the 0.6 coder, which does not decode them.
+0.6 core 4 is the only partially ported coder. Method 27 (`06_mx`) now
+decodes end to end (`t` = All files OK). Method 34 (`D3X.UHA`) runs without
+crashing and produces `BIN/FILES.TXT` correctly up to byte 70, where a match
+reads dictionary content that has already diverged; method 39 (`gmud-06x`,
+32 MB dict) diverges at output byte 3. There is no 0.3- or 0.4-specific core 4
+port; the dispatcher routes those methods to the 0.6 coder, which does not
+decode them.
 
 0.6 core 2 was verified against a generated `-mw` archive (`06_lzw.uha`) that
 is not in the tree; none of the 0.6 samples present uses methods 2–7.

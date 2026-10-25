@@ -2470,7 +2470,7 @@ static int d4_40D6D1(dec4_ctx *c)
   int v45;
   int v46;
   int v47;
-  unsigned char savedregs[24];
+  unsigned char savedregs[256];
 
   v45 = G32(0x45D138);
   v0 = G32(0x45D110);
@@ -2480,8 +2480,9 @@ static int d4_40D6D1(dec4_ctx *c)
   v2 = 0;
   do
   {
-    savedregs[++v2 - 281] = M8(v1 + v0);
+    savedregs[v2] = M8(v1 + v0);
     v0 = G32(0x45D118) & (v0 + 1);
+    ++v2;
   }
   while ( v2 < 0x100 );
   v3 = (unsigned int)(G32(0x45D10C) - 320) >> 1;
@@ -2566,7 +2567,7 @@ LABEL_24:
   do
   {
     M32(0x446064 + (((unsigned char)v4) * 4)) = 1;
-    M8(c->p_dict + v4) = *((unsigned char *)&v41 + v18++);
+    M8(c->p_dict + v4) = savedregs[v18++];
     v4 = G32(0x45D118) & (v4 + 1);
   }
   while ( v18 < 0x100 );
