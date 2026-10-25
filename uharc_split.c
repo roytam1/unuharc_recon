@@ -215,6 +215,9 @@ int uharc_split_run(const char *outdir, int with_paths, int test_only,
                     unsigned long out_expected)
 {
     split_ctx s;
+    unsigned long *cum = 0;
+    unsigned long ncum = 0;
+    unsigned long k;
     int rc;
     memset(&s, 0, sizeof(s));
     s.ents = ents;
@@ -245,8 +248,29 @@ int uharc_split_run(const char *outdir, int with_paths, int test_only,
         s.remaining = 0;
     }
 
-    rc = uharc_dec_decode_v(method, 1, ver, rcb, rctx, split_write, &s,
-                            out_expected);
+    /* Cumulative unpacked end of each file: 0.6 and 0.4 core5 reset their
+     * models at these boundaries (0.2/0.3 ignore the table). */
+    if (nfiles > 0) {
+        cum = (unsigned long *)malloc(sizeof(unsigned long) * nfiles);
+        if (!cum) {
+            if (s.cur) { fclose(s.cur); s.cur = 0; }
+            free(s.fbuf);
+            return USPLIT_ERR_NOMEM;
+        }
+        {
+            unsigned long acc = 0;
+            for (k = 0; k < nfiles; k++) {
+                acc = (acc + (ents[k].size & 0xFFFFFFFFUL)) & 0xFFFFFFFFUL;
+                cum[k] = acc;
+            }
+        }
+        if (cum[nfiles - 1] != out_expected) cum[nfiles - 1] = out_expected;
+        ncum = nfiles;
+    }
+
+    rc = uharc_dec_decode_b(method, 1, ver, cum, ncum, rcb, rctx,
+                            split_write, &s, out_expected);
+    if (cum) free(cum);
     if (s.cur) { fclose(s.cur); s.cur = 0; }
     free(s.fbuf);
     s.fbuf = 0;

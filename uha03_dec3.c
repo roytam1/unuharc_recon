@@ -567,6 +567,10 @@ static int u3_match(dec3u *d)
         return 0;
     }
     idx = u3_lenctx(d->hval[h]);
+    /* sub_420418 clears the match exclusion (4450A0) at 0x4205CB, just
+     * before the length symbol is decoded: the length context decode must
+     * not inherit the literal exclusion of the preceding match. */
+    d->excl = -1;
     ln = u3_sym(d, idx);
     if (d->err) return 0;
     u3_update(d, idx, ln);

@@ -54,7 +54,7 @@
  * contexts (31 ints each) and literal contexts 1001..1016.  The predictor
  * state is zeroed whenever a group > 4 starts (sub_414420).
  *
- * STATUS (byte-exact for the uha04.UHA and 04_m1/m2/m3 oracles):
+ * STATUS (byte-exact for the uha04.UHA, 04_m1/m2/m3 and gmud-04m3 oracles):
  *  - The coder, the 1041-context PPM model, the 5-way decision model, the
  *    match/distance/length decoder, the 11-way group selector and the
  *    group 0..9 context selection / byte predictor are ported and compile
@@ -66,6 +66,11 @@
  *    full 5840-byte corpus with all five CRCs matching; the 298 one/two
  *    byte oracles made by UHARC04.EXE and the generated 3..24 byte vectors
  *    also decode exactly.
+ *  - gmud-04m3.uha (method 87, 32 MB dictionary, 44 files, 33705622 bytes):
+ *    all 44 per-file CRCs OK and `x` is byte-identical to the native
+ *    UHARC04.EXE extraction.  The stream selects groups 0/2/3/6/8, runs
+ *    26 blocks (25 model resets) and therefore needs the container block
+ *    table (see decode_b).
  *  - The distance class tables have 44 entries (classes 0..43), not 12;
  *    12 is only the range used by short/early streams.  Truncating them
  *    was the reason a first-class-12 match desynchronised the stream.
@@ -94,12 +99,25 @@
  *        greedy comparison starts from order 0 on every call, so the order
  *        can move.  dword_431928[order] (0x7F for 0..3, 7 for 4, 3 for 5)
  *        paces the short-period order search that fills pred2a4/2a8.
+ *      * sub_414420 (predictor reset) clears 0x1E40 bytes but then stores
+ *        2 in dword_4452A8 and seeds the [28..30] sentinels of the four
+ *        31-dword records (pred43[28..30], [59..61], [90..92], [121..123])
+ *        with -1.  pred2a8 selects pred4bc[] and is live before the first
+ *        order search of a block.
+ *      * the long-path error accumulators pred43[23]/[24] are decayed by
+ *        pred43[25]/[26] only when the whole low byte of pred43[27] is 0
+ *        (`test byte ptr [edx+6Ch],0FFh`), i.e. every 256 calls; 16 is the
+ *        cadence of the coefficient nudge only.
+ *      * a group switch must not clear dword_4312D4 (last decided-context
+ *        byte): only sub_40F190 clears it after consuming it.  Clearing it
+ *        in the group switch silently loses decision-history updates.
  *
- * Limitation: the stream is decoded as a single block.  Streams larger
- * than roughly 128K need the container-provided block boundary table
- * (dword_44C8D0) so that the models are reset and the 11-way group
- * selector is re-read at every block; the current entry point receives
- * only out_len and the raw stream, so such archives stop with error 3/7.
+ * Blocks: sub_40EB70 advances dword_44C8A8 by 0x20000, clamps it to the
+ * total, then walks the container's cumulative file-end table
+ * (dword_44C8D0 / dword_44C8C0) to the first entry >= that value and makes
+ * it the new block end.  uharc_dec5v_decode() keeps the old single-block
+ * behaviour; uharc_dec5v_decode_b() takes that table and reproduces the
+ * resets.  The container must pass it (see uharc_dec_decode_b).
  *
  * Return codes: 0 ok, 1 bad args, 2 nomem, 3 input short, 4 output error,
  * 7 data error.
@@ -120,6 +138,11 @@ int uharc_dec5v_init(void **pctx, int method);
 int uharc_dec5v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
+int uharc_dec5v_decode_b(void *ctx, const unsigned long *cum,
+                         unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
 void uharc_dec5v_free(void *ctx);
 
 #define D5V_M32 0xFFFFFFFFUL
@@ -1897,6 +1920,9 @@ typedef struct d5v_s {
 
     unsigned long escctx;        /* 44C8D4 */
     unsigned long blockend;      /* 44C8A8 */
+    const unsigned long *cum;    /* 44C8D0: container file-end table */
+    unsigned long ncum;          /* table length */
+    unsigned long cum_idx;       /* 44C8C0: current index into cum[] */
     unsigned char hasprev;       /* 44C8C4 != 0 */
     unsigned char prevb;         /* byte at 44C8C4 */
 
@@ -2383,11 +2409,20 @@ static void d5v_pred_reset(d5v *d)
     for (i = 0; i < 4u; i++) d->pred70dc[i] = 0;
     d->pred2a0 = 0;
     d->pred2a4 = 0;
-    d->pred2a8 = 0;
+    /* sub_414420: after the flat 0x1E40 clear it stores 2 in dword_4452A8,
+     * then seeds the [28..30] sentinels of the four 31-dword predictor
+     * records (offsets 0x1F0/0x7C*k, k=1..4) with -1. */
+    d->pred2a8 = 2;
     d->pred2ac = 0;
     d->pred2b0 = 0;
     d->pred2b4 = 0;
     d->pred2b8 = 0;
+    for (i = 0; i < 4u; i++) {
+        long *v = d->pred43 + 31u * i;
+        v[28] = -1L;
+        v[29] = -1L;
+        v[30] = -1L;
+    }
 }
 
 /* shared every-16-calls coefficient nudge (inside 414820) */
@@ -2420,7 +2455,11 @@ static void d5v_pred_adapt(d5v *d, long *v)
     case 9: if (v[8] < 32) v[9]++; break;
     default: break;
     }
-    if (!((unsigned char)d5v_u32(v[27]) & 0x0Fu)) {
+    /* Long-path error-accumulator decay: the original tests the whole low
+     * byte (`test byte ptr [edx+6Ch],0FFh`), i.e. it fires every 256 calls,
+     * not at the 16-call coefficient nudge.  It is reached from that nudge,
+     * so checking the byte here gives the same firing points. */
+    if (!((unsigned char)d5v_u32(v[27]) & 0xFFu)) {
         long t;
         t = d5v_sub32(v[23], v[25]);
         v[23] = t;
@@ -2724,7 +2763,8 @@ static void d5v_group_switch(d5v *d, unsigned ng)
     d->s90e = 0;
     d->c906 = 0;
     d->c87c = 0;
-    d->lastptr = 0;
+    /* dword_4312D4 (last decided-context byte) is NOT cleared here in the
+     * original: only sub_40F190 clears it after consuming it. */
     if (ng > 4u) d5v_pred_reset(d);
 }
 
@@ -3279,7 +3319,19 @@ static int d5v_block_start(d5v *d)
     d->p894 = 0;
     d->p890 = 0;
     d->seq898 = 255u;
-    d->blockend = d->out_len;
+    /* Advance the block end (tail of sub_40EB70): +0x20000 clamped to the
+     * total, then snap forward to the first container file end that is
+     * >= that value.  Without the table the whole stream is one block. */
+    if (d->cum && d->ncum) {
+        unsigned long next = d->blockend + 0x20000UL;
+        if (next > d->out_len) next = d->out_len;
+        while (d->cum_idx < d->ncum && d->cum[d->cum_idx] < next)
+            d->cum_idx++;
+        if (d->cum_idx < d->ncum) d->blockend = d->cum[d->cum_idx];
+        else d->blockend = d->out_len;
+    } else {
+        d->blockend = d->out_len;
+    }
     /* 11-way uniform group selector */
     d->ct = 11u;
     d->range /= 11u;
@@ -3381,14 +3433,21 @@ void uharc_dec5v_free(void *ctx)
     free(d);
 }
 
-int uharc_dec5v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
-                       uharc_dec_write_cb wcb, void *wctx,
-                       unsigned long out_len)
+int uharc_dec5v_decode_b(void *ctx, const unsigned long *cum,
+                         unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len)
 {
     d5v *d = (d5v *)ctx;
     int err;
 
     if (!d || !rcb || !wcb) return 1;
+    if (ncum == 0UL) cum = 0;
+    d->cum = cum;
+    d->ncum = cum ? ncum : 0UL;
+    d->cum_idx = 0UL;
+    d->blockend = 0UL;
     if (out_len == 0) return 0;
     d->inb = (unsigned char *)malloc(65536UL);
     d->outb = (unsigned char *)malloc(65536UL);
@@ -3433,4 +3492,12 @@ int uharc_dec5v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
     d->inb = 0;
     d->outb = 0;
     return err;
+}
+
+/* single-block entry: no container file-end table */
+int uharc_dec5v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
+{
+    return uharc_dec5v_decode_b(ctx, 0, 0UL, rcb, rctx, wcb, wctx, out_len);
 }

@@ -50,13 +50,17 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
 * File data: EXTRACTION DONE and byte-exact for 04_m0 (STORE), 04_mz
   (core3) and 04_m1/m2/m3 (core5 via uha04_dec5.c). The 0.4 EXE filter
   (uharc_filter.c, shared with 0.3) is applied and verified against
-  native extractions. GAPS in 0.4 core5: length-predictor groups 5..9
-  are unimplemented, so uha04.UHA (method 62, first block picks such a
-  group) still fails DATA; 04_mx needs the 0.4 core4 coder.
-  Real 33 MB `gmud-04m3.uha` (method 87) fails DATA after ~0.1 s - the
-  same class of core5 defect fixed for gmud-06m3; `gmud-04x` (method
-  27, core4) gives CRC (skeleton only); `gmud-04z` (method 17, core3)
-  fails DATA (needs core3 multi-block).
+  native extractions. 0.4 core5 is now COMPLETE: the real 33 MB
+  `gmud-04m3.uha` (method 87) is byte-identical to native `UHARC04.EXE`
+  (`t`: 44/44 CRCs; 26 blocks / 25 model resets), and `uha04.UHA`
+  (method 62) passes too. Resets use the cumulative file-end table
+  (now passed by `uharc_split.c`): blockend += 0x20000, clamp, snap
+  forward to the next file end, re-read the group selector. Fixes:
+  predictor reset seeds pred2a8=2 and the [28..30] sentinels with -1;
+  long-path decay fires every 256 calls (whole low byte zero, not the
+  16-call nudge mask); group switch keeps the decision-history pointer.
+  Remaining: 04_mx needs the 0.4 core4 coder; `gmud-04z` (method 17,
+  core3) needs core3 multi-block.
 
 0.3:
 * Header parsing: DONE, verified on `uharc_u.uha`
@@ -97,13 +101,14 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   "FOR CLASS/BACKSLASH RELEASES ONLY"), so vectors cover ALZ:1/2/3 only,
   NOT PPM/LZP. Header +10 follows 36+(k-1)*14+3 (k=switch, 3=dict idx):
   0x27/0x35/0x43 for k=1/2/3. 0.4 build does honour x/z (all four differ).
-* Directory: DONE for the small vectors, but the real 33 MB
-  `gmud-03*` archives expose a 0.3 core3 defect: tab1 (543 names,
-  377 packed, cumulative CRC16 E2B5) decodes 543 bytes with rc=0 yet
-  the wrong content (CRC 2EDD). tab2/tab3 are byte-exact, so 0.3
-  `l`/`t`/`x` on gmud-03* abort at open with CRC failure. All four
-  tables decode for 03_m0..m3 (tab1 via `uha03_dec3.c`, verified
-  byte-exact on the 62-byte name table) and uharc_u.uha (11 bytes).
+* Directory: DONE, including the real 33 MB `gmud-03*` archives
+  (tab1: 543 names / 377 packed, cumulative CRC16 E2B5, byte-exact).
+  That long table exposed a 0.3 core3 bug the 11/62-byte tables never
+  reached: the match exclusion (dword_4450A0) must be cleared BEFORE
+  the match-length symbol is decoded (0x4205CB), not after. A stale
+  exclusion made the length context's order-0 total 8 too small and
+  flipped the coder state at output byte 506.
+  tab2/tab3 and 03_m0..m3 / uharc_u.uha tables are unchanged.
   `l 03_m0.uha` -> empty.bin 0, text.txt 2280, repeat.txt 1000,
   binary.bin 1024, random.bin 1024, call.bin 512 (sum 5840);
   `l uharc_u.uha` -> uharc_u.c 1047398. Entry order matches tab0.
@@ -112,6 +117,8 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   (see uha03_dec3.c header). crc1 is cumulative over tab0+tab1.
   File data: EXTRACTION DONE for all six vectors (03_m0 STORE..03_mz,
   methods 0/39/67) via uha03_dec5.c - byte-exact vs corpus.
+  Real 33 MB gmud-03m3.uha now passes 	 (44/44 CRCs) and extracts
+  byte-identically to the 0.4/0.6 extractions of the same content.
   uharc_u.uha (method 60, 1 MB dictionary) is now byte-exact too:
   1047398 bytes, CRC32 D9BA98B4, identical to a fresh official
   extraction by uharc_u.exe. The earlier failure was not a
@@ -393,13 +400,14 @@ becomes 2..7 accordingly.
 
 ## Next steps
 
-1. core3 multi-block: tables are single-block (thresh=out_len works);
-   larger ALZ file streams (e.g. 06_mz method 11) need block reset
-   via progress table (`sub_40807F`/`dword_4396F4`) like original.
-2. 0.3 is COMPLETE (listing + extraction, all dictionary sizes) and
-   the 0.3/0.4 EXE filter is DONE and native-verified. 0.4 core5
-   is complete for uha04.UHA/04_m1..m3; open: groups 7/8 at block start,
-   04_mx needs the 0.4 core4 coder.
+1. core3 multi-block: the 0.3/0.4/0.6 core3 decoders are
+   single-block (thresh=out_len works for tables); larger ALZ file
+   streams (`06_mz` method 11, `gmud-03z`/`gmud-04z` methods 21/17)
+   need the block reset via progress table
+   (`sub_40807F`/`dword_4396F4`) like the original.
+2. 0.2, 0.3 and the ALZ/STORE/EXE-filter parts of 0.4 are COMPLETE.
+   0.4 core5 now handles real 33 MB multi-block streams. 04_mx
+   still needs the 0.4 core4 coder.
    Remaining core2 item: 0.6 MSB-first is unexercised (no 0.6
    archive uses methods 2..7).
    0.2 is COMPLETE: byte-exact against every oracle, including

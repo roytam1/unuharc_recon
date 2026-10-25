@@ -280,6 +280,10 @@ int uharc_dec5v_decode(void *ctx,
                        uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
+int uharc_dec5v_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
 void uharc_dec5v_free(void *ctx);
 /* 0.2 core3 (verified: byte-exact on 02_M1/M2/M3 streams) */
 int uharc_dec3t_init(void **pctx, int method);
@@ -415,7 +419,8 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
             void *c5 = 0;
             ret = uharc_dec5v_init(&c5, method);
             if (ret == 0) {
-                ret = uharc_dec5v_decode(c5, rcb, rctx, wcb, wctx, out_len);
+                ret = uharc_dec5v_decode_b(c5, cum, ncum, rcb, rctx, wcb,
+                                           wctx, out_len);
                 uharc_dec5v_free(c5);
             }
         } else {
