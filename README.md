@@ -194,23 +194,32 @@ Decompressors (method->core tables are version-specific:
 0.3 `0->0,1->1,2..7->2,8..21->3,22..35->4,36..79->5` + `80->0` alias;
 0.2 `0->0,1->1,2..7->2,8..43->3` (44 methods, 4 cores, no PPM):
   - core 0 STORE (method 0): DONE, byte-exact (`06_m0` 6/6 MATCH)
-  - core 1 RLE/delta (method 1): DONE (from 0.6 sub_40B504), no test vector yet
-  - core 2 Huffman/LZ (methods 2..7 all versions): SOLVED for 0.2/0.3/0.4.
-    Identical algorithm to the 0.6 port with an LSB-first bit reader
-    (`uharc_dec2_lsb.c`, symbols uharc_dec2l_*). 0.6 stays MSB-first
-    (`uharc_dec2.c`). Select with `uharc_dec_decode_v(method, lsb, ...)`.
-    VERIFIED: 0.2 tab1 names (EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT),
-    0.2 tab2 dates 5D58/963B, 0.2 tab3 sizes, 0.3+0.4 tab2 crc16 25CA
-    exact and tab3 sizes summing to 5840. MSB-first fails all of these.
-  - core 3 ALZ (0.6/0.4 methods 8..23 incl. 17; 0.3 methods 8..21 incl. 17):
+  - core 1 RLE/delta (method 1): DONE and VERIFIED in 0.2, 0.3 and
+    0.6 (real archives made with the secret `-mr` switch; 0.2 also
+    supplied as 02-R.UHA, 36522 bytes).
+  - core 2 (methods 2..7): TWO different coders, both verified with
+    real `-mw` (LZW) archives:
+    * 0.6: Huffman/LZ with adaptive width, MSB-first bits
+      (`uharc_dec2.c`) - verified on 06_lzw.uha.
+    * 0.2/0.3/0.4: plain LZW, LSB-first with an optional
+      complemented range code, first code emitted directly, code
+      0x101 = 16-bit length RLE with pending-literal suppression,
+      no table prune (`uharc_dec2_lsb.c`). Verified on 02-W.UHA,
+      02_LZW.UHA, 03_lzw.uha and generated method 2..7 archives
+      across dictionary sizes. NOTE: it is NOT a bit-order variant
+      of the 0.6 coder - the earlier "same algorithm, LSB bits"
+      reading only held for the tiny directory tables.
     0.6 FIXED (denominator +escw,
     fallback 0x13E, xsum, len `v51?v51:256`; verified 06_m1 tab1/tab2 +
     D3X tab1/tab2 CRCs + 45 names). Multi-block (thresh) stubbed to
     single-block: tables OK, larger ALZ file streams (e.g. 06_mz m11)
     fail DATA.
-    0.4: DONE (`uha04_dec3.c`) - byte-exact on 04_m*/uha04.UHA tab1 and a
-    5840-byte solid stream. 330 contexts (order-0 at 328/329), lengths as
-    ordinary symbols, 1-based Fenwick rescale fill.
+    0.4 core3: DONE (`uha04_dec3.c`) - byte-exact on 04_m*/uha04.UHA
+    tab1 and a 5840-byte solid stream. 330 contexts (order-0 at
+    328/329), lengths as ordinary symbols, 1-based Fenwick rescale.
+    0.4 core5: DONE for groups 0-6 and 9+ (`uha04_dec5.c`), incl.
+    the length predictors; uha04.UHA (method 62) now extracts all 8
+    files. Open: groups 7/8 selected at block start.
     0.3 core5: DONE (`uha03_dec5.c`) - byte-exact on 03_m1/m2/m3/mx/mz file
     data (methods 39 and 67, all per-file CRCs). 3-way decision model,
     PPM/Fenwick contexts, delta literals, 61-symbol distance + MRU.
@@ -254,7 +263,7 @@ Decompressors (method->core tables are version-specific:
   0.3 extract (all six vectors, methods 0/39/67) and 0.4 extract
   (04_m0 STORE, 04_mz core3) are now byte-exact too.
   Remaining: 0.3 uharc_u.uha (method 60, 1 MB dict path),
-  0.4 uha04.UHA (core5 groups 5-9) + 04_mx (core4), and 0.6 compressed
+  0.4 core5 groups 7/8 at block start + 04_mx (core4), and 0.6 compressed
   data (core4/5 + filters).
 
 ## Files
@@ -276,8 +285,9 @@ Decompressors (method->core tables are version-specific:
 * `uharc_dec.h` - decoder interface (method -> core, version-specific tables)
 * `uharc_dec0.c` - dispatch + core0/1 (shared logic, table differs per version)
 * `uharc_dec2.c` - 0.6 core2 (MSB-first bit order)
-* `uharc_dec2_lsb.c` - core2 for 0.2/0.3/0.4 (LSB-first; same algorithm).
-  Selected via `uharc_dec_decode_v(method, core2_lsb, ...)`. VERIFIED.
+* `uharc_dec2_lsb.c` - core2 for 0.2/0.3/0.4: plain LZW, LSB-first (NOT a
+  bit-order variant of the 0.6 coder). Selected via
+  `uharc_dec_decode_v(method, core2_lsb, ver, ...)`. VERIFIED.
 * `uharc_dec3.c` - 0.6 core3 (tables verified)
 * `uha03_dec3.c` - 0.3 core3, verified byte-exact (own 24-bit coder)
 * `uha02_dec3.c` - 0.2 core3, verified byte-exact on 02_M1/M2/M3
@@ -349,6 +359,19 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
 0.2: method 0->0 STORE, 1->1 RLE, 2..7->2 Huffman, 8..43->3 PPM/LZ+range
 (44 methods, 4 cores, no PPM) - different models/ranges, do not reuse.
 
+## Creating test vectors (secret switches)
+
+`-mr` and `-mw` are undocumented switches that select RLE (method 1)
+and LZW (method 5) instead of the normal ALZ/PPM modes. They work in
+Uharc02.exe, uharc_u.exe and UHARC06.EXE, and were the only way to get
+core1 and core2 coverage:
+
+    UHARC06.EXE a -d0 -y+ -o+ -p- -mr out.uha files...   (RLE)
+    UHARC06.EXE a -d0 -y+ -o+ -p- -mw out.uha files...   (LZW)
+
+Vary dictionary size with -md1/-md8/-md64/-md1024; the LZW method id
+becomes 2..7 accordingly.
+
 ## Next steps
 
 1. core3 multi-block: tables are single-block (thresh=out_len works);
@@ -356,7 +379,7 @@ models/ranges from 0.4/0.6, do not reuse verbatim.
    via progress table (`sub_40807F`/`dword_4396F4`) like original.
 2. 0.3 is COMPLETE (listing + extraction, all dictionary sizes) and
    the 0.3/0.4 EXE filter is DONE and native-verified. 0.4 core5
-   still lacks the length-predictor groups 5-9 (uha04.UHA) and
+   is complete for uha04.UHA/04_m1..m3; open: groups 7/8 at block start,
    04_mx needs the 0.4 core4 coder.
    Remaining core2 item: 0.6 MSB-first is unexercised (no 0.6
    archive uses methods 2..7).

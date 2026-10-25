@@ -44,21 +44,31 @@
  *   0x437968  price 16K u16        16-bit log price table (prefix sums)
  *
  * Groups (byte_44D907): 0 = order-0 literal; 1..4 = per-position literal
- * contexts; 5..9 = length-predictor groups; 10 = "reset and use group 0".
+ * contexts; 5..9 = byte-predictor groups (sub_414470 predict /
+ * sub_414820 train); 10 = "reset and use group 0".
  * The 0.4 test modes (methods 43/59/75) decode in group 0 (method 43
  * first selects group 10, which resets the order-1 contexts to group 0).
- * Groups 5..9 use the 0.4 length predictor (sub_414470/sub_414820); this
- * port reports a data error for them (not needed by the verified modes
- * and the 0.4 predictor tables could not be re-derived with certainty).
+ * Groups 5..9 use the 0.4 byte predictor: groups 5/6 are the short-range
+ * linear predictor (one rate context, literal context 993..1000), groups
+ * 7/8/9 are the long-range SSE variant with 2/2/4 interleaved rate
+ * contexts (31 ints each) and literal contexts 1001..1016.  The predictor
+ * state is zeroed whenever a group > 4 starts (sub_414420).
  *
- * STATUS (byte-exact for the 04_m1/m2/m3 oracles):
+ * STATUS (byte-exact for the uha04.UHA and 04_m1/m2/m3 oracles):
  *  - The coder, the 1041-context PPM model, the 5-way decision model, the
- *    match/distance/length decoder and the group 0..4 context selection are
- *    ported and compile cleanly (-std=c89 -pedantic).
+ *    match/distance/length decoder, the 11-way group selector and the
+ *    group 0..9 context selection / byte predictor are ported and compile
+ *    cleanly (-std=c89 -pedantic).
+ *  - uha04.UHA (method 62, ALZ:2): all 8 files / 43307 bytes match the
+ *    native UHARC04.EXE extraction byte-for-byte (the stream selects
+ *    groups 0, 10->0, 2 and 5).
  *  - 04_m1.uha (43), 04_m2.uha (59) and 04_m3.uha (75) each expand to the
  *    full 5840-byte corpus with all five CRCs matching; the 298 one/two
  *    byte oracles made by UHARC04.EXE and the generated 3..24 byte vectors
  *    also decode exactly.
+ *  - The distance class tables have 44 entries (classes 0..43), not 12;
+ *    12 is only the range used by short/early streams.  Truncating them
+ *    was the reason a first-class-12 match desynchronised the stream.
  *  - Details that matter for exactness (all verified against the original
  *    decoder under gdb):
  *      * block start zeroes fen/cnt for contexts 0..768 only, sets
@@ -79,9 +89,14 @@
  *      * the literal decision between "direct" and "escape" coding compares
  *        the running prices p894/p890; both paths update the same two
  *        models, and the direct path also adds its context price to p880.
+ *      * the group 5/6 predictor runs a six-order cost loop whose
+ *        dword_445AD4[257*order] operand aliases its own running sum; the
+ *        greedy comparison starts from order 0 on every call, so the order
+ *        can move.  dword_431928[order] (0x7F for 0..3, 7 for 4, 3 for 5)
+ *        paces the short-period order search that fills pred2a4/2a8.
  *
  * Limitation: the stream is decoded as a single block.  Streams larger
- * than roughly 64K need the container-provided block boundary table
+ * than roughly 128K need the container-provided block boundary table
  * (dword_44C8D0) so that the models are reset and the 11-way group
  * selector is re-read at every block; the current entry point receives
  * only out_len and the raw stream, so such archives stop with error 3/7.
@@ -1584,13 +1599,24 @@ static const unsigned char d5v_g3tab[256] = {
     0x13, 0x13, 0x13, 0x13, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x15, 0x15, 0x15, 0x15,
     0x15, 0x16, 0x16, 0x16, 0x17, 0x17, 0x18, 0x18, 0x19, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
 };
-static const unsigned long d5v_dbase[12] = {
+/* distance class tables (DGROUP 0x431558 base, 0x4314A8 range): 44
+ * classes, not 12.  Classes 0..11 are the ones early/short streams use;
+ * larger dictionaries need the long-distance classes 12..43. */
+static const unsigned long d5v_dbase[44] = {
     0x00000001UL, 0x00000002UL, 0x00000004UL, 0x00000008UL, 0x00000010UL, 0x00000020UL, 0x00000040UL, 0x00000060UL,
-    0x00000080UL, 0x000000C0UL, 0x00000100UL, 0x00000180UL,
+    0x00000080UL, 0x000000C0UL, 0x00000100UL, 0x00000180UL, 0x00000200UL, 0x00000300UL, 0x00000400UL, 0x00000600UL,
+    0x00000800UL, 0x00000C00UL, 0x00001000UL, 0x00001800UL, 0x00002000UL, 0x00003000UL, 0x00004000UL, 0x00006000UL,
+    0x00008000UL, 0x0000C000UL, 0x00010000UL, 0x00018000UL, 0x00020000UL, 0x00030000UL, 0x00040000UL, 0x00060000UL,
+    0x00080000UL, 0x000C0000UL, 0x00100000UL, 0x00180000UL, 0x00200000UL, 0x00300000UL, 0x00400000UL, 0x00600000UL,
+    0x00800000UL, 0x00C00000UL, 0x01000000UL, 0x01800000UL,
 };
-static const unsigned long d5v_drange[12] = {
+static const unsigned long d5v_drange[44] = {
     0x00000001UL, 0x00000002UL, 0x00000004UL, 0x00000008UL, 0x00000010UL, 0x00000020UL, 0x00000020UL, 0x00000020UL,
-    0x00000040UL, 0x00000040UL, 0x00000080UL, 0x00000080UL,
+    0x00000040UL, 0x00000040UL, 0x00000080UL, 0x00000080UL, 0x00000100UL, 0x00000100UL, 0x00000200UL, 0x00000200UL,
+    0x00000400UL, 0x00000400UL, 0x00000800UL, 0x00000800UL, 0x00001000UL, 0x00001000UL, 0x00002000UL, 0x00002000UL,
+    0x00004000UL, 0x00004000UL, 0x00008000UL, 0x00008000UL, 0x00010000UL, 0x00010000UL, 0x00020000UL, 0x00020000UL,
+    0x00040000UL, 0x00040000UL, 0x00080000UL, 0x00080000UL, 0x00100000UL, 0x00100000UL, 0x00200000UL, 0x00200000UL,
+    0x00400000UL, 0x00400000UL, 0x00800000UL, 0x00800000UL,
 };
 static const unsigned long d5v_mbase[12] = {
     0x00000000UL, 0x00000301UL, 0x00000321UL, 0x00000341UL, 0x000003A1UL, 0x000003E1UL, 0x000003E5UL, 0x000003E9UL,
@@ -1603,6 +1629,178 @@ static const unsigned long d5v_mrate[12] = {
 static const unsigned char d5v_mshift[12] = {
     0x00, 0x00, 0x08, 0x10, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
 };
+
+/* dword_431940: per-order cost table for groups 5/6 */
+static const unsigned short d5v_t431940[512] = {
+    0x0000, 0x0001, 0x0002, 0x0002, 0x0002, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0004, 0x0004,
+    0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0005, 0x0005, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006,
+    0x0006, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0007, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008,
+    0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D,
+    0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D,
+    0x000D, 0x000D, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x0010, 0x0010,
+    0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010,
+    0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010,
+    0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010,
+    0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010,
+    0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x000F,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D,
+    0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D,
+    0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x0009,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008,
+    0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0006, 0x0006, 0x0006, 0x0006,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0005, 0x0005, 0x0005, 0x0005, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0003,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0002, 0x0002, 0x0002, 0x0001,
+};
+
+
+/* predictor tables (DGROUP 0x433140, 0x432140, 0x432540, 0x432940,
+ * 0x432D40); generated from UHARC04.lst DGROUP; do not edit */
+static const unsigned short d5v_t433140[256] = {
+    0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0005, 0x0006, 0x0006, 0x0006, 0x0007, 0x0007,
+    0x0007, 0x0007, 0x0007, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0009,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000A, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008,
+    0x0008, 0x0008, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0006, 0x0006, 0x0006, 0x0005, 0x0005,
+    0x0004, 0x0003, 0x0002, 0x0001,
+};
+static const unsigned short d5v_t432140[256] = {
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0001, 0x0001, 0x0001, 0x0002, 0x0002, 0x0002, 0x0002,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0004, 0x0004, 0x0004, 0x0004, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0007, 0x0007, 0x0007, 0x0007, 0x0008, 0x0008, 0x0008, 0x0008,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x000A, 0x000A, 0x000A, 0x000A, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000D, 0x000D, 0x000D, 0x000D, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x0010, 0x0010, 0x0010, 0x0010, 0x0011, 0x0011, 0x0011, 0x0011,
+    0x0012, 0x0012, 0x0012, 0x0012, 0x0013, 0x0013, 0x0013, 0x0013, 0x0014, 0x0014, 0x0014, 0x0014,
+    0x0015, 0x0015, 0x0015, 0x0015, 0x0016, 0x0016, 0x0016, 0x0016, 0x0017, 0x0017, 0x0017, 0x0017,
+    0x0018, 0x0018, 0x0018, 0x0018, 0x0019, 0x0019, 0x0019, 0x0019, 0x001A, 0x001A, 0x001A, 0x001A,
+    0x001B, 0x001B, 0x001B, 0x001B, 0x001C, 0x001C, 0x001C, 0x001C, 0x001D, 0x001D, 0x001D, 0x001D,
+    0x001E, 0x001E, 0x001E, 0x001E, 0x001F, 0x001F, 0x001F, 0x001F, 0x0020, 0x001F, 0x001F, 0x001F,
+    0x001F, 0x001E, 0x001E, 0x001E, 0x001E, 0x001D, 0x001D, 0x001D, 0x001D, 0x001C, 0x001C, 0x001C,
+    0x001C, 0x001B, 0x001B, 0x001B, 0x001B, 0x001A, 0x001A, 0x001A, 0x001A, 0x0019, 0x0019, 0x0019,
+    0x0019, 0x0018, 0x0018, 0x0018, 0x0018, 0x0017, 0x0017, 0x0017, 0x0017, 0x0016, 0x0016, 0x0016,
+    0x0016, 0x0015, 0x0015, 0x0015, 0x0015, 0x0014, 0x0014, 0x0014, 0x0014, 0x0013, 0x0013, 0x0013,
+    0x0013, 0x0012, 0x0012, 0x0012, 0x0012, 0x0011, 0x0011, 0x0011, 0x0011, 0x0010, 0x0010, 0x0010,
+    0x0010, 0x000F, 0x000F, 0x000F, 0x000F, 0x000E, 0x000E, 0x000E, 0x000E, 0x000D, 0x000D, 0x000D,
+    0x000D, 0x000C, 0x000C, 0x000C, 0x000C, 0x000B, 0x000B, 0x000B, 0x000B, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x0009, 0x0009, 0x0009, 0x0009, 0x0008, 0x0008, 0x0008, 0x0008, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0006, 0x0006, 0x0006, 0x0006, 0x0005, 0x0005, 0x0005, 0x0005, 0x0004, 0x0004, 0x0004,
+    0x0004, 0x0003, 0x0003, 0x0003, 0x0003, 0x0002, 0x0002, 0x0002, 0x0002, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0000, 0x0000, 0x0000,
+};
+static const unsigned short d5v_t432540[256] = {
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0004, 0x0004, 0x0004, 0x0004,
+    0x0004, 0x0004, 0x0004, 0x0004, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0007, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0007, 0x0007, 0x0007, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x000A, 0x000A, 0x000A, 0x000A,
+    0x000A, 0x000A, 0x000A, 0x000A, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000D, 0x000D, 0x000D, 0x000D,
+    0x000D, 0x000D, 0x000D, 0x000D, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x0010, 0x000F, 0x000F, 0x000F,
+    0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E, 0x000E,
+    0x000E, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000D, 0x000C, 0x000C, 0x000C,
+    0x000C, 0x000C, 0x000C, 0x000C, 0x000C, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B, 0x000B,
+    0x000B, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x000A, 0x0009, 0x0009, 0x0009,
+    0x0009, 0x0009, 0x0009, 0x0009, 0x0009, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008, 0x0008,
+    0x0008, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0006, 0x0006, 0x0006,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0005, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0003, 0x0003, 0x0003,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002,
+    0x0002, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000,
+};
+static const unsigned short d5v_t432940[256] = {
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0002, 0x0002, 0x0002, 0x0002,
+    0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004,
+    0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0008, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007, 0x0007,
+    0x0007, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0006,
+    0x0006, 0x0006, 0x0006, 0x0006, 0x0006, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005,
+    0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0005, 0x0004, 0x0004, 0x0004,
+    0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004, 0x0004,
+    0x0004, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0003,
+    0x0003, 0x0003, 0x0003, 0x0003, 0x0003, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002,
+    0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000,
+};
+static const unsigned short d5v_t432D40[256] = {
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0002, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001,
+    0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000,
+};
+
 
 
 /* ------------------------------------------------------------------ */
@@ -1674,6 +1872,21 @@ typedef struct d5v_s {
     unsigned long c84c;          /* 44C84C[0] */
     unsigned long e8e0[6];       /* 4498E0 */
 
+    /* byte predictor for groups 5..9 (sub_414470 / sub_414820) */
+    long pred43[124];            /* 446EEC: 4 rate blocks x 31 ints */
+    long predbc[6];              /* 4456BC..4456D0 */
+    long pred4bc[128];           /* 4454BC */
+    long pred2bc[124];           /* 4452BC: per-order costs, orders 2..123 */
+    long pred2a0;                /* 4452A0: order 0..5 (recomputed each call) */
+    long pred2a4;                /* 4452A4 */
+    long pred2a8;                /* 4452A8 */
+    long pred2ac;                /* 4452AC */
+    long pred2b0;                /* 4452B0 */
+    long pred2b4;                /* 4452B4 */
+    long pred2b8;                /* 4452B8 */
+    long p6cost[6 * 257];        /* 4456D4: per-order cost history+sum */
+    unsigned char pred70dc[4];   /* byte_4470DC */
+
     /* price accounting used by the literal decoder */
     unsigned long p880;          /* 44C880 */
     unsigned long p88c;          /* 44C88C */
@@ -1715,6 +1928,10 @@ static int d5v_get(d5v *d)
 
 static void d5v_putraw(d5v *d, const unsigned char *p, unsigned long n)
 {
+#if U4_DEBUG
+    fprintf(stderr, "    putraw n=%lu err=%d fill=%u cap=%u\n", n, d->err,
+            d->out_fill, d->out_cap);
+#endif
     if (d->out_tot >= d->out_len) return;
     if (n > d->out_len - d->out_tot) n = d->out_len - d->out_tot;
     while (n) {
@@ -1839,6 +2056,10 @@ static void d5v_update(d5v *d, unsigned sym, unsigned ctx)
 {
     unsigned inc = d5v_inctab(ctx);
     unsigned esc = (unsigned)d->escctx;
+#if U4_DEBUG
+    fprintf(stderr, "    upd ctx=%u sym=%02X esc=%u out=%lu\n", ctx, sym, esc,
+            d->out_tot);
+#endif
     if (d->cnt[(size_t)ctx * 256u + sym] == 0) {
         unsigned w = d5v_ewtab(ctx);
         d->ext[ctx] = (unsigned short)(d->ext[ctx] + inc);
@@ -1868,6 +2089,14 @@ static unsigned d5v_sym(d5v *d, unsigned ctx)
 #endif
     total = fen[0];
     if (d->s913) total = (unsigned)((total - cnt[d->s914]) & 0xFFFFu);
+#if U4_DEBUG
+    if (ctx == 1016u) {
+        unsigned q;
+        fprintf(stderr, "    ctx1016 total=%u: ", total);
+        for (q = 0; q < 256u; q++) if (cnt[q]) fprintf(stderr, "%02X=%u ", q, cnt[q]);
+        fprintf(stderr, "\n");
+    }
+#endif
     if (total == 0) {
         vctx = (unsigned)d->escctx;
         fen = d->fen + (size_t)vctx * 256u;
@@ -1914,6 +2143,10 @@ static unsigned d5v_sym(d5v *d, unsigned ctx)
         if (d->s913 && cnt[d->s914] == 0)
             sum = (sum + (unsigned)ecnt[d->s914]) & 0xFFFFu;
         t = (unsigned)((efen[0] - sum) & 0xFFFFu);
+#if U4_DEBUG
+        fprintf(stderr, "    escctx=%u efen0=%u sum=%u t=%u\n",
+                esc, (unsigned)efen[0], sum, t);
+#endif
         if (t == 0) { d->err = 7; return 0; }
         d->ct = t;
         d->range /= t;
@@ -2090,6 +2323,383 @@ static void d5v_dupdate(d5v *d, unsigned ctx, unsigned sym)
 #endif
 }
 
+/* ------------------------------------------------------------------ */
+/* byte predictor for groups 5..9 (sub_414470 predict / 414820 train) */
+/* ------------------------------------------------------------------ */
+
+/* 32-bit helpers: the original is i386, so every int add/mul wraps */
+static unsigned long d5v_u32(long v)
+{
+    return (unsigned long)v & D5V_M32;
+}
+
+static long d5v_s32(unsigned long u)
+{
+    u &= D5V_M32;
+    if (u & 0x80000000UL) return -(long)((D5V_M32 - u) + 1UL);
+    return (long)u;
+}
+
+static long d5v_add32(long a, long b)
+{
+    return d5v_s32(d5v_u32(a) + d5v_u32(b));
+}
+
+static long d5v_sub32(long a, long b)
+{
+    return d5v_s32(d5v_u32(a) - d5v_u32(b));
+}
+
+static long d5v_mul32(long a, long b)
+{
+    return d5v_s32(d5v_u32(a) * d5v_u32(b));
+}
+
+/* the original's divide-by-16 idiom truncates toward zero */
+static long d5v_div16(long v)
+{
+    return v / 16;
+}
+
+/* dword_4412A0: |signed 12-bit| */
+static unsigned d5v_abs12(long v)
+{
+    unsigned u = (unsigned)v & 0xFFFu;
+    if (u & 0x800u) u = 0x1000u - u;
+    return u;
+}
+
+/* sub_414420: zero all predictor state (called when a group > 4 starts) */
+static void d5v_pred_reset(d5v *d)
+{
+    unsigned i;
+    for (i = 0; i < 124u; i++) {
+        d->pred43[i] = 0;
+        d->pred2bc[i] = 0;
+    }
+    for (i = 0; i < 6u; i++) d->predbc[i] = 0;
+    for (i = 0; i < 128u; i++) d->pred4bc[i] = 0;
+    for (i = 0; i < 6u * 257u; i++) d->p6cost[i] = 0;
+    for (i = 0; i < 4u; i++) d->pred70dc[i] = 0;
+    d->pred2a0 = 0;
+    d->pred2a4 = 0;
+    d->pred2a8 = 0;
+    d->pred2ac = 0;
+    d->pred2b0 = 0;
+    d->pred2b4 = 0;
+    d->pred2b8 = 0;
+}
+
+/* shared every-16-calls coefficient nudge (inside 414820) */
+static void d5v_pred_adapt(d5v *d, long *v)
+{
+    unsigned long best = d5v_u32(v[12]);
+    int si = 0;
+    int i;
+    (void)d;
+    v[12] = 0;
+    for (i = 1; i < 11; i++) {
+        long *pe = &v[12 + i];
+        if (best > d5v_u32(*pe)) {
+            best = d5v_u32(*pe);
+            si = i;
+        }
+        *pe = 0;
+    }
+    si--;
+    switch (si) {
+    case 0: if (v[5] > -32) v[5]--; break;
+    case 1: if (v[5] < 32) v[5]++; break;
+    case 2: if (v[6] > -32) v[6]--; break;
+    case 3: if (v[6] < 32) v[6]++; break;
+    case 4: if (v[7] > -32) v[7]--; break;
+    case 5: if (v[7] < 32) v[7]++; break;
+    case 6: if (v[8] > -32) v[8]--; break;
+    case 7: if (v[8] < 32) v[8]++; break;
+    case 8: if (v[8] > -32) v[9]--; break;
+    case 9: if (v[8] < 32) v[9]++; break;
+    default: break;
+    }
+    if (!((unsigned char)d5v_u32(v[27]) & 0x0Fu)) {
+        long t;
+        t = d5v_sub32(v[23], v[25]);
+        v[23] = t;
+        v[25] = t;
+        t = d5v_sub32(v[24], v[26]);
+        v[24] = t;
+        v[26] = t;
+    }
+}
+
+/* sub_414820: train the predictor with output byte 'sym' and delta 'dlt' */
+static void d5v_pred_train(d5v *d, unsigned sym, unsigned dlt)
+{
+    unsigned g = (unsigned)d->group;
+    unsigned rate = (unsigned)d->c87c;
+    unsigned sb = sym & 0xFFu;
+    unsigned db = dlt & 0xFFu;
+    long v100, v99, v51;
+
+    if (g >= 7u) {
+        long *v = d->pred43 + 31u * rate;
+
+        d->pred70dc[rate] = d->s90e;
+        if (g < 8u) v100 = (long)sb - 128;
+        else v100 = (long)(signed char)sb;
+
+        v51 = (long)(signed char)((unsigned char)d5v_u32(d->predbc[0])
+                                  - (unsigned char)v100) * 16;
+        v[12] += (long)d5v_abs12(v51);
+        v[13] += (long)d5v_abs12(d5v_sub32(v51, v[0]));
+        v[14] += (long)d5v_abs12(d5v_add32(v51, v[0]));
+        v[15] += (long)d5v_abs12(d5v_sub32(v51, v[1]));
+        v[16] += (long)d5v_abs12(d5v_add32(v51, v[1]));
+        v[17] += (long)d5v_abs12(d5v_sub32(v51, v[2]));
+        v[18] += (long)d5v_abs12(d5v_add32(v51, v[2]));
+        v[19] += (long)d5v_abs12(d5v_sub32(v51, v[3]));
+        v[20] += (long)d5v_abs12(d5v_add32(v51, v[3]));
+        v[21] += (long)d5v_abs12(d5v_sub32(v51, d->pred2b4));
+        v[22] += (long)d5v_abs12(d5v_add32(v51, d->pred2b4));
+
+        v[23] += (long)d5v_t433140[(unsigned char)(
+            (unsigned char)d5v_u32(d->predbc[0]) - (unsigned char)v100)];
+        v[24] += (long)d5v_t433140[(unsigned char)(
+            (unsigned char)d5v_u32(v[10]) - (unsigned char)v100)];
+
+        v[11] = (long)(signed char)((unsigned char)v100
+                                    - (unsigned char)d5v_u32(v[10]));
+        d->pred2b4 = v[11];
+        v[27] = d5v_add32(v[27], 1);
+        v[10] = v100;
+        if (!((unsigned char)d5v_u32(v[27]) & 0x0Fu)) d5v_pred_adapt(d, v);
+
+        if (g == 9u) {
+            long t = d->pred2b4;
+            d->pred2b4 = d->pred2b8;
+            d->pred2b8 = t;
+        }
+        v[28] = d5v_add32(d5v_u32(v[28]) << 8, (long)db);
+        if (g == 7u) {
+            v[29] = d5v_add32(d5v_u32(v[29]) << 8,
+                              (long)d5v_t432540[db]);
+            v[30] = d5v_add32(d5v_u32(v[30]) << 8,
+                              (long)d5v_t432D40[db]);
+        }
+        return;
+    }
+
+    /* groups 5 and 6: the short-range linear predictor */
+    if (g == 6u) v100 = (long)(signed char)sb;
+    else v100 = (long)sb - 128;
+    v99 = d5v_sub32(v100, d->pred2ac);
+    v51 = (long)(signed char)((unsigned char)d5v_u32(d->predbc[3])
+                              - (unsigned char)v100) * 16;
+
+    d->pred43[12] += (long)d5v_abs12(v51);
+    d->pred43[13] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[0]));
+    d->pred43[14] += (long)d5v_abs12(d5v_add32(v51, d->pred43[0]));
+    d->pred43[15] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[1]));
+    d->pred43[16] += (long)d5v_abs12(d5v_add32(v51, d->pred43[1]));
+    d->pred43[17] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[2]));
+    d->pred43[18] += (long)d5v_abs12(d5v_add32(v51, d->pred43[2]));
+    d->pred43[19] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[3]));
+    d->pred43[20] += (long)d5v_abs12(d5v_add32(v51, d->pred43[3]));
+    d->pred43[21] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[4]));
+    d->pred43[22] += (long)d5v_abs12(d5v_add32(v51, d->pred43[4]));
+
+    d->pred43[11] = (long)(signed char)((unsigned char)v100
+                                        - (unsigned char)d5v_u32(d->pred43[10]));
+    d->pred43[27] = d5v_add32(d->pred43[27], 1);
+    d->pred43[10] = v100;
+    if (!((unsigned char)d5v_u32(d->pred43[27]) & 0x0Fu))
+        d5v_pred_adapt(d, d->pred43);
+
+    /* dword_4454BC history, indexed by the low 7 bits of pos */
+    d->pred4bc[(unsigned)d->pos & 0x7Fu] = v99;
+
+    /* order search every N bytes; the mask depends on the previous call's
+     * order (dword_431928: 0x7F for 0..3, 7 for 4, 3 for 5) */
+    {
+        static const unsigned char osearch[6] = { 0x7F, 0x7F, 0x7F, 0x7F, 7, 3 };
+        unsigned prevord = (unsigned)d->pred2a0;
+        if (!((unsigned)d->pos
+              & (unsigned)osearch[prevord > 5u ? 0u : prevord])) {
+            unsigned long v28 = 0xFFFFUL;
+            unsigned long v30;
+            d->pred2a4 = 2;
+            d->pred2a8 = 2;
+            for (v30 = 2; v30 < 0x7Cu; v30++) {
+                unsigned long p = (unsigned)d->pos;
+                unsigned long a, b, c, v31;
+                a = d5v_abs12(d->pred4bc[(p - 1u) & 0x7Fu]
+                              - d->pred4bc[(p - 1u - v30) & 0x7Fu]);
+                b = d5v_abs12(d->pred4bc[p & 0x7Fu]
+                              - d->pred4bc[(p - v30) & 0x7Fu]);
+                c = d5v_abs12(d->pred4bc[(p - 2u) & 0x7Fu]
+                              - d->pred4bc[(p - 2u - v30) & 0x7Fu]);
+                v31 = a + b + c;
+                d->pred2bc[v30] = (long)(v31
+                    + ((13UL * (unsigned long)d->pred2bc[v30]) >> 4));
+                if ((unsigned long)d->pred2bc[v30]
+                    < (unsigned long)d->pred2bc[d->pred2a4])
+                    d->pred2a4 = (long)v30;
+                if (v31 < v28) {
+                    v28 = v31;
+                    d->pred2a8 = (long)v30;
+                }
+            }
+        }
+    }
+
+    /* Six-order cost loop.  dword_445AD4[257*order] in the original is a
+     * mis-scaled view of the same running sum at [order*257+256], but the
+     * comparison is against the current best order's sum, so the order
+     * does move (greedy, first minimum wins).  dword_4452A0 is reset to 0
+     * before the loop. */
+    {
+        unsigned char idx = (unsigned char)((unsigned)d->pos & 0xFFu);
+        long diff[6];
+        unsigned o;
+        diff[0] = d5v_sub32(v100, d->predbc[0]);
+        diff[1] = d5v_sub32(v100, d->predbc[1]);
+        diff[2] = d5v_sub32(v100, d->predbc[2]);
+        diff[3] = d5v_sub32(v100, d->predbc[3]);
+        diff[4] = d5v_sub32(v99, d->predbc[4]);
+        diff[5] = d5v_sub32(v99, d->predbc[5]);
+        d->pred2a0 = 0;
+        for (o = 0; o < 6u; o++) {
+            long *cw = d->p6cost + (size_t)o * 257u;
+            long v36;
+            cw[256] = d5v_sub32(cw[256], cw[(unsigned)idx]);
+            v36 = (long)d5v_t431940[(unsigned long)diff[o] & 0x1FFUL];
+            cw[(unsigned)idx] = v36;
+            cw[256] = d5v_add32(cw[256], v36);
+#if U4_DEBUG
+            fprintf(stderr, "    ord o=%u sum=%ld cmp=%ld diff=%ld v36=%ld -> ",
+                    o, cw[256], d->p6cost[(size_t)d->pred2a0 * 257u + 256u],
+                    diff[o], v36);
+#endif
+            if (cw[256]
+                < d->p6cost[(size_t)d->pred2a0 * 257u + 256u])
+                d->pred2a0 = (long)o;
+#if U4_DEBUG
+            fprintf(stderr, "ord=%ld\n", d->pred2a0);
+#endif
+        }
+    }
+
+    d->pred2b0 = d->pred2ac;
+    d->pred2ac = v100;
+    d->pred43[28] = d5v_add32(d5v_u32(d->pred43[28]) << 8, (long)db);
+    d->pred43[29] = d5v_add32(d5v_u32(d->pred43[29]) << 8,
+                              (long)d5v_t432140[db]);
+    d->pred43[30] = d5v_add32(d5v_u32(d->pred43[30]) << 8,
+                              (long)d5v_t432940[db]);
+}
+
+/* sub_414470: produce byte_44D906 (predicted byte), byte_44D90E (sign)
+ * and dword_44C878 (literal context) for groups 5..9 */
+static void d5v_pred_predict(d5v *d)
+{
+    unsigned g = (unsigned)d->group;
+    unsigned rate = (unsigned)d->c87c;
+    unsigned ctx;
+    unsigned char pb;
+
+    if (g >= 7u) {
+        long *v = d->pred43 + 31u * rate;
+        unsigned long acc;
+        long pred;
+
+        v[3] = v[2];
+        v[2] = v[1];
+        v[1] = d5v_sub32(v[11], v[0]);
+        v[0] = v[11];
+        acc = d5v_u32(d5v_mul32(v[3], v[8]));
+        acc += d5v_u32(d5v_mul32(v[2], v[7]));
+        acc += d5v_u32(d5v_mul32(v[1], v[6]));
+        acc += d5v_u32(d5v_mul32(v[0], v[5]));
+        acc += 16UL * d5v_u32(v[10]);
+        acc += d5v_u32(d5v_mul32(d->pred2b4, v[9]));
+        pred = d5v_div16(d5v_s32(acc));
+        d->predbc[0] = pred;
+        if ((unsigned long)d5v_u32(v[23])
+            <= (unsigned long)d5v_u32(v[24]))
+            pb = (unsigned char)d5v_u32(pred);
+        else
+            pb = (unsigned char)d5v_u32(v[10]);
+        d->c906 = pb;
+        if (g == 7u) {
+            d->c906 = (unsigned char)(d->c906 + 0x80u);
+            ctx = rate + 1001u;
+            if (v[28]) {
+                if (v[29]) {
+                    if (!v[30]) ctx += 6u;
+                } else ctx += 4u;
+            } else ctx += 2u;
+        } else if (g == 8u) {
+            ctx = (v[28] ? rate : 2u) + 1009u;
+        } else {
+            ctx = (v[28] ? rate : 4u) + 1012u;
+        }
+        d->s90e = d->pred70dc[rate];
+        d->ctx878 = ctx;
+#if U4_DEBUG
+        fprintf(stderr, "  predg%u out=%lu rate=%u ctx=%u pb=%02X s90e=%u b23=%ld b24=%ld\n",
+                g, d->out_tot, rate, ctx, (unsigned)d->c906,
+                (unsigned)d->s90e, v[23], v[24]);
+#endif
+        return;
+    }
+
+    /* groups 5 and 6 */
+    {
+        long *v = d->pred43;
+        unsigned long acc;
+        unsigned t;
+
+        d->predbc[0] = 0;
+        d->predbc[1] = d->pred2ac;
+        t = ((unsigned)d->pos - (unsigned)d->pred2a4) & 0x7Fu;
+        d->predbc[2] = d5v_sub32((long)(2UL * d5v_u32(d->pred2ac)),
+                                 d->pred2b0);
+        v[4] = d->pred4bc[t];
+        v[3] = v[2];
+        v[2] = v[1];
+        v[1] = d5v_sub32(v[11], v[0]);
+        v[0] = v[11];
+        acc = d5v_u32(d5v_mul32(v[3], v[8]));
+        acc += d5v_u32(d5v_mul32(v[2], v[7]));
+        acc += d5v_u32(d5v_mul32(v[1], v[6]));
+        acc += d5v_u32(d5v_mul32(v[0], v[5]));
+        acc += 16UL * d5v_u32(v[10]);
+        acc += d5v_u32(d5v_mul32(v[4], v[9]));
+        d->predbc[3] = d5v_div16(d5v_s32(acc));
+        d->predbc[4] = d->pred4bc[t];
+        d->predbc[5] = d->pred4bc[
+            ((unsigned)d->pos - (unsigned)d->pred2a8) & 0x7Fu];
+
+        pb = (unsigned char)d5v_u32(d->predbc[d->pred2a0 & 7]);
+        if (d->pred2a0 >= 4)
+            pb = (unsigned char)(pb + (unsigned char)d->pred2ac);
+        d->c906 = pb;
+#if U4_DEBUG
+        fprintf(stderr, "  predg%u out=%lu ord=%ld ac=%ld b0=%ld b1=%ld b2=%ld b3=%ld b4=%ld b5=%ld pb=%02X s90e=%u\n",
+                g, d->out_tot, d->pred2a0, d->pred2ac, d->predbc[0],
+                d->predbc[1], d->predbc[2], d->predbc[3], d->predbc[4],
+                d->predbc[5], (unsigned)pb, (unsigned)d->s90e);
+#endif
+        if (g == 5u) d->c906 = (unsigned char)(d->c906 + 0x80u);
+        ctx = (g == 5u) ? 993u : 997u;
+        if (v[28]) {
+            if (v[29]) {
+                if (!v[30]) ctx += 3u;
+            } else ctx += 2u;
+        } else ctx += 1u;
+        d->ctx878 = ctx;
+    }
+}
+
 /* group selection shared by the decision escape and the block start */
 static void d5v_group_switch(d5v *d, unsigned ng)
 {
@@ -2115,6 +2725,7 @@ static void d5v_group_switch(d5v *d, unsigned ng)
     d->c906 = 0;
     d->c87c = 0;
     d->lastptr = 0;
+    if (ng > 4u) d5v_pred_reset(d);
 }
 
 /* sub_40FDB0: decode the 5-way decision (0 = escape -> group switch) */
@@ -2124,6 +2735,9 @@ static unsigned d5v_decision(d5v *d, unsigned ctx)
     unsigned total = e[5];
     unsigned point, bl;
 
+#if U4_DEBUG
+    fprintf(stderr, "decision ctx=%u total=%u out=%lu\n", ctx, total, d->out_tot);
+#endif
     d->ct = total;
     if (total == 0) { d->err = 7; return 4; }
     d->range /= total;
@@ -2152,7 +2766,6 @@ static unsigned d5v_decision(d5v *d, unsigned ctx)
     d5v_narrow(d);
     if (d->err) return 4;
     d5v_group_switch(d, point & 0xFFu);
-    if (d->group >= 5u) { d->err = 7; return 4; }
     d->mode = (unsigned char)d5v_decision(d, ctx);
     return d->mode;
 }
@@ -2198,6 +2811,8 @@ static void d5v_ctxupd(d5v *d, unsigned sym)
         d->ctx878 = 32u * d->c87c + (unsigned)d5v_g3tab[v2] + 833u;
     } else if (d->group == 4u) {
         d->ctx878 = 16u * d->c87c + (unsigned)d5v_gtab[v2] + 929u;
+    } else if (d->group >= 5u) {
+        d5v_pred_train(d, v1, v2);
     } else {
         d->err = 7;
         return;
@@ -2222,6 +2837,8 @@ static void d5v_ctxupd(d5v *d, unsigned sym)
                 d->c906 = d->c8e8[d->s90a];
             }
             if (cross) d->c84c++; else d->c84c = 0;
+        } else if (d->group >= 5u) {
+            d5v_pred_predict(d);
         }
     }
 }
@@ -2241,6 +2858,11 @@ static unsigned d5v_lit(d5v *d, unsigned ctx, unsigned model)
     d->p880 = (d->p880 - d->hist410[d->seq898]) & D5V_M32;
     d->p88c = 0;
     d->escctx = model;
+#if U4_DEBUG
+    fprintf(stderr, "  litin out=%lu ctx=%u model=%u p880=%lu p890=%lu p894=%lu s913=%u s914=%02X hasprev=%u\n",
+            d->out_tot, ctx, model, d->p880, d->p890, d->p894,
+            (unsigned)d->s913, (unsigned)d->s914, (unsigned)d->hasprev);
+#endif
 
     if (d->p880 < 0x6D4250UL || d->p880 >= 0xFEFF01UL) {
         var18 = (unsigned char)d5v_sym(d, ctx);
@@ -2274,6 +2896,10 @@ static unsigned d5v_lit(d5v *d, unsigned ctx, unsigned model)
             cl = d->s90e ? (unsigned char)(d->prevb - raw)
                          : (unsigned char)(d->prevb + raw);
         else cl = (unsigned char)raw;
+#if U4_DEBUG
+        fprintf(stderr, "    direct raw=%u prevb=%02X s90e=%u cl=%02X\n",
+                raw, (unsigned)d->prevb, (unsigned)d->s90e, (unsigned)cl);
+#endif
         d5v_cost(d, 0x300u, (unsigned)cl);
         edi = d->p88c;
         var18 = (unsigned char)raw;
@@ -2386,18 +3012,24 @@ static void d5v_match(d5v *d)
         sym = d5v_sym(d, model);
         if (d->err) return;
         sym &= 0xFFu;
+#if U4_DEBUG
+        fprintf(stderr, "  distsym out=%lu mode=%u model=%u sym=%u total=%u\n",
+                d->out_tot, (unsigned)d->mode, model, sym, d->ct);
+#endif
         d5v_update(d, sym, model);
         if (d->mode != 1u) {
             d->c901 = (unsigned char)sym;
-            d->mdist = d->mru[sym & 0x0Fu];
+            if (sym >= 12u) { d->err = 7; return; }
+            d->mdist = d->mru[sym];
         } else {
             unsigned long off = 0;
             unsigned long rng2;
             int flag = -1;
-            d->mdist = d5v_dbase[sym & 0x0Fu];
+            if (sym >= 44u) { d->err = 7; return; }
+            d->mdist = d5v_dbase[sym];
             if (sym != 0) {
                 unsigned long dist = d->mdist;
-                rng2 = d5v_drange[sym & 0x0Fu];
+                rng2 = d5v_drange[sym];
                 if (dist + rng2 - 1u > d->pos) rng2 = d->pos - dist + 1u;
                 if (rng2 >= 4u) {
                     unsigned point;
@@ -2559,6 +3191,10 @@ static unsigned d5v_step(d5v *d)
     src = (d->wpos - d->mdist) & d->dictmask;
     if (d->mdist > 1u) {
         unsigned char b = d->c901;
+#if U4_DEBUG
+        fprintf(stderr, "  mru b=%u mdist=%lu mode=%u\n", (unsigned)b,
+                d->mdist, (unsigned)d->mode);
+#endif
         if (b) {
             unsigned k = (b == 0xFFu) ? 11u : (unsigned)b;
             for (;;) {
@@ -2575,6 +3211,11 @@ static unsigned d5v_step(d5v *d)
     {
         unsigned long end = src + (unsigned long)len;
         unsigned long dst = d->wpos + (unsigned long)len;
+#if U4_DEBUG
+        fprintf(stderr, "  preout err=%d len=%u src=%lu dst=%lu mask=%lu grp=%u c901=%u mode=%u\n",
+                d->err, len, src, dst, d->dictmask, (unsigned)d->group,
+                (unsigned)d->c901, (unsigned)d->mode);
+#endif
         if (end > d->dictmask || dst > d->dictmask) {
             dl = (unsigned char)len;
             while (dl) {
@@ -2608,13 +3249,18 @@ static unsigned d5v_step(d5v *d)
             }
             d5v_putraw(d, d->dict + src, (unsigned long)len);
             d->out_tot += (unsigned long)len;
+#if U4_DEBUG
+            fprintf(stderr, "  postput err=%d out_tot=%lu fill=%u\n",
+                    d->err, d->out_tot, d->out_fill);
+#endif
         }
     }
     if (d->s913)
         d->s914 = d->dict[(src + (unsigned long)len) & d->dictmask];
 #if U4_DEBUG
-    fprintf(stderr, "match pos=%lu m=%u dist=%lu len=%u c901=%u\n",
-            d->out_tot, (unsigned)d->mode, d->mdist, len, (unsigned)d->c901);
+    fprintf(stderr, "match pos=%lu m=%u dist=%lu len=%u c901=%u err=%d\n",
+            d->out_tot, (unsigned)d->mode, d->mdist, len, (unsigned)d->c901,
+            d->err);
 #endif
     return 1;
 }
@@ -2646,7 +3292,6 @@ static int d5v_block_start(d5v *d)
         if (d->err) return d->err;
         d5v_group_switch(d, point);
     }
-    if (d->group >= 5u) { d->err = 7; return 7; }
     return 0;
 }
 
@@ -2764,6 +3409,10 @@ int uharc_dec5v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
     d->err = 0;
     d5v_rc_init(d);
     while (d->out_tot < d->out_len && !d->err) {
+#if U4_DEBUG
+        fprintf(stderr, "loop out=%lu err=%d grp=%u\n", d->out_tot, d->err,
+                (unsigned)d->group);
+#endif
         if (d->out_tot >= d->blockend) {
             if (d5v_block_start(d) != 0) break;
         }
@@ -2772,6 +3421,10 @@ int uharc_dec5v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
         }
     }
     err = d->err;
+#if U4_DEBUG
+    fprintf(stderr, "decode end err=%d out_tot=%lu out_len=%lu blockend=%lu in_tot=%lu\n",
+            err, d->out_tot, d->out_len, d->blockend, d->in_tot);
+#endif
     if (err == 0 && d->out_fill) {
         if (wcb(wctx, d->outb, d->out_fill) != 0) err = 4;
     }

@@ -1,97 +1,90 @@
-/* UHARC core 2 (Huffman/LZ, methods 2..7) - LSB-first bit order.
+/* UHARC 0.2/0.3 core 2 (LZW, methods 2..7) - LSB-first, C89 port.
  *
- * Byte-identical algorithm to uharc_dec2.c (0.6 core2) except the bit
- * reader consumes least-significant bits first.
+ * This is the *original* UHARC 0.2/0.3 LZW coder (plain LZW with a
+ * parent/char dictionary), NOT the 0.6 tree coder: 0.6's core2 uses a
+ * different container (5-byte tree nodes, hash table, prune) and an
+ * MSB-first bit order.  The two only look alike in the version-0.6
+ * sources; 0.2/0.3/0.4 archives do not decode with that algorithm.
  *
- * VERIFIED 2026-10-24 against real archives: decodes 0.2 tab1/tab2/tab3
- * (names EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT, dates 5D58, times 963B) and
- * 0.3 + 0.4 tab2 (crc16 25CA exact, 6x date 5D58 + 6x time 5E34).
- * The MSB-first variant fails all of these, so 0.2/0.3/0.4 core2 is
- * LSB-first while 0.6 is MSB-first.
+ * Reversed from:
+ *   0.2: Uharc02.lst sub_1A44C (main), sub_1A32C (next code),
+ *        sub_1A400 (byte), sub_19BAC (emit1), sub_19C90 (fill),
+ *        sub_19DC4 (copy)
+ *   0.3: uharc_u.lst sub_41EEC4 (main), sub_41EDA4 (next code),
+ *        sub_41EE78 (byte), sub_41E3BC (emit1), sub_41E4A0 (fill),
+ *        sub_41E5D4 (copy), method table sub_41EB58 (2..7 -> widths)
  *
- * Originates from UNUHARC06 sub_40B5F1 (init), sub_40B67F (free),
- * sub_40B6BA (reset), sub_40B704 (bit reader - reversed here),
- * sub_40B757 (RLE 257), sub_40B7F3 (next code), sub_40B8DF (main),
- * sub_40BA80 (prune), plus helpers sub_40B093/40B0DA/40B178/40B246/40B31F.
+ * Stream format (all bits LSB-first within each byte):
  *
- * Original globals mapped to context struct (no globals):
- *  dword_434548 -> ctx->b
- *  dword_422DA8 -> ctx->tree (5*B bytes, node = w0:u16 @+0, w2:u16 @+2, ch:u8 @+4)
- *  dword_422DAC -> ctx->tmp  (B bytes, reverse path buffer)
- *  dword_422DB0/DB4 -> bitbuf/bitcnt (local to decode)
- *  dword_43454C/34/50/54 -> nextFree/prev/flag/bits (local to decode)
- *  dword_434528/514 -> out_total/expected
- *  dword_422B98/9C etc -> inb/outb streaming buffers (local to decode)
- * Progress sub_40819B is stubbed (no-op).
+ *   code width starts at 9 bits; ncode = 1<<width, maxcode = (1<<maxbits)-1
+ *   with maxbits = method + 8.
+ *
+ *   A code is read as (width-1) bits; if the value is >= ncode - var2 - 1
+ *   one more bit is read and, when set, the value is complemented as
+ *   (ncode-1-value).  var2 tracks the encoder's next-free counter and is
+ *   capped at maxcode.  The complement scheme encodes the top of the code
+ *   range (including 0x100/0x101) in one extra bit.
+ *
+ *   code <  0x100 : literal / dictionary string (added to the table)
+ *   code == 0x100 : reset (width 9, table empty, read+emit one literal)
+ *   code == 0x101 : RLE block: 8-bit len_hi, 8-bit len_lo, 8-bit value;
+ *                   on the first block after a reset/non-RLE code an
+ *                   extra 8-bit literal is read and emitted, and the next
+ *                   string then omits its first (already emitted) byte
+ *   code >= 0x102 : dictionary string; when it equals nextFree it is the
+ *                   usual "previous string + first char of previous"
+ *                   (KwKwK) case
+ *
+ * The original builds each string in a scratch area above the output
+ * pointer and slides it down; this port walks the same parent/char chain
+ * into ctx->tmp and emits it directly (streaming writer).
  */
 #include <stdlib.h>
-#include <string.h>
 #include "uharc_dec.h"
 
 typedef struct uharc_dec2_ctx_s {
-    unsigned b;
-    unsigned char *tree;
+    unsigned b;                /* 1 << maxbits (= maxcode + 1) */
+    unsigned maxbits;
+    unsigned short *parent;
+    unsigned char *ch;
     unsigned char *tmp;
 } uharc_dec2_ctx;
-
-/* ---- tree access (little-endian, 5-byte stride) ---- */
-static unsigned t_get_w0(unsigned char *t, unsigned i)
-{
-    unsigned o = i * 5u;
-    return (unsigned)(t[o] | ((unsigned)t[o + 1] << 8));
-}
-static void t_set_w0(unsigned char *t, unsigned i, unsigned v)
-{
-    unsigned o = i * 5u;
-    t[o] = (unsigned char)(v & 0xFFu);
-    t[o + 1] = (unsigned char)((v >> 8) & 0xFFu);
-}
-static unsigned t_get_w2(unsigned char *t, unsigned i)
-{
-    unsigned o = i * 5u;
-    return (unsigned)(t[o + 2] | ((unsigned)t[o + 3] << 8));
-}
-static void t_set_w2(unsigned char *t, unsigned i, unsigned v)
-{
-    unsigned o = i * 5u;
-    t[o + 2] = (unsigned char)(v & 0xFFu);
-    t[o + 3] = (unsigned char)((v >> 8) & 0xFFu);
-}
-static unsigned t_get_ch(unsigned char *t, unsigned i)
-{
-    return (unsigned)t[i * 5u + 4];
-}
-static void t_set_ch(unsigned char *t, unsigned i, unsigned v)
-{
-    t[i * 5u + 4] = (unsigned char)(v & 0xFFu);
-}
 
 /* ---- public init/free ---- */
 int uharc_dec2l_init(void **pctx, int method)
 {
     uharc_dec2_ctx *c;
     unsigned b;
-    unsigned char *tree;
+    unsigned short *parent;
+    unsigned char *ch;
     unsigned char *tmp;
+    unsigned i;
+
     if (!pctx || method < 2 || method > 7)
         return 1;
     b = 1u << (unsigned)(method + 8);
     c = (uharc_dec2_ctx *)malloc(sizeof(*c));
     if (!c)
         return 2;
-    tree = (unsigned char *)malloc(5u * b);
+    parent = (unsigned short *)malloc(sizeof(unsigned short) * (b ? b : 1u));
+    ch = (unsigned char *)malloc(b ? b : 1u);
     tmp = (unsigned char *)malloc(b ? b : 1u);
-    if (!tree || !tmp) {
-        free(tree);
+    if (!parent || !ch || !tmp) {
+        free(parent);
+        free(ch);
         free(tmp);
         free(c);
         return 2;
     }
-    memset(tree, 0, 5u * b);
-    if (b)
-        memset(tmp, 0, b);
+    for (i = 0; i < b; i++) {
+        parent[i] = 0;
+        ch[i] = (unsigned char)(i & 0xFFu);
+        tmp[i] = 0;
+    }
     c->b = b;
-    c->tree = tree;
+    c->maxbits = (unsigned)(method + 8);
+    c->parent = parent;
+    c->ch = ch;
     c->tmp = tmp;
     *pctx = (void *)c;
     return 0;
@@ -102,7 +95,8 @@ void uharc_dec2l_free(void *ctx)
     uharc_dec2_ctx *c = (uharc_dec2_ctx *)ctx;
     if (!c)
         return;
-    free(c->tree);
+    free(c->parent);
+    free(c->ch);
     free(c->tmp);
     free(c);
 }
@@ -123,15 +117,9 @@ typedef struct dec2_io_s {
     unsigned long out_total;
     unsigned long expected;
     int err;
-    unsigned bitbuf;
+    unsigned long bitbuf;
     unsigned bitcnt;
 } dec2_io;
-
-static void dec2_progress(unsigned long a, unsigned long b)
-{
-    (void)a;
-    (void)b;
-}
 
 static int dec2_refill(dec2_io *s)
 {
@@ -176,10 +164,11 @@ static int dec2_flush(dec2_io *s)
     return 1;
 }
 
-/* sub_40B178 */
+/* emit one byte; stops at the expected size (the RLE/string may
+ * legitimately overrun the last member of a solid stream) */
 static void dec2_emit1(dec2_io *s, unsigned b)
 {
-    if (s->err)
+    if (s->err || s->out_total >= s->expected)
         return;
     s->outb[s->out_fill++] = (unsigned char)(b & 0xFFu);
     s->out_total++;
@@ -187,11 +176,13 @@ static void dec2_emit1(dec2_io *s, unsigned b)
         dec2_flush(s);
 }
 
-/* sub_40B246: memset with flush */
+/* memset-like fill, clamped to expected */
 static void dec2_emit_fill(dec2_io *s, unsigned long n, unsigned b)
 {
     unsigned char v;
     v = (unsigned char)(b & 0xFFu);
+    if (n > s->expected - s->out_total)
+        n = s->expected - s->out_total;
     while (n > 0 && !s->err) {
         unsigned space;
         unsigned k;
@@ -214,34 +205,12 @@ static void dec2_emit_fill(dec2_io *s, unsigned long n, unsigned b)
     }
 }
 
-/* sub_40B31F: memcpy with flush */
-static void dec2_emit_copy(dec2_io *s, unsigned long n, unsigned char *src)
-{
-    while (n > 0 && !s->err) {
-        unsigned space;
-        unsigned k;
-        if (s->out_fill == s->out_cap) {
-            if (!dec2_flush(s))
-                break;
-        }
-        space = s->out_cap - s->out_fill;
-        k = n < (unsigned long)space ? (unsigned)n : space;
-        memcpy(s->outb + s->out_fill, src, k);
-        s->out_fill += k;
-        s->out_total += k;
-        src += k;
-        n -= (unsigned long)k;
-        if (s->out_fill == s->out_cap) {
-            if (!dec2_flush(s))
-                break;
-        }
-    }
-}
-
-/* sub_40B704 */
+/* LSB-first bit reader (sub_1A32C / sub_41EDA4 use the same layout:
+ * bit 0 of each input byte is consumed first) */
 static unsigned dec2l_bits(dec2_io *s, unsigned n)
 {
-    unsigned mask;
+    unsigned long mask;
+    unsigned long v;
     if (s->err)
         return 0;
     if (n == 0)
@@ -253,143 +222,61 @@ static unsigned dec2l_bits(dec2_io *s, unsigned n)
         c = dec2_get_byte(s);
         if (s->err)
             return 0;
-        s->bitbuf |= (unsigned)c << s->bitcnt;
+        s->bitbuf |= (unsigned long)(unsigned)c << s->bitcnt;
         s->bitcnt += 8;
     }
     if (n >= 32)
         mask = 0xFFFFFFFFUL;
     else
-        mask = (unsigned)(((1UL << n) - 1UL) & 0xFFFFFFFFUL);
-    { unsigned v = s->bitbuf & mask; s->bitbuf >>= n; s->bitcnt -= n; return v; }
+        mask = (1UL << n) - 1UL;
+    v = s->bitbuf & mask;
+    s->bitbuf >>= n;
+    s->bitcnt -= n;
+    return (unsigned)v;
 }
 
-/* sub_40BA80 prune; *pM = nextFree in/out */
-static void dec2_prune(uharc_dec2_ctx *c, unsigned *pM)
+/* one code: w1 = width-1 bits, plus the optional range bit */
+static unsigned dec2l_next(dec2_io *s, unsigned w1, unsigned ncode,
+                           unsigned var2)
 {
-    unsigned m;
-    unsigned v0;
-    unsigned i;
-    m = *pM;
-    /* phase A: top-down, free trailing leaves, build child lists */
-    if (m > 0) {
-        v0 = m - 1;
-        for (;;) {
-            unsigned parent;
-            if (v0 < 0x102u)
-                break;
-            parent = t_get_w2(c->tree, v0);
-            if (parent < c->b) {
-                if (t_get_w0(c->tree, parent) == 0x100u)
-                    t_set_w0(c->tree, parent, 0u);
-            }
-            if (t_get_w0(c->tree, v0) == 0x100u) {
-                t_set_w0(c->tree, v0, 0u);
-                if (v0 < m)
-                    m = v0;
-            } else {
-                unsigned tmp;
-                if (t_get_w0(c->tree, v0) == 0u)
-                    t_set_w0(c->tree, v0, 0x100u);
-                if (parent < c->b) {
-                    if (t_get_w0(c->tree, parent) == 0u)
-                        t_set_w0(c->tree, parent, 0x100u);
-                    tmp = t_get_w0(c->tree, parent);
-                    t_set_w2(c->tree, v0, tmp);
-                    t_set_w0(c->tree, parent, v0);
-                }
-            }
-            if (v0 == 0)
-                break;
-            v0--;
-        }
+    unsigned v;
+    unsigned thresh;
+    v = dec2l_bits(s, w1);
+    if (s->err)
+        return 0;
+    thresh = (var2 < ncode) ? (ncode - var2) : 0u;
+    if (v + 1u >= thresh) {
+        if (dec2l_bits(s, 1u) != 0u)
+            v = (ncode - 1u) - v;
     }
-    /* phase B: restore first 258 */
-    for (i = 0; i < 0x102u; i++) {
-        if (t_get_w0(c->tree, i) == 0u)
-            t_set_w0(c->tree, i, 0x100u);
-    }
-    /* phase C: compact links pointing past m */
-    i = 0;
-    while (i < m) {
-        unsigned cc;
-        cc = t_get_w0(c->tree, i);
-        if (cc != 0x100u && cc > m) {
-            if (cc < c->b && m < c->b) {
-                unsigned k;
-                for (k = 0; k < 5u; k++)
-                    c->tree[m * 5u + k] = c->tree[cc * 5u + k];
-                t_set_w0(c->tree, i, m);
-                t_set_w0(c->tree, cc, 0u);
-                do {
-                    m++;
-                } while (m < c->b && t_get_w0(c->tree, m) != 0u);
-            }
-        }
-        cc = t_get_w2(c->tree, i);
-        if (cc != 0x100u && cc > m) {
-            if (cc < c->b && m < c->b) {
-                unsigned k;
-                for (k = 0; k < 5u; k++)
-                    c->tree[m * 5u + k] = c->tree[cc * 5u + k];
-                t_set_w2(c->tree, i, m);
-                t_set_w0(c->tree, cc, 0u);
-                do {
-                    m++;
-                } while (m < c->b && t_get_w0(c->tree, m) != 0u);
-            }
-        }
-        i++;
-        if (i >= c->b)
-            break;
-        if (m > c->b)
-            break;
-    }
-    /* phase D: child lists -> parent pointers */
-    {
-        unsigned res = 0;
-        while (res < m) {
-            unsigned cur;
-            unsigned guard;
-            cur = t_get_w0(c->tree, res);
-            t_set_w0(c->tree, res, 0x100u);
-            guard = 0;
-            while (cur != 0x100u) {
-                unsigned nxt;
-                if (cur >= c->b)
-                    break;
-                nxt = t_get_w2(c->tree, cur);
-                t_set_w2(c->tree, cur, res);
-                cur = nxt;
-                guard++;
-                if (guard > c->b + 16u)
-                    break;
-            }
-            res++;
-        }
-    }
-    *pM = m;
+    return v;
 }
 
 int uharc_dec2l_decode(void *ctx,
-                      uharc_dec_read_cb rcb, void *rctx,
-                      uharc_dec_write_cb wcb, void *wctx,
-                      unsigned long out_len)
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
 {
     uharc_dec2_ctx *c = (uharc_dec2_ctx *)ctx;
     dec2_io s;
     unsigned char *inb = 0;
     unsigned char *outb = 0;
-    unsigned nextFree; /* 43454C */
-    unsigned prev;     /* 434534 */
-    unsigned flag;     /* 434550 */
-    unsigned bits;     /* 434554 (byte) */
+    unsigned maxcode;
+    unsigned bits;      /* current code width (starts at 9) */
+    unsigned ncode;     /* 1 << bits */
+    unsigned w1;        /* bits - 1: normal code length */
+    unsigned nextFree;  /* first free dictionary slot (0x102..) */
+    unsigned var2;      /* encoder's next-free counter (incl. 1 extra) */
+    unsigned prev;      /* previous code */
+    unsigned cl;        /* first char of the previous code's string */
+    unsigned pending;   /* RLE supplied the next string's first byte */
     unsigned i;
 
     if (!c || !rcb || !wcb)
         return 1;
     if (out_len == 0)
         return 0;
-    if (c->b == 0 || !c->tree || !c->tmp)
+    if (c->b == 0 || !c->parent || !c->ch || !c->tmp)
         return 1;
 
     inb = (unsigned char *)malloc(0x10000u);
@@ -417,174 +304,147 @@ int uharc_dec2l_decode(void *ctx,
     s.bitbuf = 0;
     s.bitcnt = 0;
 
-    /* sub_40B6BA reset */
-    for (i = 0; i < 0x102u; i++) {
-        t_set_w0(c->tree, i, 0x100u);
-        t_set_w2(c->tree, i, 0x100u);
-        t_set_ch(c->tree, i, i & 0xFFu);
-    }
-    nextFree = 0x101u;
-    prev = 0x100u;
-    flag = 0u;
+    maxcode = c->b - 1u;
     bits = 9u;
+    ncode = 1u << bits;
+    w1 = bits - 1u;
+    nextFree = 0x102u;
+    var2 = 0x102u;
+    prev = 0x100u;
+    cl = 0u;
+    pending = 0u;
+
+    if (maxcode < 0x102u) {   /* methods 2..7 always give >= 0x3FF */
+        s.err = 7;
+    } else {
+        /* start: read the first code and emit its low byte.  The
+         * original (sub_1A44C / sub_41EEC4) does not add a table entry
+         * for it and leaves nextFree at 0x102. */
+        unsigned code;
+        code = dec2l_next(&s, w1, ncode, var2);
+        if (!s.err) {
+            cl = code & 0xFFu;
+            prev = code;
+            var2++;
+            dec2_emit1(&s, cl);
+        }
+    }
 
     while (s.out_total < s.expected && !s.err) {
-        unsigned code; /* v1/esi */
-        unsigned ncode;
-        unsigned direct;
-        unsigned sym;
-        unsigned off;
+        unsigned code;
+        unsigned orig;
+        unsigned special;
+        unsigned len;
         unsigned cur;
-        unsigned rootb;
+        unsigned root;
 
-        /* sub_40B7F3 next code */
-        ncode = 1u << bits;
-        if (flag != 0u && bits != 9u) {
-            if (dec2l_bits(&s, 1u) != 0u) {
-                unsigned v;
-                unsigned thresh;
-                v = dec2l_bits(&s, bits - 1u);
-                thresh = ncode - (nextFree + 1u);
-                if (v + 1u >= thresh) {
-                    if (dec2l_bits(&s, 1u) != 0u)
-                        v = (ncode - 1u) - v;
-                }
-                flag >>= 1;
-                code = v + 256u;
-            } else {
-                code = dec2l_bits(&s, 8u);
-                flag += 15u;
-            }
-        } else {
-            unsigned v;
-            unsigned thresh;
-            v = dec2l_bits(&s, bits - 1u);
-            thresh = ncode - (nextFree + 1u);
-            if (v + 1u >= thresh) {
-                if (dec2l_bits(&s, 1u) != 0u)
-                    v = (ncode - 1u) - v;
-            }
-            if (v < 0x100u && bits != 9u)
-                flag = 1u;
-            code = v;
-        }
+        /* ---- next code (sub_41EDA4 / sub_1A32C) ---- */
+        code = dec2l_next(&s, w1, ncode, var2);
         if (s.err)
             break;
 
-        if (code > nextFree)
-            continue;
         if (code == 0x100u) {
-            /* reset */
-            for (i = 0; i < 0x102u; i++) {
-                t_set_w0(c->tree, i, 0x100u);
-                t_set_w2(c->tree, i, 0x100u);
-                t_set_ch(c->tree, i, i & 0xFFu);
-            }
-            nextFree = 0x101u;
-            prev = 0x100u;
-            flag = 0u;
+            /* reset: empty table, 9-bit codes. The following code is
+             * read and emitted immediately as a literal. */
             bits = 9u;
+            ncode = 1u << bits;
+            w1 = bits - 1u;
+            nextFree = 0x102u;
+            var2 = 0x102u;
+            code = dec2l_next(&s, w1, ncode, var2);
+            if (s.err)
+                break;
+            cl = code & 0xFFu;
+            prev = code;
+            var2++;
+            dec2_emit1(&s, cl);
             continue;
         }
+
         if (code == 0x101u) {
-            /* sub_40B757 RLE block */
-            unsigned long len = 0;
-            unsigned bval;
-            if (dec2l_bits(&s, 1u) != 0u) {
-                len = (unsigned long)dec2l_bits(&s, 8u);
-            } else if (dec2l_bits(&s, 1u) != 0u) {
-                len = (unsigned long)dec2l_bits(&s, 12u);
-                len += 0x100UL;
-            } else if (dec2l_bits(&s, 1u) != 0u) {
-                len = (unsigned long)dec2l_bits(&s, 16u);
-                len += 0x1100UL;
-            } else {
-                unsigned lo;
-                unsigned hi;
-                lo = dec2l_bits(&s, 16u);
-                hi = dec2l_bits(&s, 16u);
-                len = (unsigned long)lo + ((unsigned long)hi << 16);
-                len += 0x1100UL;
+            /* RLE block (sub_41EFFB / sub_1A57F): len_hi, len_lo,
+             * value; optionally one literal byte (first block). */
+            unsigned hi;
+            unsigned lo;
+            unsigned val;
+            hi = dec2l_bits(&s, 8u);
+            lo = dec2l_bits(&s, 8u);
+            val = dec2l_bits(&s, 8u);
+            if (s.err)
+                break;
+            if (pending == 0u) {
+                unsigned extra;
+                extra = dec2l_bits(&s, 8u);
+                if (s.err)
+                    break;
+                dec2_emit1(&s, extra);
+                pending = 1u;
             }
-            if (s.err)
-                break;
-            len += 0x100UL;
-            bval = dec2l_bits(&s, 8u);
-            if (s.err)
-                break;
-            dec2_emit_fill(&s, len, bval);
+            dec2_emit_fill(&s, ((unsigned long)hi << 8) | lo, val);
             continue;
         }
 
-        direct = (code < nextFree || prev == 0x100u) ? 1u : 0u;
-        sym = direct ? code : prev;
+        /* ---- string (literal or dictionary code) ---- */
+        orig = code;
+        special = (code >= nextFree) ? 1u : 0u;
+        if (special)
+            code = prev;
 
-        /* walk parent chain, collect reversed in tmp */
-        off = c->b;
-        cur = sym;
-        while (t_get_w2(c->tree, cur) != 0x100u) {
-            unsigned pw;
-            if (off == 0) {
+        len = 0;
+        cur = code;
+        while (cur >= 0x102u) {
+            if (len >= c->b || cur >= c->b) {
                 s.err = 7;
                 break;
             }
-            pw = t_get_w2(c->tree, cur);
-            if (pw >= c->b) {
-                s.err = 7;
-                break;
-            }
-            off--;
-            c->tmp[off] = (unsigned char)t_get_ch(c->tree, cur);
-            cur = pw;
-            if (cur >= c->b) {
-                s.err = 7;
-                break;
-            }
+            c->tmp[len++] = c->ch[cur];
+            cur = c->parent[cur];
         }
         if (s.err)
             break;
-        rootb = t_get_ch(c->tree, cur);
-        if (off == c->b) {
-            dec2_emit1(&s, rootb);
+        if (cur >= c->b) {
+            s.err = 7;
+            break;
+        }
+        root = cur & 0xFFu;
+        c->tmp[len++] = (unsigned char)root;
+        cl = root;
+
+        /* tmp holds the string reversed: last..first at 0..len-1.
+         * Emit forward (highest index first).  When the RLE supplied
+         * the first byte, skip it. */
+        if (pending) {
+            pending = 0u;
+            if (len >= 2u)
+                for (i = len - 1u; i-- > 0u; )
+                    dec2_emit1(&s, c->tmp[i]);
         } else {
-            unsigned long ln;
-            if (off == 0) {
-                s.err = 7;
-                break;
-            }
-            off--;
-            c->tmp[off] = (unsigned char)rootb;
-            ln = (unsigned long)(c->b - off);
-            dec2_emit_copy(&s, ln, c->tmp + off);
+            for (i = len; i-- > 0u; )
+                dec2_emit1(&s, c->tmp[i]);
         }
         if (s.err)
             break;
-        if (!direct)
-            dec2_emit1(&s, rootb);
-        if (s.err)
-            break;
-        if (prev != 0x100u) {
-            unsigned idx = nextFree;
-            if (idx < c->b) {
-                t_set_w0(c->tree, idx, 0x100u);
-                t_set_ch(c->tree, idx, rootb);
-                t_set_w2(c->tree, idx, prev);
-            }
+        if (special) {
+            /* KwKwK: previous string + its first char, appended last */
+            dec2_emit1(&s, cl);
+            if (s.err)
+                break;
+        }
+
+        /* ---- add table entry: parent = prev, char = first byte ---- */
+        if (nextFree < c->b) {
+            c->parent[nextFree] = (unsigned short)prev;
+            c->ch[nextFree] = (unsigned char)root;
         }
         nextFree++;
-        if ((1u << bits) == nextFree)
+        if (nextFree == ncode && bits < c->maxbits) {
+            ncode <<= 1;
             bits++;
-        prev = code;
-        if (nextFree == c->b) {
-            dec2_prune(c, &nextFree);
-            while (bits > 1 && ((1u << (bits - 1u)) >= nextFree))
-                bits--;
-            prev = 0x100u;
-            if (nextFree > 0)
-                nextFree--;
+            w1 = bits - 1u;
         }
-        if ((s.out_total & 0xFu) == 0u)
-            dec2_progress(s.out_total, s.out_total);
+        prev = orig;
+        if (var2 <= maxcode)
+            var2++;
     }
 
     if (!s.err && s.out_fill)
