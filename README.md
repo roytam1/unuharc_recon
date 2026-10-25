@@ -18,13 +18,14 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   `06_m*` (6 files, 5840 bytes): names/sizes/CRCs match `l` + corpus.
 * File extraction: STORE exact; core5 exact incl. multi-file solids,
   boundary resets and the EXE filter - `06_m1/m2/m3` and a 1.27 MB
-  two-file archive (`BIG.uha`) are byte-identical to native
-  extraction, plus generated 3-8 file solids across methods 49/50/
-  51/65/81 with 1-3 boundary resets each.
+  two-file archive (`BIG.uha`) and the real 33 MB `gmud-06m3.uha`
+  (44 files, method 87) are byte-identical to native extraction, plus
+  generated 3-8 file solids across methods 49/50/51/65/81.
   Still open: core4 (`06_mx`, `D3X` method 34) is unported; core3
-  multi-block (`06_mz` method 11); a core5 defect for streams that
-  select PPM group 6 (small EXE / random blob, e.g. method 44); and
-  the multimedia filter.
+  multi-block (`06_mz` method 11); and the multimedia filter.
+  (The former "group 6" defect is FIXED: missing incw/ctxw init
+  patches, an asr4 rounding error and several aliased predictor
+  arrays. gmud-06m3 exercises it.)
 * Container `uharc06.[ch]`: header + directory + solid-stream splitter
   with CRC per file (tab0 full32), empty-file + 0xFF-skip handling,
   `x/e/t/l` (l = list via directory, extension beyond original).
@@ -35,9 +36,10 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   Layout verified: 44 + base + tab0(4N) + cmp1+cmp2+cmp3 = filesize.
   `uha04.UHA`: 8 files, 43307 bytes, base 21470. Test corpus: 6 files,
   5840 bytes, base varies by mode (m0 5840 STORE, m1 1153, mx 1120, mz 1540).
-* Directory: tab0/tab2/tab3 DONE (STORE + LSB-first core2). Only tab1
-  (names, method 17 = core3) remains, needing a 0.4-specific core3
-  (330 contexts vs 06 319; order-0 at 328 vs 318). tab3 verified:
+* Directory: DONE. tab0/tab2/tab3 (STORE + LSB-first core2) and tab1
+  (names, method 17 = core3, 330 contexts vs 06 319; order-0 at 328).
+  tab1 is byte-exact on the 543-byte name table of the real 33 MB
+  `gmud-04*` archives (CRC 8BCC) as well as on `uha04.UHA`. tab3:
   sizes 0/2280/1000/1024/1024/512 (sum 5840).
   Tables use default-password crypt, VERIFIED byte-identical to 0.6:
   04_m0 tab0 (STORE, 4*N) decrypts to exactly the six corpus CRCs in
@@ -51,6 +53,10 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   native extractions. GAPS in 0.4 core5: length-predictor groups 5..9
   are unimplemented, so uha04.UHA (method 62, first block picks such a
   group) still fails DATA; 04_mx needs the 0.4 core4 coder.
+  Real 33 MB `gmud-04m3.uha` (method 87) fails DATA after ~0.1 s - the
+  same class of core5 defect fixed for gmud-06m3; `gmud-04x` (method
+  27, core4) gives CRC (skeleton only); `gmud-04z` (method 17, core3)
+  fails DATA (needs core3 multi-block).
 
 0.3:
 * Header parsing: DONE, verified on `uharc_u.uha`
@@ -91,10 +97,14 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   "FOR CLASS/BACKSLASH RELEASES ONLY"), so vectors cover ALZ:1/2/3 only,
   NOT PPM/LZP. Header +10 follows 36+(k-1)*14+3 (k=switch, 3=dict idx):
   0x27/0x35/0x43 for k=1/2/3. 0.4 build does honour x/z (all four differ).
-* Directory: DONE. All four tables decode (tab1 via the new 0.3 core3
-  port `uha03_dec3.c`, which is verified byte-exact against the known
-  62-byte name table on 03_m0..m3 and against uharc_u.uha's 11-byte
-  table). `l 03_m0.uha` -> empty.bin 0, text.txt 2280, repeat.txt 1000,
+* Directory: DONE for the small vectors, but the real 33 MB
+  `gmud-03*` archives expose a 0.3 core3 defect: tab1 (543 names,
+  377 packed, cumulative CRC16 E2B5) decodes 543 bytes with rc=0 yet
+  the wrong content (CRC 2EDD). tab2/tab3 are byte-exact, so 0.3
+  `l`/`t`/`x` on gmud-03* abort at open with CRC failure. All four
+  tables decode for 03_m0..m3 (tab1 via `uha03_dec3.c`, verified
+  byte-exact on the 62-byte name table) and uharc_u.uha (11 bytes).
+  `l 03_m0.uha` -> empty.bin 0, text.txt 2280, repeat.txt 1000,
   binary.bin 1024, random.bin 1024, call.bin 512 (sum 5840);
   `l uharc_u.uha` -> uharc_u.c 1047398. Entry order matches tab0.
   0.3's coder is NOT 0.6's: 24-bit range/offset, 328 contexts,

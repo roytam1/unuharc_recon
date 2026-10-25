@@ -41,20 +41,37 @@
  *   dword_45E7A8 and the length/distance trees are precomputed from the
  *   binary's DGROUP; the runtime-derived tables (429ED4) are handled as
  *   above.
- * - dword_462FDC sized [6*257], fully zeroed (superset of original).
+ * - dword_462FDC is not a table of its own: it is element 256 (the running
+ *   total) of the first of the six 257-dword cost tables at dword_462BDC.
+ *   The predictor's best-slot pick compares a table's total with the total
+ *   of the currently selected table, i.e. p2bdc[257 * p7a8 + 256].
+ * - dword_4629C4 is an array of 128 *dwords* (predictor error history), and
+ *   dword_462BC4[0..5] is one contiguous dword array
+ *   {pbc4[0], pbc8, pbcc, pbd0, pbd4, pbd8}; the prediction byte is
+ *   (byte)slot[dword_4627A8].  They are modelled as such (a byte table with
+ *   stride 2 and separate pbc variables silently break groups 5..10).
  * - dword_472F9C modelled as has_prev/prevb (equiv. to original).
  * - Zero-divisor guards return data error (original would trap; provably
  *   non-zero on valid streams).
  * - 32-bit wraparound reproduced with explicit masks.
- * - Predictor SAR done with a defined floor helper.
+ * - The predictor's `cdq / shl edx,4 / sbb eax,edx / sar eax,4` is a
+ *   *truncating* division by 16, not an arithmetic shift; d5_asr4 must not
+ *   round toward -infinity.
+ * - DGROUP init patches: incw[993..1016] = 8 (sub_416D40(8, incw+993, 24))
+ *   and ctxw[1009..1016] = 10 (sub_416D40(10, ctxw+1009, 8)) override the
+ *   uniform 16/32 fills.
  *
  * Verification (byte-exact against native UHARC06.EXE extractions):
+ * - gmud-06m3.uha: 33,705,622 bytes, method 87, 44 files, one model reset
+ *   at the file boundary 195136 plus groups 5/6/8: `t` reports all 44
+ *   per-file CRCs OK and `x` is byte-identical to UNUHARC06.EXE.
  * - 06_m1/m2/m3 (methods 43/59/75, corpus): all per-file CRCs OK.
  * - single-file 1 MB archives (uharc_u.c) for methods 40,43,46,50,51,56,
  *   60,64,67,72,77,81,83 over dictionary sizes 1..32768 KB: exact.
  * - 198 KB EXE archives (Uharc02.exe) for methods 43/59/75: the raw
  *   decoder output equals the native pre-filter stream byte for byte.
- * - 06_m0 (STORE) and D3X.UHA listing are unchanged.
+ * - BIG.uha (1.27 MB, 2 files, one reset), MULTI/M3/M4/M8/MIX solids: exact.
+ * - 06_m0 (STORE) extract and D3X.UHA listing (45 files) are unchanged.
  */
 
 #include <stdlib.h>
@@ -2763,8 +2780,9 @@ struct uharc_dec5 {
     long pbd4;
     long pbd8;
     long pc4[128];
-    unsigned char p29c4[260];
-    long pfdc[1542];
+    /* dword_4629C4: 128 *dword* slots (0x4629C4..0x462BC3, directly
+     * followed by dword_462BC4 == pbc4[0]). */
+    long p29c4[128];
     long p2bdc[1542];
     long banks[8][1024];
     long e45[4096];
@@ -2876,14 +2894,11 @@ static const long dec5_dist_b[48] = {
 
 static long d5_asr4(double v)
 {
-    /* floor(v/16): predictor accumulators stay far below 2**53,
-     * so double holds them exactly; matches x86 SAR. */
-    double q = v / 16.0;
-    long r = (long)q;
-    if ((double)r > q) {
-        r--;
-    }
-    return r;
+    /* The image computes  cdq / shl edx,4 / sbb eax,edx / sar eax,4,
+     * which is a *truncating* division by 16 (not an arithmetic shift):
+     * for v < 0 and v % 16 != 0 it rounds toward zero.  The sum stays
+     * well below 2**53, so the double division is exact. */
+    return (long)(v / 16.0);
 }
 
 static int d5_refill(uharc_dec5_t *d)
@@ -3129,6 +3144,9 @@ static void d5_pred_init(uharc_dec5_t *d)
 {
     int i;
     int r;
+    /* sub_4196E0(dword_4627A8, 0, 0x1E40): one flat clear from p7a8 up to
+     * the end of p43[124] (byte_4645E4 overlays p43[124..], and the tail
+     * of the last cost table ends at dword_4643F4 == p43). */
     d->p7a8 = 0;
     d->p7ac = 0;
     d->p7b0 = 2;
@@ -3147,23 +3165,27 @@ static void d5_pred_init(uharc_dec5_t *d)
     for (i = 0; i < 128; i++) {
         d->pc4[i] = 0;
     }
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < 128; i++) {
         d->p29c4[i] = 0;
-        d->p45e4[i] = 0;
     }
     for (i = 0; i < 1542; i++) {
-        d->pfdc[i] = 0;
+        d->p2bdc[i] = 0;
     }
-    for (i = 0; i < 160; i++) {
+    for (i = 0; i <= 124; i++) {
         d->p43[i] = 0;
     }
-    r = 0;
+    for (i = 0; i < 4; i++) {
+        d->p45e4[i] = 0;
+    }
+    /* dword_4643E8 + 0x7C*k, k = 1..4: the [28..30] sentinels of the four
+     * 31-dword predictor records (p43[28], [59], [90], [121]). */
+    r = 28;
     do {
-        r += 31;
         d->p43[r] = -1L;
         d->p43[r + 1] = -1L;
         d->p43[r + 2] = -1L;
-    } while (r != 124);
+        r += 31;
+    } while (r <= 121);
 }
 
 /* -------- order context update (414BD6 = order-0, 414960 = PPM) --- */
@@ -3175,15 +3197,24 @@ static unsigned d5_ctx_order0(uharc_dec5_t *d, unsigned sym)
     return sym;
 }
 
-static long d5_p29get(uharc_dec5_t *d, unsigned off)
+static long d5_p29get(uharc_dec5_t *d, unsigned idx)
 {
-    /* 4-byte LE read; the image keeps slack bytes past the 256 table */
-    unsigned long v;
-    v = (unsigned long)d->p29c4[off]
-        | ((unsigned long)d->p29c4[off + 1u] << 8)
-        | ((unsigned long)d->p29c4[off + 2u] << 16)
-        | ((unsigned long)d->p29c4[off + 3u] << 24);
-    return (long)v;
+    /* dword_4629C4[idx]: a 32-bit slot, not a byte offset into the table. */
+    return d->p29c4[idx & 0x7Fu];
+}
+
+/* The six prediction slots are one contiguous dword array in the image:
+ * dword_462BC4[0..5] == { pbc4[0], pbc8, pbcc, pbd0, pbd4, pbd8 }. */
+static long d5_pbslot(uharc_dec5_t *d, unsigned k)
+{
+    switch (k & 7u) {
+    case 0: return d->pbc4[0];
+    case 1: return d->pbc8;
+    case 2: return d->pbcc;
+    case 3: return d->pbd0;
+    case 4: return d->pbd4;
+    default: return d->pbd8;
+    }
 }
 
 /* predictor replay-or-predict, group >= 5 (sub_4160C5); return ignored */
@@ -3249,7 +3280,7 @@ static unsigned d5_predict(uharc_dec5_t *d)
             d->pbc8 = d->p7b4;
             v0 = (unsigned)(((unsigned char)d->f94 - (unsigned char)d->p7ac) & 0x7Fu);
             d->pbcc = 2 * d->p7b4 - d->p7b8;
-            t0 = d5_p29get(d, 2u * v0);
+            t0 = d5_p29get(d, v0);
             d->p43[4] = t0;
             d->p43[3] = d->p43[2];
             d->p43[2] = d->p43[1];
@@ -3262,10 +3293,10 @@ static unsigned d5_predict(uharc_dec5_t *d)
                 + (double)16 * (double)d->p43[10]
                 + (double)d->p43[4] * (double)d->p43[9];
             d->pbd0 = d5_asr4(acc);
-            d->pbd4 = d5_p29get(d, 2u * v0);
-            d->pbd8 = d5_p29get(d, 2u * (unsigned)(((unsigned char)d->f94
+            d->pbd4 = d5_p29get(d, v0);
+            d->pbd8 = d5_p29get(d, (unsigned)(((unsigned char)d->f94
                 - (unsigned char)d->p7b0) & 0x7Fu));
-            d->fb7 = (unsigned char)d->pbc4[(unsigned)d->p7a8 & 7u];
+            d->fb7 = (unsigned char)d5_pbslot(d, (unsigned)d->p7a8);
             if ((unsigned)d->p7a8 >= 4u) {
                 d->fb7 = (unsigned char)((unsigned)d->fb7 + (unsigned)d->p7b4);
             }
@@ -3479,8 +3510,10 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                 v2[22] = d5_wrap32((unsigned long)v2[22]
                     + (unsigned long)(unsigned)d->e45[hu]);
             }
+            /* sub_416412: al = dl - p43[10] (old value), movsx, then
+             * p43[10] = dl.  p43[11] is the signed per-symbol slope. */
+            v2[11] = (long)(signed char)((v3 - (int)(v2[10] & 0xFFL)) & 0xFF);
             v2[10] = (long)v3;
-            v2[11] = (long)(signed char)(v3 - (v2[10] & 0xFFL));
             v2[27]++;
             if (((unsigned long)v2[27] & 0xFu) == 0UL) {
                 long best = v2[12];
@@ -3493,7 +3526,9 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                             best = v2[k + 12];
                             v8 = k;
                         }
-                        v2[k + 11] = 0;
+                        /* the asm zeroes the slot it just compared
+                         * (p43[k+12]), not p43[k+11]. */
+                        v2[k + 12] = 0;
                     }
                 }
                 switch (v8) {
@@ -3553,12 +3588,8 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
             }
             {
                 long vv0 = (long)v3 - d->p7b4;
-                unsigned char *pb = d->p29c4;
-                unsigned off = 2u * (d->f94 & 0x7Fu);
-                pb[off] = (unsigned char)(vv0 & 0xFFL);
-                pb[off + 1] = (unsigned char)((vv0 >> 8) & 0xFFL);
-                pb[off + 2] = (unsigned char)((vv0 >> 16) & 0xFFL);
-                pb[off + 3] = (unsigned char)((vv0 >> 24) & 0xFFL);
+                unsigned idx29 = (unsigned)d->f94 & 0x7Fu;
+                d->p29c4[idx29] = vv0;
                 vv[4] = vv0 - d->pbd4;
                 vv[5] = vv0 - d->pbd8;
             }
@@ -3572,15 +3603,15 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                     long d1;
                     long d2x;
                     unsigned u46;
-                    d1 = d5_p29get(d, 2u * ((d->f94 - 1u) & 0x7Fu))
-                        - d5_p29get(d, 2u * ((d->f94 - 1u - v10) & 0x7Fu));
+                    d1 = d5_p29get(d, (d->f94 - 1u) & 0x7Fu)
+                        - d5_p29get(d, (d->f94 - 1u - v10) & 0x7Fu);
                     u46 = (unsigned)d1 & 0xFFFu;
-                    d2x = d5_p29get(d, 2u * (d->f94 & 0x7Fu))
-                        - d5_p29get(d, 2u * ((d->f94 - v10) & 0x7Fu));
+                    d2x = d5_p29get(d, d->f94 & 0x7Fu)
+                        - d5_p29get(d, (d->f94 - v10) & 0x7Fu);
                     u46 = (unsigned)((unsigned)d5_e45(d, u46)
                         + (unsigned)d5_e45(d, (unsigned)d2x & 0xFFFu));
-                    d2x = d5_p29get(d, 2u * ((d->f94 - 2u) & 0x7Fu))
-                        - d5_p29get(d, 2u * ((d->f94 - 2u - v10) & 0x7Fu));
+                    d2x = d5_p29get(d, (d->f94 - 2u) & 0x7Fu)
+                        - d5_p29get(d, (d->f94 - 2u - v10) & 0x7Fu);
                     v12 = (long)(unsigned)d5_e45(d, (unsigned)d2x & 0xFFFu)
                         + (long)u46;
                     d->pc4[v11] = d5_wrap32((unsigned long)v12
@@ -3615,7 +3646,11 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                     v13[v14] = nv;
                     v13[256] = d5_wrap32((unsigned long)v13[256]
                         + (unsigned long)nv);
-                    if (v13[256] < d->pfdc[(size_t)257 * (size_t)(unsigned)d->p7a8]) {
+                    /* dword_462FDC[p7a8 * 0x404] is the running total
+                     * element (index 256) of cost table p7a8. */
+                    if (v13[256]
+                        < d->p2bdc[(size_t)257 * (size_t)(unsigned)d->p7a8
+                            + 256u]) {
                         d->p7a8 = (int)v45;
                     }
                     v45++;
@@ -3688,6 +3723,9 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                     ((unsigned)(unsigned short)d->p7bc + (unsigned)(unsigned short)w22) & 0xFFFu));
             w2[23] = d5_wrap32((unsigned long)w2[23]
                 + (unsigned long)(unsigned)dec5_t429626[
+                    ((unsigned)(d->pbc4[0] & 0xFFL) - (unsigned)w21) & 0xFFu]);
+            w2[24] = d5_wrap32((unsigned long)w2[24]
+                + (unsigned long)(unsigned)dec5_t429626[
                     ((unsigned)(w2[10] & 0xFFL) - (unsigned)w21) & 0xFFu]);
             w23 = (int)(signed char)((int)w21 - (w2[10] & 0xFFL));
             w2[11] = (long)w23;
@@ -3704,7 +3742,7 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                         wbest = w2[k + 12];
                         w26 = k;
                     }
-                    w2[k + 11] = 0;
+                    w2[k + 12] = 0;
                 }
                 switch (w26) {
                 case 1:
@@ -5020,6 +5058,16 @@ uharc_dec5_t *uharc_dec5_init(int method)
     }
     for (i = 0; i < 512u; i++) {
         d->incw[i] = 8;
+    }
+    /* sub_416D40(8, incw + 993, 24): every predictor/literal context from
+     * 993 up (groups 5..10) uses an increment of 8, overriding the 16. */
+    for (i = 993u; i <= 1016u; i++) {
+        d->incw[i] = 8;
+    }
+    /* sub_416D40(10, ctxw + 1009, 8): the last eight contexts have a
+     * weight of 10, not 32. */
+    for (i = 1009u; i <= 1016u; i++) {
+        d->ctxw[i] = 10;
     }
     /* word_4735C6 = 6 overrides word_472FC6[768] after the 16-fill:
      * it is the escape-context increment used by sub_41488F(_, 768). */
