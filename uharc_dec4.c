@@ -15,6 +15,14 @@
  *    decoder API; the one block boundary carried in the stream is used
  *    instead (see d4_40DEB6)
  */
+#if defined(__GNUC__)
+/* The arena below is read and written through unsigned char/unsigned
+ * short/unsigned int lvalues at overlapping offsets (that is the whole
+ * point of the 32-bit address emulation).  GCC's strict aliasing rules
+ * do not allow that, and -O2 does miscompile d4_40E4FF (the statistics
+ * rescale) when they are on, so turn them off for this translation unit. */
+#pragma GCC optimize("no-strict-aliasing")
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -3211,7 +3219,7 @@ static int d4_40E4FF(dec4_ctx *c, unsigned int a1)
   v23 = a1 << 8;
   v2 = 0;
   v3 = (c->p_6c0 + (a1 << 9));
-  v4 = (int)(v3 + 256);
+  v4 = (int)(v3 + 0x200);   /* asm 0x40e520: esi = start + 0x200, stride 2 */
   do
   {
     if ( M16(v3) )
@@ -3229,7 +3237,7 @@ LABEL_3:
       M16(v3) = 0;
     }
 LABEL_4:
-    ++v3;
+    v3 += 2;
   }
   while ( v3 != v4 );
   v22 = 2 * v23;
@@ -3260,7 +3268,8 @@ LABEL_4:
     v14 = (v21 + 512 - v13);
     do
     {
-      M16(v14) += M16(v14 + ((-v12) << 1));
+      /* asm 0x40e5c0: the read is at v14 - v12 (not 2*v12 = v13). */
+      M16(v14) += M16(v14 - v12);
       v14 -= v13;
     }
     while ( v14 != v21 );
@@ -3387,8 +3396,8 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
   v10 = c->p_6c8;
   M16(v7) += v4;
   result = M16(v7) + M16(v10 + 2 * v2);
-  if ( result >= 0x4000 || M32(0x45AE38 + ((v2) * 4)) < 0 )
-    result = d4_40E4FF(c, v2);
+  if ( result >= 0x4000 || (int)M32(0x45AE38 + ((v2) * 4)) < 0 )
+    result = d4_40E4FF(c, v2);   /* asm 0x40e7f9: cmpl $0,... = signed */
   return result;
 }
 
@@ -4908,7 +4917,6 @@ static int d4_41030F(dec4_ctx *c)
   int v118;
   int v119;
   unsigned int v120;
-  int v121;
   int v122;
   unsigned int v123;
   unsigned char v124;
@@ -5925,8 +5933,9 @@ LABEL_336:
       }
       if ( v216 )
       {
-        v121 = v216 &(0x45E38E);
-        v216 = v121;
+        /* asm 0x411c40..0x411c51: v216 = (v216 && byte_45E38E), not a
+         * bitwise AND with the address (Hex-Rays dropped the dereference). */
+        v216 = v216 && G8(0x45E38E);
         v218 = G8(0x45E38B);
         v201 = G32(0x45AE20);
         v202 = (unsigned char)G8(0x45E390) + 772;
@@ -5986,7 +5995,8 @@ LABEL_336:
       }
       v132 = v212;
       v133 = 769;
-      v134 = v127;
+      /* asm 0x411d61: eax = ecx, and ecx holds v120 (byte_45C6A4 context). */
+      v134 = v120;
       goto LABEL_394;
     }
     v135 = d4_411F8B(c, v120, 769);
@@ -5997,7 +6007,7 @@ LABEL_336:
       if ( v216 )
         v132 = v218 - v135;
       else
-        v132 = v135 - v218;
+        v132 = v135 - v218;   /* asm 0x411d9c: sub bl,[v218] (path B) */
       if ( v216 )
       {
         while ( v136 < (unsigned char)G8(0x45E39C) )
@@ -6137,6 +6147,10 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
       G32(0x45C648) = 0;
       v25 = v19;
       d4_412A59(c, v2, v18);
+      /* asm 0x41211c/0x41219e: this branch also carries the cost collected
+       * by d4_412257 into the common tail's ecx (= v19); Hex-Rays only kept
+       * the v17 definition in the other branch. */
+      v17 = v19;
     }
     else
     {
@@ -6445,8 +6459,8 @@ LABEL_73:
       }
       if ( (v63 & 0xC0) == 192 )
         v77 = (v77 & ~0x000000FFU) | ((v77 | 0x40) & 0x000000FFU);
-      if ( (v84 & 0xC0) == -64 )
-        v77 |= 128 << (v84 == -1);
+      if ( (v84 & 0xC0) == 0xC0 )   /* asm 0x412410: and 0xc0 / cmp 0xc0 */
+        v77 |= 128 << (v84 == 0xFF);
       v8 = v77 | 0x200;   /* asm: or ch,2 (Hex-Rays wrote a HIWORD form) */
       if ( G8(0x45E392) )
       {
@@ -6658,16 +6672,18 @@ LABEL_50:
           while ( v4 );
           v25 = v32;
           v26 = 0;
-          v27 = (v32 + ((v31 - v32) << 1));
+          /* asm 0x412e6c..0x412e72: base is v32 + ((v31-v32)>>1)*2 and the
+           * table walk advances 2 bytes per step (256 words, 0x200 bytes). */
+          v27 = (unsigned int)(v32 + ((((int)(v31 - v32)) >> 1) * 2));
           do
           {
             if ( M16(v25) || M8(v26) )
               v19 -= M16(v27);
-            ++v27;
-            ++v25;
+            v27 += 2;
+            v25 += 2;
             ++v26;
           }
-          while ( v25 < v32 + 256 );
+          while ( v25 < v32 + 0x200 );
         }
         else
         {
@@ -6682,15 +6698,16 @@ LABEL_50:
       else if ( v32 )
       {
         v22 = v32;
-        v23 = (v32 + ((v31 - v32) << 1));
+        /* asm 0x412e0c..0x412e1b: v32 + ((v31-v32)>>1)*2, 2-byte stride. */
+        v23 = (unsigned int)(v32 + ((((int)(v31 - v32)) >> 1) * 2));
         do
         {
           if ( M16(v22) )
             v19 -= M16(v23);
-          ++v22;
-          ++v23;
+          v22 += 2;
+          v23 += 2;
         }
-        while ( v22 < v32 + 256 );
+        while ( v22 < v32 + 0x200 );
       }
     }
     else
@@ -6731,7 +6748,7 @@ LABEL_50:
 LABEL_37:
     if ( !M16(v31 + ((v35) * 2)) )
     {
-      if ( (unsigned short)v33 == -1 )
+      if ( (unsigned short)v33 == 0xFFFF )   /* asm 0x412c93: cmpw $0xffff */
       {
         v15 = v2 << 9;
         v15 = (v15 & ~0x0000FFFFU) | ((M16(c->p_6bc + (v2 << 9))) & 0x0000FFFFU);
@@ -6800,8 +6817,8 @@ LABEL_37:
   }
   if ( (v2 & 0xC0) == 192 )
     v9 = (v9 & ~0x000000FFU) | ((v9 | 0x40) & 0x000000FFU);
-  if ( (v34 & 0xC0) == -64 )
-    v9 |= 128 << (v34 == -1);
+  if ( (v34 & 0xC0) == 0xC0 )   /* asm 0x412BA2: and 0xc0 / cmp 0xc0 */
+    v9 |= 128 << (v34 == 0xFF);
   v11 = (v11 & ~0xFFFF0000U) | (((HIWORD(v9)) << 16) & 0xFFFF0000U);
   if ( G8(0x45E392) )
   {
