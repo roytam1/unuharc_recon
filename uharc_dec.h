@@ -28,6 +28,17 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
 
+/* Same as decode_v, but also passes the container's cumulative unpacked
+ * file-end table so that cores which restart their models at file
+ * boundaries can do so.  cum[] must be non-decreasing and
+ * cum[ncum - 1] == out_len.  Pass cum = NULL (ncum = 0) for a single
+ * block, which is what decode_v/decode do. */
+int uharc_dec_decode_b(int method, int core2_lsb, int ver,
+                       const unsigned long *cum, unsigned long ncum,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len);
+
 /* version-aware core selector (-1 = unknown method) */
 int uharc_dec_core_v(int method, int ver);
 

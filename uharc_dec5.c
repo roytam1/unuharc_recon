@@ -29,16 +29,14 @@
  *   prefix sum of word_429ED2 shifted by one entry (sub_419AC0 adds the
  *   raw second table). dec5_price holds the raw prefix sum, so lookups
  *   go through DEC5_PRICE().
- * - Progress table (dword_472FA8) is always NULL: one block per decode().
- *   Progress (sub_40819B) is a stub counter, no callback invoked.
- *   Consequence/limitation: the container can ask for block boundaries
- *   (cumulative uncompressed file sizes) and the original resets the
- *   model at the first such boundary >= block_start + 128K (sub_4143BB).
- *   This decoder entry point only receives the total output size and the
- *   packed stream, so multi-file archives whose first file (or file
- *   group) reaches 128K would need that boundary table from the caller
- *   and are decoded as a single block here. Single-file streams of any
- *   size (and solid groups below 128K) are exact.
+ * - Progress table (dword_472FA8) is the container's cumulative unpacked
+ *   file-end table, now supplied through uharc_dec5_decode_b().  The
+ *   original (sub_414BF3 / sub_4143BB) resets the model whenever output
+ *   reaches the current block end; the block end starts at 0, advances
+ *   by 0x20000 (128K, `add word ptr ds:dword_472F80+2,2`) clamped to the
+ *   total, and is then snapped to the first cumulative table entry >=
+ *   that value.  With no table (the old uharc_dec5_decode entry) the
+ *   whole stream is one block, as before.
  * - Price table, Fenwick init pattern (word[0]=256, word[i]=i&-i),
  *   dword_45E7A8 and the length/distance trees are precomputed from the
  *   binary's DGROUP; the runtime-derived tables (429ED4) are handled as
@@ -2673,6 +2671,13 @@ struct uharc_dec5 {
     unsigned long out_exp;
     int err;
     unsigned long progress;
+    /* Container cumulative file-end table (optional).  Mirrors
+     * dword_472FA8 (table), dword_472F98 (index), dword_472F80 (current
+     * block end) and dword_434514 (total). */
+    const unsigned long *cum;
+    unsigned long ncum;
+    unsigned long cum_idx;
+    unsigned long blk_end;
     int method;
     int group;
     unsigned long dictsize;
@@ -4756,6 +4761,32 @@ static int d5_step(uharc_dec5_t *d)
 
 /* -------- 4143BB: block reset ---------------------------------------- */
 
+/* Block-boundary advance, from the tail of sub_4143BB.  The original
+ * does `add word ptr ds:dword_472F80+2, 2`, i.e. adds 0x20000 (128 KB)
+ * to the current block end, clamps to the total, then walks the
+ * container's cumulative table (dword_472FA8, index dword_472F98) to the
+ * first entry >= that value and makes it the new block end.  With no
+ * table the whole stream is one block, matching the old API. */
+static void d5_blk_advance(uharc_dec5_t *d)
+{
+    if (!d->cum || d->ncum == 0UL) {
+        d->blk_end = d->out_exp;
+        return;
+    }
+    d->blk_end += 0x20000UL;
+    if (d->blk_end > d->out_exp) {
+        d->blk_end = d->out_exp;
+    }
+    while (d->cum_idx < d->ncum && d->cum[d->cum_idx] < d->blk_end) {
+        d->cum_idx++;
+    }
+    if (d->cum_idx < d->ncum) {
+        d->blk_end = d->cum[d->cum_idx];
+    } else {
+        d->blk_end = d->out_exp;
+    }
+}
+
 static int d5_block_reset(uharc_dec5_t *d)
 {
     unsigned i;
@@ -4846,6 +4877,7 @@ static int d5_main(uharc_dec5_t *d)
     if (!d5_block_reset(d)) {
         return d->err ? d->err : 4;
     }
+    d5_blk_advance(d);
     for (;;) {
         if (!d5_step(d)) {
             unsigned char lit;
@@ -4917,6 +4949,15 @@ static int d5_main(uharc_dec5_t *d)
         }
         if (d->out_tot >= d->out_exp) {
             break;
+        }
+        /* sub_414BF3: at the top of every symbol, if output has reached
+         * the container block end, reset the models (sub_4143BB) and
+         * move to the next cumulative file boundary. */
+        if (d->cum && d->out_tot >= d->blk_end) {
+            if (!d5_block_reset(d)) {
+                break;
+            }
+            d5_blk_advance(d);
         }
     }
     return d->err;
@@ -5113,7 +5154,8 @@ void uharc_dec5_free(uharc_dec5_t *d)
     free(d);
 }
 
-int uharc_dec5_decode(uharc_dec5_t *d,
+int uharc_dec5_decode_b(uharc_dec5_t *d,
+    const unsigned long *cum, unsigned long ncum,
     uharc_dec_read_cb rcb, void *rctx,
     uharc_dec_write_cb wcb, void *wctx,
     unsigned long out_len)
@@ -5126,6 +5168,13 @@ int uharc_dec5_decode(uharc_dec5_t *d,
     if (out_len == 0UL) {
         return 0;
     }
+    if (cum && ncum == 0UL) {
+        cum = 0;
+    }
+    d->cum = cum;
+    d->ncum = cum ? ncum : 0UL;
+    d->cum_idx = 0UL;
+    d->blk_end = d->cum ? 0UL : out_len;
     cap = out_len < 0x40000UL ? 0x10000u : 0x40000u;
     if (!d->inb) {
         d->inb = (unsigned char *)malloc(cap ? cap : 1u);
@@ -5165,5 +5214,14 @@ int uharc_dec5_decode(uharc_dec5_t *d,
         return 4;
     }
     return 0;
+}
+
+/* single-block wrapper (no container boundary table) */
+int uharc_dec5_decode(uharc_dec5_t *d,
+    uharc_dec_read_cb rcb, void *rctx,
+    uharc_dec_write_cb wcb, void *wctx,
+    unsigned long out_len)
+{
+    return uharc_dec5_decode_b(d, 0, 0UL, rcb, rctx, wcb, wctx, out_len);
 }
 

@@ -16,14 +16,15 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   Entry+3 sizes are deltas (prev_size - curr_size, 32-bit wrap).
   `D3X.UHA`: 45 files, 976594 bytes total, names/sizes match `UHARC06 l`.
   `06_m*` (6 files, 5840 bytes): names/sizes/CRCs match `l` + corpus.
-* File extraction: STORE (method 0) DONE byte-exact (`06_m0.uha` 6/6 MATCH
-  vs corpus, `x` + `t` exit 0). Compressed modes pending:
-  ALZ file data (method 11, e.g. `06_mz`) needs core3 multi-block
-  (single-block tables work, larger streams hit thresh/reset gap -> DATA);
-  PPM/LZP (method 27, `06_mx`) needs core4 model; PPM2 (method 43,
-  `06_m1`, `D3X` method 34) needs core5 model + exe/multimedia filters
-  (e.g. D3X flags 00/01, `06_mz` flags 00/03). `06_m1` decodes but CRC
-  fails (filter/model gap); `06_mx/mz` fail DATA; `D3X t` fails CRC.
+* File extraction: STORE exact; core5 exact incl. multi-file solids,
+  boundary resets and the EXE filter - `06_m1/m2/m3` and a 1.27 MB
+  two-file archive (`BIG.uha`) are byte-identical to native
+  extraction, plus generated 3-8 file solids across methods 49/50/
+  51/65/81 with 1-3 boundary resets each.
+  Still open: core4 (`06_mx`, `D3X` method 34) is unported; core3
+  multi-block (`06_mz` method 11); a core5 defect for streams that
+  select PPM group 6 (small EXE / random blob, e.g. method 44); and
+  the multimedia filter.
 * Container `uharc06.[ch]`: header + directory + solid-stream splitter
   with CRC per file (tab0 full32), empty-file + 0xFF-skip handling,
   `x/e/t/l` (l = list via directory, extension beyond original).
@@ -393,18 +394,16 @@ becomes 2..7 accordingly.
    archive uses methods 2..7).
    0.2 is COMPLETE: byte-exact against every oracle, including
    archives made by the real DOS archiver under MS-DOS Player.
-3. 0.6 core4 is the last unported coder. A full translation exists in
-   the temp dir (it compiles and decodes the stream header exactly)
-   but still crashes in the Fenwick rebuild (sub_40E4FF). Key
-   finding: D3X's five model resets come from the container
-   cumulative file-size table, so core4's API must accept it -
-   out_len alone cannot reproduce them. Same applies to 0.6
-   core5 multi-block. 0.4 core4 (04_mx) has a partial port only.
-4. Remaining filters: 0.6 EXE (sub_404665/40481E/404DCE) is not applied,
-   so exe-bearing 0.6 archives fail their CRC even with a correct
-   decode. The multimedia module (uha02_mm.c) is verified by
-   encoder round-trip but is not wired for 0.3/0.4/0.6. The 0.2 and
-   0.3/0.4 EXE filters are done and native-verified.
+3. 0.6 core4 is the last unported coder - now UNBLOCKED: the decode
+   API accepts the cumulative file-size table (`uharc_dec_decode_b`),
+   so core4 can reproduce D3X's five resets. A full translation
+   sits in the temp dir (compiles, stream header exact) but still
+   crashes in the Fenwick rebuild (sub_40E4FF). 0.4 core4 (04_mx)
+   has a partial port only. Watch for aliased DGROUP arrays.
+4. Remaining filter: the multimedia layer (uha02_mm.c, verified by
+   encoder round-trip) is not wired for 0.3/0.4/0.6. The EXE
+   filters are done for all four versions (0.2/0.3/0.4 shared
+   algorithm, 0.6 confirmed identical on real archives).
    (`03_m*` via updated uharc_u.exe here) are byte-exact round-trips.
    0.2 vectors come from MAKE02.BAT on a DOS machine (m0..m3,
    text corpus; brings back CORPUS + 02_m*.uha). 0.4 vectors

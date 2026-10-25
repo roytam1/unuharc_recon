@@ -38,6 +38,13 @@ typedef struct dec4_ctx_s {
     unsigned long out_expect;  /* dword_434514 */
     unsigned long blk_end;     /* dword_45D12C */
     unsigned long blk_next;    /* dword_45D13C */
+    /* Container cumulative file-end table (dword_45D128) and index
+     * (dword_45D144).  Optional: NULL keeps the old single-block
+     * approximation.  Core4 is not finished; this hook is unverified. */
+    const unsigned long *cum;
+    unsigned long ncum;
+    unsigned long cum_idx;
+    unsigned phase;            /* byte_45E392 (header phase; 1 = default) */
     int err;                   /* dword_422B90 */
 
     /* range coder */
@@ -481,10 +488,11 @@ void uharc_dec4_free(void *ctx)
     free(c);
 }
 
-int uharc_dec4_decode(void *ctx,
-                      uharc_dec_read_cb rcb, void *rctx,
-                      uharc_dec_write_cb wcb, void *wctx,
-                      unsigned long out_len)
+int uharc_dec4_decode_b(void *ctx,
+                        const unsigned long *cum, unsigned long ncum,
+                        uharc_dec_read_cb rcb, void *rctx,
+                        uharc_dec_write_cb wcb, void *wctx,
+                        unsigned long out_len)
 {
     dec4_ctx *c = (dec4_ctx *)ctx;
     unsigned prob_match = 2048u;
@@ -513,6 +521,17 @@ int uharc_dec4_decode(void *ctx,
     c->rep_flag = 0;
     c->blk_end = out_len;
     c->blk_next = out_len;
+    /* container boundary hook (unverified: core4 itself is still a
+     * skeleton).  sub_40DEB6 advances dword_45D12C by
+     * 0x40000 >> 2*byte_45E392, clamps, then walks dword_45D128.  The
+     * stream-header phase is not parsed here yet, so keep 1 (the value
+     * sub_40CDD1 leaves behind before the header override). */
+    c->cum = (cum && ncum) ? cum : 0;
+    c->ncum = c->cum ? ncum : 0UL;
+    c->cum_idx = 0UL;
+    c->phase = 1UL;
+    if (c->cum)
+        c->blk_next = 0UL;   /* dword_45D12C = dword_434528 = 0 at start */
     for (i = 0; i < 32u; i++)
         prob_len[i] = 2048u;
 
@@ -522,9 +541,22 @@ int uharc_dec4_decode(void *ctx,
         /* periodic rebuild/rescale (sub_40D6D1 / sub_40DEB6 triggers) */
         if (c->out_done >= c->blk_next) {
             blk_rescale(c);
-            c->blk_next = c->out_done + 0x4000u;
-            if (c->blk_next > c->out_expect)
-                c->blk_next = c->out_expect;
+            if (c->cum) {
+                c->blk_next += 0x40000UL >> (2UL * c->phase);
+                if (c->blk_next > c->out_expect)
+                    c->blk_next = c->out_expect;
+                while (c->cum_idx < c->ncum &&
+                       c->cum[c->cum_idx] < c->blk_next)
+                    c->cum_idx++;
+                if (c->cum_idx < c->ncum)
+                    c->blk_next = c->cum[c->cum_idx];
+                else
+                    c->blk_next = c->out_expect;
+            } else {
+                c->blk_next = c->out_done + 0x4000u;
+                if (c->blk_next > c->out_expect)
+                    c->blk_next = c->out_expect;
+            }
         }
         /* match flag (sub_41013C simplified: single binary model) */
         {
@@ -600,4 +632,13 @@ int uharc_dec4_decode(void *ctx,
     if (c->out_done != c->out_expect)
         return 3;
     return 0;
+}
+
+/* single-block wrapper (no container boundary table) */
+int uharc_dec4_decode(void *ctx,
+                      uharc_dec_read_cb rcb, void *rctx,
+                      uharc_dec_write_cb wcb, void *wctx,
+                      unsigned long out_len)
+{
+    return uharc_dec4_decode_b(ctx, 0, 0UL, rcb, rctx, wcb, wctx, out_len);
 }

@@ -227,6 +227,11 @@ int uharc_dec4_decode(void *ctx,
                       uharc_dec_read_cb rcb, void *rctx,
                       uharc_dec_write_cb wcb, void *wctx,
                       unsigned long out_len);
+int uharc_dec4_decode_b(void *ctx,
+                        const unsigned long *cum, unsigned long ncum,
+                        uharc_dec_read_cb rcb, void *rctx,
+                        uharc_dec_write_cb wcb, void *wctx,
+                        unsigned long out_len);
 void uharc_dec4_free(void *ctx);
 struct uharc_dec5;
 typedef struct uharc_dec5 uharc_dec5_t;
@@ -235,6 +240,11 @@ int uharc_dec5_decode(uharc_dec5_t *d,
                       uharc_dec_read_cb rcb, void *rctx,
                       uharc_dec_write_cb wcb, void *wctx,
                       unsigned long out_len);
+int uharc_dec5_decode_b(uharc_dec5_t *d,
+                        const unsigned long *cum, unsigned long ncum,
+                        uharc_dec_read_cb rcb, void *rctx,
+                        uharc_dec_write_cb wcb, void *wctx,
+                        unsigned long out_len);
 void uharc_dec5_free(uharc_dec5_t *d);
 /* LSB-first core2 (0.2/0.3/0.4, verified) */
 int uharc_dec2l_init(void **pctx, int method);
@@ -280,7 +290,8 @@ int uharc_dec3t_decode(void *ctx,
 void uharc_dec3t_free(void *ctx);
 
 /* public dispatch: mirrors sub_40705C/sub_40717F buffer policy */
-int uharc_dec_decode_v(int method, int core2_lsb, int ver,
+int uharc_dec_decode_b(int method, int core2_lsb, int ver,
+                       const unsigned long *cum, unsigned long ncum,
                        uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len)
@@ -384,7 +395,8 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
         void *c4 = 0;
         ret = uharc_dec4_init(&c4, method);
         if (ret == 0) {
-            ret = uharc_dec4_decode(c4, rcb, rctx, wcb, wctx, out_len);
+            ret = uharc_dec4_decode_b(c4, cum, ncum, rcb, rctx, wcb, wctx,
+                                      out_len);
             uharc_dec4_free(c4);
         }
         break;
@@ -410,7 +422,8 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
             uharc_dec5_t *c5 = uharc_dec5_init(method);
             if (!c5) ret = 1;
             else {
-                ret = uharc_dec5_decode(c5, rcb, rctx, wcb, wctx, out_len);
+                ret = uharc_dec5_decode_b(c5, cum, ncum, rcb, rctx, wcb,
+                                          wctx, out_len);
                 uharc_dec5_free(c5);
             }
         }
@@ -424,6 +437,16 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
     free(inb);
     free(outb);
     return ret;
+}
+
+/* single-block entry (no container boundary table) */
+int uharc_dec_decode_v(int method, int core2_lsb, int ver,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
+{
+    return uharc_dec_decode_b(method, core2_lsb, ver, 0, 0UL,
+                              rcb, rctx, wcb, wctx, out_len);
 }
 
 /* MSB-first (0.6) entry point kept for existing callers */

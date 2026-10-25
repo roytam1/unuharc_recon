@@ -10,6 +10,7 @@
 #endif
 #include "uharc06.h"
 #include "uharc_dec.h"
+#include "uharc_filter.h"
 #include "uhcrypt06.h"
 
 /* ---------- CRC32 (IEEE, matches dword_421EB3) ---------- */
@@ -650,6 +651,15 @@ static unsigned long *g_sp_pcrc;
 static char *g_sp_curpath;
 static unsigned g_sp_curpath_cap;
 static int g_sp_crc_err;
+/* 0.6 EXE post-filter (sub_40481E) is applied per file, after decode and
+ * before CRC/write (the original buffers to the file length).  Gate is
+ * header flags2 bit0 and file size >= 0x400 (sub_4055B1).  Bit1 (the
+ * multimedia filter sub_404665) is not implemented yet. */
+static int g_sp_filt;
+static int g_sp_fuse;
+static unsigned char *g_sp_fbuf;
+static unsigned long g_sp_fcap;
+static unsigned long g_sp_ffill;
 
 static void g_sp_mkdir_parents(char *path)
 {
@@ -674,6 +684,7 @@ static int g_sp_open_cur(void)
     unsigned long i = *g_sp_pidx;
     const uharc06_entry *e = &h->entries[i];
     char *dst = g_sp_curpath;
+    unsigned long fsz = e->size & 0xFFFFFFFFUL;
     dst[0] = 0;
     if (g_sp_with_paths && e->path[0]) {
         size_t od = strlen(g_sp_outdir);
@@ -698,6 +709,18 @@ static int g_sp_open_cur(void)
         *g_sp_pcur = 0;
     }
     *g_sp_pcrc = 0xFFFFFFFFUL;
+    g_sp_fuse = 0;
+    g_sp_ffill = 0;
+    if (g_sp_filt && fsz >= 0x400UL) {
+        if (fsz > g_sp_fcap) {
+            unsigned char *nb = (unsigned char *)realloc(g_sp_fbuf,
+                                                         (size_t)fsz);
+            if (!nb) return 1;
+            g_sp_fbuf = nb;
+            g_sp_fcap = fsz;
+        }
+        g_sp_fuse = 1;
+    }
     return 0;
 }
 
@@ -724,20 +747,39 @@ static int uharc06_split_write(void *ctx, const unsigned char *buf, unsigned len
             if (!*g_sp_pcur) {
                 if (g_sp_open_cur() != 0) return 1;
             }
-            if (chunk > 0) {
-                size_t w = fwrite(buf, 1, (size_t)chunk, *g_sp_pcur);
-                if (w != (size_t)chunk) return 1;
+        }
+        if (chunk > 0) {
+            if (g_sp_fuse) {
+                if (g_sp_ffill + chunk > g_sp_fcap) return 1;
+                memcpy(g_sp_fbuf + g_sp_ffill, buf, (size_t)chunk);
+                g_sp_ffill += chunk;
+            } else {
+                if (!g_sp_test_only) {
+                    size_t w = fwrite(buf, 1, (size_t)chunk, *g_sp_pcur);
+                    if (w != (size_t)chunk) return 1;
+                }
                 *g_sp_pcrc = uharc06_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
             }
-        } else {
-            if (chunk > 0)
-                *g_sp_pcrc = uharc06_crc32(buf, (unsigned)chunk, *g_sp_pcrc);
         }
         buf += chunk;
         len -= (unsigned)chunk;
         *g_sp_prem -= chunk;
         if (*g_sp_prem == 0) {
             ci = *g_sp_pidx;
+            if (g_sp_fuse) {
+                /* whole file is buffered: apply the 0.6 inverse EXE filter
+                 * (same algorithm as 0.3/0.4) before CRC and write */
+                uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6);
+                if (!g_sp_test_only) {
+                    size_t w = fwrite(g_sp_fbuf, 1, (size_t)g_sp_ffill,
+                                      *g_sp_pcur);
+                    if (w != (size_t)g_sp_ffill) return 1;
+                }
+                *g_sp_pcrc = uharc06_crc32(g_sp_fbuf, (unsigned)g_sp_ffill,
+                                           *g_sp_pcrc);
+                g_sp_fuse = 0;
+                g_sp_ffill = 0;
+            }
             if (*g_sp_pcur) { fclose(*g_sp_pcur); *g_sp_pcur = 0; }
             if (((~(*g_sp_pcrc)) & 0xFFFFFFFFUL) !=
                 (h->entries[ci].crc & 0xFFFFFFFFUL)) {
@@ -790,6 +832,7 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     int drc;
     int rc = UHARC06_OK;
     unsigned long k;
+    unsigned long *cum = 0;
 
     if (!h || !h->fp) return UHARC06_ERR_IO;
     if (!outdir) outdir = ".";
@@ -807,6 +850,9 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     g_sp_curpath = curpath;
     g_sp_curpath_cap = (unsigned)sizeof(curpath);
     g_sp_crc_err = 0;
+    g_sp_filt = (h->hdr.flags2 & 1) ? 1 : 0;
+    g_sp_fuse = 0;
+    g_sp_ffill = 0;
 
     /* TODO skip marker method 0xFF: fail fast if size>0 */
     for (k = 0; k < h->nfiles; k++) {
@@ -814,6 +860,23 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
             (h->entries[k].size & 0xFFFFFFFFUL) != 0) {
             rc = UHARC06_ERR_DATA;
             goto done;
+        }
+    }
+
+    /* Container cumulative file-end table (dword_422934 / dword_45D128):
+     * core5/core4 reset their models at these boundaries.  Built from the
+     * same per-entry sizes the original uses for its progress table. */
+    if (h->nfiles > 0) {
+        unsigned long acc = 0;
+        cum = (unsigned long *)malloc(sizeof(unsigned long) * h->nfiles);
+        if (!cum) { rc = UHARC06_ERR_NOMEM; goto done; }
+        for (k = 0; k < h->nfiles; k++) {
+            acc = (acc + (h->entries[k].size & 0xFFFFFFFFUL)) & 0xFFFFFFFFUL;
+            cum[k] = acc;
+        }
+        /* contract for the decoder: last entry is the total output size */
+        if (cum[h->nfiles - 1] == 0 && h->hdr.total_size != 0) {
+            cum[h->nfiles - 1] = h->hdr.total_size;
         }
     }
 
@@ -857,8 +920,9 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     mr.buf = packed;
     mr.len = packed_len;
     mr.pos = 0;
-    drc = uharc_dec_decode((int)h->hdr.method, mr_read, &mr,
-                           uharc06_split_write, 0, h->hdr.total_size);
+    drc = uharc_dec_decode_b((int)h->hdr.method, 0, 6, cum, h->nfiles,
+                             mr_read, &mr, uharc06_split_write, 0,
+                             h->hdr.total_size);
     if (g_sp_crc_err) rc = UHARC06_ERR_CRC;
     else if (drc == 2) rc = UHARC06_ERR_NOMEM;
     else if (drc != 0) rc = UHARC06_ERR_DATA;
@@ -869,6 +933,10 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
 
 done:
     if (packed) free(packed);
+    if (cum) free(cum);
+    free(g_sp_fbuf);
+    g_sp_fbuf = 0;
+    g_sp_fcap = 0;
     if (cur) { fclose(cur); cur = 0; }
     g_sp_h = 0;
     return rc;
