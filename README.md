@@ -415,12 +415,14 @@ becomes 2..7 accordingly.
    archive uses methods 2..7).
    0.2 is COMPLETE: byte-exact against every oracle, including
    archives made by the real DOS archiver under MS-DOS Player.
-3. 0.6 core4 is the last unported coder - now UNBLOCKED: the decode
-   API accepts the cumulative file-size table (`uharc_dec_decode_b`),
-   so core4 can reproduce D3X's five resets. A full translation
-   sits in the temp dir (compiles, stream header exact) but still
-   crashes in the Fenwick rebuild (sub_40E4FF). 0.4 core4 (04_mx)
-   has a partial port only. Watch for aliased DGROUP arrays.
+3. 0.6 core4 is the last unported coder. The full translation is now
+   IN the repo (`uharc_dec4.c`): the x86-64 crash was 32-bit "pointers"
+   truncated into int locals, fixed by a flat offset arena; the stream
+   header (4228BE=894609) and the first output bytes now match native.
+   Still failing: D3X stops at out=95 where the PPM tree goes
+   inconsistent (tree[0] = sum(raw)+32 at some contexts), so D3X gives
+   DATA, gmud-06x DATA. 0.4 core4 (04_mx) is still a skeleton. Watch
+   for aliased DGROUP arrays and for Hex-Rays dropping `++ptr`.
 4. Remaining filter: the multimedia layer (uha02_mm.c, verified by
    encoder round-trip) is not wired for 0.3/0.4/0.6. The EXE
    filters are done for all four versions (0.2/0.3/0.4 shared
