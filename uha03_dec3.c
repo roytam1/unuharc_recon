@@ -14,6 +14,8 @@
  *      0xFFFFFFFF), dict+0x100 (zeroed), 0x29000 freq (328 x 256 u16),
  *      0x29000 raw, 0x28C escw (326 u16 used; 328 allocated because the
  *      update writes escw[326]/[327] too).
+ *      dword_445088 (reset threshold) = 0x10000, dword_445074 (progress
+ *      index) = 0, dword_445078 = container progress table.
  *  sub_41FAD0 (model reset)   -> u3_reset  (freq/raw[0..325] zeroed,
  *      freq/raw[326..327] from the 0x42C9B0 lowbit table *8 / 8,
  *      escw[0..325]=1, litm[48] from the 0x42CBE8 template)
@@ -24,12 +26,24 @@
  *  sub_41FFD4 (symbol decode) -> u3_sym       (ctx symbol + escape)
  *  sub_420310 (literal)       -> u3_literal
  *  sub_420418 (match/decision)-> u3_match
- *  sub_41FF24 (main loop)     -> uharc_dec3u_decode
+ *  sub_41FF24 (main loop)     -> uharc_dec3u_decode(+_b)
  *  sub_42335C (coder init)    -> u3_rc_init
  *  sub_423188 (decode point)  -> u3_point
  *  sub_423140 (narrow)        -> u3_narrow
  *  sub_41E2B0 (input byte)    -> u3_get (via read callback)
  *  sub_41E3BC (output byte)   -> u3_emit (via write callback)
+ *
+ * Multi-block reset rule (sub_41FF24, identical shape to 0.4's sub_423E90):
+ * after every decoded match/literal the main loop walks the container's
+ * cumulative file-end table forward while out > table[idx]; whenever a
+ * crossed file end is greater than dword_445088 it calls sub_41FAD0 and sets
+ * dword_445088 = out + 0x10000.  So a reset happens at the first file end
+ * more than 64 KiB of output past the previous reset, one step *after* the
+ * boundary (mid-file); the dictionary and output stream are continuous.
+ *
+ * sub_41FC30 (= 0.4 sub_423B70) copies raw[0..254] to freq[1..255] before
+ * the Fenwick rebuild: freq[i] is the tree over raw[i-lowbit(i)..i-1] and
+ * symbol s lives at index s+1, so the copy source is raw[i-1].
  *
  * 0.3-specific details that differ from the verified 0.6 core-3 port
  * (uharc_dec3.c):
@@ -73,6 +87,10 @@ int uharc_dec3u_init(void **pctx, int method);
 int uharc_dec3u_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
+int uharc_dec3u_decode_b(void *ctx, const unsigned long *cum,
+                         unsigned long ncum, uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
 void uharc_dec3u_free(void *ctx);
 
 #ifndef U3_DEBUG
@@ -132,6 +150,10 @@ typedef struct dec3u_s {
     long excl;               /* 4450A0: dict index or -1 */
     long match_pos;          /* 445094: -1 or dict index */
     unsigned long last_dist; /* 445070 */
+    unsigned long thresh;    /* 445088: output size that allows a reset */
+    const unsigned long *cum; /* container progress table (445078) */
+    unsigned long ncum;      /* entries in cum[] (0 = no table) */
+    unsigned long prog_idx;  /* 445074: index into cum[] */
 } dec3u;
 
 /* litm entry[1] seeds: 0x42CBE8 template, period 8, entry[2] = 0x2000 */
@@ -269,7 +291,10 @@ static void u3_rescale(dec3u *d, unsigned ctx)
         total = (total + h0 + h1) & U3_M32;
         total = (total + h2 + h3) & U3_M32;
     }
-    for (i = 1; i < 256; i++) fr[i] = raw[i];
+    /* sub_41FC30 copies raw[0..254] to freq[1..255] (510 bytes at
+     * freq+ctx*512+2), i.e. freq[i] = raw[i-1]; a plain freq[i] = raw[i]
+     * would shift the whole Fenwick tree by one symbol. */
+    for (i = 1; i < 256; i++) fr[i] = raw[i - 1];
     fr[0] = (unsigned short)(((total & U3_M16) + ((total >> 16) & U3_M16)) & U3_M16);
     for (k = 1; k <= 64; k *= 2) {
         j = 256 - 2 * k;
@@ -334,6 +359,32 @@ static void u3_reset(dec3u *d)
         d->litm[c][0] = 0;
         d->litm[c][1] = u3_litw1[c & 7u];
         d->litm[c][2] = 0x2000;
+    }
+}
+
+/* One step of the container progress walk, which sub_41FF24 runs after every
+ * decoded match/literal (identical shape to 0.4's sub_423E90):
+ *   for (i = idx; ; i = idx + 1) {
+ *       v = table[i]; idx = i;
+ *       if (out <= v) break;
+ *       if (v > thresh) { reset; thresh = out + 0x10000; }
+ *   }
+ */
+static void u3_progress(dec3u *d)
+{
+    if (!d->cum || !d->ncum) return;
+    while (d->prog_idx < d->ncum - 1UL &&
+           d->out_total > d->cum[d->prog_idx]) {
+        unsigned long v = d->cum[d->prog_idx];
+        d->prog_idx++;
+        if (v > d->thresh) {
+#if U3_DEBUG
+            fprintf(stderr, "[u3] reset out=%lu boundary=%lu thresh=%lu idx=%lu\n",
+                    d->out_total, v, d->thresh, d->prog_idx);
+#endif
+            u3_reset(d);
+            d->thresh = d->out_total + 0x10000UL;
+        }
     }
 }
 
@@ -653,10 +704,11 @@ void uharc_dec3u_free(void *ctx)
     free(d);
 }
 
-int uharc_dec3u_decode(void *ctx,
-                       uharc_dec_read_cb rcb, void *rctx,
-                       uharc_dec_write_cb wcb, void *wctx,
-                       unsigned long out_len)
+int uharc_dec3u_decode_b(void *ctx,
+                         const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len)
 {
     dec3u *d = (dec3u *)ctx;
     int err;
@@ -683,14 +735,28 @@ int uharc_dec3u_decode(void *ctx,
     d->out_total = 0;
     d->out_len = out_len;
     d->err = 0;
+    d->thresh = 0x10000UL;
+    d->prog_idx = 0;
+    if (cum && ncum && cum[ncum - 1] == out_len) {
+        d->cum = cum;
+        d->ncum = ncum;
+    } else {
+        d->cum = 0;
+        d->ncum = 0;
+    }
     u3_rc_init(d);
     while (d->out_total < d->out_len && !d->err) {
         if (!u3_match(d)) {
             if (d->err) break;
             u3_literal(d);
         }
+        if (!d->err) u3_progress(d);
     }
     err = d->err;
+#if U3_DEBUG
+    fprintf(stderr, "[u3] end err=%d out=%lu inpos=%u\n", err, d->out_total,
+            d->in_pos);
+#endif
     if (!err && d->out_fill) {
         if (wcb(wctx, d->outb, d->out_fill) != 0) err = 4;
     }
@@ -699,4 +765,12 @@ int uharc_dec3u_decode(void *ctx,
     d->inb = 0;
     d->outb = 0;
     return err;
+}
+
+int uharc_dec3u_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
+{
+    return uharc_dec3u_decode_b(ctx, 0, 0UL, rcb, rctx, wcb, wctx, out_len);
 }

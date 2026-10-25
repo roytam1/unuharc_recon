@@ -43,8 +43,11 @@
  *    {e0,e1,e2,pad} entries seeded 11..14 / 6..9 / 49 / 79 with e2=99,
  *    and rescale as e1' = e0 + ((e1-e0+1)>>1),
  *    e2' = e1' + ((e2-e1+1)>>1) (not the 0.6 halving).
- *  - Model reset happens at 64 KiB output boundaries (the original
- *    gates it on the per-file progress table; tables are far below).
+ *  - Model reset happens at container file boundaries at least 64 KiB of
+ *    output apart (the original walks the per-file progress table; see
+ *    d4_progress) and is applied *after* the step that crosses the
+ *    boundary, so it lands mid-file.  The dictionary and output stream are
+ *    continuous across blocks.
  *  - No mval[], no 0.6 "state" parameter table beyond the shared
  *    0x4372A0 eight-state history transition table (same as 0.6).
  *
@@ -78,6 +81,10 @@ int uharc_dec3v_init(void **pctx, int method);
 int uharc_dec3v_decode(void *ctx, uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
+int uharc_dec3v_decode_b(void *ctx, const unsigned long *cum,
+                         unsigned long ncum, uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
 void uharc_dec3v_free(void *ctx);
 
 #ifndef U4_DEBUG
@@ -138,7 +145,10 @@ typedef struct dec3v_s {
     long match_pos;           /* 45CF2C: dict index or -1 */
     unsigned long run_len;    /* 45CF40 */
     unsigned long last_dist;  /* 45CF38 */
-    unsigned long thresh;     /* next model reset, 45CF24-style */
+    unsigned long thresh;     /* 45CF24: output size that allows a reset */
+    const unsigned long *cum; /* container progress table (45CF14) */
+    unsigned long ncum;       /* entries in cum[] (0 = no table) */
+    unsigned long prog_idx;   /* 45CF10: index into cum[] */
 } dec3v;
 
 /* 0x437110 literal template, word 1 of each 8-byte entry (e0=0, e2=99) */
@@ -279,6 +289,31 @@ static void d4_reset(dec3v *d)
         d->litm[i][3] = 0;
     }
     d->thresh = 0x10000UL;
+}
+
+/* One step of the container progress walk (sub_423E90, inlined there and
+ * running after every decoded match/literal):
+ *   for (i = idx; ; i = idx + 1) {
+ *       v = table[i]; idx = i;
+ *       if (out <= v) break;
+ *       if (v > thresh) { reset; thresh = out + 0x10000; }
+ *   }
+ * i.e. advance to the first cumulative file end >= out and reset whenever a
+ * crossed file end lies more than 64 KiB past the previous reset.  The reset
+ * therefore lands one step *after* the boundary, mid-file.
+ */
+static void d4_progress(dec3v *d)
+{
+    if (!d->cum || !d->ncum) return;
+    while (d->prog_idx < d->ncum - 1UL &&
+           d->out_total > d->cum[d->prog_idx]) {
+        unsigned long v = d->cum[d->prog_idx];
+        d->prog_idx++;
+        if (v > d->thresh) {
+            d4_reset(d);
+            d->thresh = d->out_total + 0x10000UL;
+        }
+    }
 }
 
 /* ---- rescale one context (sub_423B70) ---- */
@@ -819,10 +854,11 @@ void uharc_dec3v_free(void *ctx)
     free(d);
 }
 
-int uharc_dec3v_decode(void *ctx,
-                       uharc_dec_read_cb rcb, void *rctx,
-                       uharc_dec_write_cb wcb, void *wctx,
-                       unsigned long out_len)
+int uharc_dec3v_decode_b(void *ctx,
+                         const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len)
 {
     dec3v *d = (dec3v *)ctx;
     int err;
@@ -850,16 +886,21 @@ int uharc_dec3v_decode(void *ctx,
     d->out_len = out_len;
     d->err = 0;
     d4_reset(d);
+    d->prog_idx = 0;
+    if (cum && ncum && cum[ncum - 1] == out_len) {
+        d->cum = cum;
+        d->ncum = ncum;
+    } else {
+        d->cum = 0;
+        d->ncum = 0;
+    }
     d4_rc_init(d);
     while (d->out_total < d->out_len && !d->err) {
-        if (d->out_total >= d->thresh) {
-            d4_reset(d);
-            d->thresh = d->out_total + 0x10000UL;
-        }
         if (!d4_match(d)) {
             if (d->err) break;
             d4_literal(d);
         }
+        if (!d->err) d4_progress(d);
     }
     err = d->err;
     if (!err && d->out_fill) {
@@ -870,4 +911,12 @@ int uharc_dec3v_decode(void *ctx,
     d->inb = 0;
     d->outb = 0;
     return err;
+}
+
+int uharc_dec3v_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
+{
+    return uharc_dec3v_decode_b(ctx, 0, 0UL, rcb, rctx, wcb, wctx, out_len);
 }

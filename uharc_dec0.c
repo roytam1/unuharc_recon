@@ -221,6 +221,11 @@ int uharc_dec3_decode(void *ctx,
                       uharc_dec_read_cb rcb, void *rctx,
                       uharc_dec_write_cb wcb, void *wctx,
                       unsigned long out_len);
+int uharc_dec3_decode_b(void *ctx,
+                        const unsigned long *cum, unsigned long ncum,
+                        uharc_dec_read_cb rcb, void *rctx,
+                        uharc_dec_write_cb wcb, void *wctx,
+                        unsigned long out_len);
 void uharc_dec3_free(void *ctx);
 int uharc_dec4_init(void **pctx, int method);
 int uharc_dec4_decode(void *ctx,
@@ -259,6 +264,11 @@ int uharc_dec3u_decode(void *ctx,
                        uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
+int uharc_dec3u_decode_b(void *ctx,
+                         const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
 void uharc_dec3u_free(void *ctx);
 /* 0.4 core3 (verified: exact on 04_m* and uha04.UHA tab1) */
 int uharc_dec3v_init(void **pctx, int method);
@@ -266,6 +276,11 @@ int uharc_dec3v_decode(void *ctx,
                        uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
                        unsigned long out_len);
+int uharc_dec3v_decode_b(void *ctx,
+                         const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
 void uharc_dec3v_free(void *ctx);
 /* 0.3 core5 (verified: byte-exact on 03_m1/m2/m3/mx/mz file data) */
 int uharc_dec5u_init(void **pctx, int method);
@@ -383,11 +398,14 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
             if (ver == 2)
                 ret = uharc_dec3t_decode(c3, rcb, rctx, wcb, wctx, out_len);
             else if (ver == 3)
-                ret = uharc_dec3u_decode(c3, rcb, rctx, wcb, wctx, out_len);
+                ret = uharc_dec3u_decode_b(c3, cum, ncum, rcb, rctx, wcb,
+                                           wctx, out_len);
             else if (ver == 4)
-                ret = uharc_dec3v_decode(c3, rcb, rctx, wcb, wctx, out_len);
+                ret = uharc_dec3v_decode_b(c3, cum, ncum, rcb, rctx, wcb,
+                                           wctx, out_len);
             else
-                ret = uharc_dec3_decode(c3, rcb, rctx, wcb, wctx, out_len);
+                ret = uharc_dec3_decode_b(c3, cum, ncum, rcb, rctx, wcb,
+                                          wctx, out_len);
             if (ver == 2) uharc_dec3t_free(c3);
             else if (ver == 3) uharc_dec3u_free(c3);
             else if (ver == 4) uharc_dec3v_free(c3);

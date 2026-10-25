@@ -16,13 +16,12 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   Entry+3 sizes are deltas (prev_size - curr_size, 32-bit wrap).
   `D3X.UHA`: 45 files, 976594 bytes total, names/sizes match `UHARC06 l`.
   `06_m*` (6 files, 5840 bytes): names/sizes/CRCs match `l` + corpus.
-* File extraction: STORE exact; core5 exact incl. multi-file solids,
-  boundary resets and the EXE filter - `06_m1/m2/m3` and a 1.27 MB
-  two-file archive (`BIG.uha`) and the real 33 MB `gmud-06m3.uha`
-  (44 files, method 87) are byte-identical to native extraction, plus
-  generated 3-8 file solids across methods 49/50/51/65/81.
-  Still open: core4 (`06_mx`, `D3X` method 34) is unported; core3
-  multi-block (`06_mz` method 11); and the multimedia filter.
+* File extraction: STORE, core3 and core5 exact, including multi-block
+  resets and the EXE filter - `06_m0/m1/m2/m3/mz`, a 1.27 MB two-file
+  archive (`BIG.uha`), the real 33 MB `gmud-06m3`/`gmud-06z` (44 files,
+  methods 87/23, byte-identical to native extraction) and generated
+  3-8 file solids across methods 49/50/51/65/81.
+  Still open: core4 (`06_mx`, `D3X` method 34) and the media filter.
   (The former "group 6" defect is FIXED: missing incw/ctxw init
   patches, an asr4 rounding error and several aliased predictor
   arrays. gmud-06m3 exercises it.)
@@ -59,8 +58,9 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   predictor reset seeds pred2a8=2 and the [28..30] sentinels with -1;
   long-path decay fires every 256 calls (whole low byte zero, not the
   16-call nudge mask); group switch keeps the decision-history pointer.
-  Remaining: 04_mx needs the 0.4 core4 coder; `gmud-04z` (method 17,
-  core3) needs core3 multi-block.
+  `gmud-04z` (method 17, core3) is exact too (multi-block: reset at the
+  first file end >64 KiB past the previous reset, 26 resets).
+  Remaining: `04_mx` needs the 0.4 core4 coder.
 
 0.3:
 * Header parsing: DONE, verified on `uharc_u.uha`
@@ -117,8 +117,9 @@ Derived from `UNUHARC06.EXE` (UnUHARC 0.6b, 01 Oct 2005) via
   (see uha03_dec3.c header). crc1 is cumulative over tab0+tab1.
   File data: EXTRACTION DONE for all six vectors (03_m0 STORE..03_mz,
   methods 0/39/67) via uha03_dec5.c - byte-exact vs corpus.
-  Real 33 MB gmud-03m3.uha now passes 	 (44/44 CRCs) and extracts
-  byte-identically to the 0.4/0.6 extractions of the same content.
+  Real 33 MB `gmud-03m3.uha` passes `t` (44/44 CRCs) and extracts
+  byte-identically to the 0.4/0.6 extractions of the same content;
+  `gmud-03z` (core3, 26 resets) does too.
   uharc_u.uha (method 60, 1 MB dictionary) is now byte-exact too:
   1047398 bytes, CRC32 D9BA98B4, identical to a fresh official
   extraction by uharc_u.exe. The earlier failure was not a
@@ -400,11 +401,13 @@ becomes 2..7 accordingly.
 
 ## Next steps
 
-1. core3 multi-block: the 0.3/0.4/0.6 core3 decoders are
-   single-block (thresh=out_len works for tables); larger ALZ file
-   streams (`06_mz` method 11, `gmud-03z`/`gmud-04z` methods 21/17)
-   need the block reset via progress table
-   (`sub_40807F`/`dword_4396F4`) like the original.
+1. core3 multi-block is DONE. 0.6 resets 64 KiB of output after the
+   last boundary, snapped to a file end, then skips while a <16 KiB
+   file is followed by an even smaller one; 0.3/0.4 reset at the first
+   file end more than 64 KiB past the previous reset, checked after
+   every match/literal. `06_mz` and all three `gmud-0Xz` are exact.
+   Two latent rescale bugs also fell out: freq[i] is the Fenwick tree
+   over raw[i-lowbit(i)..i-1], so the rebuild copies raw[i-1] to fr[i].
 2. 0.2, 0.3 and the ALZ/STORE/EXE-filter parts of 0.4 are COMPLETE.
    0.4 core5 now handles real 33 MB multi-block streams. 04_mx
    still needs the 0.4 core4 coder.

@@ -19,7 +19,8 @@
  *  sub_40B0DA (output flush)-> d3_emit/d3_flush (buffered via wcb; err 4)
  *  sub_4196E0 (memset)      -> memset; sub_416D40 (word fill) -> loops
  *  sub_40BF64 (model reset) -> d3_model_reset (freq/raw zeroed, ctx318 =
- *    uniform BIT lowbit(i)*8, raw318=8, escw=1, litm scaled, thresh=out_len)
+ *    uniform BIT lowbit(i)*8, raw318=8, escw=1, litm scaled, then the
+ *    container progress-table walk described below)
  *  sub_40C0F0 (rescale ctx) -> d3_rescale (halve raw pairs with the exact
  *    ((d+0x10001)&0xFFFEFFFE)>>1 dword trick, rebuild BIT in place)
  *  sub_40C21D (model update)-> d3_update (raw+=32, Fenwick update, escw+=32
@@ -33,6 +34,22 @@
  *    exclusion pointer, emit ~byte, dict store, ctx shift)
  * Range renormalize pattern used everywhere:
  *    while (range < 0x1000000) { code=(code<<8)|getbyte(); range<<=8; }
+ *
+ * Multi-block reset rule (sub_40C305 top of loop + sub_40BF64 tail):
+ *    if (out >= dword_4396E8) sub_40BF64();
+ *  and sub_40BF64 advances dword_4396E8 (orig ++HIWORD => +=0x10000, clamped
+ *  to the total) and then snaps it forward to the first entry of the
+ *  container's cumulative file-end table (dword_4396F4, walked with the
+ *  dword_4396F0 index) that is >= it.  If that file is smaller than 0x4000
+ *  and each following file is smaller still, it keeps stepping forward
+ *  (dword_4396F0/dword_4396E8 follow) so a run of tiny files gets one block.
+ *  The check sits at the top of the loop, so the reset lands at the first
+ *  output step at/after the boundary and can be mid-file (the dictionary and
+ *  the output stream are continuous across blocks).
+ *
+ * NOTE on rescale: sub_40C0F0 copies raw[0..254] to freq[1..255] before the
+ * Fenwick rebuild (freq[i] = tree over raw[i-lowbit(i)..i-1], symbol s at
+ * index s+1); the port must not copy raw[0..255] to freq[0..255].
  *
  * Static data (from DGROUP in UNUHARC06.lst):
  *  unk_422BA0 (512B ctx318 template) = w[0]=256, w[i]=lowbit(i) -> built.
@@ -51,6 +68,9 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#ifdef D3_TRACE
+#include <stdio.h>
+#endif
 
 #include "uharc_dec.h"
 
@@ -94,7 +114,10 @@ typedef struct dec3_s {
     unsigned long sym_lo;
     unsigned long sym_hi;
     unsigned char state;
-    unsigned long thresh;
+    unsigned long thresh;     /* next model reset (orig dword_4396E8) */
+    const unsigned long *cum; /* container cumulative file-end table */
+    unsigned long ncum;       /* entries in cum[] (0 = no table) */
+    unsigned long prog_idx;   /* orig dword_4396F0: index into cum[] */
 } dec3;
 
 /* literal entry w1 seeds (unk_422DDC bytes 2..3 of each 8-byte entry) */
@@ -301,10 +324,20 @@ static int d3_renorm(dec3 *d, unsigned long lo, unsigned long hi)
     return 1;
 }
 
-/* ---- model reset (sub_40BF64, progress tail stubbed) ---- */
+/* ---- model reset (sub_40BF64) ----
+ * Walk of the container progress table (orig dword_4396F4/dword_4396F0):
+ * thresh += 0x10000 (the original does ++HIWORD(thresh)), clamp to the
+ * total, then advance to the first cumulative file end >= thresh.  If that
+ * file is small (< 0x4000) and the following file is even smaller, keep
+ * stepping forward (ties stay) so a run of tiny files gets one block.
+ */
 static void d3_model_reset(dec3 *d)
 {
     unsigned i;
+#ifdef D3_TRACE
+    fprintf(stderr, "[d3] reset out=%lu thresh_in=%lu idx_in=%lu\n",
+            d->out_total, d->thresh, d->prog_idx);
+#endif
     memset(d->freq, 0, 162816UL);
     memset(d->raw, 0, 162816UL);
     for (i = 0; i < 256; i++) {
@@ -317,7 +350,42 @@ static void d3_model_reset(dec3 *d)
         d->litm[i][1] = (unsigned short)((d->litm[i][1] + 7) >> 3);
         d->litm[i][2] = (unsigned short)((d->litm[i][2] + 15) >> 3);
     }
-    d->thresh = d->out_len;
+    if (d->cum && d->ncum) {
+        unsigned long t;
+        unsigned long idx;
+        unsigned long v;
+        t = (d->thresh + 0x10000UL) & D3_M32;
+        if (t > d->out_len) t = d->out_len;
+        idx = d->prog_idx;
+        for (;;) {
+            if (idx >= d->ncum - 1UL) { idx = d->ncum - 1UL; break; }
+            v = d->cum[idx];
+            if (v >= t) break;
+            idx++;
+        }
+        d->prog_idx = idx;
+        d->thresh = d->cum[idx];
+#ifdef D3_TRACE
+        fprintf(stderr, "[d3]   walk t=%lu -> idx=%lu thresh=%lu ncum=%lu\n",
+                t, d->prog_idx, d->thresh, d->ncum);
+#endif
+        if (d->prog_idx && d->thresh < d->out_len) {
+            unsigned long cur = d->cum[idx] - d->cum[idx - 1];
+            unsigned long nxt = d->cum[idx + 1] - d->cum[idx];
+            if (cur < 0x4000UL) {
+                while (nxt < cur) {
+                    idx++;
+                    d->prog_idx = idx;
+                    d->thresh = d->cum[idx];
+                    if (d->thresh >= d->out_len) break;
+                    cur = nxt;
+                    nxt = d->cum[idx + 1] - d->cum[idx];
+                }
+            }
+        }
+    } else {
+        d->thresh = d->out_len;
+    }
 }
 
 /* ---- rescale context (sub_40C0F0) ---- */
@@ -329,6 +397,10 @@ static void d3_rescale(dec3 *d, unsigned ctxidx)
     unsigned short *fr = d->freq + ctxidx * 256u;
     unsigned k;
     unsigned j;
+#ifdef D3_TRACE
+    fprintf(stderr, "[d3] rescale ctx=%u out=%lu escw=%u f0=%u\n", ctxidx,
+            d->out_total, (unsigned)d->escw[ctxidx], (unsigned)fr[0]);
+#endif
     if (ctxidx < 0x13E) d->escw[ctxidx] = (unsigned short)((d->escw[ctxidx] >> 2) + 1);
     for (i = 0; i < 256; i += 8) {
         unsigned long d0 = (unsigned long)raw[i] | ((unsigned long)raw[i + 1] << 16);
@@ -350,7 +422,10 @@ static void d3_rescale(dec3 *d, unsigned ctxidx)
         total = (total + h0 + h1) & D3_M32;
         total = (total + h2 + h3) & D3_M32;
     }
-    memcpy(fr, raw, 512);
+    /* sub_40C0F0 copies raw[0..254] to freq[1..255] (510 bytes) before the
+     * Fenwick rebuild, i.e. freq[i] = raw[i-1].  A plain memcpy(raw) would
+     * shift the whole tree by one symbol. */
+    for (i = 0; i < 255; i++) fr[i + 1] = raw[i];
     fr[0] = (unsigned short)((total + (total >> 16)) & 0xFFFFUL);
     for (k = 1; k <= 64; k *= 2) {
         for (j = 256 - 2 * k; ; j -= 2 * k) {
@@ -791,10 +866,14 @@ static void d3_literal(dec3 *d)
     d->dict_pos = (d->dict_pos + 1) & d->dict_mask;
 }
 
-int uharc_dec3_decode(void *ctx,
-                       uharc_dec_read_cb rcb, void *rctx,
-                       uharc_dec_write_cb wcb, void *wctx,
-                       unsigned long out_len)
+/* Entry point with the container's cumulative file-end table (multi-block).
+ * cum[] may be NULL (ncum = 0) for a single-block stream: the model then
+ * resets only once, before the first byte, exactly as before. */
+int uharc_dec3_decode_b(void *ctx,
+                        const unsigned long *cum, unsigned long ncum,
+                        uharc_dec_read_cb rcb, void *rctx,
+                        uharc_dec_write_cb wcb, void *wctx,
+                        unsigned long out_len)
 {
     dec3 *d = (dec3 *)ctx;
     int err;
@@ -822,6 +901,14 @@ int uharc_dec3_decode(void *ctx,
     d->out_len = out_len;
     d->err = 0;
     d->thresh = 0;
+    d->prog_idx = 0;
+    if (cum && ncum && cum[ncum - 1] == out_len) {
+        d->cum = cum;
+        d->ncum = ncum;
+    } else {
+        d->cum = 0;
+        d->ncum = 0;
+    }
     d3_rc_init(d);
     while (d->out_total < d->out_len && !d->err) {
         if (d->out_total >= d->thresh) d3_model_reset(d);
@@ -832,6 +919,10 @@ int uharc_dec3_decode(void *ctx,
         }
     }
     err = d->err;
+#ifdef D3_TRACE
+    fprintf(stderr, "[d3] end err=%d out=%lu inpos=%u\n", err, d->out_total,
+            d->in_pos);
+#endif
     if (!err && d->out_fill) {
         if (wcb(wctx, d->outb, d->out_fill) != 0) err = 4;
     }
@@ -840,4 +931,12 @@ int uharc_dec3_decode(void *ctx,
     d->inb = 0;
     d->outb = 0;
     return err;
+}
+
+int uharc_dec3_decode(void *ctx,
+                       uharc_dec_read_cb rcb, void *rctx,
+                       uharc_dec_write_cb wcb, void *wctx,
+                       unsigned long out_len)
+{
+    return uharc_dec3_decode_b(ctx, 0, 0UL, rcb, rctx, wcb, wctx, out_len);
 }
