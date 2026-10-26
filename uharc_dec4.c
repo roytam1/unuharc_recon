@@ -5091,7 +5091,11 @@ static int d4_41030F(dec4_ctx *c)
   v216 = v7;
   v8 = v209 && v7;
   v207 = v8;
-  v9 = v8 &(0x45C640) < (unsigned int)G32(0x45C654);
+  /* asm 0x41055A..0x410571: v206 = v207 && (M32(0x45C640) < G32(0x45C654)).
+   * (The previous form `v8 &(0x45C640) < X` was a precedence trap: it is
+   * `v8 & (0x45C640 < X)`, i.e. always v8, which made the cost gate
+   * always true.) */
+  v9 = v8 && (M32(0x45C640) < (unsigned int)G32(0x45C654));
   v206 = v9;
   v159 = (unsigned char)G32(0x45C6A4);
   if ( !G8(0x45E392) && M8(0x42738D + (BYTE1(G32(0x45C6A4)))) )
