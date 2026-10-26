@@ -490,9 +490,9 @@ static const unsigned char d4_t42711F[256] = {
     200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
     200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
     200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
-    200,200,200,200,200,200,200,200,200,200,200,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
+    200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
+    200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
     0,200,1,2,200,3,4,5,6,7,8,9,10,11,12,13,
     14,15,16,24,200,32,40,48,56,64,72,80,88,17,25,33,
     41,49,57,65,73,81,100,100,100,100,100,100,100,100,100,100,
@@ -504,9 +504,9 @@ static const unsigned char d4_t42711F[256] = {
 };
 
 static const unsigned char d4_t427179[1024] = {
-    200,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,200,1,2,200,3,4,5,6,7,
+    200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
+    200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,
+    200,200,200,200,200,200,0,200,1,2,200,3,4,5,6,7,
     8,9,10,11,12,13,14,15,16,24,200,32,40,48,56,64,
     72,80,88,17,25,33,41,49,57,65,73,81,100,100,100,100,
     100,100,100,100,100,100,200,200,89,200,18,26,34,42,50,58,
@@ -4802,7 +4802,9 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
  * would be auditing every local against the asm. Same for d4_411F8B and
  * d4_412257 below. */
 #pragma GCC push_options
+#if defined(__GNUC__) && __GNUC__ >= 12
 #pragma GCC optimize ("-ftrivial-auto-var-init=zero")
+#endif
 static int d4_41030F(dec4_ctx *c)
 {
   signed int v0;
@@ -5927,6 +5929,13 @@ LABEL_336:
     }
   }
   while ( v208 && v204 );
+  /* asm 0x411BD6/0x411BDA: when the decode loop exits with v208==0 the
+   * literal was already produced by a fast path (which stored it in v212)
+   * - skip the v120/v201 setup and the 411F8B decode and go straight to
+   * the model-update/output tail.  Falling through here re-decodes a
+   * second literal, consuming range bits the original never reads. */
+  if ( !v208 )
+    goto LABEL_408;
   if ( v208 )
   {
     v120 = v159;
@@ -6099,7 +6108,9 @@ LABEL_408:
 
 /* See the note above d4_41030F: same -O2 miscompile workaround. */
 #pragma GCC push_options
+#if defined(__GNUC__) && __GNUC__ >= 12
 #pragma GCC optimize ("-ftrivial-auto-var-init=zero")
+#endif
 static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 {
   unsigned int v2;
@@ -6228,7 +6239,9 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 
 /* See the note above d4_41030F: same -O2 miscompile workaround. */
 #pragma GCC push_options
+#if defined(__GNUC__) && __GNUC__ >= 12
 #pragma GCC optimize ("-ftrivial-auto-var-init=zero")
+#endif
 static unsigned char d4_412257(dec4_ctx *c, int a1)
 {
   unsigned int v1;
