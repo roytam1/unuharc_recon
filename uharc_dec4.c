@@ -4240,7 +4240,7 @@ LABEL_61:
     G32(0x45D0FC) = ((unsigned int)G32(0x45D0F8) >> 24) + (G32(0x45D0FC) << 8);
     G32(0x45D0F8) = v2 + (G32(0x45D0F8) << 8);
   }
-  else if ( (unsigned char)G32(0x45D0F8) != -33 )
+  else if ( (unsigned char)G32(0x45D0F8) != 0xDF )   /* asm 0x40F733: cmp byte [45D0F8],0xdf / je skip */
   {
     G32(0x45D100) = ((unsigned int)G32(0x45D0FC) >> 24) + (G32(0x45D100) << 8);
     G32(0x45D0FC) = ((unsigned int)G32(0x45D0F8) >> 24) + (G32(0x45D0FC) << 8);
@@ -5228,7 +5228,7 @@ LABEL_69:
         {
           v197 = 2 * (unsigned char)M8(0x42738D + (BYTE1(G32(0x45C6A4))));
           v40 = v197 + 4 * (unsigned char)M8(0x42738D + ((unsigned char)G32(0x45C6A4)));
-          v39 = (unsigned char)G32(0x45C6A4) == -33;
+          v39 = (unsigned char)G32(0x45C6A4) == 0xDF;   /* asm 0x410B06: cmp al,0xdf */
         }
         /* asm 0x410B3E: esi = offset dword_450464; esi += 1024*d4239F0[..];
          * edx = 128*d4239F0[..]; lea esi,[edx+esi+4*eax]  (address, not value) */
