@@ -4080,7 +4080,7 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
   unsigned int v9;
   int v10;
   int v11;
-  unsigned int v12;
+  unsigned int v12 = 0;
   int v13;
   int v14;
   int v15;
@@ -4795,6 +4795,14 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
   return v20;
 }
 
+/* -O2 miscompiles this function without zero-initialised autos (D3X file-1
+ * byte 70, 06_mx random.bin): some Hex-Rays locals are read before they are
+ * written on rarely-taken paths, and GCC's -O2 exploits the garbage. Zeroing
+ * is proven safe here (06_mx fully exact, full suite green); the alternative
+ * would be auditing every local against the asm. Same for d4_411F8B and
+ * d4_412257 below. */
+#pragma GCC push_options
+#pragma GCC optimize ("-ftrivial-auto-var-init=zero")
 static int d4_41030F(dec4_ctx *c)
 {
   signed int v0;
@@ -4964,7 +4972,7 @@ static int d4_41030F(dec4_ctx *c)
   unsigned int v165;
   unsigned int v166;
   unsigned int v167;
-  long long v168;
+  long long v168 = 0;
   int v169;
   unsigned int v170;
   unsigned int v171;
@@ -4994,11 +5002,11 @@ static int d4_41030F(dec4_ctx *c)
   unsigned int v195;
   unsigned int v196;
   unsigned int v197;
-  unsigned int v198;
+  unsigned int v198 = 0;
   unsigned int v199;
   unsigned int v200;
-  unsigned int v201;
-  int v202;
+  unsigned int v201 = 0;
+  int v202 = 0;
   unsigned int v203;
   char v204;
   unsigned char v205;
@@ -5011,10 +5019,10 @@ static int d4_41030F(dec4_ctx *c)
   unsigned char v212;
   char v213;
   char v214;
-  unsigned char v215;
+  unsigned char v215 = 0;
   int v216;
   char v217;
-  unsigned char v218;
+  unsigned char v218 = 0;
 
   v208 = 1;
   v211 = 1;
@@ -6087,6 +6095,11 @@ LABEL_408:
   return result;
 }
 
+#pragma GCC pop_options
+
+/* See the note above d4_41030F: same -O2 miscompile workaround. */
+#pragma GCC push_options
+#pragma GCC optimize ("-ftrivial-auto-var-init=zero")
 static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 {
   unsigned int v2;
@@ -6211,6 +6224,11 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
   return v26;
 }
 
+#pragma GCC pop_options
+
+/* See the note above d4_41030F: same -O2 miscompile workaround. */
+#pragma GCC push_options
+#pragma GCC optimize ("-ftrivial-auto-var-init=zero")
 static unsigned char d4_412257(dec4_ctx *c, int a1)
 {
   unsigned int v1;
@@ -6256,11 +6274,11 @@ static unsigned char d4_412257(dec4_ctx *c, int a1)
   int v42;
   int v43;
   int v44;
-  int v45;
+  int v45 = 0;
   int v46;
   int v47;
   unsigned int v48;
-  int v49;
+  int v49 = 0;
   unsigned int v50;
   int v51;
   signed int v52;
@@ -6610,6 +6628,8 @@ LABEL_43:
   return v32;
 }
 
+#pragma GCC pop_options
+
 static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
 {
   unsigned int v2;
@@ -6621,7 +6641,7 @@ static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
   int v8;
   unsigned int v9;
   signed int v10;
-  unsigned int v11;
+  unsigned int v11 = 0;
   unsigned int result;
   int v13;
   int v14;
@@ -6631,7 +6651,7 @@ static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
   unsigned int v18;
   unsigned short v19;
   unsigned int v20;
-  unsigned int v21;
+  unsigned int v21 = 0;
   unsigned int v22;
   unsigned int v23;
   int v24;

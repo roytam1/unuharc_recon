@@ -33,11 +33,20 @@ stream split and per-file CRC verification.
 
 0.6 core 4 is the only partially ported coder. Method 27 (`06_mx`) now
 decodes end to end (`t` = All files OK). Method 34 (`D3X.UHA`) runs without
-crashing and produces `BIN/FILES.TXT` correctly up to byte 70, where a match
-reads dictionary content that has already diverged; method 39 (`gmud-06x`,
-32 MB dict) diverges at output byte 3. There is no 0.3- or 0.4-specific core 4
-port; the dispatcher routes those methods to the 0.6 coder, which does not
-decode them.
+crashing; `BIN/FILES.TXT` (498 B) is now byte-exact, `BIN/D3XSTUB.ASM`
+diverges at its byte 52 (stream offset 550: the native emits 'M' via the
+`v1 - 45E39B` path of `d4_40FFFD` while ours takes a different path).
+Method 39 (`gmud-06x`, 32 MB dict) diverges at output byte 3. There is no
+0.3- or 0.4-specific core 4 port; the dispatcher routes those methods to
+the 0.6 coder, which does not decode them.
+Known -O2 hazard: three functions (`d4_41030F`, `d4_411F8B`,
+`d4_412257`) need zero-initialised autos (`-ftrivial-auto-var-init=zero`
+via `#pragma GCC optimize`), otherwise the build miscompiles them and
+`06_mx`/D3X file 1 fail. Eleven further locals that GCC flags
+`maybe-uninitialized` are explicitly zero-initialised. The remaining
+D3X divergence is a genuine logic bug in the match/length path
+(`d4_40F9D0` accepts a len-255 match at stream 343 where the native takes
+a short match then literals), not undefined behaviour.
 
 0.6 core 2 was verified against a generated `-mw` archive (`06_lzw.uha`) that
 is not in the tree; none of the 0.6 samples present uses methods 2–7.
