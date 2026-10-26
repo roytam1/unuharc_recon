@@ -4954,13 +4954,14 @@ static int d4_41030F(dec4_ctx *c)
   unsigned int v145;
   unsigned char v146;
   int result;
-  int v148;
-  int v149;
-  int v150;
-  char v151;
-  int v152;
-  int v153;
-  char v154;
+  /* asm keeps these as contiguous byte arrays on the stack: 0x40CDA1
+   * (13 bytes) and 0x40CDAE (9 bytes).  They were modelled as separate
+   * int/char locals, which GCC is free not to place adjacently, so the
+   * byte view read other locals (observed: mask bytes 4..7 were
+   * 90 01 db 00 instead of 01 01 01 01).  Use real arrays. */
+  unsigned char vmask13[13];
+  unsigned char vmask9[9];
+  unsigned int mi;
   unsigned int v155;
   int v156;
   unsigned int v157;
@@ -5171,10 +5172,10 @@ static int d4_41030F(dec4_ctx *c)
     G8(0x45E394) = 1;
     ++G32(0x45C6B0);
     G32(0x45C698) = G32(0x45C678);
-    v148 = M32(0x40CDA1);
-    v149 = M32(0x40CDA1 + 4);
-    v150 = M32(0x40CDA1 + 8);
-    v151 = M8(0x40CDA1 + 12);
+    for (mi = 0; mi < 13u; mi++) vmask13[mi] = M8(0x40CDA1 + mi);
+
+
+
     if ( G8(0x45E39C) )
     {
       v18 = G32(0x45C678);
@@ -5189,7 +5190,7 @@ static int d4_41030F(dec4_ctx *c)
           goto LABEL_69;
       }
       v21 = M8(v19 + 1);
-      *((unsigned char *)&v148 + v20) = 0;
+      vmask13[v20] = 0;
       v18 -= v21;
 LABEL_69:
       G32(0x45C698) = v18;
@@ -5239,7 +5240,7 @@ LABEL_69:
             + v39);
         G32(0x45C67C) = (v37 << 13) / M32(v23) + 1;
       }
-      if ( *((unsigned char *)&v148 + v176) )
+      if ( vmask13[v176] )
       {
         v174 = M8(v176 + v158 + 1);
         v179 = 0;
@@ -5259,7 +5260,7 @@ LABEL_69:
         v42 = 16 * v41 / (v41 + v178);
         if ( v176 )
           v42 |= 0x100;   /* BYTE1(v42) |= 1 */
-        if ( (v215 & 0xC0) == -64 )
+        if ( (v215 & 0xC0) == 0xC0 )
           v42 = (v42 & ~0x000000FFU) | ((v42 | 0x20) & 0x000000FFU);
         if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v215) * 4)) )
           v42 |= 0x200;   /* BYTE1(v42) |= 2 */
@@ -5277,13 +5278,13 @@ LABEL_69:
           M8(v176 + v158 + 1) = v44;
         }
       }
-      if ( *((unsigned char *)&v148 + v166) && v176 != v166 )
+      if ( vmask13[v166] && v176 != v166 )
       {
         v171 = M8(v166 + v158 + 1);
         v180 = G32(0x45C698) - v171;
         v197 = v162 + v171 + G32(0x45C698) - v171;
         v45 = 16 * (v162 + v171) / v197;
-        if ( (v205 & 0xC0) == -64 )
+        if ( (v205 & 0xC0) == 0xC0 )
           v45 = (v45 & ~0x000000FFU) | ((v45 | 0x20) & 0x000000FFU);
         if ( v205 == v210 )
           v45 = (v45 & ~0x000000FFU) | ((v45 | 0x40) & 0x000000FFU);
@@ -5303,12 +5304,12 @@ LABEL_69:
           M8(v166 + v158 + 1) = v47;
         }
       }
-      if ( *((unsigned char *)&v148 + v167) && v176 != v167 && v166 != v167 )
+      if ( vmask13[v167] && v176 != v167 && v166 != v167 )
       {
         v173 = M8(v167 + v158 + 1);
         v181 = G32(0x45C698) - v173;
         v48 = 16 * (v161 + v173) / (G32(0x45C698) - v173 + v161 + v173);
-        if ( (v210 & 0xC0) == -64 )
+        if ( (v210 & 0xC0) == 0xC0 )
           v48 = (v48 & ~0x000000FFU) | ((v48 | 0x20) & 0x000000FFU);
         if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v210) * 4)) )
           v48 = (v48 & ~0x000000FFU) | ((v48 | 0x40) & 0x000000FFU);
@@ -5324,11 +5325,11 @@ LABEL_69:
           M8(v167 + v158 + 1) = v49;
         }
       }
-      if ( (unsigned char)v148 && v176 && v166 && v167 )
+      if ( vmask13[0] && v176 && v166 && v167 )
       {
         v169 = M8(v158 + 1);
         v50 = 16 * v169 / (unsigned int)G32(0x45C698);
-        if ( (M8(v158 + 13) & 0xC0) == -64 )
+        if ( (M8(v158 + 13) & 0xC0) == 0xC0 )
           v50 = (v50 & ~0x000000FFU) | ((v50 | 0x20) & 0x000000FFU);
         if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v158 + 13)) * 4)) )
           v50 = (v50 & ~0x000000FFU) | ((v50 | 0x80) & 0x000000FFU);
@@ -5350,7 +5351,7 @@ LABEL_69:
       v54 = v158;
       while ( 1 )
       {
-        if ( *((unsigned char *)&v148 + v183) )
+        if ( vmask13[v183] )
         {
           if ( !M8(v54 + 1) )
           {
@@ -5551,9 +5552,9 @@ LABEL_201:
     if ( !v65 || !M8(v2) )
       goto LABEL_336;
     v185 = 0;
-    v152 = M32((0x40CDAD) + 1);
-    v153 = M32((0x40CDAD) + 5);
-    v154 = M8(0x40CDAD + 9);
+    for (mi = 0; mi < 9u; mi++) vmask9[mi] = M8(0x40CDAD + 1 + mi);
+
+
     v164 = 8;
     v66 = 0;
     v186 = M8(v2 + 18);
@@ -5571,7 +5572,7 @@ LABEL_201:
         if ( v69 == M8(v67 + 9) )
         {
           v186 -= M8(v67 + 1);
-          *((unsigned char *)&v152 + v66) = 0;
+          vmask9[v66] = 0;
           break;
         }
       }
@@ -5671,7 +5672,7 @@ LABEL_201:
                      + 1;
       }
     }
-    if ( *((unsigned char *)&v152 + v194) )
+    if ( vmask9[v194] )
     {
       v193 = M8(v2 + v194 + 1);
       v88 = 0;
@@ -5704,7 +5705,7 @@ LABEL_201:
         M8(v2 + v194 + 1) = v91;
       }
     }
-    if ( *((unsigned char *)&v152 + v164) && v194 != v164 )
+    if ( vmask9[v164] && v194 != v164 )
     {
       v191 = M8(v2 + v164 + 1);
       v196 = G32(0x45C6A8) - v191;
@@ -5726,11 +5727,11 @@ LABEL_201:
         M8(v2 + v164 + 1) = v93;
       }
     }
-    if ( (unsigned char)v152 && v194 && v164 )
+    if ( vmask9[0] && v194 && v164 )
     {
       v189 = M8(v2 + 1);
       v94 = 16 * v189 / (unsigned int)G32(0x45C6A8);
-      if ( (M8(v2 + 9) & 0xC0) == -64 )
+      if ( (M8(v2 + 9) & 0xC0) == 0xC0 )
         v94 = (v94 & ~0x000000FFU) | ((v94 | 0x20) & 0x000000FFU);
       if ( v184 && M8(v2 + 9) == M8(v184 + 2) )
         v94 = (v94 & ~0x000000FFU) | ((v94 | 0x40) & 0x000000FFU);
@@ -5752,7 +5753,7 @@ LABEL_201:
     v200 = 0;
     v188 = (unsigned short)((unsigned)d4_div(G32(0x4749D8), v97));
     v98 = v2;
-    while ( !*((unsigned char *)&v152 + v200) )
+    while ( !vmask9[v200] )
     {
 LABEL_312:
       ++v200;
