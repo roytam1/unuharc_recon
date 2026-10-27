@@ -141,7 +141,7 @@ int main(int argc, char **argv)
         return 0;
     } else if (ver == 0x04) {
         uha04_t *h = 0;
-        unsigned long i, n;
+        unsigned long i, n, total;
         const uha04_header *hh;
         rc = uha04_open(arc, &h);
         if (rc != UHA04_OK) {
@@ -156,14 +156,16 @@ int main(int argc, char **argv)
         }
         hh = uha04_header_get(h);
         n = uha04_nfiles(h);
-        printf("Processing archive \"%s\" (UHA 0.4, %lu files).\n",
-            arc, n);
-        printf("header: ndirs=%u base=%lu names=%lu cmp=%lu/%lu/%lu\n",
-            hh->ndirs, hh->base_e01, hh->names_len,
-            hh->cmp_sz1, hh->cmp_sz2, hh->cmp_sz3);
+        total = 0;
         for (i = 0; i < n; i++) {
             const uha04_entry *e = uha04_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes, m=%u)\n", e->path, e->size, e->method);
+            if (e) total += e->size;
+        }
+        printf("Processing archive \"%s\" (UHA 0.4, method %u, %lu files, %lu bytes).\n",
+            arc, hh->unk_dfa, n, total);
+        for (i = 0; i < n; i++) {
+            const uha04_entry *e = uha04_entry_get(h, i);
+            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
         }
         if (list_only) {
             uha04_close(h);
@@ -183,7 +185,7 @@ int main(int argc, char **argv)
         return 0;
     } else if (ver == 0x03) {
         uha03_t *h = 0;
-        unsigned long i, n;
+        unsigned long i, n, total;
         const uha03_header *hh;
         rc = uha03_open(arc, &h);
         if (rc != UHA03_OK) {
@@ -198,14 +200,16 @@ int main(int argc, char **argv)
         }
         hh = uha03_header_get(h);
         n = uha03_nfiles(h);
-        printf("Processing archive \"%s\" (UHA 0.3, %lu files).\n",
-            arc, n);
-        printf("header: ndirs=%u base=%lu names=%lu cmp=%lu/%lu/%lu\n",
-            hh->ndirs, hh->base_e01, hh->names_len,
-            hh->cmp_sz1, hh->cmp_sz2, hh->cmp_sz3);
+        total = 0;
         for (i = 0; i < n; i++) {
             const uha03_entry *e = uha03_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes, m=%u)\n", e->path, e->size, e->method);
+            if (e) total += e->size;
+        }
+        printf("Processing archive \"%s\" (UHA 0.3, method %u, %lu files, %lu bytes).\n",
+            arc, hh->unk_dfa, n, total);
+        for (i = 0; i < n; i++) {
+            const uha03_entry *e = uha03_entry_get(h, i);
+            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
         }
         if (list_only) {
             uha03_close(h);
@@ -240,14 +244,11 @@ int main(int argc, char **argv)
         }
         hh = uha02_header_get(h);
         n = uha02_nfiles(h);
-        printf("Processing archive \"%s\" (UHA 0.2, %lu files).\n",
-            arc, n);
-        printf("header: ndirs=%u base=%lu names=%lu cmp=%lu/%lu/%lu\n",
-            hh->ndirs, hh->data_len, hh->names_len,
-            hh->cmp_sz1, hh->cmp_sz2, hh->cmp_sz3);
+        printf("Processing archive \"%s\" (UHA 0.2, method %u, %lu files, %lu bytes).\n",
+            arc, hh->method, n, hh->total_size);
         for (i = 0; i < n; i++) {
             const uha02_entry *e = uha02_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes, m=%u)\n", e->path, e->size, e->method);
+            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
         }
         if (list_only) {
             uha02_close(h);
