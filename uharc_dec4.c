@@ -25,8 +25,18 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "uharc_dec.h"
+#ifndef D4PT
+#define D4PT 48019
+#endif
+#ifndef D4WLO
+#define D4WLO 47990
+#endif
+#ifndef D4WHI
+#define D4WHI 48050
+#endif
 
 #define D4_ARENA 0x09000000UL
 
@@ -372,6 +382,251 @@ static const unsigned int d4_t4246C8[20] = {
     8,32,32,96,64,4,4,8,3,5
 };
 
+static const unsigned int d4_t424D3C[6] = {
+    127, 127, 127, 127, 7, 3,
+};
+
+static const unsigned int d4_t424D54[512] = {
+    0, 1, 2, 2, 2, 3, 3, 3,
+    3, 3, 4, 4, 4, 4, 4, 4,
+    4, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 6, 6, 6, 6, 6, 6,
+    6, 6, 6, 6, 6, 7, 7, 7,
+    7, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 8, 8, 8, 8, 8, 8,
+    8, 8, 8, 8, 8, 8, 8, 8,
+    8, 9, 9, 9, 9, 9, 9, 9,
+    9, 9, 9, 9, 9, 9, 9, 9,
+    9, 9, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 14, 14, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 16,
+    16, 16, 16, 16, 16, 16, 16, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 14, 14, 13,
+    13, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 13, 13, 13, 13,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 9,
+    9, 9, 9, 9, 9, 9, 9, 9,
+    9, 9, 9, 9, 9, 9, 9, 9,
+    8, 8, 8, 8, 8, 8, 8, 8,
+    8, 8, 8, 8, 8, 8, 8, 7,
+    7, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 7, 7, 6, 6, 6, 6,
+    6, 6, 6, 6, 6, 6, 6, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    4, 4, 4, 4, 4, 4, 4, 3,
+    3, 3, 3, 3, 2, 2, 2, 1,
+};
+
+static const unsigned int d4_t425554[256] = {
+    0, 0, 0, 0, 1, 1, 1, 1,
+    2, 2, 2, 2, 3, 3, 3, 3,
+    4, 4, 4, 4, 5, 5, 5, 5,
+    6, 6, 6, 6, 7, 7, 7, 7,
+    8, 8, 8, 8, 9, 9, 9, 9,
+    10, 10, 10, 10, 11, 11, 11, 11,
+    12, 12, 12, 12, 13, 13, 13, 13,
+    14, 14, 14, 14, 15, 15, 15, 15,
+    16, 16, 16, 16, 17, 17, 17, 17,
+    18, 18, 18, 18, 19, 19, 19, 19,
+    20, 20, 20, 20, 21, 21, 21, 21,
+    22, 22, 22, 22, 23, 23, 23, 23,
+    24, 24, 24, 24, 25, 25, 25, 25,
+    26, 26, 26, 26, 27, 27, 27, 27,
+    28, 28, 28, 28, 29, 29, 29, 29,
+    30, 30, 30, 30, 31, 31, 31, 31,
+    32, 31, 31, 31, 31, 30, 30, 30,
+    30, 29, 29, 29, 29, 28, 28, 28,
+    28, 27, 27, 27, 27, 26, 26, 26,
+    26, 25, 25, 25, 25, 24, 24, 24,
+    24, 23, 23, 23, 23, 22, 22, 22,
+    22, 21, 21, 21, 21, 20, 20, 20,
+    20, 19, 19, 19, 19, 18, 18, 18,
+    18, 17, 17, 17, 17, 16, 16, 16,
+    16, 15, 15, 15, 15, 14, 14, 14,
+    14, 13, 13, 13, 13, 12, 12, 12,
+    12, 11, 11, 11, 11, 10, 10, 10,
+    10, 9, 9, 9, 9, 8, 8, 8,
+    8, 7, 7, 7, 7, 6, 6, 6,
+    6, 5, 5, 5, 5, 4, 4, 4,
+    4, 3, 3, 3, 3, 2, 2, 2,
+    2, 1, 1, 1, 1, 0, 0, 0,
+};
+
+static const unsigned int d4_t426554[256] = {
+    0, 1, 2, 3, 4, 5, 5, 6,
+    6, 6, 7, 7, 7, 7, 7, 8,
+    8, 8, 8, 8, 8, 8, 8, 9,
+    9, 9, 9, 9, 9, 9, 9, 9,
+    9, 9, 9, 9, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    10, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 9, 9, 9,
+    9, 9, 9, 9, 9, 9, 9, 9,
+    9, 9, 8, 8, 8, 8, 8, 8,
+    8, 8, 7, 7, 7, 7, 7, 6,
+    6, 6, 5, 5, 4, 3, 2, 1,
+};
+
+static const unsigned int d4_t425954[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    7, 7, 7, 7, 7, 7, 7, 7,
+    8, 8, 8, 8, 8, 8, 8, 8,
+    9, 9, 9, 9, 9, 9, 9, 9,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    13, 13, 13, 13, 13, 13, 13, 13,
+    14, 14, 14, 14, 14, 14, 14, 14,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    16, 15, 15, 15, 15, 15, 15, 15,
+    15, 14, 14, 14, 14, 14, 14, 14,
+    14, 13, 13, 13, 13, 13, 13, 13,
+    13, 12, 12, 12, 12, 12, 12, 12,
+    12, 11, 11, 11, 11, 11, 11, 11,
+    11, 10, 10, 10, 10, 10, 10, 10,
+    10, 9, 9, 9, 9, 9, 9, 9,
+    9, 8, 8, 8, 8, 8, 8, 8,
+    8, 7, 7, 7, 7, 7, 7, 7,
+    7, 6, 6, 6, 6, 6, 6, 6,
+    6, 5, 5, 5, 5, 5, 5, 5,
+    5, 4, 4, 4, 4, 4, 4, 4,
+    4, 3, 3, 3, 3, 3, 3, 3,
+    3, 2, 2, 2, 2, 2, 2, 2,
+    2, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0,
+};
+
+static const unsigned int d4_t425D54[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    7, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 7, 7, 7, 7, 7, 7,
+    8, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 7, 7, 7, 7, 7, 7,
+    7, 6, 6, 6, 6, 6, 6, 6,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    6, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    4, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    2, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+static const unsigned int d4_t426154[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    2, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+};
 static const unsigned char d4_t424718[20] = {
     0,0,8,16,24,0,0,0,0,0,0,1,2,3,4,1,
     1,2,2,4
@@ -2082,7 +2337,20 @@ static int d4_40B178(dec4_ctx *c, char a1)
     c->outbuf[G32(0x43451C)] = (unsigned char)a1;
     G32(0x43451C) += 1;
     G32(0x434528) += 1;
+#ifdef D4EMITDBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "EMIT out=%u byte=%u\n",
+          G32(0x434528), (unsigned)(unsigned char)a1);
+#endif
+#ifdef CRASHTICKDBG
+    if ((G32(0x434528) & 0x3F) == 0)
+        fprintf(stderr, "TICK out=%u\n", G32(0x434528));
+#endif
+#ifdef FLUSHDBG
+    if (G32(0x43451C) >= 0x1000U) {
+#else
     if (G32(0x43451C) >= 0x10000U) {
+#endif
         unsigned n = G32(0x43451C);
         if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(0x422B90) = 4;
         G32(0x43451C) = 0;
@@ -2160,6 +2428,13 @@ static void d4_load_tables(dec4_ctx *c)
     CP(0x4245A0, d4_t4245A0, sizeof d4_t4245A0);
     for (i = 0; i < 10; i++) G32(0x4246A0 + 4*i) = d4_t4246A0[i];
     for (i = 0; i < 20; i++) G32(0x4246C8 + 4*i) = d4_t4246C8[i];
+    for (i = 0; i < 6; i++) G32(0x424D3C + 4*i) = d4_t424D3C[i];
+    for (i = 0; i < 512; i++) G32(0x424D54 + 4*i) = d4_t424D54[i];
+    for (i = 0; i < 256; i++) G32(0x425554 + 4*i) = d4_t425554[i];
+    for (i = 0; i < 256; i++) G32(0x426554 + 4*i) = d4_t426554[i];
+    for (i = 0; i < 256; i++) G32(0x425954 + 4*i) = d4_t425954[i];
+    for (i = 0; i < 256; i++) G32(0x425D54 + 4*i) = d4_t425D54[i];
+    for (i = 0; i < 256; i++) G32(0x426154 + 4*i) = d4_t426154[i];
     CP(0x424718, d4_t424718, sizeof d4_t424718);
     for (i = 0; i < 256; i++) G32(0x42472C + 4*i) = d4_t42472C[i];
     CP(0x424B2C, d4_t424B2C, sizeof d4_t424B2C);
@@ -2186,6 +2461,13 @@ static void d4_load_tables(dec4_ctx *c)
     G8(0x431ED4) = 1;
     d4_419AC0(c);
     d4_419AC0(c);   /* second call no-ops (flag cleared); keeps parity */
+#ifdef D4TABDBG
+    for (i = 0; i < 16384U; i++) {
+      unsigned a = (unsigned)G16(0x429ED4 + 2*i);
+      if (a >= 6000 && a <= 6040)
+        fprintf(stderr, "TAB429 idx=%u val=%u\n", i, a);
+    }
+#endif
 }
 
 /* ---------------- init (sub_40CDD1) ---------------- */
@@ -2245,11 +2527,16 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     d4_416D40(c, 10, 0x45DD5A, 8);
     d4_416D40(c, 8, 0x45D738, 24);
     G16(0x45D566) = 6;
-    for (i = 1; i <= 768; i++) {
+    /* asm CDD1 0x40D1E0/0x40D1F6: bound is eax<=0xC04, i.e. indices
+     * 1..769 (0xC04/4). A <=768 bound misses index 769 = AE38[768],
+     * which then stays 0 instead of 0x4000; its later decay below 0
+     * spuriously triggers E4FF(768) (gmud06x: first extra call at out
+     * 742923, cascading to the dll fork at 743877). */
+    for (i = 1; i <= 769; i++) {
         G32(0x45BA38 + 4*i) = 1;
         G32(0x45AE34 + 4*i) = 0x4000;
     }
-    for (i = 1; i <= 768; i++) {
+    for (i = 1; i <= 769; i++) {
         G8(0x45E085 + i) = 0xFF;
         G8(0x45DD84 + i) = 0;
     }
@@ -2291,9 +2578,12 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     G32(0x45D128) = 0;
     G8(0x45E3A0) = 0;
     G32(0x45AE28) = G32(0x434514);
+    /* asm 0x40D3DF..0x40D40E: TWO loops - eax=-2048..-1 stores -eax at
+     * [eax&0xFFF] (upper half 2048..1), then eax=0..2047 stores eax at
+     * [eax] (low half identity). */
     for (i = 0; i < 2048U; i++) {
         G32(0x43972C + 4*i) = i;
-        G32(0x43972C + 4*(i + 2048U)) = 4096U - (i + 2048U);
+        G32(0x43972C + 4*(i + 2048U)) = 2048U - i;
     }
     G8(0x45E395) = (G32(0x45D124) != 0) ? 0 : 10;
     return 0;
@@ -2499,7 +2789,8 @@ static int d4_40D6D1(dec4_ctx *c)
     v8 = (v4 + 1) & G32(0x45D118);
     if ( G8(0x45E39B) == 1 )
     {
-      v9 = ~*(&M8(0x427179 + (11 * ((unsigned char)G8(0x45E39E) - 166))) + v7);
+      /* asm 0x40D793: movzx ebx,bl - same unsigned-index fix as 40FFFD. */
+      v9 = ~*(&M8(0x427179 + (11 * ((unsigned char)G8(0x45E39E) - 166))) + (unsigned char)v7);
       G8(0x45E39B) = 0;
 LABEL_23:
       M8(v6) = v9;
@@ -2859,6 +3150,10 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
 static int d4_40DEB6(dec4_ctx *c)
 {
   D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(0x434528), G32(0x45D12C), G32(0x45D13C), c->p_prog, G32(0x45D144), G8(0x45E392));
+#ifdef D4DEB6DBG
+  fprintf(stderr, "DEB6B out=%u dac1=%u c14=%u\n",
+      G32(0x434528), M32(0x445DAC + 4), M32(0x4455A4 + 4));
+#endif
   int v0;
   int v1;
   int v2;
@@ -2894,7 +3189,8 @@ static int d4_40DEB6(dec4_ctx *c)
   unsigned int v32;
   unsigned int v33;
   unsigned int v34;
-  char v35;
+  unsigned char v35;   /* compared/stored as a byte (e390); signed char would
+                          spuriously re-enter the model-switch block */
   int v36;
   int v37;
   int v38;
@@ -3106,6 +3402,9 @@ static int d4_40DEB6(dec4_ctx *c)
 
 static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
 {
+#ifdef D4RSDBG
+  fprintf(stderr, "RS out=%u a1=%d\n", G32(0x434528), a1);
+#endif
   int v1;
   int v2;
   int v3;
@@ -3181,7 +3480,10 @@ static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
     result = (v20 + 512 - v22);
     do
     {
-      M16(result) += M16(result + ((-v21) << 1));
+      /* asm 0x40E4E4: the read is at result - v21 (v21 already doubled);
+       * (-v21)<<1 reads 2x too far back and corrupts the rebuilt tree.
+       * Same class as the fixed d4_40E4FF read (see its 0x40E5C0 note). */
+      M16(result) += M16(result - v21);
       result -= v22;
     }
     while ( result != v20 );
@@ -3310,6 +3612,12 @@ LABEL_4:
 
 static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
 {
+#ifdef D4E672DBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "E672 out=%u a1=%u a2=%d c690=%u v4=%u\n",
+        G32(0x434528), (unsigned)a1, a2, G32(0x45C690),
+        (unsigned)M16(0x45D166 + ((a2) * 2)));
+#endif
   int v2;
   unsigned int v3;
   short v4;
@@ -3322,7 +3630,10 @@ static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
   v4 = M16(0x45D166 + ((v2) * 2));
   M16(c->p_6c0 + 2 * (a1 + (G32(0x45C690) << 8))) += v4;
   result = a1 + 1;
-  v5 = result == 0;
+  /* asm 0x40E6A8/0x40E6AA: al is a byte - a1=255 wraps to 0 and skips the
+   * Fenwick walk; as an int, result=256 runs once and writes index 256
+   * (the NEXT plane's root). */
+  v5 = ((unsigned char)result) == 0;
   while ( !v5 )
   {
     v7 = result & -result;
@@ -3539,6 +3850,26 @@ static unsigned int d4_40E885(dec4_ctx *c)
       c->p_14c = 0x45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 32) + 64;
     G8(0x45E396) = v0;
   }
+#ifdef D4E885DBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI) {
+    unsigned q5;
+    fprintf(stderr, "E885 out=%u ret=%d v0=%d v10=%u d0f8=%u d0fc=%u c64c=%u e395=%u ae1c=%u v5=%u v11=%u a060=%u e39c=%u h0=%u h1=%u h2=%u h3=%u\n",
+          G32(0x434528), 
+        result, (int)v0, v10, G32(0x45D0F8), G32(0x45D0FC), G32(0x45C64C), G8(0x45E395),
+        G32(0x45AE1C), (unsigned)(unsigned char)v5, (unsigned)(unsigned char)v11, G32(0x446060),
+        G8(0x45E39C), (unsigned)M8(0x45DD6E), (unsigned)M8(0x45DD6E + 1),
+        (unsigned)M8(0x45DD6E + 2), (unsigned)M8(0x45DD6E + 3));
+    for (q5 = 0; q5 < 8; q5++) {
+      int row = 4 * M32(0x446044 + q5 * 4) + M32(0x42369C + q5 * 4);
+      fprintf(stderr, "E885ROW %u: b0=%u b1=%u b2=%u b3=%u\n", q5,
+          (unsigned)M8(row), (unsigned)M8(row+1), (unsigned)M8(row+2), (unsigned)M8(row+3));
+    }
+  }
+#endif
+#ifdef D4E2DBG
+  fprintf(stderr, "E2 out=%u ret=%d e396=%u e39c=%u\n",
+      G32(0x434528), result, G8(0x45E396), G8(0x45E39C));
+#endif
   return result;
 }
 
@@ -4295,7 +4626,6 @@ static int d4_40F962(dec4_ctx *c, void *a1, int a2)
   D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(0x45E392), G32(0x4228BE), G32(0x45D13C), G32(0x45D12C), G32(0x434514), c->p_prog);
   do
   {
-    if (++c->steps > 500000UL) { G32(0x422B90) = 3; break; }
     if ( G32(0x434528) >= (unsigned int)G32(0x45D13C) )
       d4_40D6D1(c);
     if ( G32(0x434528) >= (unsigned int)G32(0x45D12C) )
@@ -4318,7 +4648,8 @@ static char d4_40F9D0(dec4_ctx *c, int a1)
   char v4;
   unsigned int v5;
   int v6;
-  char v7;
+  unsigned char v7;   /* asm 0x40FB42: byte compare (unsigned); a signed char
+                         breaks the backward match early on bytes >= 0x80 */
   int v8;
   signed int v9;
   int v10;
@@ -4606,6 +4937,11 @@ LABEL_63:
     G32(0x45D114) = 0;
     G32(0x45D11C) = (G32(0x45D118) & (a1 + v45)) + c->p_dict;
   }
+#ifdef D4MATCHDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "MATCH out=%u a1=%u len=%u\n",
+        G32(0x434528), (unsigned)a1, (unsigned)(unsigned char)v45);
+#endif
   do
   {
     v28 = M8(c->p_dict + a1);
@@ -4637,12 +4973,61 @@ static int d4_40FFFD(dec4_ctx *c, char a1)
   char v7;
 
   v1 = ~a1;
+#ifdef D4QDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI) {
+    unsigned r6 = 4 * M32(0x446044 + 6 * 4) + M32(0x42369C + 6 * 4);
+    fprintf(stderr, "Q|out=%u|c640=%u|c654=%u|c648=%u|e39c=%u|r6=%u %u %u %u|h=%u %u %u %u\n",
+        G32(0x434528), M32(0x45C640), G32(0x45C654), G32(0x45C648), G8(0x45E39C),
+        (unsigned)M8(r6), (unsigned)M8(r6+1), (unsigned)M8(r6+2), (unsigned)M8(r6+3),
+        (unsigned)M8(0x45DD6E), (unsigned)M8(0x45DD6E + 1),
+        (unsigned)M8(0x45DD6E + 2), (unsigned)M8(0x45DD6E + 3));
+  }
+#endif
+#ifdef D4FFFDDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "CR out=%u code=%u range=%u\n",
+        G32(0x434528), G32(0x4749D8), G32(0x4749DC));
+#endif
+#ifdef D4TRIDBG
+  fprintf(stderr, "TRI out=%u c67c=%u c680=%u c684=%u\n",
+      G32(0x434528), G32(0x45C67C), G32(0x45C680), G32(0x45C684));
+#endif
+#ifdef D4COSTDBG
+  fprintf(stderr, "COST out=%u c640=%u c654=%u c648=%u\n",
+      G32(0x434528), M32(0x45C640), G32(0x45C654), G32(0x45C648));
+#endif
+#ifdef D4MDLDBG
+  {
+    unsigned mv2 = (unsigned)(c->p_684 + 20 * G32(0x45C69C));
+    fprintf(stderr, "MDL out=%u c69c=%u m0=%u m2=%u m9=%u m17=%u m18=%u\n",
+        G32(0x434528), G32(0x45C69C),
+        (unsigned)M8(mv2), (unsigned)M8(mv2 + 2), (unsigned)M8(mv2 + 9),
+        (unsigned)M8(mv2 + 17), (unsigned)M8(mv2 + 18));
+  }
+#endif
+#ifdef D4W16DBG
+  fprintf(stderr, "W16 out=%u w=%u\n", G32(0x434528),
+      (unsigned)M16(c->p_6c0 + 781 * 512 + 144 * 2));
+#endif
+#ifdef D4CTXDBG
+  fprintf(stderr, "CTX out=%u d0f8=%u d0fc=%u e3a0=%u c6a4=%u c69c=%u\n",
+      G32(0x434528), G32(0x45D0F8), G32(0x45D0FC), G8(0x45E3A0),
+      G32(0x45C6A4), G32(0x45C69C));
+#endif
+#ifdef D4FFFDDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "FFFD out=%u a1=%d v1u=%u v4=%u e39b=%u\n",
+        G32(0x434528), (int)a1, (unsigned)(unsigned char)v1,
+        (unsigned)(unsigned char)M8(0x42711F + ((unsigned char)v1)), G8(0x45E39B));
+#endif
   if ( G8(0x45E39B) == 1 )
   {
     G8(0x45E39B) = 0;
     if ( G32(0x434528) < (unsigned int)G32(0x45D124) )
     {
-      v2 = *(&M8(0x427179 + (11 * ((unsigned char)G8(0x45E39E) - 166))) + v1);
+      /* asm 0x410068: movzx edx,dl - the pending byte is a table index
+       * (unsigned); a signed char v1 walks backwards into 42711F. */
+      v2 = *(&M8(0x427179 + (11 * ((unsigned char)G8(0x45E39E) - 166))) + (unsigned char)v1);
       return d4_40B178(c, v2);
     }
     if ( v1 == -2 )
@@ -4916,7 +5301,8 @@ static int d4_41030F(dec4_ctx *c)
   int v106;
   char v107;
   unsigned int v108;
-  char v109;
+  unsigned char v109;   /* asm 0x4119BB: byte compare (unsigned); a signed
+                           char misses history bytes >= 0x80 */
   int v110;
   int v111;
   unsigned char v112;
@@ -4959,8 +5345,12 @@ static int d4_41030F(dec4_ctx *c)
    * int/char locals, which GCC is free not to place adjacently, so the
    * byte view read other locals (observed: mask bytes 4..7 were
    * 90 01 db 00 instead of 01 01 01 01).  Use real arrays. */
-  unsigned char vmask13[13];
-  unsigned char vmask9[9];
+  /* asm: 13- and 9-byte stack masks, but indexed by 4-bit nibbles
+   * (v177/v86: 0..15).  The original reads up to index 15, i.e. 3/7 bytes
+   * past the end - zero stack padding on fresh pages.  Keep 16 bytes,
+   * zero-filled, so those reads are defined and stay 0. */
+  unsigned char vmask13[16];
+  unsigned char vmask9[16];
   unsigned int mi;
   unsigned int v155;
   int v156;
@@ -5098,6 +5488,13 @@ static int d4_41030F(dec4_ctx *c)
    * always true.) */
   v9 = v8 && (M32(0x45C640) < (unsigned int)G32(0x45C654));
   v206 = v9;
+#ifdef D4GATEDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "GATE out=%u v209=%d v7=%d v8=%d v206=%d c640=%u c654=%u c674=%u dac0=%u db0=%u e38d=%u e390=%u\n",
+          G32(0x434528), 
+        v209, v7, v8, v9, M32(0x45C640), G32(0x45C654), G32(0x45C674),
+        M32(0x445DAC), G32(0x445DB0), G8(0x45E38D), G8(0x45E390));
+#endif
   v159 = (unsigned char)G32(0x45C6A4);
   if ( !G8(0x45E392) && M8(0x42738D + (BYTE1(G32(0x45C6A4)))) )
     v159 += 256;
@@ -5172,7 +5569,8 @@ static int d4_41030F(dec4_ctx *c)
     G8(0x45E394) = 1;
     ++G32(0x45C6B0);
     G32(0x45C698) = G32(0x45C678);
-    for (mi = 0; mi < 13u; mi++) vmask13[mi] = M8(0x40CDA1 + mi);
+    for (mi = 0; mi < 16u; mi++) vmask13[mi] = 0;
+  for (mi = 0; mi < 13u; mi++) vmask13[mi] = M8(0x40CDA1 + mi);
 
 
 
@@ -5240,7 +5638,12 @@ LABEL_69:
             + v39);
         G32(0x45C67C) = (v37 << 13) / M32(v23) + 1;
       }
-      if ( vmask13[v176] )
+  #ifdef D4BOUNDSDBG
+    if (v176 >= 13 || v166 >= 13 || v167 >= 13)
+      fprintf(stderr, "BOUNDS13 out=%u v176=%u v166=%u v167=%u\n",
+          G32(0x434528), v176, v166, v167);
+#endif
+    if ( vmask13[v176] )
       {
         v174 = M8(v176 + v158 + 1);
         v179 = 0;
@@ -5364,6 +5767,10 @@ LABEL_69:
             v55 = M8(v54 + 13);
             v208 = 0;
             v212 = v55;
+#ifdef D4PATHDBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "PATH P5707 out=%u v212=%u\n", G32(0x434528), (unsigned)v212);
+#endif
 LABEL_175:
             G32(0x45C680) = v182;
             G32(0x45C684) = HIDWORD(v168);
@@ -5492,6 +5899,10 @@ LABEL_87:
       {
         v208 = 0;
         v27 = M8(v158 + 13);
+#ifdef D4PATHDBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "PATH P5835 out=%u v212=%u\n", G32(0x434528), (unsigned)(unsigned char)v27);
+#endif
         G8(0x45E3A3) = 0;
         v212 = v27;
         v28 = M32(v23);
@@ -5527,6 +5938,12 @@ LABEL_201:
   v214 = 0;
   G32(0x45C6B0) = (unsigned int)G32(0x45C6B0) >> 3;
   v184 = v63;
+#ifdef D4GATEDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "GATE2 out=%u v63=%u v107=%d v184=%u\n",
+          G32(0x434528), 
+        (unsigned)v63, v107, (unsigned)v184);
+#endif
   if ( v63 )
   {
     G32(0x45C6A0) += 2;
@@ -5548,11 +5965,20 @@ LABEL_201:
     v65 = !G32(0x45C6AC)
        || !M8(v2 + 17)
        || (unsigned int)G32(0x45C6B4) < 0xFFFF && M32(c->p_68c) <= 0x3FEu;
+#ifdef D4V65DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "V65 out=%u v65=%d c6ac=%u m2_17=%u c6b4=%u p68c=%u m2_0=%u m2_2=%u m2_9=%u m2_18=%u v2=%u c69c=%u\n",
+          G32(0x434528), v65, G32(0x45C6AC), (unsigned)M8(v2 + 17),
+          G32(0x45C6B4), M32(c->p_68c), (unsigned)M8(v2),
+          (unsigned)M8(v2 + 2), (unsigned)M8(v2 + 9), (unsigned)M8(v2 + 18),
+          (unsigned)v2, G32(0x45C69C));
+#endif
     G8(0x45E39D) = v65;
     if ( !v65 || !M8(v2) )
       goto LABEL_336;
     v185 = 0;
-    for (mi = 0; mi < 9u; mi++) vmask9[mi] = M8(0x40CDAD + 1 + mi);
+    for (mi = 0; mi < 16u; mi++) vmask9[mi] = 0;
+  for (mi = 0; mi < 9u; mi++) vmask9[mi] = M8(0x40CDAD + 1 + mi);
 
 
     v164 = 8;
@@ -5614,14 +6040,24 @@ LABEL_201:
         }
         v73 |= v74;
       }
-      if ( G8(0x45E392) &(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v2 + 9)) * 4)) )
+      if ( G8(0x45E392) && (G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v2 + 9)) * 4))) )
         v73 = (v73 & ~0x000000FFU) | ((v73 | 8) & 0x000000FFU);
       if ( M32(0x457964 + ((M8(v2 + 9)) * 4)) == G32(0x45AE1C) )
         v73 = (v73 & ~0x000000FFU) | ((v73 | 0x10) & 0x000000FFU);
       v71 = (0x452464) + 128 * M32(0x423DF0 + (v72) * 4) + 4 * v73;
       G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x2000u);
+#ifdef D4V65DBG
+      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        fprintf(stderr, "D5982 out=%u div16=%u m71=%u v72=%u v73=%u\n",
+            G32(0x434528), (unsigned)(unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))),
+            M32(v71), v72, v73);
+#endif
       if ( (unsigned int)(unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) >= M32(v71) )
       {
+#ifdef D4V65DBG
+        if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+          fprintf(stderr, "IF5982 out=%u\n", G32(0x434528));
+#endif
         v77 = G8(0x45E39C);
         v78 = M8(v2 + 9);
         G8(0x45E3A5) = 8;
@@ -5635,6 +6071,10 @@ LABEL_201:
         v208 = 0;
         G8(0x45E3A5) = 0;
         v75 = M8(v2 + 9);
+#ifdef D4PATHDBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "PATH P5982 out=%u v212=%u\n", G32(0x434528), (unsigned)(unsigned char)v75);
+#endif
         G8(0x45E3A4) = 1;
         v212 = v75;
         v76 = M32(v71);
@@ -5672,6 +6112,11 @@ LABEL_201:
                      + 1;
       }
     }
+#ifdef D4BOUNDSDBG
+    if (v194 >= 9)
+      fprintf(stderr, "BOUNDS9 out=%u v194=%u val=%u\n",
+          G32(0x434528), v194, (unsigned)vmask9[v194]);
+#endif
     if ( vmask9[v194] )
     {
       v193 = M8(v2 + v194 + 1);
@@ -5778,6 +6223,10 @@ LABEL_312:
     v99 = M8(v98 + 9);
     v208 = 0;
     v212 = v99;
+#ifdef D4PATHDBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "PATH P6126 out=%u v212=%u\n", G32(0x434528), (unsigned)v212);
+#endif
 LABEL_313:
     G32(0x45C680) = v199;
     G32(0x45C684) = v198;
@@ -5841,12 +6290,22 @@ LABEL_336:
       {
         G32(0x45C6A0) = (unsigned int)G32(0x45C6A0) >> 2;
         v108 = 0;
+#ifdef D4SCANDBG
+        if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+          fprintf(stderr, "SCAN out=%u e39c=%u h0=%u rowb2=%u\n",
+              G32(0x434528), G8(0x45E39C),
+              (unsigned)M8(0x45DD6E), (unsigned)M8(v184 + 2));
+#endif
         while ( v108 < (unsigned char)G8(0x45E39C) )
         {
           v109 = M8(0x45DD6E + (v108++));
           if ( v109 == M8(v184 + 2) )
           {
             v107 = 0;
+#ifdef D4V65DBG
+            if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+              fprintf(stderr, "SCAN-HIT out=%u\n", G32(0x434528));
+#endif
             if ( M8(v184) > 3u || (signed int)M8(v184 + 1) >> 6 > M8(v184) )
               G8(0x45E393) = 0;
             break;
@@ -5888,6 +6347,13 @@ LABEL_336:
               v155 += v162;
             G32(0x45C67C) = v155 + v110;
             G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), v155 + v110);
+#ifdef D4208DBG
+            if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+              fprintf(stderr, "V208LP out=%u v184=%u v155=%u v110=%u div=%u\n",
+          G32(0x434528), 
+                  (unsigned)v184, (unsigned)v155, (unsigned)v110,
+                  (unsigned)d4_div(G32(0x4749D8), G32(0x4749DC)));
+#endif
             if ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) < v155 )
             {
               if ( G8(0x45E398) )
@@ -5918,6 +6384,11 @@ LABEL_336:
               v112 = M8(v184 + 2);
               v208 = 0;
               v212 = v112;
+#ifdef D4212DBG
+              if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+                fprintf(stderr, "FAST out=%u v212=%u code=%u range=%u e392=%u\n",
+                    G32(0x434528), (unsigned)v212, G32(0x4749D8), G32(0x4749DC), G8(0x45E392));
+#endif
             }
             v114 = M32(0x45C67C + (1) * 4);
             v115 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v114);
@@ -5998,6 +6469,16 @@ LABEL_336:
       else
         v128 = v126 + v218;
       v212 = v128;
+#ifdef D4209DBG
+      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        fprintf(stderr, "V209 out=%u v216=%d v218=%u v201=%u v202=%d v126=%u v128=%u e38e=%u e390=%u\n",
+            G32(0x434528), v216, (unsigned)v218, v201, v202, (unsigned)v126, (unsigned)v128, G8(0x45E38E), G8(0x45E390));
+#endif
+#ifdef D4209DBG
+      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        fprintf(stderr, "V209 out=%u v216=%d v218=%u v201=%u v202=%d v126=%u v128=%u e38e=%u\n",
+            G32(0x434528), v216, (unsigned)v218, v201, v202, (unsigned)v126, (unsigned)v128, G8(0x45E38E));
+#endif
       v129 = 0;
       if ( v216 )
       {
@@ -6024,6 +6505,11 @@ LABEL_336:
     }
     v135 = d4_411F8B(c, v120, 769);
     v212 = v135;
+#ifdef D4V135DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "V135 out=%u v120=%u v135=%u\n",
+          G32(0x434528), (unsigned)v120, (unsigned)v135);
+#endif
     if ( G8(0x45E392) )
     {
       v136 = 0;
@@ -6118,6 +6604,9 @@ LABEL_408:
 #endif
 static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 {
+#ifdef D4F8BDBG
+  fprintf(stderr, "F8B out=%u a1=%u a2=%d\n", G32(0x434528), a1, a2);
+#endif
   unsigned int v2;
   int v3;
   int v4;
@@ -6149,6 +6638,10 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
   v3 = a2;
   v28 = 1;
   G32(0x45C648) = 0;
+  #ifdef D4C648DBG
+      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+  #endif
   v4 = (unsigned char)(G32(0x45C650) + 1);
   v5 = a2 == 769;
   G32(0x45C650) = v4;
@@ -6156,6 +6649,11 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
   G32(0x45C690) = v3;
   G32(0x45C644) -= v6;
   v27 = v5;
+#ifdef D411F8BDBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "1F8B out=%u a1=%u a2=%d c644=%u code=%u range=%u\n",
+        G32(0x434528), a1, a2, G32(0x45C644), G32(0x4749D8), G32(0x4749DC));
+#endif
   if ( (unsigned int)G32(0x45C644) < 0x6D4250 || (unsigned int)G32(0x45C644) >= 0xFEFF01 )
   {
     v26 = d4_412257(c, v2);
@@ -6166,6 +6664,11 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
   {
     v13 = v5;
     v14 = M32(0x4455A4 + ((v5) * 4));
+#ifdef D411F8BDBG
+    if ((G32(0x434528) >= 407840 && G32(0x434528) <= 407860) || (G32(0x434528) >= 760195 && G32(0x434528) <= 760215) || G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "1F8BB out=%u v14=%u dac=%u e39c=%u\n",
+          G32(0x434528), M32(0x4455A4 + 4), M32(0x445DAC + 4), G8(0x45E39C));
+#endif
     v15 = v5 + 770;
     if ( v14 < M32(0x445DAC + ((v13) * 4)) )
     {
@@ -6175,6 +6678,10 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
       v26 = v18;
       G32(0x45C690) = v3;
       G32(0x45C648) = 0;
+      #ifdef D4C648DBG
+          if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+            fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+      #endif
       v25 = v19;
       d4_412A59(c, v2, v18);
       /* asm 0x41211c/0x41219e: this branch also carries the cost collected
@@ -6188,6 +6695,10 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
       v17 = G32(0x45C648);      /* cost saved across the reset */
       G32(0x45C690) = v15;      /* Hex-Rays had an undefined v16 here */
       G32(0x45C648) = 0;
+      #ifdef D4C648DBG
+          if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+            fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+      #endif
       d4_412A59(c, 0x200u, v26);
       v25 = G32(0x45C648);
       G32(0x45C648) = v17;
@@ -6340,6 +6851,17 @@ static unsigned char d4_412257(dec4_ctx *c, int a1)
   v80 = (c->p_6bc + (v63 << 9));
   a1 = (a1 & ~0x0000FFFFU) | ((M16(v80)) & 0x0000FFFFU);
   v67 = M16(c->p_6c8 + 2 * v63);
+#ifdef D42257DBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI) {
+    unsigned q2;
+    fprintf(stderr, "2257 out=%u ctx=%u tot=%u v67=%u e39c=%u code=%u range=%u\n",
+        G32(0x434528), v63, (unsigned)(unsigned short)a1, (unsigned)v67,
+        v70, G32(0x4749D8), G32(0x4749DC));
+    fprintf(stderr, "PBC:");
+    for (q2 = 0; q2 < 256; q2++) fprintf(stderr, "%s%u", (q2 % 16) ? "," : "\n", (unsigned)M16(v80 + 2 * q2));
+    fprintf(stderr, "\n");
+  }
+#endif
   v1 = 0;
   if ( (unsigned short)a1 <= (unsigned int)(M32(0x45BA3C + ((v63) * 4)) * v67) )
   {
@@ -6448,6 +6970,10 @@ LABEL_73:
     v56 = G32(0x45C684) - M16(v79 + 2 * (v52 >> 1));
     G32(0x45C680) = v56;
     G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((((G32(0x45C684) - v56) << 14) / (unsigned int)G32(0x45C67C)) * 2));
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S1 c684=%u v56=%d c67c=%u add=%u\n", G32(0x45C684), v56, G32(0x45C67C), (unsigned)(unsigned short)M16(0x429ED4 + ((((G32(0x45C684) - v56) << 14) / (unsigned int)G32(0x45C67C)) * 2)));
+#endif
     v57 = M32(0x45C67C + (1) * 4);
     v58 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v57);
     i = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v57);
@@ -6531,6 +7057,10 @@ LABEL_31:
         G32(0x45C680) = v11;
       }
       G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((2 * (G32(0x45C684) - G32(0x45C680))) * 2));
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S2 c684=%u c680=%u add=%u\n", G32(0x45C684), G32(0x45C680), (unsigned)(unsigned short)M16(0x429ED4 + ((2 * (G32(0x45C684) - G32(0x45C680))) * 2)));
+#endif
       v12 = M32(0x45C67C + (1) * 4);
       v13 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v12);
       k = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v12);
@@ -6589,6 +7119,10 @@ LABEL_43:
   G32(0x45C684) = G32(0x45C67C);
   G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((((G32(0x45C67C) - (unsigned int)(unsigned short)a1) << 14)
                                               / G32(0x45C67C)) * 2));
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S3 c67c=%u a1lo=%u add=%u\n", G32(0x45C67C), (unsigned)(unsigned short)a1, (unsigned)(unsigned short)M16(0x429ED4 + ((((G32(0x45C67C) - (unsigned int)(unsigned short)a1) << 14) / G32(0x45C67C)) * 2)));
+#endif
   v22 = M32(0x45C67C + (1) * 4);
   v23 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v22);
   l = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v22);
@@ -6616,6 +7150,17 @@ LABEL_43:
   while ( v31 < 0x100 );
   v32 = 256;
   G32(0x45C67C) = M16(c->p_6bc + (G32(0x45C690) << 9)) - v28;
+#ifdef D4ZDIVDBG
+  if (G32(0x45C67C) == 0) {
+    unsigned qz;
+    fprintf(stderr, "ZDIV out=%u v63=%u c690=%u base=%u v28=%u e39c=%u\n",
+        G32(0x434528), v63, G32(0x45C690),
+        (unsigned)M16(c->p_6bc + (G32(0x45C690) << 9)), v28, G8(0x45E39C));
+    fprintf(stderr, "ZDIVH:");
+    for (qz = 0; qz < 16; qz++) fprintf(stderr, " %u", (unsigned)M8(0x45DD6E + qz));
+    fprintf(stderr, "\n");
+  }
+#endif
   v33 = G32(0x4749DC) / (unsigned int)G32(0x45C67C);
   G32(0x4749DC) = v33;
   v82 = (unsigned)d4_div(G32(0x4749D8), v33);
@@ -6632,6 +7177,10 @@ LABEL_43:
   G32(0x45C684) = v34;
   G32(0x45C680) = v34 - M16(v76 + 2 * v32);
   G32(0x45C648) += (unsigned short)M16(0x429ED4 + (((((unsigned int)v34 - G32(0x45C680)) << 14) / G32(0x45C67C)) * 2));
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S4 v34=%u c680=%u c67c=%u add=%u\n", v34, G32(0x45C680), G32(0x45C67C), (unsigned)(unsigned short)M16(0x429ED4 + (((((unsigned int)v34 - G32(0x45C680)) << 14) / G32(0x45C67C)) * 2)));
+#endif
   v36 = M32(0x45C67C + (1) * 4);
   v37 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v36);
   m = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v36);
@@ -6650,6 +7199,11 @@ LABEL_43:
 
 static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
 {
+#ifdef D4C648DBG
+  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    fprintf(stderr, "C648CALL out=%u a1=%u a2=%u ra=%p\n", G32(0x434528), a1, (unsigned)a2,
+        __builtin_return_address(0));
+#endif
   unsigned int v2;
   unsigned int v3;
   unsigned int v4;
@@ -6716,7 +7270,9 @@ LABEL_50:
           v27 = (unsigned int)(v32 + ((((int)(v31 - v32)) >> 1) * 2));
           do
           {
-            if ( M16(v25) || M8(v26) )
+            /* asm 0x412E7B+: the bitmask lives in stack v29[256] (var_118),
+             * not at arena address v26. */
+            if ( M16(v25) || v29[v26] )
               v19 -= M16(v27);
             v27 += 2;
             v25 += 2;
@@ -6772,6 +7328,10 @@ LABEL_50:
     }
     result = (unsigned short)M16(0x429ED4 + ((((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19) * 2));
     G32(0x45C648) += (int)result;
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S5 a1=%u a2=%u v2=%u c690=%u v31=%u v19=%u m16=%u m16a=%u idx=%u result=%d e39c=%u h0=%u h1=%u init=%u dec=%u\n", a1, (unsigned)v35, v2, G32(0x45C690), v31, (unsigned)v19, (unsigned)M16(v31 + ((v35) * 2)), (unsigned)(v31 + ((v35) * 2)), ((unsigned)(((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19)), result, G8(0x45E39C), (unsigned)M8(0x45DD6E), (unsigned)M8(0x45DD6E + 1), (unsigned)M16(c->p_6bc + (v2 << 9)), (unsigned)M16(v31 + (((unsigned char)M8(0x45DD6E)) << 1)));
+#endif
   return;
   }
   v31 = ((a1 << 9) + c->p_6c0);
@@ -6818,6 +7378,10 @@ LABEL_37:
             v18 = 0x3FFF;
         }
         G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((((v18 - (unsigned short)v33) << 14) / v18) * 2));
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S6 v18=%u v33=%u idx=%u add=%u\n", v18, (unsigned)(unsigned short)v33, ((unsigned)((((v18 - (unsigned short)v33) << 14) / v18))), (unsigned)(unsigned short)M16(0x429ED4 + ((((v18 - (unsigned short)v33) << 14) / v18) * 2)));
+#endif
         v32 = v31;
       }
       v2 = G32(0x45C690);
@@ -6888,6 +7452,10 @@ LABEL_28:
   }
   v30 = v14;
   G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((2 * v14) * 2));
+#ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648 S7 v14=%d add=%u\n", v14, (unsigned)(unsigned short)M16(0x429ED4 + ((2 * v14) * 2)));
+#endif
   if ( v13 )
     M32(result) += (unsigned int)(0x2000 - M32(result)) >> 6;
   else
@@ -6899,6 +7467,10 @@ LABEL_28:
 
 static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 {
+#ifdef D4ED2DBG
+  fprintf(stderr, "ED2 out=%u a1=%u a2=%d a3=%u\n",
+      G32(0x434528), a1, a2, (unsigned)a3);
+#endif
   int v3;
   int v4;
   int v5;
@@ -6908,6 +7480,14 @@ static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
   v5 = a2;
   G32(0x45C690) = a2;
   G32(0x45C648) = 0;
+  #ifdef D4C648DBG
+      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+  #endif
+  #ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648SITE D-412ED2 out=%u\n", G32(0x434528));
+  #endif
   d4_412A59(c, a1, a3);
   v4 = (unsigned char)G8(0x45E3A1)++;
   M32(0x444584 + ((v4) * 4)) = G32(0x45C690);
@@ -6925,6 +7505,14 @@ static int d4_412F80(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 
   G32(0x45C690) = a2;
   G32(0x45C648) = 0;
+  #ifdef D4C648DBG
+      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+  #endif
+  #ifdef D4C648DBG
+    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      fprintf(stderr, "C648SITE E-412F80 out=%u\n", G32(0x434528));
+  #endif
   d4_412A59(c, a1, a3);
   result = (int)G32(0x45C648);
   M32(0x45C640) = G32(0x45C648) + ((31 * M32(0x45C640)) >> 5);
@@ -6973,11 +7561,13 @@ static int d4_412FFA(dec4_ctx *c)
       M32(v3 + ((1) * 4)) = M32(v3 + ((11) * 4)) - M32(v3);
       M32(v3) = M32(v3 + ((11) * 4));
       v4 = M32(v3 + ((3) * 4)) * M32(v3 + ((8) * 4)) + M32(v3 + ((2) * 4)) * M32(v3 + ((7) * 4)) + M32(v3 + ((1) * 4)) * M32(v3 + ((6) * 4)) + M32(v3) * M32(v3 + ((5) * 4)) + 16 * M32(v3 + ((10) * 4)) + G32(0x43D740) * M32(v3 + ((9) * 4));
-      M32(0x43DB48 + ((0) * 4)) = (signed int)(v4 - (__CFSHL__(HIDWORD(v4), 4) + 16 * HIDWORD(v4))) >> 4;
+      /* asm 0x4131E1..0x4131E7 truncates toward zero (see 43DB54 note). */
+      M32(0x43DB48 + ((0) * 4)) = ((int)(unsigned int)v4) / 16;
       if ( M32(v3 + ((23) * 4)) <= (unsigned int)M32(v3 + ((24) * 4)) )
         v5 = M32(0x43DB48 + ((0) * 4));
       else
-        v5 = M32((v3 + (40) * 4));
+        v5 = M8(v3 + 0x28);   /* asm 0x4131F7: byte [ecx+28h] (dword 10),
+                               * not dword [40] */
       G8(0x45E38B) = v5;
       if ( G8(0x45E390) == 7 )
       {
@@ -7002,6 +7592,8 @@ static int d4_412FFA(dec4_ctx *c)
       }
       else if ( G8(0x45E390) == 8 )
       {
+        /* REVERTED 26-Oct inversion experiment: crashed inside Gmud.dll.
+         * Restored original polarity pending asm re-proof. */
         if ( M32(v3 + ((28) * 4)) )
           v6 = G32(0x45AE2C);
         else
@@ -7032,10 +7624,13 @@ static int d4_412FFA(dec4_ctx *c)
       v1 = G32(0x43F384) * G32(0x43F398)
          + G32(0x43F380) * G32(0x43F394)
          + G32(0x43F37C) * G32(0x43F390)
-         + G32(0x43F3A4) * G32(0x43F38C)
+         /* asm 0x413093: imul eax(43F38C), 43F378[0] - not 43F3A4. */
+         + M32(0x43F378 + ((0) * 4)) * G32(0x43F38C)
          + 16 * G32(0x43F3A0)
          + G32(0x43F388) * G32(0x43F39C);
-      G32(0x43DB54) = (signed int)(v1 - (__CFSHL__(HIDWORD(v1), 4) + 16 * HIDWORD(v1))) >> 4;
+      /* asm 0x4130E1..0x4130E7 (cdq/shl/sbb/sar) truncates toward zero;
+       * an arithmetic >> floors negatives (off by one). v1 is mod 2^32. */
+      G32(0x43DB54) = ((int)(unsigned int)v1) / 16;
       G32(0x43DB58) = M32(0x43D948 + ((v0) * 4));
       G32(0x43DB5C) = M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - (unsigned char)G32(0x43D734)) & 0x7F) * 4));
       G8(0x45E38B) = M32(0x43DB48 + ((G32(0x43D72C)) * 4));
@@ -7123,12 +7718,10 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
   int v28;
   int v29;
   int v30;
-  int v31;
-  int v32;
-  int v33;
-  int v34;
-  int v35;
-  int v36;
+  /* asm addresses v31..v36 as one 6-dword record ((char*)&v31 + v42);
+   * separate locals are not adjacent under GCC -O2 (same class as the
+   * vmask13/vmask9 fix), so keep them a real array. */
+  int v31_6[6];
   int v37;
   unsigned int v38;
   int v39;
@@ -7176,6 +7769,15 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
         v8 = 0;
         v41 = M32(0x43F378 + ((12) * 4));
         M32(0x43F378 + ((12) * 4)) = 0;
+#ifdef D4SWDBG
+        if (G32(0x434528) == 80)
+          fprintf(stderr, "SWPRE out=80 e390=%u s13=%d s14=%d s15=%d s16=%d s17=%d s18=%d s19=%d s20=%d s21=%d s22=%d\n",
+              G8(0x45E390),
+              (int)M32(0x43F378+52), (int)M32(0x43F378+56), (int)M32(0x43F378+60),
+              (int)M32(0x43F378+64), (int)M32(0x43F378+68), (int)M32(0x43F378+72),
+              (int)M32(0x43F378+76), (int)M32(0x43F378+80), (int)M32(0x43F378+84),
+              (int)M32(0x43F378+88));
+#endif
         v9 = 0x43F378 + ((1) * 4);
         do
         {
@@ -7184,58 +7786,71 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
             v41 = M32(v9 + ((12) * 4));
             v8 = v7;
           }
-          ++v9;
+          /* asm 0x4134BD: add eax,4 - dword steps; ++v9 walks bytes and
+           * corrupts neighbours with the unaligned zero below. */
+          v9 += 4;
           ++v7;
           M32(v9 + ((11) * 4)) = 0;
         }
         while ( v7 < 11 );
+#ifdef D4SWDBG
+        if (G32(0x434528) == 80)
+          fprintf(stderr, "SW out=80 v8=%d\n", v8);
+#endif
         switch ( v8 )
         {
+          /* asm 004134E8 jumptable: signed compares (jg/jl); M32 is
+           * unsigned, so (signed int) casts are required (else > -32
+           * never fires and < 32 misfires on negatives). */
           case 1:
-            if ( M32(0x43F378 + ((5) * 4)) > -32 )
+            if ( (signed int)M32(0x43F378 + ((5) * 4)) > -32 )
               --M32(0x43F378 + ((5) * 4));
             break;
           case 2:
-            if ( M32(0x43F378 + ((5) * 4)) < 32 )
+            if ( (signed int)M32(0x43F378 + ((5) * 4)) < 32 )
               ++M32(0x43F378 + ((5) * 4));
             break;
           case 3:
-            if ( M32(0x43F378 + ((6) * 4)) > -32 )
+            if ( (signed int)M32(0x43F378 + ((6) * 4)) > -32 )
               --M32(0x43F378 + ((6) * 4));
             break;
           case 4:
-            if ( M32(0x43F378 + ((6) * 4)) < 32 )
+            if ( (signed int)M32(0x43F378 + ((6) * 4)) < 32 )
               ++M32(0x43F378 + ((6) * 4));
             break;
           case 5:
-            if ( M32(0x43F378 + ((7) * 4)) > -32 )
+            if ( (signed int)M32(0x43F378 + ((7) * 4)) > -32 )
               --M32(0x43F378 + ((7) * 4));
             break;
           case 6:
-            if ( M32(0x43F378 + ((7) * 4)) < 32 )
+            if ( (signed int)M32(0x43F378 + ((7) * 4)) < 32 )
               ++M32(0x43F378 + ((7) * 4));
             break;
           case 7:
-            if ( M32(0x43F378 + ((8) * 4)) > -32 )
+            if ( (signed int)M32(0x43F378 + ((8) * 4)) > -32 )
+            {
               --M32(0x43F378 + ((8) * 4));
+            }
             break;
           case 8:
-            if ( M32(0x43F378 + ((8) * 4)) < 32 )
+            if ( (signed int)M32(0x43F378 + ((8) * 4)) < 32 )
               ++M32(0x43F378 + ((8) * 4));
             break;
           case 9:
-            if ( M32(0x43F378 + ((8) * 4)) > -32 )
+            if ( (signed int)M32(0x43F378 + ((8) * 4)) > -32 )
               --M32(0x43F378 + ((9) * 4));
             break;
           case 10:
-            if ( M32(0x43F378 + ((8) * 4)) < 32 )
+            if ( (signed int)M32(0x43F378 + ((8) * 4)) < 32 )
               ++M32(0x43F378 + ((9) * 4));
             break;
           default:
             break;
         }
       }
-      M32(0x43D948 + (2 * (G32(0x45AE1C) & 0x7F)) * 4) = v43;
+      /* asm 0x413578/0x4135DF/0x4135EC: single-stride 43D948[eax*4]; the
+       * 2* factor addressed the wrong slots and starved 412FFA's reads. */
+      M32(0x43D948 + ((G32(0x45AE1C) & 0x7F)) * 4) = v43;
       if ( !(G32(0x45AE1C) & M32(0x424D3C + ((G32(0x43D72C)) * 4))) )
       {
         v40 = 0xFFFF;
@@ -7246,16 +7861,16 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
         do
         {
           v37 = G32(0x45AE1C);
-          v46 = M32(0x43D948 + (2 * (((unsigned char)G32(0x45AE1C) - 1) & 0x7F)) * 4)
-              - M32(0x43D948 + (2 * (((unsigned char)G32(0x45AE1C) - 1 - (unsigned char)v10) & 0x7F)) * 4);
+          v46 = M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 1) & 0x7F)) * 4)
+              - M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 1 - (unsigned char)v10) & 0x7F)) * 4);
           v38 = 4 * (v46 & 0xFFF);
           v39 = 4 * (((unsigned char)G32(0x45AE1C) - (unsigned char)v10) & 0x7F);
           v46 = M32(0x43972C + ((v38 / 4) * 4))
-              + M32(0x43972C + (((M32(0x43D948 + (2 * (G32(0x45AE1C) & 0x7F)) * 4)
-                            - M32(0x43D948 + (2 * (((unsigned char)G32(0x45AE1C) - (unsigned char)v10) & 0x7F)) * 4)) & 0xFFF) * 4));
+              + M32(0x43972C + (((M32(0x43D948 + (((G32(0x45AE1C) & 0x7F))) * 4)
+                            - M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - (unsigned char)v10) & 0x7F)) * 4)) & 0xFFF) * 4));
           v39 = v46;
-          v46 = M32(0x43D948 + (2 * (((unsigned char)G32(0x45AE1C) - 2) & 0x7F)) * 4)
-              - M32(0x43D948 + (2 * (((unsigned char)G32(0x45AE1C) - 2 - (unsigned char)v10) & 0x7F)) * 4);
+          v46 = M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 2) & 0x7F)) * 4)
+              - M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 2 - (unsigned char)v10) & 0x7F)) * 4);
           v12 = M32(0x43972C + ((v46 & 0xFFF) * 4)) + v39;
           M32(0x43D748 + ((v11) * 4)) = v12 + ((unsigned int)(13 * M32(0x43D748 + (v11) * 4)) >> 4);
           v44 = v12;
@@ -7271,24 +7886,36 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
         }
         while ( v10 < 0x7C );
       }
-      v31 = v3 - M32(0x43DB48 + ((0) * 4));
-      v32 = v3 - G32(0x43DB4C);
-      v33 = v3 - G32(0x43DB50);
-      v34 = v3 - G32(0x43DB54);
+      v31_6[0] = v3 - M32(0x43DB48 + ((0) * 4));
+      v31_6[1] = v3 - G32(0x43DB4C);
+      v31_6[2] = v3 - G32(0x43DB50);
+      v31_6[3] = v3 - G32(0x43DB54);
       G32(0x43D72C) = 0;
-      v35 = v43 - G32(0x43DB58);
+      v31_6[4] = v43 - G32(0x43DB58);
       v45 = 0;
       v42 = 0;
-      v36 = v43 - G32(0x43DB5C);
+      v31_6[5] = v43 - G32(0x43DB5C);
+      /* asm 0x413731 jumps straight into the body (0x41374A) with v45=0,
+       * v42=0 on row R0; the increment/exit-check at 0x413738..0x413748
+       * only runs between bodies. 6 bodies: v45=0..5, v42=0..20, rows
+       * R0..R5. Row 0's accumulator doubles as threshold[0]. */
       v13 = (0x43DB60);
       do
       {
+        /* asm 0x41374A..0x413797: the row holds dwords (M32 at v14*4 and
+         * +1024 accumulator), not bytes; BYTE accesses corrupt the model. */
         v14 = (unsigned char)G32(0x45AE1C);
-        M8((v13 + (256))) -= M8((v13 + ((unsigned char)G32(0x45AE1C))));
-        v15 = M32(0x424D54 + ((M32((char *)&v31 + v42) & 0x1FF) * 4));
-        M8((v13 + (v14))) = v15;
-        M8((v13 + (256))) += v15;
-        if ( M8((v13 + (256))) < M32(0x43DF60 + ((257 * G32(0x43D72C)) * 4)) )
+        M32((v13 + (1024))) -= M32((v13 + ((v14) * 4)));
+        /* asm 0x41375F..0x41376C reads the v31..v36 record off the STACK;
+         * routing it through the arena accessor (M32((char*)v31_6+v42))
+         * clamps the stack address into the arena tail and yields zeros
+         * (v42/4 == v45, so element [v45]). */
+        v15 = M32(0x424D54 + ((((unsigned int)v31_6[v45]) & 0x1FF) * 4));
+        M32((v13 + ((v14) * 4))) = v15;
+        M32((v13 + (1024))) += v15;
+        /* asm 0x41378C: jge (signed). The accumulator wraps negative on
+         * deficit, which an unsigned compare can never see. */
+        if ( (signed int)M32((v13 + (1024))) < (signed int)M32(0x43DF60 + ((257 * G32(0x43D72C)) * 4)) )
           G32(0x43D72C) = v45;
         v42 += 4;
         ++v45;
@@ -7297,6 +7924,9 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
       while ( v45 < 6 );
       G32(0x43D73C) = G32(0x43D738);
       G32(0x43D738) = v3;
+      /* REVERTED current-row experiment 26-Oct: crashed inside Gmud.dll
+       * (0 bytes flushed vs 572416 before). Row-0 absolute base restored
+       * pending EDX-entry proof. */
       v16 = M32(0x43F378 + ((29) * 4));
       M32(0x43F378 + ((28) * 4)) = v47 + (M32(0x43F378 + ((28) * 4)) << 8);
       v17 = v47;
@@ -7304,7 +7934,14 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
       M32(0x43F378 + ((29) * 4)) = M32(0x425554 + ((v47) * 4)) + (v16 << 8);
       v19 = v18 << 8;
       result = M32(0x425D54 + ((v17) * 4));
-      goto LABEL_80;
+      /* asm 0x4137E1 jumps to 0x413A8B which stores to [edx+78h] with
+       * edx = the region base (0x43F378 here). It must NOT share LABEL_80
+       * below: there v2 is the >=7 region base, but here v2 holds [0]'s
+       * VALUE, so the shared store corrupts low arena and [30] never
+       * updates (stuck at its -1 init, breaking 412FFA's v2 select).
+       * (Row-0 base restored - see note above.) */
+      M32(0x43F378 + ((30) * 4)) = result + v19;
+      return result;
     }
     v20 = 31 * G32(0x45AE2C);
     M8(0x43F568 + (G32(0x45AE2C))) = G8(0x45E38E);
@@ -7326,16 +7963,21 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
     M32(v2 + ((21) * 4)) += M32(0x43972C + ((((unsigned short)v22 - (unsigned short)G32(0x43D740)) & 0xFFF) * 4));
     M32(v2 + ((22) * 4)) += M32(0x43972C + ((((unsigned short)G32(0x43D740) + (unsigned short)v22) & 0xFFF) * 4));
     M32(v2 + ((23) * 4)) += M32(0x426554 + (((unsigned char)(LOBYTE(M32(0x43DB48 + (0) * 4)) - v21)) * 4));
-    M32(v2 + ((24) * 4)) += M32(0x426554 + (((unsigned char)(M32((v2 + (40) * 4)) - v21)) * 4));
-    v23 = (char)(v21 - M32((v2 + (40) * 4)));
+    M32(v2 + ((24) * 4)) += M32(0x426554 + (((unsigned char)(M8(v2 + 0x28) - v21)) * 4));
+    v23 = (char)(v21 - M8(v2 + 0x28));   /* asm 0x413922/0x413934: byte
+                                          * [edx+28h] (dword 10), not dword [40] */
     M32(v2 + ((11) * 4)) = v23;
     G32(0x43D740) = v23;
     M32(v2 + ((10) * 4)) = v21;
     ++M32(v2 + ((27) * 4));
-    if ( !(M32((v2 + (108) * 4)) & 0xF) )
+    /* asm 0x41394A: test BYTE [edx+6Ch],0Fh - low-nibble of the low byte,
+     * not a dword test. EDX here is the current row (path B only; path A
+     * jumps 0x4137E1->0x413A8B with EDX=region base). */
+    if ( !(M8(v2 + 108) & 0xF) )
     {
       v24 = 1;
-      v25 = (int)(v2 + 1);
+      /* asm 0x413959: lea eax,[edx+4] - address steps, same as <7 v9. */
+      v25 = (int)(v2 + 4);
       v26 = 0;
       v27 = M32(v2 + ((12) * 4));
       M32(v2 + ((12) * 4)) = 0;
@@ -7353,50 +7995,54 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
       while ( v24 < 11 );
       switch ( v26 )
       {
+        /* asm 0x413995+: jle/jge (signed), same as the <7 switch. */
         case 1:
-          if ( M32(v2 + ((5) * 4)) > -32 )
+          if ( (signed int)M32(v2 + ((5) * 4)) > -32 )
             --M32(v2 + ((5) * 4));
           break;
         case 2:
-          if ( M32(v2 + ((5) * 4)) < 32 )
+          if ( (signed int)M32(v2 + ((5) * 4)) < 32 )
             ++M32(v2 + ((5) * 4));
           break;
         case 3:
-          if ( M32(v2 + ((6) * 4)) > -32 )
+          if ( (signed int)M32(v2 + ((6) * 4)) > -32 )
             --M32(v2 + ((6) * 4));
           break;
         case 4:
-          if ( M32(v2 + ((6) * 4)) < 32 )
+          if ( (signed int)M32(v2 + ((6) * 4)) < 32 )
             ++M32(v2 + ((6) * 4));
           break;
         case 5:
-          if ( M32(v2 + ((7) * 4)) > -32 )
+          if ( (signed int)M32(v2 + ((7) * 4)) > -32 )
             --M32(v2 + ((7) * 4));
           break;
         case 6:
-          if ( M32(v2 + ((7) * 4)) < 32 )
+          if ( (signed int)M32(v2 + ((7) * 4)) < 32 )
             ++M32(v2 + ((7) * 4));
           break;
         case 7:
-          if ( M32(v2 + ((8) * 4)) > -32 )
+          if ( (signed int)M32(v2 + ((8) * 4)) > -32 )
             --M32(v2 + ((8) * 4));
           break;
         case 8:
-          if ( M32(v2 + ((8) * 4)) < 32 )
+          if ( (signed int)M32(v2 + ((8) * 4)) < 32 )
             ++M32(v2 + ((8) * 4));
           break;
         case 9:
-          if ( M32(v2 + ((8) * 4)) > -32 )
+          if ( (signed int)M32(v2 + ((8) * 4)) > -32 )
             --M32(v2 + ((9) * 4));
           break;
         case 10:
-          if ( M32(v2 + ((8) * 4)) < 32 )
+          if ( (signed int)M32(v2 + ((8) * 4)) < 32 )
             ++M32(v2 + ((9) * 4));
           break;
         default:
           break;
       }
-      if ( !M32((v2 + (108) * 4)) )
+      /* asm 0x413A13: test BYTE [edx+6Ch],0FFh - fires when the low
+       * BYTE wraps to 0 (every 256 path-B calls), not when the whole
+       * dword is 0 (every 2^32). Same EDX=current-row as above. */
+      if ( !(M8(v2 + 108) & 0xFF) )
       {
         M32(v2 + ((23) * 4)) -= M32(v2 + ((25) * 4));
         M32(v2 + ((25) * 4)) = M32(v2 + ((23) * 4));
@@ -7604,6 +8250,11 @@ int uharc_dec4_decode_b(void *ctx,
         if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(0x422B90) = 4;
         G32(0x43451C) = 0;
     }
+#ifdef SPLITDBG
+    fprintf(stderr, "SPLITDBG end 422B90=%u out=%u total=%u blk=%u next=%u idx=%u steps=%lu\n",
+        G32(0x422B90), G32(0x434528), G32(0x434514), G32(0x45D12C), G32(0x45D13C),
+        G32(0x45D144), c->steps);
+#endif
     if (G32(0x422B90) == 4) return 4;
     if (G32(0x422B90)) return 3;
     if (G32(0x434528) != G32(0x434514)) return 3;

@@ -556,7 +556,7 @@ static int u3_read(void *ctx, unsigned char *buf, unsigned want)
  * each file to be at least 0x400 bytes, and the filter checks MZ/ZM. */
 static void uha03_unfilter(unsigned char *buf, unsigned long len)
 {
-    uharc_filter_exe(buf, len, 3);
+    uharc_filter_exe(buf, len, 3, 0);
 }
 
 int uha03_extract(uha03_t *h, const char *outdir,

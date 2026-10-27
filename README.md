@@ -26,19 +26,22 @@ only correct when translated from the listing.
 | **0.2** | complete | yes | yes | yes (LSB LZW) | yes (8–43) | — | — | **complete** |
 | **0.3** | complete | yes | yes | yes (LSB LZW) | yes (8–21) | **missing** | yes (36–79) | 22–35 missing |
 | **0.4** | complete | yes | yes | yes (LSB LZW) | yes (8–23) | **missing** | yes (40–87) | 24–39 missing |
-| **0.6** | complete | yes | yes | yes (MSB) | yes (8–23) | **partial** | yes (40–87) | 24–39 partial |
+| **0.6** | complete | yes | yes | yes (MSB) | yes (8–23) | **yes** | yes (40–87) | 24–39 yes |
 
 "Container" means header decryption, CRC, directory tables, listing, solid
 stream split and per-file CRC verification.
 
-0.6 core 4 is the only partially ported coder. Method 27 (`06_mx`) now
-decodes end to end (`t` = All files OK). Method 34 (`D3X.UHA`) runs without
-crashing; `BIN/FILES.TXT` (498 B) is byte-exact and `BIN/D3XSTUB.ASM`
-diverges at its byte 569 (stream offset 1067) - within one `d4_41030F`
-invocation the range/code pair leaves in step with the native although the
-entry state, hash tables, contexts and MTF rank arrays all match, so the
-remaining defect is an internal branch of that function. Method 39
-(`gmud-06x`, 32 MB dict) diverges at output byte 3. There is no 0.3- or
+0.6 core 4 is byte-exact against the native oracle on every archived
+sample present: method 27 (`06_mx`), method 34 (`D3X.UHA`, 45/45 files)
+and method 39 (`gmud-06x.uha`, 44/44 files, 33 MB) all extract
+byte-identical (`x` rc 0, `t` rc 0). The last defects were a missing `byte_433E36` EXE post-filter
+pre-transform, gated per-archive by the header method
+(`uharc_filter.c`, `f6` flag; `byte_42251F[method]==4`, i.e.
+archive methods 24–39 — per-file gating corrupts e.g.
+`gmud-06m3`/`-06z` members), and an off-by-one in the `d4_40CDD1` init
+fills (bound `0xC04` = indices 1..769, was 1..768): the missing
+`AE38[768] = 0x4000` let that accumulator decay below zero and fire
+spurious `d4_40E4FF` rescales. There is no 0.3- or
 0.4-specific core 4 port; the dispatcher routes those methods to the 0.6
 coder, which does not decode them.
 Known -O2 hazard: three functions (`d4_41030F`, `d4_411F8B`,
@@ -81,8 +84,6 @@ each other.
 |---------|---------|--------|
 | `gmud-03x.uha` | 0.3 | core 4 (methods 22–35) not ported |
 | `gmud-04x.uha` | 0.4 | core 4 (methods 24–39) not ported |
-| `gmud-06x.uha` | 0.6 | core 4 not yet byte-exact |
-| `D3X.UHA` (extract) | 0.6 | core 4 method 34: CRC failure on the first file |
 
 ## Build
 
@@ -156,7 +157,7 @@ uharc06_main.c                 CLI: version detect + dispatch
    ├─ uha03_dec3.c             0.3 core 3
    ├─ uha04_dec3.c             0.4 core 3
    ├─ uha02_dec3.c             0.2 core 3
-   ├─ uharc_dec4.c             0.6 core 4 (partial)
+   ├─ uharc_dec4.c             0.6 core 4
    ├─ uharc_dec5.c             0.6 core 5
    ├─ uha03_dec5.c             0.3 core 5
    └─ uha04_dec5.c             0.4 core 5
@@ -240,10 +241,8 @@ method ID across 2–7.
 
 ## Remaining work
 
-1. **0.6 core 4** — finish the 0.6 coder. The full translation is in
-   `uharc_dec4.c`; method 27 now decodes end to end, but method 34 and 39
-   still diverge. The remaining defects are in the LZP candidate pass and the
-   PPM escape path.
+1. **0.6 core 4** — done and byte-exact on all samples present
+   (methods 27/34/39). The full translation is in `uharc_dec4.c`.
 2. **0.4 core 4** — port from `UHARC04` `sub_41CE30` / `415130`.
 3. **0.3 core 4** — port from `uharc_u` `sub_419E9C` / `415F6C`.
 4. **Multimedia filter** — `uha02_mm.c` is implemented and round-trip tested

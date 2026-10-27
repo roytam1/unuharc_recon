@@ -768,8 +768,26 @@ static int uharc06_split_write(void *ctx, const unsigned char *buf, unsigned len
             ci = *g_sp_pidx;
             if (g_sp_fuse) {
                 /* whole file is buffered: apply the 0.6 inverse EXE filter
-                 * (same algorithm as 0.3/0.4) before CRC and write */
-                uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6);
+                 * before CRC and write. f6 = native byte_433E36, set once per
+                 * archive from byte_42251F[ARCHIVE method]==4 (asm 0x405C16;
+                 * the table holds 4 exactly at 24..39). It is NOT per-file:
+                 * gmud-06m3 (archive method 87) and gmud-06z (23) must not
+                 * get the pre-transform even for 24..39-method members. */
+#ifdef SPLITDBG
+                if (g_sp_ffill > 0) {
+                    FILE *df = fopen("C:/Users/Roy/AppData/Local/Temp/opencode/fileX_raw.bin", "wb");
+                    if (df) { fwrite(g_sp_fbuf, 1, (size_t)g_sp_ffill, df); fclose(df); }
+                }
+#endif
+                uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6,
+                    (h->hdr.method >= 24 &&
+                     h->hdr.method <= 39) ? 1 : 0);
+#ifdef SPLITDBG
+                if (g_sp_ffill > 0) {
+                    FILE *df = fopen("C:/Users/Roy/AppData/Local/Temp/opencode/fileX_out.bin", "wb");
+                    if (df) { fwrite(g_sp_fbuf, 1, (size_t)g_sp_ffill, df); fclose(df); }
+                }
+#endif
                 if (!g_sp_test_only) {
                     size_t w = fwrite(g_sp_fbuf, 1, (size_t)g_sp_ffill,
                                       *g_sp_pcur);
@@ -784,7 +802,12 @@ static int uharc06_split_write(void *ctx, const unsigned char *buf, unsigned len
             if (((~(*g_sp_pcrc)) & 0xFFFFFFFFUL) !=
                 (h->entries[ci].crc & 0xFFFFFFFFUL)) {
                 g_sp_crc_err = 1;
+#ifdef SPLITDBG
+                fprintf(stderr, "SPLITDBG crcfail idx=%u name=%s\n",
+                    ci, g_sp_curpath);
+#else
                 return 1;
+#endif
             }
             (*g_sp_pidx)++;
             /* skip empties: create empty file unless test, check crc==0 */
@@ -927,6 +950,10 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     else if (drc == 2) rc = UHARC06_ERR_NOMEM;
     else if (drc != 0) rc = UHARC06_ERR_DATA;
     else rc = UHARC06_OK;
+#ifdef SPLITDBG
+    fprintf(stderr, "SPLITDBG drc=%d idx=%u nfiles=%u curpath=%s\n",
+        drc, idx, h->nfiles, g_sp_curpath);
+#endif
     if (rc != UHARC06_OK) goto done;
     /* all files must be accounted for */
     if (idx != h->nfiles) { rc = UHARC06_ERR_DATA; goto done; }

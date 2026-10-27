@@ -53,7 +53,7 @@ static void wr32(unsigned char *p, unsigned long v)
     p[3] = (unsigned char)((v >> 24) & 0xFFUL);
 }
 
-void uharc_filter_exe(unsigned char *buf, unsigned long len, int ver)
+void uharc_filter_exe(unsigned char *buf, unsigned long len, int ver, int f6)
 {
     unsigned long end, esi, d7c, d90;
     unsigned long i;
@@ -154,22 +154,52 @@ void uharc_filter_exe(unsigned char *buf, unsigned long len, int ver)
         {
             long v = rd32s(buf + i + 1);
             unsigned long adv = 4;
+            /* Current dword at buf+i+1 as unsigned (the table path and the
+             * 0.6 pre-transform read back what was stored, not the
+             * original v): asm 0x404CAF reads [eax]/[eax+2] afresh. */
+            unsigned long cur = (unsigned long)v;
+            /* 0.6 methods 24..39 post-EDX (the v>0 / v<0 rewrite below)
+             * operates on w, which is v unless the 433E36 pre-transform
+             * stored t (asm 0x404C6C falls through into the normal path). */
+            long w = v;
 
             if (v != 0) {
-                if (v > 0 && (unsigned long)v <= len - 1UL) {
-                    if (v == (long)i) v = 0;
-                    wr32(buf + i + 1, (unsigned long)v - i);
+                if (f6) {
+                    /* asm 0x404C1B..0x404C75 (byte_433E36, set when
+                     * byte_42251F[method]==4, i.e. methods 24..39): shuffle
+                     * t = (B0<<16) + ((v & 0xFF00FF00) + B2) mod 2^32, where
+                     * v = B3 B2 B1 B0. If v or t lies in [-i, len), store t
+                     * and continue the normal path on t. Hand-verified:
+                     * D3XSETUP v=0x00DC0200,i=315 -> t=732 -> 732-315=417
+                     * (a1 01 00 00), matching the native oracle. */
+                    unsigned long t = ((((unsigned long)v << 16) &
+                                        0x00FF0000UL) +
+                                       ((((unsigned long)v & 0xFF00FF00UL) +
+                                         (((unsigned long)v >> 16) & 0xFFUL)) &
+                                        0xFFFFFFFFUL)) & 0xFFFFFFFFUL;
+                    if ((v >= -(long)i && v < (long)len) ||
+                        ((long)t >= -(long)i && (long)t < (long)len)) {
+                        wr32(buf + i + 1, t);
+                        cur = t;
+                        w = (long)t;
+                        adv = 5;
+                    }
+                }
+                if (w > 0 && (unsigned long)w <= len - 1UL) {
+                    if (w == (long)i) w = 0;
+                    wr32(buf + i + 1, (unsigned long)w - i);
                     adv = 5;
-                } else if (v < 0 && v >= -(long)i) {
-                    wr32(buf + i + 1, len + (unsigned long)v);
+                } else if (w < 0 && w >= -(long)i) {
+                    wr32(buf + i + 1, len + (unsigned long)w);
                     adv = 5;
                 } else {
-                    unsigned hi = (unsigned)(((unsigned long)v >> 16) &
-                                             0xFFFFUL);
+                    /* asm 0x404CAF: hi/lo read from [eax], the CURRENT bytes
+                     * (post pre-transform store), not the original v. */
+                    unsigned hi = (unsigned)((cur >> 16) & 0xFFFFUL);
                     unsigned hitot = (unsigned)((len - 1UL) >> 16) & 0xFFFFU;
                     unsigned hineg = (unsigned)(((0UL - i) >> 16) & 0xFFFFUL);
                     if (hi != 0 && hi != hitot && hi != hineg) {
-                        unsigned low = (unsigned)v & 0xFFFFU;
+                        unsigned low = (unsigned)cur & 0xFFFFU;
                         unsigned idx = (unsigned)((low - 0x8000U) & 0xFFFFU);
                         if (idx < 0x80U) {
                             unsigned val = tab[idx];

@@ -551,7 +551,7 @@ static int u4_read(void *ctx, unsigned char *buf, unsigned want)
  * least 0x400 bytes, and the filter checks MZ/ZM. */
 static void uha04_unfilter(unsigned char *buf, unsigned long len)
 {
-    uharc_filter_exe(buf, len, 4);
+    uharc_filter_exe(buf, len, 4, 0);
 }
 
 int uha04_extract(uha04_t *h, const char *outdir,
