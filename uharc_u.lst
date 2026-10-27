@@ -6,10 +6,10 @@
 .myth1:00401000	; |		Doskey Lee, Kingsoft Internet Security Software		    |
 .myth1:00401000	; +-------------------------------------------------------------------------+
 .myth1:00401000	;
-.myth1:00401000	; Input	MD5   :	36AB7607791425568439B01126142B4C
-.myth1:00401000	; Input	CRC32 :	1D731661
+.myth1:00401000	; Input	MD5   :	9A05CD175CE79FE3C5A4E1ADC56E46AA
+.myth1:00401000	; Input	CRC32 :	C0CEB1E7
 .myth1:00401000
-.myth1:00401000	; File Name   :	C:\devel\UNUHARC\uharc_u.exe
+.myth1:00401000	; File Name   :	C:\devel\UNUHARC\uharc_u.EXE
 .myth1:00401000	; Format      :	Portable executable for	80386 (PE)
 .myth1:00401000	; Imagebase   :	400000
 .myth1:00401000	; Section 1. (virtual address 00001000)
@@ -3424,7 +3424,7 @@
 .myth1:00402E38	loc_402E38:
 .myth1:00402E38	cmp	byte_428B84, 1
 .myth1:00402E3F	jnz	loc_402F9F
-.myth1:00402E45	cmp	byte_428BAA, 3
+.myth1:00402E45	cmp	byte_428BAA, 6
 .myth1:00402E4C	jbe	short loc_402E5E
 .myth1:00402E4E	mov	eax, off_428BC4
 .myth1:00402E53	mov	eax, [eax+0C8h]
@@ -60531,49 +60531,52 @@
 .myth1:004261F4	db ' l  List files in archive          '
 .myth1:004261F4	db '   t  Test files in archive',0Dh,0Ah
 .myth1:004261F4	db '---< Switches >---',0Dh,0Ah
-.myth1:004261F4	db ' d0|d1|d2[d2+]   Display mode (+ = '
-.myth1:004261F4	db 'pause flag)',0Dh,0Ah
-.myth1:004261F4	db ' m<0..3,x,z,w,r> Method: ALZ fast..'
-.myth1:004261F4	db 'best, PPM, LZP, LZW, RLE',0Dh,0Ah
-.myth1:004261F4	db ' md<n>        Set dictionary size i'
-.myth1:004261F4	db 'n KByte (must be power of 2 : 1 .. '
-.myth1:004261F4	db '8192)',0Dh,0Ah
-.myth1:004261F4	db ' mm[+|-]      Multimedia detection',0Dh
-.myth1:004261F4	db 0Ah
-.myth1:004261F4	db ' o|o+|o-|op   Overwrite: bare/o+ = '
-.myth1:004261F4	db 'always, o- = never, op = prompt (de'
-.myth1:004261F4	db 'fault 1)',0Dh,0Ah
-.myth1:004261F4	db ' p<-,r,f>     store Pathnames: none'
-.myth1:004261F4	db ' | relative | full',0Dh,0Ah
-.myth1:004261F4	db ' r[+|-]       Recurse subdirectorie'
-.myth1:004261F4	db 's (needs wildcards, e.g. dir\*.*)',0Dh
-.myth1:004261F4	db 0Ah
-.myth1:004261F4	db ' ed[+|-]      store Empty Directori'
-.myth1:004261F4	db 'es (default on)',0Dh,0Ah
-.myth1:004261F4	db ' ac[+|-]      Clear Archive attribu'
-.myth1:004261F4	db 'te | bpb[+|-]      bpb instead of %'
-.myth1:004261F4	db ' ratio',0Dh,0Ah
-.myth1:004261F4	db ' y[+|-]       assume Yes on queries'
-.myth1:004261F4	db '   | pw<passwd>    PassWord',0Dh,0Ah
-.myth1:004261F4	db ' vm[+|-]      Virtual Memory       '
-.myth1:004261F4	db '   | lg<file>      Log to file',0Dh,0Ah
-.myth1:004261F4	db ' t<dir>       extract Target dir   '
-.myth1:004261F4	db '   | b<n>          file Buffer size'
+.myth1:004261F4	db ' d0|d1|d2[d2+] display mode (+ = pa'
+.myth1:004261F4	db 'use flag)',0Dh,0Ah
+.myth1:004261F4	db ' m0..m3        ALZ fast..best',0Dh,0Ah
+.myth1:004261F4	db ' mx|mz|mw|mr   PPM | LZP | LZW | RL'
+.myth1:004261F4	db 'E',0Dh,0Ah
+.myth1:004261F4	db ' md<n>         Set dictionary size '
+.myth1:004261F4	db 'in KByte (must be power of 2 : 1 ..'
+.myth1:004261F4	db ' 32768)',0Dh,0Ah
+.myth1:004261F4	db ' mm[+|-]       multimedia detection'
 .myth1:004261F4	db 0Dh,0Ah
-.myth1:004261F4	db ' idle         sets idle priority (e'
-.myth1:004261F4	db 'xact word only)',0Dh,0Ah
-.myth1:004261F4	db ' aeA|H|R|S[+|-].. Attr Exclusion ma'
+.myth1:004261F4	db ' o|o+|o-|op    overwrite: bare/o+ ='
+.myth1:004261F4	db ' always, o- = never, op = prompt (d'
+.myth1:004261F4	db 'efault 1)',0Dh,0Ah
+.myth1:004261F4	db ' p<-,r,f>      store pathnames: non'
+.myth1:004261F4	db 'e | relative | full',0Dh,0Ah
+.myth1:004261F4	db ' pw<passwd>    password',0Dh,0Ah
+.myth1:004261F4	db ' r[+|-]        recurse subdirectori'
+.myth1:004261F4	db 'es (needs wildcards, e.g. dir\*.*)',0Dh
+.myth1:004261F4	db 0Ah
+.myth1:004261F4	db ' ed[+|-]       store empty director'
+.myth1:004261F4	db 'ies (default on)',0Dh,0Ah
+.myth1:004261F4	db ' y[+|-]        assume yes on querie'
+.myth1:004261F4	db 's',0Dh,0Ah
+.myth1:004261F4	db ' vm[+|-]       virtual memory',0Dh,0Ah
+.myth1:004261F4	db ' lg<file>      log to file',0Dh,0Ah
+.myth1:004261F4	db ' idle          exact word only, set'
+.myth1:004261F4	db 's idle priority',0Dh,0Ah
+.myth1:004261F4	db ' ac[+|-]       clear archive attrib'
+.myth1:004261F4	db 'ute',0Dh,0Ah
+.myth1:004261F4	db ' b<n>          file buffer size',0Dh,0Ah
+.myth1:004261F4	db ' t<dir>        extract target dir',0Dh
+.myth1:004261F4	db 0Ah
+.myth1:004261F4	db ' bpb[+|-]     bpb instead of % rati'
+.myth1:004261F4	db 'o',0Dh,0Ah
+.myth1:004261F4	db ' aeA|H|R|S[+|-].. attr exclusion ma'
 .myth1:004261F4	db 'sk, letter[sign] chains (bare ae in'
 .myth1:004261F4	db 'valid)',0Dh,0Ah
-.myth1:004261F4	db ' --               end-of-switches: '
-.myth1:004261F4	db 'following -args treated as files',0Dh,0Ah
-.myth1:004261F4	db ' --e|--k|--p|--t  force-disable int'
-.myth1:004261F4	db 'ernal content detectors (all defaul'
-.myth1:004261F4	db 't on)',0Ah
-.myth1:004261F4	db 0Dh,0
-.myth1:00426752	db '                                   '
-.myth1:00426752	db '                                   '
-.myth1:00426752	db '              ',0Dh,0Ah,0
+.myth1:004261F4	db ' --              end-of-switches: f'
+.myth1:004261F4	db 'ollowing -args treated as files',0Dh,0Ah
+.myth1:004261F4	db ' --e|--k|--p|--t force-disable inte'
+.myth1:004261F4	db 'rnal content detectors (all default'
+.myth1:004261F4	db ' on)',0Dh,0Ah,0
+.myth1:00426750	db '     ',0Dh,0Ah
+.myth1:00426750	db '                                   '
+.myth1:00426750	db '                                   '
+.myth1:00426750	db '         ',0Dh,0Ah,0
 .myth1:004267A9	align 4
 .myth1:004267AC	aJan db	'Jan',0
 .myth1:004267B0	aFeb db	'Feb',0
