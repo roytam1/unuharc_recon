@@ -25,7 +25,7 @@ only correct when translated from the listing.
 |---------|-----------|--------------|------------|--------------------|----------------|----------------|-------------|------------|
 | **0.2** | complete | yes | yes | yes (LSB LZW) | yes (8–43) | — | — | **complete** |
 | **0.3** | complete | yes | yes | yes (LSB LZW) | yes (8–21) | **missing** | yes (36–79) | 22–35 missing |
-| **0.4** | complete | yes | yes | yes (LSB LZW) | yes (8–23) | **missing** | yes (40–87) | 24–39 missing |
+| **0.4** | complete | yes | yes | yes (LSB LZW) | yes (8–23) | **yes** | yes (40–87) | 24–39 yes |
 | **0.6** | complete | yes | yes | yes (MSB) | yes (8–23) | **yes** | yes (40–87) | 24–39 yes |
 
 "Container" means header decryption, CRC, directory tables, listing, solid
@@ -41,9 +41,19 @@ archive methods 24–39 — per-file gating corrupts e.g.
 `gmud-06m3`/`-06z` members), and an off-by-one in the `d4_40CDD1` init
 fills (bound `0xC04` = indices 1..769, was 1..768): the missing
 `AE38[768] = 0x4000` let that accumulator decay below zero and fire
-spurious `d4_40E4FF` rescales. There is no 0.3- or
-0.4-specific core 4 port; the dispatcher routes those methods to the 0.6
-coder, which does not decode them.
+spurious `d4_40E4FF` rescales. 0.4 core 4 is byte-exact against the native oracle on the archived
+sample present: method 39 (`gmud-04x.uha`, 44/44 files, 33 MB) extracts
+byte-identical (`x` rc 0, `t` rc 0). The port is `uha04_dec4.c` (init
+`415130`, driver `417DA0`, workers `418830`/`415C40`/`416220`/`417E10`,
+range coder `41CD30`), wired in `uharc_dec0.c` for `ver == 4`, with the
+72 KB DGROUP image (`uha04_dec4_dg.c`) copied 1:1 into the arena at init.
+Two defects were found against the asm: an inverted `jb` at `41715A`
+(the `41715C` saturation block runs when `dl >= 0xFE`, not below), and
+uninitialised worker autos — every worker local is explicitly
+zero-initialised, matching the original's deterministic (in practice
+zero) caller leftovers. There is no 0.3-specific core 4 port; the
+dispatcher routes those methods to the 0.6 coder, which does not decode
+them.
 Known -O2 hazard: three functions (`d4_41030F`, `d4_411F8B`,
 `d4_412257`) need zero-initialised autos (`-ftrivial-auto-var-init=zero`
 via `#pragma GCC optimize`), otherwise the build miscompiles them and
@@ -68,8 +78,8 @@ every per-file CRC matches.
   as `Uharc02.exe`), `V_MMOFF.UHA` (10/10, including a 1.15 MB executable).
 * **0.3** — `03_m0/m1/m2/m3/mx/mz`, `uharc_u.uha` (method 60, 1 MB
   dictionary), `gmud-03m3` and `gmud-03z` (44 files, 33 MB).
-* **0.4** — `04_m0/m1/m2/m3`, `uha04.UHA` (8 files, method 62), `gmud-04m3`
-  and `gmud-04z` (44 files, 33 MB).
+* **0.4** — `04_m0/m1/m2/m3`, `uha04.UHA` (8 files, method 62), `gmud-04m3`,
+  `gmud-04x` (44 files, 33 MB) and `gmud-04z` (44 files, 33 MB).
 * **0.6** — `06_m0/m1/m2/m3/mz`, `BIG.uha` and generated multi-file solids
   (including model-reset boundaries), `gmud-06m3` and `gmud-06z`
   (44 files, 33 MB), plus `D3X.UHA` listing (45 files).
@@ -83,7 +93,6 @@ each other.
 | Archive | Version | Reason |
 |---------|---------|--------|
 | `gmud-03x.uha` | 0.3 | core 4 (methods 22–35) not ported |
-| `gmud-04x.uha` | 0.4 | core 4 (methods 24–39) not ported |
 
 ## Build
 
@@ -158,6 +167,8 @@ uharc06_main.c                 CLI: version detect + dispatch
    ├─ uha04_dec3.c             0.4 core 3
    ├─ uha02_dec3.c             0.2 core 3
    ├─ uharc_dec4.c             0.6 core 4
+   ├─ uha04_dec4.c             0.4 core 4 (methods 24–39) + DGROUP image
+   │                            (`uha04_dec4_dg.c`, copied into the arena)
    ├─ uharc_dec5.c             0.6 core 5
    ├─ uha03_dec5.c             0.3 core 5
    └─ uha04_dec5.c             0.4 core 5
@@ -204,7 +215,7 @@ Dictionary size is `1 << (((method - base) % span) + 10)`:
 |---------|--------|--------|--------|
 | 0.2 | `base 8, span 12` | — | — |
 | 0.3 | `base 8, span 14` | not ported | `base 36, span 14` |
-| 0.4 | `base 8, span 16` | not ported | `base 40, span 16` |
+| 0.4 | `base 8, span 16` | `base 24, span 16` | `base 40, span 16` |
 | 0.6 | `base 8, span 16` | `base 24, span 16` | `base 40, span 16` |
 
 ## Test corpus
@@ -243,7 +254,8 @@ method ID across 2–7.
 
 1. **0.6 core 4** — done and byte-exact on all samples present
    (methods 27/34/39). The full translation is in `uharc_dec4.c`.
-2. **0.4 core 4** — port from `UHARC04` `sub_41CE30` / `415130`.
+2. **0.4 core 4** — done and byte-exact on the sample present
+   (method 39). The full translation is in `uha04_dec4.c`.
 3. **0.3 core 4** — port from `uharc_u` `sub_419E9C` / `415F6C`.
 4. **Multimedia filter** — `uha02_mm.c` is implemented and round-trip tested
    but not wired into 0.3/0.4/0.6 extraction.
