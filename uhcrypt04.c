@@ -57,9 +57,8 @@ static unsigned long uh04_crc32(unsigned long tab[256], unsigned long crc,
     return crc & 0xFFFFFFFFUL;
 }
 
-uhcrypt04_t *uhcrypt04_init(void)
+static uhcrypt04_t *uhcrypt04_init_with(const char *pwd, unsigned pwdlen)
 {
-    const char pwd[] = "UHARC Default Password";
     uhcrypt04_t *c;
     unsigned char sb[256];
     unsigned long tab[256];
@@ -67,7 +66,7 @@ uhcrypt04_t *uhcrypt04_init(void)
     unsigned long crc;
     c = (uhcrypt04_t *)malloc(sizeof(*c));
     if (!c) return 0;
-    var4 = (unsigned)strlen(pwd);
+    var4 = pwdlen;
     sb[0] = (unsigned char)var4;
     for (ecx = 0; ecx < 255; ecx++)
         sb[1 + ecx] = (unsigned char)pwd[ecx % var4];
@@ -84,6 +83,17 @@ uhcrypt04_t *uhcrypt04_init(void)
     c->pos = 0;
     c->mix = (unsigned char)(0 - 2);
     return c;
+}
+
+uhcrypt04_t *uhcrypt04_init(void)
+{
+    return uhcrypt04_init_with("UHARC Default Password", 22);
+}
+
+uhcrypt04_t *uhcrypt04_init_pw(const char *pwd)
+{
+    if (!pwd || !*pwd) return uhcrypt04_init();
+    return uhcrypt04_init_with(pwd, (unsigned)strlen(pwd));
 }
 
 void uhcrypt04_update(uhcrypt04_t *c, unsigned char *data, unsigned len)

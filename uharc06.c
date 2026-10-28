@@ -111,6 +111,7 @@ struct uharc06_s {
     long tab1_off;
     long tab2_off;
     long data_off;
+    char *pwd; /* heap copy of -pw password, NULL when none given */
 };
 
 const char *uharc06_strerror(int code)
@@ -124,6 +125,7 @@ const char *uharc06_strerror(int code)
     case UHARC06_ERR_CRC: return "CRC failure";
     case UHARC06_ERR_METHOD: return "Unknown method";
     case UHARC06_ERR_DATA: return "Data error";
+    case UHARC06_ERR_PASSWORD: return "Password required";
     default: return "Unknown error";
     }
 }
@@ -190,13 +192,14 @@ static int mr_read(void *ctx, unsigned char *buf, unsigned want)
 }
 
 /* decode one table: read cmp_len bytes at off, decrypt with fresh
- * default-password S-box (sub_4017BE/sub_40367A, fresh per table),
- * then decode from memory. crc_init is incoming CRC (FFFFFFFF for
+ * S-box (sub_4017BE/sub_40367A, fresh per table), then decode from
+ * memory. A non-NULL pwd selects the -pw password cipher instead of
+ * the default password. crc_init is incoming CRC (FFFFFFFF for
  * fresh, or accumulated for cumulative tab0+tab1 check). */
 static int decode_table(FILE *fp, long off, unsigned long cmp_size,
                         int method, unsigned char *out,
                         unsigned long dec_size, unsigned long crc_init,
-                        unsigned long *crc_out)
+                        unsigned long *crc_out, const char *pwd)
 {
     mem_reader mr;
     mem_writer mw;
@@ -218,8 +221,9 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_size,
         free(cmp);
         return UHARC06_ERR_IO;
     }
-    /* fresh default-password cipher per table (sub_4017BE), in-place */
-    cr = uhcrypt06_init();
+    /* fresh cipher per table (sub_4017BE), in-place; -pw archives
+     * use the user password, plain archives the default password */
+    cr = pwd ? uhcrypt06_init_pw(pwd) : uhcrypt06_init();
     if (!cr) {
         free(cmp);
         return UHARC06_ERR_NOMEM;
@@ -262,6 +266,11 @@ const uharc06_header *uharc06_header_get(uharc06_t *h)
 
 int uharc06_open(const char *path, uharc06_t **ph)
 {
+    return uharc06_open_pw(path, ph, 0);
+}
+
+int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
+{
     FILE *fp;
     unsigned char raw[39];
     uharc06_header hdr;
@@ -272,6 +281,10 @@ int uharc06_open(const char *path, uharc06_t **ph)
     unsigned char *tab0 = 0, *tab1 = 0, *tab2 = 0;
     unsigned long crc;
     unsigned long i;
+    int have_pw;
+    int tab_pw;
+    int stm_pw;
+    const char *tpwd;
 
     if (!path || !ph) return UHARC06_ERR_IO;
     *ph = 0;
@@ -320,6 +333,16 @@ int uharc06_open(const char *path, uharc06_t **ph)
         fclose(fp);
         return UHARC06_ERR_DATA;
     }
+    /* -pw protection (flags1 bit 2 = tables, bit 1 = packed stream).
+     * A protected archive without a password cannot be opened. */
+    have_pw = (pwd && *pwd) ? 1 : 0;
+    tab_pw = (hdr.flags1 & 4) ? 1 : 0;
+    stm_pw = (hdr.flags1 & 2) ? 1 : 0;
+    tpwd = (have_pw && tab_pw) ? pwd : 0;
+    if ((tab_pw || stm_pw) && !have_pw) {
+        fclose(fp);
+        return UHARC06_ERR_PASSWORD;
+    }
     h = (uharc06_t *)calloc(1, sizeof(*h));
     if (!h) {
         fclose(fp);
@@ -330,6 +353,15 @@ int uharc06_open(const char *path, uharc06_t **ph)
     h->nfiles = nfiles;
     h->path = (char *)malloc(strlen(path) + 1);
     if (h->path) strcpy(h->path, path);
+    h->pwd = 0;
+    if (have_pw) {
+        h->pwd = (char *)malloc(strlen(pwd) + 1);
+        if (!h->pwd) {
+            uharc06_close(h);
+            return UHARC06_ERR_NOMEM;
+        }
+        strcpy(h->pwd, pwd);
+    }
 
     tab0_off = (long)(hdr.data_off + 39);
     /* tab0 STORE: dec==4*nfiles */
@@ -361,7 +393,7 @@ int uharc06_open(const char *path, uharc06_t **ph)
      * CRC accumulates across tab0+tab1 for hdr.tab1_crc check
      * (sub_403840 keeps dword_433DD4 across first two tables). */
     rc = decode_table(fp, tab0_off, 4 * nfiles, 0,
-                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc);
+                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc, tpwd);
     if (rc != UHARC06_OK) {
         free(tab0);
         free(tab1);
@@ -372,7 +404,7 @@ int uharc06_open(const char *path, uharc06_t **ph)
     /* table1: method 17 (core3 ALZ), dec=tab1_dec, cmp=tab1_cmp.
      * Pass accumulated tab0 CRC so output CRC is cumulative. */
     rc = decode_table(fp, tab1_off, hdr.tab1_cmp_size, 17,
-                      tab1, hdr.tab1_dec_size, crc, &crc);
+                      tab1, hdr.tab1_dec_size, crc, &crc, tpwd);
     if (rc != UHARC06_OK) {
         free(tab0);
         free(tab1);
@@ -390,7 +422,7 @@ int uharc06_open(const char *path, uharc06_t **ph)
     /* table2: method 17, dec=11*nfiles, cmp=tab2_cmp.
      * CRC reset before third table (sub_403840 sets dword_433DD4=-1). */
     rc = decode_table(fp, tab2_off, hdr.tab2_cmp_size, 17,
-                      tab2, 11 * nfiles, 0xFFFFFFFFUL, &crc);
+                      tab2, 11 * nfiles, 0xFFFFFFFFUL, &crc, tpwd);
     if (rc != UHARC06_OK) {
         free(tab0);
         free(tab1);
@@ -633,6 +665,7 @@ void uharc06_close(uharc06_t *h)
     if (!h) return;
     if (h->fp) fclose(h->fp);
     free(h->path);
+    free(h->pwd);
     free(h->entries);
     free(h->strpool);
     free(h);
@@ -856,6 +889,7 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     int rc = UHARC06_OK;
     unsigned long k;
     unsigned long *cum = 0;
+    uhcrypt06_t *scr = 0;
 
     if (!h || !h->fp) return UHARC06_ERR_IO;
     if (!outdir) outdir = ".";
@@ -933,9 +967,16 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     got = fread(packed, 1, packed_len, fp);
     if (got != packed_len) { rc = UHARC06_ERR_IO; goto done; }
     /* File data is NOT default-encrypted (unlike tables which use fresh
-     * default S-box per table via sub_4017BE). File stream uses
-     * sub_4017BE(byte_422579): plain when no -pw password.
-     * TODO password archives: decrypt with user password when set. */
+     * default S-box per table via sub_4017BE). With -pw the packed stream
+     * uses a fresh password S-box instead (sub_4017BE(byte_422579),
+     * flags1 bit 1); without it the stream is plain. */
+    if ((h->hdr.flags1 & 2) && h->pwd) {
+        scr = uhcrypt06_init_pw(h->pwd);
+        if (!scr) { rc = UHARC06_ERR_NOMEM; goto done; }
+        uhcrypt06_update(scr, packed, packed_len);
+        uhcrypt06_free(scr);
+        scr = 0;
+    }
 
     /* TODO filters (sub_404DCE: exe E8E9, multimedia) gated by flags.
      * 06_m0 (flags 00/00) needs none; D3X (flags 00/01) needs exe filter.

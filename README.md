@@ -152,7 +152,7 @@ extraction is byte-identical before and after the rewrite).
 ## Usage
 
 ```
-uharc06_unpack.exe <x|e|t|l> <archive[.uha]> [outdir]
+uharc06_unpack.exe <x|e|t|l> [-pwpassword] <archive[.uha]> [outdir]
 ```
 
 | Command | Meaning |
@@ -173,7 +173,10 @@ uharc06_unpack.exe x uharc_u.uha out
 ```
 
 The tool accepts only the four commands above; original UHARC switches
-(`-d`, `-y`, `-o`, `-p`, `-m`) are not implemented.
+(`-d`, `-y`, `-o`, `-p`, `-m`) are not implemented, except `-pwpassword`
+(joined, or `-pw password` separate), which supplies the password for
+`-pw` protected archives (0.3/0.4/0.6). Without it they fail with
+`Password required`; with a wrong one the table CRC check fails.
 
 ## Source layout
 
@@ -291,8 +294,10 @@ method ID across 2–7.
    DGROUP slice `uha03_dec4_dg.c`.
 4. **Multimedia filter** — `uha02_mm.c` is implemented and round-trip tested
    but not wired into 0.3/0.4/0.6 extraction.
-5. **Password-protected archives** — tables currently always use the default
-   password; user-password archives are not handled.
+5. **Password-protected archives** — 0.3/0.4/0.6 `-pw` archives open with
+   `-pwpassword` (tables and packed stream use the password cipher; a
+   missing password fails fast, a wrong one fails the table CRC). 0.2
+   password archives are not handled.
 6. **Non-solid archives** — extraction assumes one solid stream per archive
    and uses the header method. Per-file method bytes (`entry+2`) are stored but
    not used; mixed-codec archives are untested.

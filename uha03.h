@@ -15,6 +15,7 @@
 #define UHA03_ERR_CRC 5
 #define UHA03_ERR_METHOD 6
 #define UHA03_ERR_DATA 7
+#define UHA03_ERR_PASSWORD 8
 
 typedef struct uha03_entry_s {
     unsigned dir_index;
@@ -56,6 +57,12 @@ typedef int (*uha03_write_cb)(void *ctx, const unsigned char *buf,
                               unsigned len);
 
 int uha03_open(const char *path, uha03_t **ph);
+
+/* Same, with an explicit password for -pw archives (flags_pw bit 1 =
+ * encrypted tables and packed stream). A NULL or empty password behaves
+ * like uha03_open; a protected archive without a password fails with
+ * UHA03_ERR_PASSWORD. */
+int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd);
 unsigned long uha03_nfiles(uha03_t *h);
 const uha03_entry *uha03_entry_get(uha03_t *h, unsigned long idx);
 const uha03_header *uha03_header_get(uha03_t *h);

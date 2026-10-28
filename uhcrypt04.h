@@ -8,6 +8,10 @@ typedef struct uhcrypt04 uhcrypt04_t;
  * position). Returns 0 on allocation failure. */
 uhcrypt04_t *uhcrypt04_init(void);
 
+/* Same with an explicit password (e.g. from -pw). A NULL or empty
+ * password falls back to the default password. */
+uhcrypt04_t *uhcrypt04_init_pw(const char *pwd);
+
 /* In-place symmetric transform of len bytes (encrypt == decrypt). */
 void uhcrypt04_update(uhcrypt04_t *c, unsigned char *data, unsigned len);
 

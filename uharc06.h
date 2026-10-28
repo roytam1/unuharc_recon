@@ -11,6 +11,7 @@
 #define UHARC06_ERR_CRC 5
 #define UHARC06_ERR_METHOD 6
 #define UHARC06_ERR_DATA 7
+#define UHARC06_ERR_PASSWORD 8
 
 /* compression method ids (raw byte values 0..87) */
 #define UHARC06_METHOD_STORE 0
@@ -61,6 +62,12 @@ typedef int (*uharc06_write_cb)(void *ctx, const unsigned char *buf,
  * err_detail optionally receives method/error detail.
  */
 int uharc06_open(const char *path, uharc06_t **ph);
+
+/* Same, with an explicit password for -pw archives (flags1 bit 2 =
+ * encrypted tables, bit 1 = encrypted packed stream). A NULL or empty
+ * password behaves like uharc06_open; a protected archive without a
+ * password fails with UHARC06_ERR_PASSWORD. */
+int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd);
 
 /* query */
 unsigned long uharc06_nfiles(uharc06_t *h);

@@ -105,7 +105,7 @@ Standard FAT format:
 | +0 | u32 | magic | `0x06414855` = `UHA\x06` |
 | +4 | u16 | time | DOS time |
 | +6 | u16 | date | DOS date |
-| +8 | u8 | flags1 | bit 2: password archive (inferred; default cipher when clear); other bits unknown |
+| +8 | u8 | flags1 | bit 2: tables encrypted with `-pw` password, bit 1: packed stream encrypted (see 6.6); other bits unknown |
 | +9 | u8 | flags2 | bit 0: EXE filter, bit 1: multimedia filter, bit 7: "big" filter |
 | +10 | u8 | method | solid-stream method, 0–87 |
 | +11 | u16 | ndirs | number of directory strings |
@@ -229,7 +229,7 @@ offset 0.
 | +0 | u32 | magic | `0x04414855` = `UHA\x04` |
 | +4 | u16 | time | DOS time |
 | +6 | u16 | date | DOS date |
-| +8 | u8 | flags_pw | bit 1: password-protected |
+| +8 | u8 | flags_pw | bit 1: `-pw` password archive (tables and packed stream encrypted, see 6.6) |
 | +9 | u8 | flags_filt | bit 0: EXE filter enabled |
 | +10 | u8 | method | solid-stream method |
 | +11 | u16 | ndirs | number of directory strings |
@@ -560,6 +560,12 @@ S[mix] = S[mix] - b;
 All arithmetic is byte-wide (`uint8_t` wrap). 0.3 uses the same cipher as 0.4;
 this is verified, not assumed.
 
+With `-pw<password>` the same construction uses the given password
+instead of the default one: `sb[0]` is the password length and
+`sb[1+k]` cycles over the password bytes. The 32-round schedule and the
+per-byte stream transform are unchanged, with a fresh S-box per table.
+See 6.6 for which parts of an archive this covers.
+
 ### 6.3 Table cipher — 0.2
 
 Same password, different S-box fill and a simpler stream:
@@ -593,6 +599,28 @@ There is no `mix` index. 0.2's cipher is **not** byte-identical to 0.4/0.6.
 `uha02_mm.c` implements the BMP/WAV/VOC predictor for 0.3/0.4/0.6 and is
 verified by encoder-inverse round-trip. It is not yet wired into extraction.
 0.2 needs no such pass.
+
+### 6.6 Password-protected archives (`-pw`)
+
+With `-pw<password>`, table decryption (§6.2) uses the given password,
+and the packed stream is transformed the same way with a fresh S-box
+over the whole packed buffer.
+
+Flag bits (verified against `-pwpassword` samples with password
+`"password"`, plus the `06-lic.uha` control built from the same source
+without a password):
+
+* 0.6 `flags1` bit 2: tables encrypted; bit 1: packed stream encrypted.
+  `06-password.uha` has both and extracts byte-identical to the control;
+  `06-phneg-password.uha` has only the stream bit (default-cipher
+  tables, encrypted stream).
+* 0.4 / 0.3 `flags_pw` (byte +8) bit 1: tables and packed stream
+  encrypted (`04-password.uha`, `03-password.uha`).
+* The header always uses the stored-key byte cipher (§2.2 etc.) with a
+  random per-archive key, independent of `-pw`.
+
+A missing password fails fast (`Password required`); a wrong password
+decrypts the tables to garbage and fails their CRC check.
 
 ## Appendix A — Verification data
 

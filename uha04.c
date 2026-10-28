@@ -111,6 +111,7 @@ struct uha04_s {
     long tab1_off;
     long tab2_off;
     long tab3_off;
+    char *pwd; /* heap copy of -pw password, NULL when none given */
 };
 
 const char *uha04_strerror(int code)
@@ -124,6 +125,7 @@ const char *uha04_strerror(int code)
     case UHA04_ERR_CRC: return "CRC failure";
     case UHA04_ERR_METHOD: return "Unknown method";
     case UHA04_ERR_DATA: return "Data error";
+    case UHA04_ERR_PASSWORD: return "Password required";
     default: return "Unknown error";
     }
 }
@@ -183,7 +185,7 @@ static int mr_read(void *ctx, unsigned char *buf, unsigned want)
 static int decode_table(FILE *fp, long off, unsigned long cmp_len,
                         int method, unsigned char *out,
                         unsigned long dec_len, unsigned long crc_seed,
-                        unsigned long *crc_out)
+                        unsigned long *crc_out, const char *pwd)
 {
     mr_t mr;
     mw_t mw;
@@ -205,7 +207,7 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
         free(cmp);
         return UHA04_ERR_IO;
     }
-    cr = uhcrypt04_init();
+    cr = pwd ? uhcrypt04_init_pw(pwd) : uhcrypt04_init();
     if (!cr) {
         free(cmp);
         return UHA04_ERR_NOMEM;
@@ -248,6 +250,11 @@ const uha04_header *uha04_header_get(uha04_t *h)
 
 int uha04_open(const char *path, uha04_t **ph)
 {
+    return uha04_open_pw(path, ph, 0);
+}
+
+int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
+{
     FILE *fp;
     unsigned char raw[44];
     uha04_header hdr;
@@ -258,6 +265,9 @@ int uha04_open(const char *path, uha04_t **ph)
     unsigned char *tab0 = 0, *tab1 = 0, *tab2 = 0, *tab3 = 0;
     unsigned long crc;
     unsigned long i;
+    int have_pw;
+    int use_pw;
+    const char *tpwd;
 
     if (!path || !ph) return UHA04_ERR_IO;
     *ph = 0;
@@ -278,6 +288,15 @@ int uha04_open(const char *path, uha04_t **ph)
         fclose(fp);
         return UHA04_ERR_DATA;
     }
+    /* -pw protection (flags_pw bit 1 = encrypted tables and stream).
+     * A protected archive without a password cannot be opened. */
+    have_pw = (pwd && *pwd) ? 1 : 0;
+    use_pw = (hdr.flags_pw & 2) ? 1 : 0;
+    tpwd = (have_pw && use_pw) ? pwd : 0;
+    if (use_pw && !have_pw) {
+        fclose(fp);
+        return UHA04_ERR_PASSWORD;
+    }
     h = (uha04_t *)calloc(1, sizeof(*h));
     if (!h) {
         fclose(fp);
@@ -288,6 +307,15 @@ int uha04_open(const char *path, uha04_t **ph)
     h->nfiles = nfiles;
     h->path = (char *)malloc(strlen(path) + 1);
     if (h->path) strcpy(h->path, path);
+    h->pwd = 0;
+    if (have_pw) {
+        h->pwd = (char *)malloc(strlen(pwd) + 1);
+        if (!h->pwd) {
+            uha04_close(h);
+            return UHA04_ERR_NOMEM;
+        }
+        strcpy(h->pwd, pwd);
+    }
 
     /* layout: file data at 44..base_e01, tables at base_e01+44..end
      * tab0 STORE 4*N, tab1 method17 names_len, tab2 method2 4*N,
@@ -318,7 +346,7 @@ int uha04_open(const char *path, uha04_t **ph)
     }
 
     rc = decode_table(fp, tab0_off, 4 * nfiles, 0,
-                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc);
+                      tab0, 4 * nfiles, 0xFFFFFFFFUL, &crc, tpwd);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -326,7 +354,7 @@ int uha04_open(const char *path, uha04_t **ph)
     }
     /* 0.4 tab1 CRC is cumulative over tab0+tab1 (as in 0.3/0.6) */
     rc = decode_table(fp, tab1_off, hdr.cmp_sz1, 17,
-                      tab1, hdr.names_len, crc, &crc);
+                      tab1, hdr.names_len, crc, &crc, tpwd);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -338,7 +366,7 @@ int uha04_open(const char *path, uha04_t **ph)
         return UHA04_ERR_CRC;
     }
     rc = decode_table(fp, tab2_off, hdr.cmp_sz2, 2,
-                      tab2, 4 * nfiles, 0xFFFFFFFFUL, &crc);
+                      tab2, 4 * nfiles, 0xFFFFFFFFUL, &crc, tpwd);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -350,7 +378,7 @@ int uha04_open(const char *path, uha04_t **ph)
         return UHA04_ERR_CRC;
     }
     rc = decode_table(fp, tab3_off, hdr.cmp_sz3, 7,
-                      tab3, 7 * nfiles, 0xFFFFFFFFUL, &crc);
+                      tab3, 7 * nfiles, 0xFFFFFFFFUL, &crc, tpwd);
     if (rc != UHA04_OK) {
         free(tab0); free(tab1); free(tab2); free(tab3);
         uha04_close(h);
@@ -525,6 +553,7 @@ void uha04_close(uha04_t *h)
     if (!h) return;
     if (h->fp) fclose(h->fp);
     free(h->path);
+    free(h->pwd);
     free(h->entries);
     free(h->strpool);
     free(h);
@@ -563,6 +592,7 @@ int uha04_extract(uha04_t *h, const char *outdir,
     unsigned long i, total = 0;
     size_t got;
     int rc;
+    uhcrypt04_t *scr = 0;
 
     if (!h || !h->fp) return UHA04_ERR_IO;
     if (!h->nfiles) return UHA04_OK;
@@ -581,6 +611,18 @@ int uha04_extract(uha04_t *h, const char *outdir,
     if (got != h->hdr.base_e01) {
         free(packed); free(se);
         return UHA04_ERR_IO;
+    }
+    /* -pw archives (flags_pw bit 1) transform the packed stream with a
+     * fresh password S-box, like the tables. */
+    if ((h->hdr.flags_pw & 2) && h->pwd) {
+        scr = uhcrypt04_init_pw(h->pwd);
+        if (!scr) {
+            free(packed); free(se);
+            return UHA04_ERR_NOMEM;
+        }
+        uhcrypt04_update(scr, packed, h->hdr.base_e01);
+        uhcrypt04_free(scr);
+        scr = 0;
     }
     for (i = 0; i < h->nfiles; i++) {
         se[i].name = h->entries[i].name;

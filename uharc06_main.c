@@ -20,11 +20,12 @@ static void banner(void)
 
 static void usage(void)
 {
-    printf("Usage: uharc_tool <x|e|t|l> archive[.uha] [outdir]\n");
+    printf("Usage: uharc_tool <x|e|t|l> [-pwpassword] archive[.uha] [outdir]\n");
     printf("  x = extract with directory names\n");
     printf("  e = extract without directory names (flat)\n");
     printf("  t = test archive integrity (no output)\n");
     printf("  l = list files (directory only)\n");
+    printf("  -pwpassword = password for -pw protected archives\n");
 }
 
 static int detect_version(const char *path, unsigned *ver)
@@ -48,6 +49,10 @@ int main(int argc, char **argv)
     const char *cmd;
     const char *arc;
     const char *outdir;
+    const char *pwd;
+    const char *posargs[64];
+    int npos;
+    int ai;
     char arcbuf[1024];
     int with_paths;
     int test_only;
@@ -56,13 +61,29 @@ int main(int argc, char **argv)
     int rc;
 
     banner();
-    if (argc < 3) {
+    if (argc < 2) {
         usage();
         return 255;
     }
     cmd = argv[1];
-    arc = argv[2];
-    outdir = (argc >= 4) ? argv[3] : ".";
+    /* original -pw[passwd] switch (joined, or "-pw password" separate);
+     * anything else from argv[2] on is positional (archive, outdir) */
+    pwd = 0;
+    npos = 0;
+    for (ai = 2; ai < argc; ai++) {
+        if (strncmp(argv[ai], "-pw", 3) == 0) {
+            if (argv[ai][3]) pwd = argv[ai] + 3;
+            else if (ai + 1 < argc) pwd = argv[++ai];
+        } else if (npos < 63) {
+            posargs[npos++] = argv[ai];
+        }
+    }
+    if (npos < 1) {
+        usage();
+        return 255;
+    }
+    arc = posargs[0];
+    outdir = (npos >= 2) ? posargs[1] : ".";
 
     with_paths = 1; test_only = 0; list_only = 0;
     if ((cmd[0] == 'x' || cmd[0] == 'X') && cmd[1] == 0) {
@@ -95,12 +116,12 @@ int main(int argc, char **argv)
         uharc06_t *h = 0;
         unsigned long i, n;
         const uharc06_header *hh;
-        rc = uharc06_open(arc, &h);
+        rc = uharc06_open_pw(arc, &h, pwd);
         if (rc != UHARC06_OK && rc == UHARC06_ERR_IO) {
             if (strlen(arc) + 5 < sizeof(arcbuf)) {
                 sprintf(arcbuf, "%s.uha", arc);
                 if (detect_version(arcbuf, &ver) && ver == 0x06) {
-                    rc = uharc06_open(arcbuf, &h);
+                    rc = uharc06_open_pw(arcbuf, &h, pwd);
                     if (rc == UHARC06_OK) arc = arcbuf;
                 }
             }
@@ -108,6 +129,9 @@ int main(int argc, char **argv)
         if (rc != UHARC06_OK) {
             printf("ERROR: %s (%s)\n", uharc06_strerror(rc), arc);
             printf("Process aborted.\n");
+            if (pwd && (rc == UHARC06_ERR_CRC || rc == UHARC06_ERR_DATA)) {
+                printf("Note: wrong password?\n");
+            }
             if (rc == UHARC06_ERR_METHOD || rc == UHARC06_ERR_DATA
                 || rc == UHARC06_ERR_CRC) {
                 printf("Note: 0.6 directory needs core3 ALZ (method 17).\n");
@@ -143,10 +167,13 @@ int main(int argc, char **argv)
         uha04_t *h = 0;
         unsigned long i, n, total;
         const uha04_header *hh;
-        rc = uha04_open(arc, &h);
+        rc = uha04_open_pw(arc, &h, pwd);
         if (rc != UHA04_OK) {
             printf("ERROR: %s (%s)\n", uha04_strerror(rc), arc);
             printf("Process aborted.\n");
+            if (pwd && (rc == UHA04_ERR_CRC || rc == UHA04_ERR_DATA)) {
+                printf("Note: wrong password?\n");
+            }
             if (rc == UHA04_ERR_METHOD || rc == UHA04_ERR_DATA
                 || rc == UHA04_ERR_CRC) {
                 printf("Note: 0.4 directory needs cores 2/3 (methods 2/7/17).\n");
@@ -187,10 +214,13 @@ int main(int argc, char **argv)
         uha03_t *h = 0;
         unsigned long i, n, total;
         const uha03_header *hh;
-        rc = uha03_open(arc, &h);
+        rc = uha03_open_pw(arc, &h, pwd);
         if (rc != UHA03_OK) {
             printf("ERROR: %s (%s)\n", uha03_strerror(rc), arc);
             printf("Process aborted.\n");
+            if (pwd && (rc == UHA03_ERR_CRC || rc == UHA03_ERR_DATA)) {
+                printf("Note: wrong password?\n");
+            }
             if (rc == UHA03_ERR_METHOD || rc == UHA03_ERR_DATA
                 || rc == UHA03_ERR_CRC) {
                 printf("Note: 0.3 directory needs 0.3-specific cores 2/3.\n");
