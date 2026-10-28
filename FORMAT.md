@@ -313,9 +313,9 @@ applied per file when `flags_filt & 1` and the file is at least `0x400` bytes.
 Method ranges are identical to 0.6. The coders are not: 0.4 core 3 uses 330
 contexts (0.6 uses 319), and 0.4 core 5 is an earlier PPM2/LZW variant.
 
-Bit-exact status: cores 0, 1, 2, 3 and 5 are ported; core 4 (methods 24–39)
-is not. `uha04.UHA` (method 62) and the 33 MB `gmud-04m3` / `gmud-04z`
-archives pass 44/44 CRCs.
+Bit-exact status: all six cores are ported, including core 4 (methods
+24–39, `uha04_dec4.c`). `uha04.UHA` (method 62), the 33 MB `gmud-04m3` /
+`gmud-04z` and `gmud-04x` (44/44 files, core 4) archives pass.
 
 ## 4. UHARC 0.3
 
@@ -374,7 +374,7 @@ decoded        uharc_u.c, 1047398 bytes, CRC32 D9BA98B4
 | 1 | 1 | RLE |
 | 2–7 | 2 | LZW, LSB-first |
 | 8–21 | 3 | ALZ, dictionary `1 << (((m-8) % 14) + 10)` |
-| 22–35 | 4 | LZP / PPM — **not ported** |
+| 22–35 | 4 | LZP / PPM (`uha03_dec4.c`), dictionary `1 << (((m-22) % 14) + 10)` |
 | 36–79 | 5 | PPM2/LZW, dictionary `1 << (((m-36) % 14) + 10)` |
 | 80 | 0 | alias for STORE |
 
@@ -643,9 +643,6 @@ archive's own plaintext STORE stream.
 
 ## Appendix B — Open questions
 
-* **0.6 core 4**: method 27 (`06_mx`) decodes end to end, but methods 34
-  (`D3X`) and 39 (`gmud-06x`) still diverge. Likely in the LZP candidate pass
-  and the PPM escape path.
 * **0.6 `flags1` / `flags2`**: only the filter and password bits are used.
   The remaining bits are unidentified.
 * **0.6 method `0xFF`**: treated as an empty-file marker. A non-zero size is

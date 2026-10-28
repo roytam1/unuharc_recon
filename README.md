@@ -24,7 +24,7 @@ only correct when translated from the listing.
 | Version | Container | core 0 STORE | core 1 RLE | core 2 Huffman/LZW | core 3 ALZ/PPM | core 4 LZP/PPM | core 5 PPM2/LZW | Extraction |
 |---------|-----------|--------------|------------|--------------------|----------------|----------------|-------------|------------|
 | **0.2** | complete | yes | yes | yes (LSB LZW) | yes (8–43) | — | — | **complete** |
-| **0.3** | complete | yes | yes | yes (LSB LZW) | yes (8–21) | **missing** | yes (36–79) | 22–35 missing |
+| **0.3** | complete | yes | yes | yes (LSB LZW) | yes (8–21) | yes (22–35) | yes (36–79) | yes |
 | **0.4** | complete | yes | yes | yes (LSB LZW) | yes (8–23) | **yes** | yes (40–87) | 24–39 yes |
 | **0.6** | complete | yes | yes | yes (MSB) | yes (8–23) | **yes** | yes (40–87) | 24–39 yes |
 
@@ -51,9 +51,15 @@ Two defects were found against the asm: an inverted `jb` at `41715A`
 (the `41715C` saturation block runs when `dl >= 0xFE`, not below), and
 uninitialised worker autos — every worker local is explicitly
 zero-initialised, matching the original's deterministic (in practice
-zero) caller leftovers. There is no 0.3-specific core 4 port; the
-dispatcher routes those methods to the 0.6 coder, which does not decode
-them.
+zero) caller leftovers.
+0.3 core 4 is ported in `uha03_dec4.c` with its DGROUP image slice
+(`uha03_dec4_dg.c`, `0x428000..0x4354CC`), wired as `dec4u` for `ver == 3`
+in `uharc_dec0.c`. It is byte-exact against `uharc_u.exe` on
+`gmud-03x.uha` (method 35, 44/44 files). 0.3 core 5 (`uha03_dec5.c`) covers
+methods 36–79 byte-exact on `img.uha` (78), `snd.uha` (79) and the method
+53/59/60/77 sweep (`03_mz`, `trig_image`, `uharc_u.uha`, `gmud-03m3`);
+method 79 needs a per-context increment table with entry `[2] = 0x40`
+(`word_4296D8`, written at `0x0040DC39`).
 Known -O2 hazard: three functions (`d4_41030F`, `d4_411F8B`,
 `d4_412257`) need zero-initialised autos (`-ftrivial-auto-var-init=zero`
 via `#pragma GCC optimize`), otherwise the build miscompiles them and
@@ -77,7 +83,9 @@ every per-file CRC matches.
   `UH02MMP.UHA` (9/9, `-mm+`), `UHA02EXE.UHA` (rebuilt EXE has the same MD5
   as `Uharc02.exe`), `V_MMOFF.UHA` (10/10, including a 1.15 MB executable).
 * **0.3** — `03_m0/m1/m2/m3/mx/mz`, `uharc_u.uha` (method 60, 1 MB
-  dictionary), `gmud-03m3` and `gmud-03z` (44 files, 33 MB).
+  dictionary), `gmud-03m3` and `gmud-03z` (44 files, 33 MB),
+  `gmud-03x.uha` (method 35, core 4, 44 files), `img.uha` / `snd.uha`
+  (methods 78/79, core 5).
 * **0.4** — `04_m0/m1/m2/m3`, `uha04.UHA` (8 files, method 62), `gmud-04m3`,
   `gmud-04x` (44 files, 33 MB) and `gmud-04z` (44 files, 33 MB).
 * **0.6** — `06_m0/m1/m2/m3/mz`, `BIG.uha` and generated multi-file solids
@@ -90,9 +98,7 @@ each other.
 
 ### Known failures
 
-| Archive | Version | Reason |
-|---------|---------|--------|
-| `gmud-03x.uha` | 0.3 | core 4 (methods 22–35) not ported |
+No known failures on the samples listed above.
 
 ## Build
 
@@ -118,6 +124,30 @@ gcc -std=c89 -Wall -Wextra -O2 -o uharc06_unpack.exe ^
 
 `make` also builds the header and decoder test programs (`hdrtest*.exe`,
 `test_tab.exe`, `test_dec3.exe`).
+
+### MSVC6
+
+The tree also builds with MSVC6 `cl`/`link` (C89 only; no C99 features).
+`uharc_dec.h` maps `long long` to `__int64` under `_MSC_VER` (`UHI64` /
+`U64LL` / `I64LL`), and trace output uses a plain `D4TRACE` function since
+MSVC6 has no variadic macros:
+
+```bat
+"C:\Program Files (x86)\Microsoft Visual Studio\VC98\Bin\VCVARS32.BAT"
+nmake -f Makefile.msvc
+```
+
+This produces `uharc06_msvc.exe` from the same sources as the GNU
+Makefile's `uharc06_unpack.exe`. Run from a local path or mapped drive —
+CMD.EXE cannot use a UNC working directory. Verified: `t D3X.UHA`,
+`gmud-06x`, `gmud-06m3` and `gmud-06z` all pass with `/O2`.
+
+One MSVC6 `/O2` miscompile is worked around in-tree: the nested
+`do/while` cost-table setup loop at the top of `d4_40DBC5`
+(`uharc_dec4.c`) silently leaves tables zeroed (cell `0x457D68` stays 0
+instead of `0x1680`, breaking `D3X.UHA` at output byte 694), so it is
+written as plain `for`-loops. Behaviour is identical under GCC (D3X
+extraction is byte-identical before and after the rewrite).
 
 ## Usage
 
@@ -214,7 +244,7 @@ Dictionary size is `1 << (((method - base) % span) + 10)`:
 | Version | core 3 | core 4 | core 5 |
 |---------|--------|--------|--------|
 | 0.2 | `base 8, span 12` | — | — |
-| 0.3 | `base 8, span 14` | not ported | `base 36, span 14` |
+| 0.3 | `base 8, span 14` | `base 22, span 14` | `base 36, span 14` |
 | 0.4 | `base 8, span 16` | `base 24, span 16` | `base 40, span 16` |
 | 0.6 | `base 8, span 16` | `base 24, span 16` | `base 40, span 16` |
 
@@ -256,7 +286,9 @@ method ID across 2–7.
    (methods 27/34/39). The full translation is in `uharc_dec4.c`.
 2. **0.4 core 4** — done and byte-exact on the sample present
    (method 39). The full translation is in `uha04_dec4.c`.
-3. **0.3 core 4** — port from `uharc_u` `sub_419E9C` / `415F6C`.
+3. **0.3 core 4** — done and byte-exact on the sample present
+   (method 35, `gmud-03x.uha` 44/44). The port is `uha03_dec4.c` plus the
+   DGROUP slice `uha03_dec4_dg.c`.
 4. **Multimedia filter** — `uha02_mm.c` is implemented and round-trip tested
    but not wired into 0.3/0.4/0.6 extraction.
 5. **Password-protected archives** — tables currently always use the default
