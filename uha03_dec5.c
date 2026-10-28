@@ -159,8 +159,8 @@ static const unsigned short d5_longmodel[16] = {
 };
 /* contexts per group (4296DC) */
 static const unsigned short d5_nctx[6] = { 512, 32, 32, 96, 64, 512 };
-/* count increment by sub-order (4296D4) */
-static const unsigned short d5_inc[4] = { 2, 8, 32, 128 };
+/* count increment by sub-order lives per-context (4296D4; [2] is 0x40
+ * for method 79, 0x20 otherwise): see dec5u.inc. */
 /* recent-distance slots by method family (42977C) */
 static const unsigned short d5_mrun[4] = { 0, 5, 8, 16 };
 /* Fenwick seed: total 256 then lowbit(i) (42C9B0) */
@@ -257,6 +257,10 @@ typedef struct dec5u_s {
     unsigned mru_n;            /* 43709B */
     unsigned mru_max;          /* 43709C */
     unsigned dstate;           /* 4293A0 */
+
+    /* count increments by sub-order (4296D4); native init writes
+     * word_4296D8 (= [2]) = 0x40 for method 79, image 0x20 otherwise */
+    unsigned short inc[4];
 
     /* auxiliary models */
     unsigned short lenA[23];   /* 437058 */
@@ -425,7 +429,7 @@ static void d5_update(dec5u *d, unsigned sym)
     unsigned ctx = (unsigned)d->ctx;
     unsigned short *fr = d->cfen + ctx * 256u;
     unsigned short *raw = d->craw + ctx * 256u;
-    unsigned inc = d5_inc[d->sub];
+    unsigned inc = d->inc[d->sub];
     unsigned v;
     raw[sym] = (unsigned short)(raw[sym] + inc);
     v = (sym + 1u) & 0xFFu;
@@ -1052,9 +1056,13 @@ int uharc_dec5u_init(void **pctx, int method)
     dec5u *d;
     unsigned long dictsz;
     unsigned g, i;
+    int m79;
     if (!pctx) return 1;
     *pctx = 0;
-    /* the original folds methods 78/79 onto 36 before sizing the model */
+    /* the original folds methods 78/79 onto 36 before sizing the model.
+     * method 79 additionally gets word_4296D8 (= inc[2]) = 0x40
+     * (0x0040DC39; image default 0x20). */
+    m79 = (method == 79);
     if (method == 78 || method == 79) method = 36;
     if (method < 36 || method > 79) return 1;
     dictsz = 1UL << (((method - 36) % 14) + 10);
@@ -1084,6 +1092,10 @@ int uharc_dec5u_init(void **pctx, int method)
     }
     d->mru = (unsigned long *)malloc(16UL * sizeof(unsigned long));
     if (!d->mru) { uharc_dec5u_free(d); return 2; }
+    d->inc[0] = 2;
+    d->inc[1] = 8;
+    d->inc[2] = m79 ? 0x40 : 0x20;
+    d->inc[3] = 128;
     for (i = 0; i < 16; i++) d->mru[i] = D5_M32;
 
     d->dict_sz = dictsz;
