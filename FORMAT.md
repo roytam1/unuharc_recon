@@ -611,9 +611,9 @@ Flag bits (verified against `-pwpassword` samples with password
 without a password):
 
 * 0.6 `flags1` bit 2: tables encrypted; bit 1: packed stream encrypted.
-  `06-password.uha` has both and extracts byte-identical to the control;
-  `06-phneg-password.uha` has only the stream bit (default-cipher
-  tables, encrypted stream).
+  `-pw` alone sets both (`06-password.uha` extracts byte-identical to
+  the control); `-pw -ph-` clears the table bit, leaving default-cipher
+  tables with an encrypted stream (`06-phneg-password.uha`, flags `02`).
 * 0.4 / 0.3 `flags_pw` (byte +8) bit 1: tables and packed stream
   encrypted (`04-password.uha`, `03-password.uha`).
 * The header always uses the stored-key byte cipher (§2.2 etc.) with a
