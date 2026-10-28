@@ -635,7 +635,7 @@ static void uha02_unfilter(unsigned char *b, long len)
         if (b[i] != 0xE8 && b[i] != 0xE9) { i++; continue; }
         v7 = (long)((unsigned long)b[i + 1] | ((unsigned long)b[i + 2] << 8) |
                     ((unsigned long)b[i + 3] << 16) | ((unsigned long)b[i + 4] << 24));
-        if (v7 >= 0x80000000L) v7 -= 0x100000000LL;
+        if (v7 >= 0x80000000L) v7 -= I64LL(0x100000000);
         adv = 4;
         if (v7 != 0) {
             int done = 0;

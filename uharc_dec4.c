@@ -56,8 +56,8 @@
 #define A_ADE8  0x018E0900UL
 #define A_DICTB 0x01908000UL
 
-static long long d4_cfshl(unsigned long long a, int b) { return (long long)(a << b); }
-#define __CFSHL__(a,b) d4_cfshl((unsigned long long)(a),(b))
+static UHI64 d4_cfshl(unsigned UHI64 a, int b) { return (UHI64)(a << b); }
+#define __CFSHL__(a,b) d4_cfshl((unsigned UHI64)(a),(b))
 
 /* Hex-Rays bit-field macros (reads; assignments are rewritten) */
 #define LOBYTE(x)  ((unsigned char)((unsigned)(x) & 0xFFU))
@@ -69,7 +69,7 @@ static long long d4_cfshl(unsigned long long a, int b) { return (long long)(a <<
 #define LOWORD(x)  ((unsigned short)((unsigned)(x) & 0xFFFFU))
 #define HIWORD(x)  ((unsigned short)(((unsigned)(x) >> 16) & 0xFFFFU))
 #define LODWORD(x) ((unsigned int)((unsigned)(x)))
-#define HIDWORD(x) ((unsigned int)(((unsigned long long)(x)) >> 32))
+#define HIDWORD(x) ((unsigned int)(((unsigned UHI64)(x)) >> 32))
 
 typedef struct dec4_ctx_s {
     unsigned char *mem;
@@ -2302,12 +2302,14 @@ static unsigned int d4_o(unsigned int o)
 #define G16P(a) ((unsigned short *)(void *)(c->mem + (unsigned)(a)))
 #define G32P(a) ((unsigned int   *)(void *)(c->mem + (unsigned)(a)))
 
-#ifdef DEBUG
 #include <stdio.h>
-#define D4TRACE(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define D4TRACE(...) do { } while (0)
+void D4TRACE(const char *format, ...) {
+#ifdef DEBUG
+    va_start(pl, format);
+    vfprintf(stderr, myfmt, pl);
+    va_end(pl);
 #endif
+}
 
 /* ---------------- hand written primitives ---------------- */
 
@@ -2989,7 +2991,6 @@ LABEL_48:
 static unsigned int d4_40DBC5(dec4_ctx *c)
 {
   unsigned int v0;
-  int v1;
   int v2;
   int v3;
   int v4;
@@ -3024,30 +3025,25 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
   unsigned int v33;
   int v34;
 
-  v0 = 0;
-  v1 = 0;
+  /* NOTE (MSVC6): the original nested do/while form of this table setup
+   * is miscompiled by MSVC6 /O2 (cell 0x457D68 stays 0 instead of 0x1680,
+   * breaking D3X.UHA at out byte 694). Plain for-loops generate correct
+   * code there and identical behaviour everywhere else. */
   v2 = 0;
-  do
+  for (v0 = 0; v0 < 0x20; v0++)
   {
-    v4 = 0;
-    v5 = v1;
-    do
+    for (v4 = 0, v5 = v0 * 64; v4 < 16; v4++)
     {
       v5 += 4;
       v6 = ((8 * (v0 >= 0x10) + M32(0x42758D + ((v4) * 4)) + (v0 & 4)) << 7) & 0x3FFFFFF;
-      ++v4;
       M32((0x457D60) + v5) = v6;
       M32((0x452860) + v5) = v6;
     }
-    while ( v4 != 16 );
     ++v2;
-    ++v0;
     v3 = M32(0x42764D + ((v2) * 4));
     M32(0x4578E0 + ((v2) * 4)) = 4096;
-    v1 += 64;
     M32(0x453460 + ((v2) * 4)) = v3 << 7;
   }
-  while ( v0 < 0x20 );
   v7 = 0;
   v29 = 0;
   do
@@ -3149,11 +3145,6 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
 
 static int d4_40DEB6(dec4_ctx *c)
 {
-  D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(0x434528), G32(0x45D12C), G32(0x45D13C), c->p_prog, G32(0x45D144), G8(0x45E392));
-#ifdef D4DEB6DBG
-  fprintf(stderr, "DEB6B out=%u dac1=%u c14=%u\n",
-      G32(0x434528), M32(0x445DAC + 4), M32(0x4455A4 + 4));
-#endif
   int v0;
   int v1;
   int v2;
@@ -3200,6 +3191,12 @@ static int d4_40DEB6(dec4_ctx *c)
   int v42;
   int v43;
   int v44;
+
+  D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(0x434528), G32(0x45D12C), G32(0x45D13C), c->p_prog, G32(0x45D144), G8(0x45E392));
+#ifdef D4DEB6DBG
+  fprintf(stderr, "DEB6B out=%u dac1=%u c14=%u\n",
+      G32(0x434528), M32(0x445DAC + 4), M32(0x4455A4 + 4));
+#endif
 
   v0 = (unsigned char)G8(0x45E392);
   v1 = 0;
@@ -5365,7 +5362,7 @@ static int d4_41030F(dec4_ctx *c)
   unsigned int v165;
   unsigned int v166;
   unsigned int v167;
-  long long v168 = 0;
+  UHI64 v168 = 0;
   int v169;
   unsigned int v170;
   unsigned int v171;
@@ -5529,9 +5526,9 @@ static int d4_41030F(dec4_ctx *c)
   v167 = 12;
   G8(0x45E3A3) = -1;
   v13 = 0;
-  v168 = (v168 & ~0x00000000FFFFFFFFULL) | (((unsigned long long)(0)) & 0x00000000FFFFFFFFULL);
+  v168 = (v168 & ~U64LL(0x00000000FFFFFFFF)) | (((unsigned UHI64)(0)) & U64LL(0x00000000FFFFFFFF));
   v14 = M8(v158);
-  v168 = (v168 & ~0x00000000FFFFFFFFULL) | (((unsigned long long)(M8(v158 + 1))) & 0x00000000FFFFFFFFULL);
+  v168 = (v168 & ~U64LL(0x00000000FFFFFFFF)) | (((unsigned UHI64)(M8(v158 + 1))) & U64LL(0x00000000FFFFFFFF));
   v15 = v158;
   do
   {
@@ -5556,7 +5553,7 @@ static int d4_41030F(dec4_ctx *c)
      || (unsigned int)G32(0x45C674) <= 1
      || G32(0x45D104) > (unsigned int)G32(0x45D138)
      || M32(c->p_68c) <= 0x3FEu
-     || ((signed int)(v16 - (__CFSHL__((unsigned long long)v16 >> 32, 4) + 16 * ((unsigned long long)v16 >> 32))) >> 4)
+     || ((signed int)(v16 - (__CFSHL__((unsigned UHI64)v16 >> 32, 4) + 16 * ((unsigned UHI64)v16 >> 32))) >> 4)
       * ((unsigned int)M8(v158 + 27) << 6) >= M32(c->p_688))
     && (!M8(v2)
      || !G8(0x45E392) && M8(v2 + 19) < 0x30u
@@ -5761,7 +5758,7 @@ LABEL_69:
             v183 = 12;
             goto LABEL_175;
           }
-          v168 = (v168 & ~0xFFFFFFFF00000000ULL) | ((((unsigned long long)(M8(v54 + 1) + v182)) << 32) & 0xFFFFFFFF00000000ULL);
+          v168 = (v168 & ~U64LL(0xFFFFFFFF00000000)) | ((((unsigned UHI64)(M8(v54 + 1) + v182)) << 32) & U64LL(0xFFFFFFFF00000000));
           if ( v165 < HIDWORD(v168) )
           {
             v55 = M8(v54 + 13);
@@ -7540,10 +7537,10 @@ static int d4_412FB0(dec4_ctx *c)
 static int d4_412FFA(dec4_ctx *c)
 {
   int v0;
-  long long v1;
+  UHI64 v1;
   int v2;
   unsigned int v3;
-  long long v4;
+  UHI64 v4;
   char v5;
   signed int v6;
   signed int v7;

@@ -2842,8 +2842,8 @@ void d4v_sym(dec4v_ctx *c, unsigned int a_eax)
 {
     unsigned int e_eax = 0, e_ebx = 0, e_ecx = 0, e_edx = 0, e_esi = 0, e_edi = 0, e_ebp = 0;
     unsigned int f_cf = 0, f_zf = 0, f_sf = 0, f_of = 0;
-    unsigned long long d4v_q = 0;
-    long long d4v_n = 0;
+    unsigned UHI64 d4v_q = 0;
+    UHI64 d4v_n = 0;
     unsigned char stk[0x50] = {0};
     (void)a_eax; /* dead at entry: overwritten at 0x418839/0x418842 */
     f_cf = f_zf = f_sf = f_of = 0u;
@@ -2868,16 +2868,16 @@ L_41890A: /* cmp M32(0x45AF98u), 0x1u (flags folded into jbe @0x00418911 below) 
 L_418917: e_ecx = (M32(0x45AF7Cu)); e_ebx = (e_ecx); /* cmp e_ecx, 0x4u (flags folded into ja @0x00418922 below) */; /* 0x00418917,0x0041891D,0x0041891F */
     if ((e_ecx) > (0x4u)) goto L_418936; /* ja, unsigned=True */ /* 0x00418922 */
     e_eax = (M32(0x45AF38u)); e_edx = (0u); /* 0x00418924,0x00418929 */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x0041892B */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x0041892B */;
     e_ebx = (M32(0x433B90u + e_ecx * 4)); e_ebx = ((e_ebx) + (e_edx)); /* 0x0041892D,0x00418934 */
 L_418936: /* cmp e_ecx, 0x10u (flags folded into ja @0x00418939 below) */; /* 0x00418936 */
     if ((e_ecx) > (0x10u)) goto L_41894D; /* ja, unsigned=True */ /* 0x00418939 */
     e_eax = (M32(0x45AF38u)); e_edx = (0u); /* 0x0041893B,0x00418940 */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x00418942 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x00418942 */;
     e_ecx = (M32(0x433BA4u + e_ecx * 4)); e_ecx = ((e_ecx) + (e_edx)); /* 0x00418944,0x0041894B */
 L_41894D: e_eax = (0x45B5F4u); e_ebx = ((e_ebx) << 2); e_eax = ((e_eax) + (e_ebx)); e_ecx = ((e_ecx) << 2); M32(0x45AFA0u) = (e_eax); e_eax = (0x45AFD8u); /* 0x0041894D,0x00418952,0x00418955,0x00418957,0x0041895A,0x0041895F */
     e_eax = ((e_eax) + (e_ecx)); M32(0x45AF78u) = (e_eax); /* 0x00418964,0x00418966 */
@@ -2995,16 +2995,16 @@ L_418BBB: e_ebx = ((e_ebx & ~0xFFu) | (0xFFu)); e_eax = (0u); e_ecx = (0u); e_ed
     if (((((((e_eax & 0xFFu)) & ((e_eax & 0xFFu)))) & 0xFFu) == 0u)) goto L_4192E2; /* jz, unsigned=True */ /* 0x00418C41 */
     e_eax = ((e_eax & ~0xFFu) | (M8(e_ebp + 0x9u))); stk[0x24] = ((e_eax & 0xFFu)); e_eax = (e_edx); e_edx = ((unsigned)((int)(e_edx) >> 31)); /* 0x00418C47,0x00418C4A,0x00418C4E,0x00418C50 */
     e_edx = ((e_edx) << 2); f_cf = ((e_edx >> 30) & 1u); f_zf = (((e_edx) << 2) == 0u) ; f_sf = ((((e_edx) << 2) >> 31) & 1u); /* 0x00418C53 */
-    d4v_q = ((unsigned long long)(e_edx) + f_cf) /* borrow-in; f_cf source: shl @00418C53 (kept) */;
+    d4v_q = ((unsigned UHI64)(e_edx) + f_cf) /* borrow-in; f_cf source: shl @00418C53 (kept) */;
     e_eax = ((e_eax) - d4v_q) /* 0x00418C56 */;
     e_eax = ((unsigned)((int)(e_eax) >> 2)); e_ebx = ((e_ebx & ~0xFFu) | (0u)); e_ecx = (0u); stk[0x20] = ((e_ebx & 0xFFu)); /* 0x00418C58,0x00418C5B,0x00418C5D,0x00418C5F */
     e_ecx = ((e_ecx & ~0xFFu) | (M8(e_ebp + 0x1u))); M8(0x45C694u) = ((e_ebx & 0xFFu)); /* cmp e_ecx, e_eax (flags folded into jle @0x00418C6E below) */; /* 0x00418C63,0x00418C66,0x00418C6C */
     if (((int)(e_ecx)) <= ((int)(e_eax))) goto L_418C76; /* jle, unsigned=False */ /* 0x00418C6E */
     M8(0x45C693u) = (((((M8(0x45C693u)) + 1u)) & 0xFFu)); /* 0x00418C70 */
 L_418C76: e_eax = (0x45AF68u); e_edx = (M32(e_eax + 0x8u)); e_eax = (M32(e_eax + 0x4u)); e_ecx = (M32(0x45D0BCu)); e_edx = ((e_edx) - (e_eax)); /* 0x00418C76,0x00418C7B,0x00418C7E,0x00418C81,0x00418C87 */
-    d4v_q = ((long long)(int)(e_eax)) * ((long long)(int)(e_ecx));
+    d4v_q = ((UHI64)(int)(e_eax)) * ((UHI64)(int)(e_ecx));
     e_eax = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418C89 */;
-    d4v_q = ((long long)(int)(e_edx)) * ((long long)(int)(e_ecx));
+    d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_ecx));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418C8C */;
     e_ecx = (M32(0x45D0B8u)); e_ecx = ((e_ecx) - (e_eax)); /* cmp e_edx, 0x1000000u (flags folded into jnb @0x00418C9D below) */; /* 0x00418C8F,0x00418C95,0x00418C97 */
     if ((e_edx) >= (0x1000000u)) goto L_418CB9; /* jnb, unsigned=True */ /* 0x00418C9D */
@@ -3075,16 +3075,16 @@ L_418E65: e_eax = ((e_eax & ~0xFFu) | (M8(e_ebx + 0x1Bu))); e_eax = ((e_eax & ~0
     if ((M8(e_ebp + 0x0u)) == (0x0u)) goto L_418EB5; /* jz, unsigned=True */ /* 0x00418E72 */
     e_eax = ((e_eax) & (0xFFu)); e_edx = (0x3E0u); e_eax = ((e_eax) << 5); e_edx = ((e_edx) - (e_eax)); e_eax = (e_edx); e_edx = (0u); /* 0x00418E74,0x00418E79,0x00418E7E,0x00418E81,0x00418E83,0x00418E85 */
     e_edx = ((e_edx & ~0xFFu) | (M8(e_ebp + 0x1u))); /* 0x00418E87 */
-    d4v_q = ((long long)(int)(e_edx)) * ((long long)(int)(e_eax));
+    d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_eax));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418E8A */;
     e_ecx = (0u); e_ecx = ((e_ecx & ~0xFFu) | (M8(e_ebp + 0x12u))); e_eax = (e_edx); e_edx = ((unsigned)((int)(e_edx) >> 31)); /* 0x00418E8D,0x00418E8F,0x00418E92,0x00418E94 */
-    d4v_n = (((long long)(int)e_edx << 32) + (long long)e_eax);
-    e_eax = (unsigned)(int)(d4v_n / ((long long)(int)(e_ecx)));
-    e_edx = (unsigned)(int)(d4v_n % ((long long)(int)(e_ecx))) /* 0x00418E97 */;
+    d4v_n = (((UHI64)(int)e_edx << 32) + (UHI64)e_eax);
+    e_eax = (unsigned)(int)(d4v_n / ((UHI64)(int)(e_ecx)));
+    e_edx = (unsigned)(int)(d4v_n % ((UHI64)(int)(e_ecx))) /* 0x00418E97 */;
     e_ecx = (e_eax); e_eax = (0u); e_esi = (M32(0x45AF9Cu)); e_eax = ((e_eax & ~0xFFu) | (M8(e_ebx + 0x1u))); e_edx = (0u); e_eax = ((e_eax) << 10); /* 0x00418E99,0x00418E9B,0x00418E9D,0x00418EA3,0x00418EA6,0x00418EA8 */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_esi)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_esi))) /* 0x00418EAB */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_esi)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_esi))) /* 0x00418EAB */;
     /* cmp e_ecx, e_eax (flags folded into ja @0x00418EAF below) */; /* 0x00418EAD */
     if ((e_ecx) > (e_eax)) goto L_418AA7; /* ja, unsigned=True */ /* 0x00418EAF */
 L_418EB5: e_eax = ((e_eax & ~0xFFu) | (0x1u)); e_edi = (D4V_SP); M8(0x45C68Fu) = ((e_eax & 0xFFu)); e_eax = (M32(0x45AF9Cu)); e_esi = (0x4150DBu); /* 0x00418EB5,0x00418EB7,0x00418EB9,0x00418EBE,0x00418EC3 */
@@ -3120,9 +3120,9 @@ L_418F6F: e_eax = ((e_eax) + (e_edx)); e_eax = ((e_eax) + (e_eax)); e_eax = ((e_
     e_eax = ((e_eax & ~0xFFu) | (M8(e_ebx + 0xEu))); e_ebx = ((e_ebx & ~0xFFu) | (0u)); stk[0x24] = ((e_eax & 0xFFu)); stk[0x20] = ((e_ebx & 0xFFu)); /* 0x00418F85,0x00418F88,0x00418F8A,0x00418F8E */
     M8(0x45C692u) = ((e_ebx & 0xFFu)); /* 0x00418F92 */
 L_418F98: e_eax = (0x45AF68u); e_edx = (M32(e_eax + 0x8u)); e_eax = (M32(e_eax + 0x4u)); e_ecx = (M32(0x45D0BCu)); e_edx = ((e_edx) - (e_eax)); /* 0x00418F98,0x00418F9D,0x00418FA0,0x00418FA3,0x00418FA9 */
-    d4v_q = ((long long)(int)(e_eax)) * ((long long)(int)(e_ecx));
+    d4v_q = ((UHI64)(int)(e_eax)) * ((UHI64)(int)(e_ecx));
     e_eax = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418FAB */;
-    d4v_q = ((long long)(int)(e_edx)) * ((long long)(int)(e_ecx));
+    d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_ecx));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418FAE */;
     e_ecx = (M32(0x45D0B8u)); e_ecx = ((e_ecx) - (e_eax)); /* cmp e_edx, 0x1000000u (flags folded into jnb @0x00418FBF below) */; /* 0x00418FB1,0x00418FB7,0x00418FB9 */
     if ((e_edx) >= (0x1000000u)) goto L_418FDB; /* jnb, unsigned=True */ /* 0x00418FBF */
@@ -3153,13 +3153,13 @@ L_41907F: e_edi = (0xFFFFFFFFu); e_eax = (M32(0x45AFB8u)); e_ecx = ((e_ecx & ~0x
     /* cmp (e_ecx & 0xFFu), 0x20u (flags folded into jb @0x004190A3 below) */; /* 0x004190A0 */
     if (((e_ecx & 0xFFu)) < (0x20u)) goto L_41911A; /* jb, unsigned=True */ /* 0x004190A3 */
 L_4190A5: e_ecx = (M32(0x45AF68u)); e_eax = (M32(0x45D0BCu)); e_edx = (0u); /* 0x004190A5,0x004190AB,0x004190B0 */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x004190B2 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x004190B2 */;
     e_edx = (0u); M32(0x45D0BCu) = (e_eax); e_ecx = (e_eax); e_eax = (M32(0x45D0B8u)); /* 0x004190B4,0x004190B6,0x004190BB,0x004190BD */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x004190C2 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x004190C2 */;
     e_esi = (e_eax); /* 0x004190C4 */
 L_4190C6: e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | (M8(0x45C692u))); /* cmp stk[e_eax], 0x0u (flags folded into jz @0x004190D1 below) */; /* 0x004190C6,0x004190C8,0x004190CD */
     if ((stk[e_eax]) == (0x0u)) goto L_419224; /* jz, unsigned=True */ /* 0x004190D1 */
@@ -3239,13 +3239,13 @@ L_4192E2: e_eax = ((e_eax & ~(0xFFu << 8)) | ((0x8u) << 8)); e_edx = (0u); M8(0x
 L_419308: e_ecx = ((e_ecx & ~(0xFFu << 8)) | ((stk[0x40]) << 8)); e_esi = (0xFFFFFFFFu); /* cmp ((e_ecx >> 8) & 0xFFu), 0x4u (flags folded into jbe @0x00419314 below) */; /* 0x00419308,0x0041930C,0x00419311 */
     if ((((e_ecx >> 8) & 0xFFu)) <= (0x4u)) goto L_4193A3; /* jbe, unsigned=True */ /* 0x00419314 */
 L_41931A: e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | (stk[0x44])); e_edi = (0u); e_ecx = (e_eax); M32(0x45AF68u) = (e_eax); e_eax = (M32(0x45D0BCu)); e_edx = (0u); /* 0x0041931A,0x0041931C,0x00419320,0x00419322,0x00419324,0x00419329,0x0041932E */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x00419330 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x00419330 */;
     e_edx = (0u); M32(0x45D0BCu) = (e_eax); e_ecx = (e_eax); e_eax = (M32(0x45D0B8u)); /* 0x00419332,0x00419334,0x00419339,0x0041933B */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x00419340 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x00419340 */;
     e_ebx = (e_eax); e_eax = ((e_eax & ~0xFFu) | (0u)); M32(0x45AF6Cu) = (e_edi); M8(0x45C694u) = ((e_eax & 0xFFu)); /* 0x00419342,0x00419344,0x00419346,0x0041934C */
 L_419351: e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | (M8(0x45C694u))); /* cmp stk[e_eax + 0x10], 0x0u (flags folded into jz @0x0041935D below) */; /* 0x00419351,0x00419353,0x00419358 */
     if ((stk[e_eax + 0x10]) == (0x0u)) goto L_419459; /* jz, unsigned=True */ /* 0x0041935D */
@@ -3318,13 +3318,13 @@ L_4194FC: /* test (e_ebx & 0xFFu), (e_ebx & 0xFFu) (flags folded into jz @0x0041
     if ((((e_ecx) & (e_ecx)) == 0u)) goto L_419647; /* jz, unsigned=True */ /* 0x00419521 */
     e_ebx = ((e_ebx & ~0xFFu) | (M8(e_ecx))); e_eax = ((e_eax & ~0xFFu) | (M8(e_ecx + 0x1u))); /* 0x00419527,0x00419529 */
 L_41952C: e_esi = (e_ebx & 0xFFu); e_eax = ((e_eax) & (0xFFu)); e_edx = (e_esi + e_eax); e_ecx = (e_edx); M32(0x45AF68u) = (e_edx); e_eax = (M32(0x45D0BCu)); e_edx = (0u); /* 0x0041952C,0x0041952F,0x00419534,0x00419537,0x00419539,0x0041953F,0x00419544 */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x00419546 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x00419546 */;
     e_edx = (0u); M32(0x45D0BCu) = (e_eax); e_ecx = (e_eax); e_eax = (M32(0x45D0B8u)); /* 0x00419548,0x0041954A,0x0041954F,0x00419551 */
-    d4v_q = (((unsigned long long)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
-    e_eax = (unsigned)(d4v_q / ((unsigned long long)(e_ecx)));
-    e_edx = (unsigned)(d4v_q % ((unsigned long long)(e_ecx))) /* 0x00419556 */;
+    d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
+    e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
+    e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x00419556 */;
     e_eax = ((e_eax) & (0xFFFFu)); /* cmp e_eax, e_esi (flags folded into jge @0x0041955F below) */; /* 0x00419558,0x0041955D */
     if (((int)(e_eax)) >= ((int)(e_esi))) goto L_419659; /* jge, unsigned=False */ /* 0x0041955F */
     /* cmp M8(0x45C684u), 0x0u (flags folded into jz @0x0041956C below) */; /* 0x00419565 */
@@ -3338,9 +3338,9 @@ L_4195A1: e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | ((e_ebx & 0xFFu))); e_ecx = 
     e_eax = (stk[0x18] | ((unsigned)stk[0x19] << 8) | ((unsigned)stk[0x1A] << 16) | ((unsigned)stk[0x1B] << 24)); e_edx = ((e_edx & ~0xFFu) | (0u)); /* 0x004195AC,0x004195B0 */
     M32(0x45AF6Cu) = (e_ecx); e_eax = ((e_eax & ~0xFFu) | (M8(e_eax + 0x2u))); stk[0x20] = ((e_edx & 0xFFu)); stk[0x24] = ((e_eax & 0xFFu)); /* 0x004195B2,0x004195B8,0x004195BB,0x004195BF */
 L_4195C3: e_eax = (0x45AF68u); e_edx = (M32(e_eax + 0x8u)); e_eax = (M32(e_eax + 0x4u)); e_ecx = (M32(0x45D0BCu)); e_edx = ((e_edx) - (e_eax)); /* 0x004195C3,0x004195C8,0x004195CB,0x004195CE,0x004195D4 */
-    d4v_q = ((long long)(int)(e_eax)) * ((long long)(int)(e_ecx));
+    d4v_q = ((UHI64)(int)(e_eax)) * ((UHI64)(int)(e_ecx));
     e_eax = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x004195D6 */;
-    d4v_q = ((long long)(int)(e_edx)) * ((long long)(int)(e_ecx));
+    d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_ecx));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x004195D9 */;
     e_ecx = (M32(0x45D0B8u)); e_ecx = ((e_ecx) - (e_eax)); /* cmp e_edx, 0x1000000u (flags folded into jnb @0x004195EA below) */; /* 0x004195DC,0x004195E2,0x004195E4 */
     if ((e_edx) >= (0x1000000u)) goto L_419606; /* jnb, unsigned=True */ /* 0x004195EA */

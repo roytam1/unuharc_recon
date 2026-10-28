@@ -2,6 +2,16 @@
 #ifndef UHARC_DEC_H
 #define UHARC_DEC_H
 
+#ifdef _MSC_VER
+#define UHI64 __int64
+#define U64LL(x) x##UI64
+#define I64LL(x) x##I64
+#else
+#define UHI64 long long
+#define U64LL(x) x##ULL
+#define I64LL(x) x##LL
+#endif
+
 /* error codes share uharc06.h values; reuse 0..7 */
 typedef int (*uharc_dec_read_cb)(void *ctx, unsigned char *buf,
                                  unsigned want_len);

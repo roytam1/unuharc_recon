@@ -6460,6 +6460,7 @@ l_414e68:
     /* 0x00414EAF */ M16((eax + edx * 2UL) & U32MASK) = (unsigned short)(ebx & 0xFFFFUL); /* mov [eax+edx*2],bx */
 l_414eb3:
     /* epilogue: add esp,4; pop ebp,edi,esi,edx,ecx,ebx; retn */
+    return;
 }
 /* sub_414290: input top-up / hash-table rebuild. No reg inputs (all pushed). */
 void d3u_414290(dec3w_ctx *c)

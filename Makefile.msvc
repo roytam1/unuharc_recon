@@ -1,0 +1,32 @@
+# Makefile.msvc - MSVC6 (Visual C++ 6.0) NMAKE build for the UHARC unpacker.
+#
+# Run from a VCVARS32 environment, e.g.:
+#   "C:\Program Files (x86)\Microsoft Visual Studio\VC98\Bin\VCVARS32.BAT"
+#   nmake -f Makefile.msvc
+# Produces uharc06_msvc.exe from the same sources as the GNU Makefile's
+# uharc06_unpack.exe. Object files are built in place (same as cl default).
+#
+# NOTE: NMAKE spawns tools via CMD.EXE, which cannot use a UNC working
+# directory. Run from a local path or mapped drive, not a \\server\share.
+#
+# NOTE: uharc_dec4.c must keep the for-loop form of d4_40DBC5's first table
+# setup loop (see NOTE in that function): MSVC6 /O2 miscompiles the
+# original nested do/while and silently leaves cost tables zeroed.
+
+CC=cl
+CFLAGS=/nologo /O2 /W3
+LINK=link
+LFLAGS=/nologo
+
+OBJS=uharc06_main.obj uharc06.obj uha04.obj uha03.obj uha02.obj uhcrypt06.obj uhcrypt04.obj uharc_dec0.obj uharc_dec2.obj uharc_dec2_lsb.obj uharc_split.obj uharc_filter.obj uharc_dec3.obj uha03_dec3.obj uha02_dec3.obj uha04_dec3.obj uha03_dec5.obj uha04_dec5.obj uha04_dec4.obj uha04_dec4_dg.obj uha03_dec4.obj uha03_dec4_dg.obj uharc_dec4.obj uharc_dec5.obj
+
+all: uharc06_msvc.exe
+
+.c.obj:
+	$(CC) $(CFLAGS) /Fo$@ /c $<
+
+uharc06_msvc.exe: $(OBJS)
+	$(LINK) $(LFLAGS) /OUT:$@ $(OBJS)
+
+clean:
+	-del $(OBJS) uharc06_msvc.exe
