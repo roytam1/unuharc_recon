@@ -2303,11 +2303,15 @@ static unsigned int d4_o(unsigned int o)
 #define G32P(a) ((unsigned int   *)(void *)(c->mem + (unsigned)(a)))
 
 #include <stdio.h>
+#include <stdarg.h>
 void D4TRACE(const char *format, ...) {
 #ifdef DEBUG
-    va_start(pl, format);
-    vfprintf(stderr, myfmt, pl);
-    va_end(pl);
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+#else
+    (void)format;
 #endif
 }
 
