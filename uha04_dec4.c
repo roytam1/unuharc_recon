@@ -267,6 +267,19 @@ static void d4v_rc_init(dec4v_ctx *c) /* range prime: 5 bytes BE (orig d4v_426f3
     } /* 0x426F5E cmp edx,5; 0x426F61 jb */
 }
 
+
+/* Range renormalize: while *prange < 0x1000000, shift in one byte.
+ * Callers keep code/range in locals and store back to
+ * D4V_RC_CODE/D4V_RC_RANGE after. (3 sites in d4v_rc_primer.) */
+static void d4v_rcrenorm(dec4v_ctx *c, unsigned int *pcode, unsigned int *prange)
+{
+    while (*prange < 0x1000000UL) {
+        unsigned int b = d4v_get_byte(c);
+        *pcode = ((*pcode << 8) | (b & 0xFFU)) & 0xFFFFFFFFUL;
+        *prange = (*prange << 8) & 0xFFFFFFFFUL;
+    }
+}
+
 /* ---- range reader init (sub_41F2A0) ----
  * Entry esi = 0x45AF68 area base (constant; the second half sets it
  * explicitly and the first half uses the same [eax+4]/[eax+8] shape). */
@@ -307,11 +320,7 @@ static void d4v_rc_primer(dec4v_ctx *c) /* range reader init + primer (orig d4v_
     edx = edx * ecx;
     ecx = G32(D4V_RC_CODE);
     ecx = ecx - eax;
-    while (edx < 0x1000000UL) {
-        unsigned int b = d4v_get_byte(c);
-        ecx = ((ecx << 8) | (b & 0xFFU)) & 0xFFFFFFFFUL;
-        edx = (edx << 8) & 0xFFFFFFFFUL;
-    }
+    d4v_rcrenorm(c, &ecx, &edx);
     G32(D4V_RC_CODE) = ecx;
     G32(D4V_RC_RANGE) = edx;
     if (G8(D4V_CTX_B_45C67F))
@@ -345,11 +354,7 @@ static void d4v_rc_primer(dec4v_ctx *c) /* range reader init + primer (orig d4v_
         edx = edx * ecx;
         ecx = G32(D4V_RC_CODE);
         ecx = ecx - eax;
-        while (edx < 0x1000000UL) {
-            unsigned int b = d4v_get_byte(c);
-            ecx = ((ecx << 8) | (b & 0xFFU)) & 0xFFFFFFFFUL;
-            edx = (edx << 8) & 0xFFFFFFFFUL;
-        }
+        d4v_rcrenorm(c, &ecx, &edx);
         G32(D4V_RC_CODE) = ecx;
         G32(D4V_RC_RANGE) = edx;
         {
@@ -385,11 +390,7 @@ static void d4v_rc_primer(dec4v_ctx *c) /* range reader init + primer (orig d4v_
         edx = edx * ecx;
         ecx = G32(D4V_RC_CODE);
         ecx = ecx - eax;
-        while (edx < 0x1000000UL) {
-            unsigned int b = d4v_get_byte(c);
-            ecx = ((ecx << 8) | (b & 0xFFU)) & 0xFFFFFFFFUL;
-            edx = (edx << 8) & 0xFFFFFFFFUL;
-        }
+        d4v_rcrenorm(c, &ecx, &edx);
         G32(D4V_RC_CODE) = ecx;
         G32(D4V_RC_RANGE) = edx;
         if (!ebx) break;
