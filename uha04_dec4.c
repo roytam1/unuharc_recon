@@ -2126,15 +2126,7 @@ l_416809:
     /* 0x0041686B */ ecx = (unsigned long)G32(D4V_RC_CODE);
     /* 0x00416871 */ ecx = (ecx - eax) & U32MASK;
     /* 0x00416873 */ /* cmp edx,1000000h */;
-    /* 0x00416879 jnb */ if (edx >= 0x1000000UL) goto l_416895; /* unsigned */
-l_41687B:
-    /* 0x0041687B */ eax = d4v_get_byte(c); /* call sub_4220B0, al=byte */
-    /* 0x00416880 */ ecx = (ecx << 8) & U32MASK;
-    /* 0x00416883 */ eax &= 0xFFUL;
-    /* 0x00416888 */ edx = (edx << 8) & U32MASK;
-    /* 0x0041688B */ ecx |= eax;
-    /* 0x0041688D */ /* cmp edx,1000000h */;
-    /* 0x00416893 jb */ if (edx < 0x1000000UL) goto l_41687B; /* unsigned */
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 l_416895:
     /* 0x00416895 */ G32(D4V_RC_CODE) = (unsigned int)ecx;
     /* 0x0041689B */ G32(D4V_RC_RANGE) = (unsigned int)edx;
@@ -3493,14 +3485,7 @@ unsigned int d4v_ppm_sym_split(dec4v_ctx *c, unsigned int eax_in, unsigned int e
     edx = edx * ecx; /* 0x00419A38 */
     ecx = G32(D4V_RC_CODE); /* 0x00419A3B */
     ecx = ecx - eax; /* 0x00419A41 */
-    if (edx >= 0x1000000UL) goto L_419A65; /* 0x00419A43 0x00419A49 */
-L_419A4B:
-    eax = (unsigned int)d4v_get_byte(c); /* 0x00419A4B */
-    ecx = ecx << 8; /* 0x00419A50 */
-    eax = eax & 0xFFUL; /* 0x00419A53 */
-    edx = edx << 8; /* 0x00419A58 */
-    ecx = ecx | eax; /* 0x00419A5B */
-    if (edx < 0x1000000UL) goto L_419A4B; /* 0x00419A5D 0x00419A63 */
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 L_419A65:
     G32(D4V_RC_CODE) = ecx; /* 0x00419A65 */
     G32(D4V_RC_RANGE) = edx; /* 0x00419A6B */
@@ -3833,14 +3818,7 @@ L_419E35:
     edx = edx * ecx; /* 0x00419EE9 */
     ecx = G32(D4V_RC_CODE); /* 0x00419EEC */
     ecx = ecx - eax; /* 0x00419EF2 */
-    if (edx >= 0x1000000UL) goto L_419F16; /* 0x00419EF4 0x00419EFA */
-L_419EFC:
-    eax = (unsigned int)d4v_get_byte(c); /* 0x00419EFC */
-    ecx = ecx << 8; /* 0x00419F01 */
-    eax = eax & 0xFFUL; /* 0x00419F04 */
-    edx = edx << 8; /* 0x00419F09 */
-    ecx = ecx | eax; /* 0x00419F0C */
-    if (edx < 0x1000000UL) goto L_419EFC; /* 0x00419F0E 0x00419F14 */
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 L_419F16:
     G32(D4V_RC_CODE) = ecx; /* 0x00419F16 */
     G32(D4V_RC_RANGE) = edx; /* 0x00419F1C */
@@ -3973,14 +3951,7 @@ L_41A056:
     edx = edx * ecx; /* 0x0041A0EB */
     ecx = G32(D4V_RC_CODE); /* 0x0041A0EE */
     ecx = ecx - eax; /* 0x0041A0F4 */
-    if (edx >= 0x1000000UL) goto L_41A118; /* 0x0041A0F6 0x0041A0FC */
-L_41A0FE:
-    eax = (unsigned int)d4v_get_byte(c); /* 0x0041A0FE */
-    ecx = ecx << 8; /* 0x0041A103 */
-    eax = eax & 0xFFUL; /* 0x0041A106 */
-    edx = edx << 8; /* 0x0041A10B */
-    ecx = ecx | eax; /* 0x0041A10E */
-    if (edx < 0x1000000UL) goto L_41A0FE; /* 0x0041A110 0x0041A116 */
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 L_41A118:
     G32(D4V_RC_CODE) = ecx; /* 0x0041A118 */
     G32(D4V_RC_RANGE) = edx; /* 0x0041A11E */
@@ -4100,14 +4071,7 @@ L_41A20E:
     edx = edx * ecx; /* 0x0041A29F */
     ecx = G32(D4V_RC_CODE); /* 0x0041A2A2 */
     ecx = ecx - eax; /* 0x0041A2A8 */
-    if (edx >= 0x1000000UL) goto L_41A2CC; /* 0x0041A2AA 0x0041A2B0 */
-L_41A2B2:
-    eax = (unsigned int)d4v_get_byte(c); /* 0x0041A2B2 */
-    ecx = ecx << 8; /* 0x0041A2B7 */
-    eax = eax & 0xFFUL; /* 0x0041A2BA */
-    edx = edx << 8; /* 0x0041A2BF */
-    ecx = ecx | eax; /* 0x0041A2C2 */
-    if (edx < 0x1000000UL) goto L_41A2B2; /* 0x0041A2C4 0x0041A2CA */
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 L_41A2CC:
     G32(D4V_RC_CODE) = ecx; /* 0x0041A2CC */
     G32(D4V_RC_RANGE) = edx; /* 0x0041A2D2 */
@@ -6179,16 +6143,7 @@ l_4185F0:
     edx = (edx * ecx) & U32MASK; /* 0x418618 imul edx,ecx */
     ecx = G32(D4V_RC_CODE); /* 0x41861B mov ecx,ds:dword_45D0B8 */
     ecx = (ecx - eax) & U32MASK; /* 0x418621 sub ecx,eax */
-    if (edx >= 0x1000000UL) /* 0x418623 cmp edx,1000000h */ /* 0x418629 jnb short loc_418645 */
-        goto l_418645;
-l_41862B:
-    eax = d4v_get_byte(c); /* 0x41862B call sub_4220B0 */
-    ecx = (ecx << 8) & U32MASK; /* 0x418630 shl ecx,8 */
-    eax &= 0xFFU; /* 0x418633 and eax,0FFh */
-    edx = (edx << 8) & U32MASK; /* 0x418638 shl edx,8 */
-    ecx |= eax; /* 0x41863B or ecx,eax */
-    if (edx < 0x1000000UL) /* 0x41863D cmp edx,1000000h */ /* 0x418643 jb short loc_41862B */
-        goto l_41862B;
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 l_418645:
     G32(D4V_RC_CODE) = ecx; /* 0x418645 mov ds:dword_45D0B8,ecx */
     G32(D4V_RC_RANGE) = edx; /* 0x41864B mov ds:dword_45D0BC,edx */
@@ -6235,16 +6190,7 @@ l_418672:
     edx = (edx * ecx) & U32MASK; /* 0x4186C1 imul edx,ecx */
     ecx = G32(D4V_RC_CODE); /* 0x4186C4 mov ecx,ds:dword_45D0B8 */
     ecx = (ecx - eax) & U32MASK; /* 0x4186CA sub ecx,eax */
-    if (edx >= 0x1000000UL) /* 0x4186CC cmp edx,1000000h */ /* 0x4186D2 jnb short loc_4186EE */
-        goto l_4186EE;
-l_4186D4:
-    eax = d4v_get_byte(c); /* 0x4186D4 call sub_4220B0 */
-    ecx = (ecx << 8) & U32MASK; /* 0x4186D9 shl ecx,8 */
-    eax &= 0xFFU; /* 0x4186DC and eax,0FFh */
-    edx = (edx << 8) & U32MASK; /* 0x4186E1 shl edx,8 */
-    ecx |= eax; /* 0x4186E4 or ecx,eax */
-    if (edx < 0x1000000UL) /* 0x4186E6 cmp edx,1000000h */ /* 0x4186EC jb short loc_4186D4 */
-        goto l_4186D4;
+    d4v_rcrenorm_reg(c, &ecx, &edx, &eax);
 l_4186EE:
     G32(D4V_RC_CODE) = ecx; /* 0x4186EE mov ds:dword_45D0B8,ecx */
     G32(D4V_RC_RANGE) = edx; /* 0x4186F4 mov ds:dword_45D0BC,edx */
