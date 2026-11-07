@@ -52,8 +52,8 @@ typedef struct dec3w_ctx {
     void *wctx;
     int err;
     int method;
-    unsigned long p_inb;
-    unsigned long p_outb;
+    unsigned long in_buf;
+    unsigned long out_buf;
 } dec3w_ctx;
 
 static unsigned int d3w_o(unsigned int o)
@@ -303,8 +303,8 @@ int uharc_dec4u_init(void **pctx, int method)
                (size_t)d3u_dgroup_len);
     }
     /* stream buffers: input 1MB at 0x3800000, staging 64KB at 0x3D00000 */
-    c->p_inb = 0x03800000UL;
-    c->p_outb = 0x03D00000UL;
+    c->in_buf = 0x03800000UL;
+    c->out_buf = 0x03D00000UL;
     c->method = method;
     *pctx = c;
     return 0;
@@ -350,8 +350,8 @@ int uharc_dec4u_decode_b(void *ctx,
     } else {
         M32(D3U_CUM_TABLE_PTR) = 0U;
     }
-    G32(D3U_IN_BUFFER_BASE) = (unsigned int)c->p_inb;
-    G32(D3U_OUT_BUFFER_BASE) = (unsigned int)c->p_outb;
+    G32(D3U_IN_BUFFER_BASE) = (unsigned int)c->in_buf;
+    G32(D3U_OUT_BUFFER_BASE) = (unsigned int)c->out_buf;
     G32(D3U_OUT_FLUSH_THRESH) = 0xFF00UL;
     G32(D3U_TBL_444EFC) = 0x40000UL;
     G32(D3U_IN_AVAIL) = 0;

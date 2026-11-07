@@ -58,12 +58,8 @@ typedef struct dec4v_ctx {
     unsigned long out_len;
     int err;
     /* arena offsets of the 64KB stream buffers (dword_436ED0/436ED4) */
-    unsigned long p_inb;
-    unsigned long p_outb;
-    /* model block offsets (dword_433B40.. set) */
-    unsigned long p_3b40, p_3b44, p_3b48, p_3b4c, p_3b50, p_3b54, p_3b58;
-    unsigned long p_3b5c, p_3b60, p_3b64, p_3b68, p_3b6c, p_3b70, p_3b74;
-    unsigned long p_3b78, p_3b7c, p_3b80, p_3b84, p_3b88, p_3b8c, p_af34;
+    unsigned long in_buf;
+    unsigned long out_buf;
 } dec4v_ctx;
 
 static unsigned int d4v_o(unsigned int o)
@@ -124,9 +120,9 @@ int uharc_dec4v_init(void **pctx, int method)
     c->mem = (unsigned char *)calloc(1, (size_t)V4_ARENA);
     if (!c->mem) { free(c); return 2; }
     c->hi = 0x1000;
-    c->p_inb = d4v_alloc(c, 65536UL);
-    c->p_outb = d4v_alloc(c, 65536UL);
-    if (!c->p_inb || !c->p_outb) { free(c->mem); free(c); return 2; }
+    c->in_buf = d4v_alloc(c, 65536UL);
+    c->out_buf = d4v_alloc(c, 65536UL);
+    if (!c->in_buf || !c->out_buf) { free(c->mem); free(c); return 2; }
     /* Model blocks must live ABOVE the fixed globals window (DGROUP image
      * 0x42E000-0x440000, .bss 0x440000-0x45DA00); bumping from 0x21000
      * would pave over it. 0x600000 + ~53MB footprint < 64MB arena. */
@@ -543,8 +539,8 @@ int uharc_dec4v_decode_b(void *ctx, const unsigned long *cum,
     c->err = 0;
     c->in_pos = 0;
     c->in_avail = 0;
-    G32(D4V_IO_IN_PTR) = (unsigned int)c->p_inb;
-    G32(D4V_IO_OUT_PTR) = (unsigned int)c->p_outb;
+    G32(D4V_IO_IN_PTR) = (unsigned int)c->in_buf;
+    G32(D4V_IO_OUT_PTR) = (unsigned int)c->out_buf;
     G32(D4V_IO_OUT_CAP) = 65536UL;
     G32(D4V_IO_IN_CAP) = 65536UL;
     G32(D4V_IO_OUT_POS) = 0;
