@@ -28,6 +28,7 @@
 #include <stdio.h>
 
 #include "uharc_dec.h"
+#include "uharc_dec4_addr.h"
 #ifndef D4PT
 #define D4PT 48019
 #endif
@@ -2329,37 +2330,37 @@ static int d4_40B093(dec4_ctx *c)
 {
     int n;
     if (c->in_pos < c->in_avail) return (int)c->inbuf[c->in_pos++];
-    if (c->in_eof) { G32(0x422B90) = 3; return 0; }
+    if (c->in_eof) { G32(D4A_IO_ERR) = 3; return 0; }
     n = c->rcb(c->rctx, c->inbuf, (unsigned)sizeof(c->inbuf));
-    if (n <= 0) { c->in_eof = 1; G32(0x422B90) = 3; return 0; }
+    if (n <= 0) { c->in_eof = 1; G32(D4A_IO_ERR) = 3; return 0; }
     c->in_avail = (unsigned)n;
     c->in_pos = 1;
-    G32(0x434524) += 1;
+    G32(D4A_IN_CHUNKS) += 1;
     return (int)c->inbuf[0];
 }
 
 static int d4_40B178(dec4_ctx *c, char a1)
 {
-    c->outbuf[G32(0x43451C)] = (unsigned char)a1;
-    G32(0x43451C) += 1;
-    G32(0x434528) += 1;
+    c->outbuf[G32(D4A_OUTBUF_LEN)] = (unsigned char)a1;
+    G32(D4A_OUTBUF_LEN) += 1;
+    G32(D4A_OUT_POS) += 1;
 #ifdef D4EMITDBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "EMIT out=%u byte=%u\n",
-          G32(0x434528), (unsigned)(unsigned char)a1);
+          G32(D4A_OUT_POS), (unsigned)(unsigned char)a1);
 #endif
 #ifdef CRASHTICKDBG
-    if ((G32(0x434528) & 0x3F) == 0)
-        fprintf(stderr, "TICK out=%u\n", G32(0x434528));
+    if ((G32(D4A_OUT_POS) & 0x3F) == 0)
+        fprintf(stderr, "TICK out=%u\n", G32(D4A_OUT_POS));
 #endif
 #ifdef FLUSHDBG
-    if (G32(0x43451C) >= 0x1000U) {
+    if (G32(D4A_OUTBUF_LEN) >= 0x1000U) {
 #else
-    if (G32(0x43451C) >= 0x10000U) {
+    if (G32(D4A_OUTBUF_LEN) >= 0x10000U) {
 #endif
-        unsigned n = G32(0x43451C);
-        if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(0x422B90) = 4;
-        G32(0x43451C) = 0;
+        unsigned n = G32(D4A_OUTBUF_LEN);
+        if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(D4A_IO_ERR) = 4;
+        G32(D4A_OUTBUF_LEN) = 0;
     }
     return 0;
 }
@@ -2391,21 +2392,21 @@ static void d4_416D40(dec4_ctx *c, int pat, unsigned int dst, unsigned words)
 static void d4_419A4D(dec4_ctx *c)
 {
     unsigned i;
-    G32(0x4749D8) = 0;
-    G32(0x4749DC) = 0xFFFFFFFFU;
+    G32(D4A_RC_CODE) = 0;
+    G32(D4A_RC_RANGE) = 0xFFFFFFFFU;
     for (i = 0; i < 5; i++)
-        G32(0x4749D8) = (G32(0x4749D8) << 8) | (unsigned)d4_40B093(c);
+        G32(D4A_RC_CODE) = (G32(D4A_RC_CODE) << 8) | (unsigned)d4_40B093(c);
 }
 
 static void d4_419AC0(dec4_ctx *c)
 {
     unsigned i;
-    if (!G8(0x431ED4)) return;
+    if (!G8(D4A_COST_DIRTY)) return;
     for (i = 1; i < 0x4000U; i++) {
-        unsigned v = (unsigned)G16(0x429ED4 + 2*i) + (unsigned)G16(0x429ED2 + 2*i);
-        G16(0x429ED4 + 2*i) = (unsigned short)(v & 0xFFFFU);
+        unsigned v = (unsigned)G16(D4A_COST_LUT + 2*i) + (unsigned)G16(D4A_COST_LUT_SRC + 2*i);
+        G16(D4A_COST_LUT + 2*i) = (unsigned short)(v & 0xFFFFU);
     }
-    G8(0x431ED4) = 0;
+    G8(D4A_COST_DIRTY) = 0;
 }
 
 
@@ -2419,57 +2420,57 @@ static const unsigned char d4_t40CDAD[10] = {0,1,1,1,1,1,1,1,1,0};
 static void d4_load_tables(dec4_ctx *c)
 {
     unsigned i;
-    CP(0x422BA0, d4_t422BA0, sizeof d4_t422BA0);
-    CP(0x42372C, d4_t42372C, sizeof d4_t42372C);
-    CP(0x4239BB, d4_t4239BB, sizeof d4_t4239BB);
-    for (i = 0; i < 5; i++) G32(0x4236D4 + 4*i) = d4_t4236D4[i];
-    for (i = 0; i < 17; i++) G32(0x4236E8 + 4*i) = d4_t4236E8[i];
-    for (i = 0; i < 8; i++) G32(0x4239D0 + 4*i) = d4_t4239D0[i];
-    for (i = 0; i < 256; i++) G32(0x4239F0 + 4*i) = d4_t4239F0[i];
-    for (i = 0; i < 288; i++) G32(0x423DF0 + 4*i) = d4_t423DF0[i];
-    CP(0x424270, d4_t424270, sizeof d4_t424270);
-    CP(0x424280, d4_t424280, sizeof d4_t424280);
-    CP(0x424290, d4_t424290, sizeof d4_t424290);
-    CP(0x4244A0, d4_t4244A0, sizeof d4_t4244A0);
-    CP(0x4245A0, d4_t4245A0, sizeof d4_t4245A0);
-    for (i = 0; i < 10; i++) G32(0x4246A0 + 4*i) = d4_t4246A0[i];
-    for (i = 0; i < 20; i++) G32(0x4246C8 + 4*i) = d4_t4246C8[i];
-    for (i = 0; i < 6; i++) G32(0x424D3C + 4*i) = d4_t424D3C[i];
-    for (i = 0; i < 512; i++) G32(0x424D54 + 4*i) = d4_t424D54[i];
-    for (i = 0; i < 256; i++) G32(0x425554 + 4*i) = d4_t425554[i];
-    for (i = 0; i < 256; i++) G32(0x426554 + 4*i) = d4_t426554[i];
-    for (i = 0; i < 256; i++) G32(0x425954 + 4*i) = d4_t425954[i];
-    for (i = 0; i < 256; i++) G32(0x425D54 + 4*i) = d4_t425D54[i];
-    for (i = 0; i < 256; i++) G32(0x426154 + 4*i) = d4_t426154[i];
-    CP(0x424718, d4_t424718, sizeof d4_t424718);
-    for (i = 0; i < 256; i++) G32(0x42472C + 4*i) = d4_t42472C[i];
-    CP(0x424B2C, d4_t424B2C, sizeof d4_t424B2C);
-    CP(0x424B3C, d4_t424B3C, sizeof d4_t424B3C);
-    CP(0x424C3C, d4_t424C3C, sizeof d4_t424C3C);
-    CP(0x426C53, d4_t426C53, sizeof d4_t426C53);
-    CP(0x426957, d4_t426957, sizeof d4_t426957);
-    CP(0x42711F, d4_t42711F, sizeof d4_t42711F);
-    CP(0x427179, d4_t427179, sizeof d4_t427179);
-    CP(0x42738D, d4_t42738D, sizeof d4_t42738D);
-    for (i = 0; i < 16; i++) G32(0x42748D + 4*i) = d4_t42748D[i];
-    for (i = 0; i < 16; i++) G32(0x4274CD + 4*i) = d4_t4274CD[i];
-    for (i = 0; i < 16; i++) G32(0x42750D + 4*i) = d4_t42750D[i];
-    for (i = 0; i < 16; i++) G32(0x42754D + 4*i) = d4_t42754D[i];
-    for (i = 0; i < 16; i++) G32(0x42758D + 4*i) = d4_t42758D[i];
-    for (i = 0; i < 16; i++) G32(0x4275CD + 4*i) = d4_t4275CD[i];
-    for (i = 0; i < 8; i++) G32(0x42760D + 4*i) = d4_t42760D[i];
-    for (i = 0; i < 8; i++) G32(0x42762D + 4*i) = d4_t42762D[i];
-    for (i = 0; i < 33; i++) G32(0x42764D + 4*i) = d4_t42764D[i];
-    for (i = 0; i < 16384U; i++) G16(0x429ED4 + 2*i) = d4_t429ED4[i];
-    for (i = 0; i < 100U; i++) G32(0x426AC3 + 4*i) = 0x426957U + d4_sdicoff[i];
-    CP(0x40CDA1, d4_t40CDA1, sizeof d4_t40CDA1);
-    CP(0x40CDAD, d4_t40CDAD, sizeof d4_t40CDAD);
-    G8(0x431ED4) = 1;
+    CP(D4A_PPM_PATTERN, d4_t422BA0, sizeof d4_t422BA0);
+    CP(D4A_CLS_TREE_SRC, d4_t42372C, sizeof d4_t42372C);
+    CP(D4A_CLS_CHILD, d4_t4239BB, sizeof d4_t4239BB);
+    for (i = 0; i < 5; i++) G32(D4A_CNT_OFF_5 + 4*i) = d4_t4236D4[i];
+    for (i = 0; i < 17; i++) G32(D4A_CNT_OFF_17 + 4*i) = d4_t4236E8[i];
+    for (i = 0; i < 8; i++) G32(D4A_CNT_OFF_8 + 4*i) = d4_t4239D0[i];
+    for (i = 0; i < 256; i++) G32(D4A_BUCKET_LUT + 4*i) = d4_t4239F0[i];
+    for (i = 0; i < 288; i++) G32(D4A_BUCKET_LUT2 + 4*i) = d4_t423DF0[i];
+    CP(D4A_LEN_LUT_A, d4_t424270, sizeof d4_t424270);
+    CP(D4A_LEN_LUT_B, d4_t424280, sizeof d4_t424280);
+    CP(D4A_LEN_LUT_C, d4_t424290, sizeof d4_t424290);
+    CP(D4A_FREQ_THRESH1, d4_t4244A0, sizeof d4_t4244A0);
+    CP(D4A_FREQ_THRESH2, d4_t4245A0, sizeof d4_t4245A0);
+    for (i = 0; i < 10; i++) G32(D4A_TRI2_RANGE + 4*i) = d4_t4246A0[i];
+    for (i = 0; i < 20; i++) G32(D4A_TRI2_TOTAL + 4*i) = d4_t4246C8[i];
+    for (i = 0; i < 6; i++) G32(D4A_MASK_LUT + 4*i) = d4_t424D3C[i];
+    for (i = 0; i < 512; i++) G32(D4A_SEL_HIST + 4*i) = d4_t424D54[i];
+    for (i = 0; i < 256; i++) G32(D4A_BYTE_CURVE_0 + 4*i) = d4_t425554[i];
+    for (i = 0; i < 256; i++) G32(D4A_BYTE_CURVE_4 + 4*i) = d4_t426554[i];
+    for (i = 0; i < 256; i++) G32(D4A_BYTE_CURVE_1 + 4*i) = d4_t425954[i];
+    for (i = 0; i < 256; i++) G32(D4A_BYTE_CURVE_2 + 4*i) = d4_t425D54[i];
+    for (i = 0; i < 256; i++) G32(D4A_BYTE_CURVE_3 + 4*i) = d4_t426154[i];
+    CP(D4A_TRI2_IDX, d4_t424718, sizeof d4_t424718);
+    for (i = 0; i < 256; i++) G32(D4A_SEL_LUT + 4*i) = d4_t42472C[i];
+    CP(D4A_DELTA_LUT, d4_t424B2C, sizeof d4_t424B2C);
+    CP(D4A_DELTA_LUT2, d4_t424B3C, sizeof d4_t424B3C);
+    CP(D4A_DELTA_LUT3, d4_t424C3C, sizeof d4_t424C3C);
+    CP(D4A_SDI_LEN, d4_t426C53, sizeof d4_t426C53);
+    CP(D4A_SDI_TAB, d4_t426957, sizeof d4_t426957);
+    CP(D4A_DECODE_MAP, d4_t42711F, sizeof d4_t42711F);
+    CP(D4A_PENDING_TAB, d4_t427179, sizeof d4_t427179);
+    CP(D4A_HASH_ENABLE, d4_t42738D, sizeof d4_t42738D);
+    for (i = 0; i < 16; i++) G32(D4A_TBL_42748D + 4*i) = d4_t42748D[i];
+    for (i = 0; i < 16; i++) G32(D4A_TBL_4274CD + 4*i) = d4_t4274CD[i];
+    for (i = 0; i < 16; i++) G32(D4A_TBL_42750D + 4*i) = d4_t42750D[i];
+    for (i = 0; i < 16; i++) G32(D4A_TBL_42754D + 4*i) = d4_t42754D[i];
+    for (i = 0; i < 16; i++) G32(D4A_TBL_42758D + 4*i) = d4_t42758D[i];
+    for (i = 0; i < 16; i++) G32(D4A_TBL_4275CD + 4*i) = d4_t4275CD[i];
+    for (i = 0; i < 8; i++) G32(D4A_TBL_42760D + 4*i) = d4_t42760D[i];
+    for (i = 0; i < 8; i++) G32(D4A_TBL_42762D + 4*i) = d4_t42762D[i];
+    for (i = 0; i < 33; i++) G32(D4A_TBL_42764D + 4*i) = d4_t42764D[i];
+    for (i = 0; i < 16384U; i++) G16(D4A_COST_LUT + 2*i) = d4_t429ED4[i];
+    for (i = 0; i < 100U; i++) G32(D4A_SDI_PTR + 4*i) = D4A_SDI_TAB + d4_sdicoff[i];
+    CP(D4A_MASK13_SRC, d4_t40CDA1, sizeof d4_t40CDA1);
+    CP(D4A_MASK9_SRC, d4_t40CDAD, sizeof d4_t40CDAD);
+    G8(D4A_COST_DIRTY) = 1;
     d4_419AC0(c);
     d4_419AC0(c);   /* second call no-ops (flag cleared); keeps parity */
 #ifdef D4TABDBG
     for (i = 0; i < 16384U; i++) {
-      unsigned a = (unsigned)G16(0x429ED4 + 2*i);
+      unsigned a = (unsigned)G16(D4A_COST_LUT + 2*i);
       if (a >= 6000 && a <= 6040)
         fprintf(stderr, "TAB429 idx=%u val=%u\n", i, a);
     }
@@ -2482,13 +2483,13 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
 {
     unsigned dict, i;
     if (!(a2 >= 24 && a2 <= 39)) return 1;
-    G8(0x426954) = 1;
-    G8(0x45E387) = (unsigned char)a1;
+    G8(D4A_INIT_FLAG) = 1;
+    G8(D4A_FLAG_45E387) = (unsigned char)a1;
     dict = 1U << (((a2 - 24) % 16) + 10);
-    G32(0x45D10C) = dict;
-    G32(0x45D110) = 0;
-    G32(0x45D118) = dict - 1;
-    G32(0x45D140) = 0;
+    G32(D4A_DICT_SIZE) = dict;
+    G32(D4A_DICT_POS) = 0;
+    G32(D4A_DICT_MASK) = dict - 1;
+    G32(D4A_TBL_45D140) = 0;
     c->p_dict = A_DICTB;
     c->p_680 = A_680;
     c->p_684 = A_684;
@@ -2504,14 +2505,14 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     c->p_6cc = A_6CC;
     c->p_6d0 = A_6D0;
     c->p_ade8 = A_ADE8;
-    M32(0x42369C)   = c->p_684 + 1310720;
-    M32(0x4236A0)   = c->p_684 + 1572864;
-    M32(0x4236A4)   = c->p_684 + 0x200000;
-    M32(0x4236A8)   = c->p_684 + 2621440;
-    M32(0x4236AC)   = c->p_684 + 2883584;
-    M32(0x4236B0)   = c->p_684 + 3145728;
-    M32(0x4236B8)   = c->p_684 + 5242880;
-    M32(0x4236B4)   = c->p_684 + 3407872;
+    M32(D4A_TBL_42369C)   = c->p_684 + 1310720;
+    M32(D4A_TBL_4236A0)   = c->p_684 + 1572864;
+    M32(D4A_TBL_4236A4)   = c->p_684 + 0x200000;
+    M32(D4A_TBL_4236A8)   = c->p_684 + 2621440;
+    M32(D4A_TBL_4236AC)   = c->p_684 + 2883584;
+    M32(D4A_TBL_4236B0)   = c->p_684 + 3145728;
+    M32(D4A_TBL_4236B8)   = c->p_684 + 5242880;
+    M32(D4A_TBL_4236B4)   = c->p_684 + 3407872;
     c->p_150   = c->p_698;
     c->p_154   = c->p_698 + 0x10000;
     c->p_158   = c->p_698 + 0x20000;
@@ -2524,74 +2525,74 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     memset(c->mem + c->p_690, 0, 0x40000);
     memset(c->mem + c->p_694, 0, 0x40000);
     memset(c->mem + c->p_698, 0, 0x40000);
-    memset(c->mem + 0x457964, 0, 0x400);
+    memset(c->mem + D4A_LAST_SEEN, 0, 0x400);
     memset(c->mem + c->p_6bc + 266752, 0, 0x1F000);
     memset(c->mem + c->p_6c0 + 266752, 0, 0x1F000);
     d4_416D40(c, 1, c->p_6c8 + 1042, 248);
-    d4_416D40(c, 32, 0x45D768, 769);
-    d4_416D40(c, 16, 0x45D166, 769);
-    d4_416D40(c, 10, 0x45DD5A, 8);
-    d4_416D40(c, 8, 0x45D738, 24);
-    G16(0x45D566) = 6;
+    d4_416D40(c, 32, D4A_TBL_45D768, 769);
+    d4_416D40(c, 16, D4A_TBL_45D166, 769);
+    d4_416D40(c, 10, D4A_TBL_45DD5A, 8);
+    d4_416D40(c, 8, D4A_TBL_45D738, 24);
+    G16(D4A_TBL_45D566) = 6;
     /* asm CDD1 0x40D1E0/0x40D1F6: bound is eax<=0xC04, i.e. indices
      * 1..769 (0xC04/4). A <=768 bound misses index 769 = AE38[768],
      * which then stays 0 instead of 0x4000; its later decay below 0
      * spuriously triggers E4FF(768) (gmud06x: first extra call at out
      * 742923, cascading to the dll fork at 743877). */
     for (i = 1; i <= 769; i++) {
-        G32(0x45BA38 + 4*i) = 1;
-        G32(0x45AE34 + 4*i) = 0x4000;
+        G32(D4A_TBL_45BA38 + 4*i) = 1;
+        G32(D4A_TBL_45AE34 + 4*i) = 0x4000;
     }
     for (i = 1; i <= 769; i++) {
-        G8(0x45E085 + i) = 0xFF;
-        G8(0x45DD84 + i) = 0;
+        G8(D4A_TBL_45E085 + i) = 0xFF;
+        G8(D4A_TBL_45DD84 + i) = 0;
     }
     d4_40DBC5(c);
-    G32(0x45D13C) = 0xFFFFFFFFU;
-    G32(0x45D124) = 0xFFFFFFFFU;
-    G32(0x45D130) = 0xFFFFFFFFU;
-    G32(0x45D134) = 0;
-    G32(0x45D114) = 0;
-    G32(0x45D11C) = 0;
+    G32(D4A_NEXT_BLK) = 0xFFFFFFFFU;
+    G32(D4A_TBL_45D124) = 0xFFFFFFFFU;
+    G32(D4A_TBL_45D130) = 0xFFFFFFFFU;
+    G32(D4A_TBL_45D134) = 0;
+    G32(D4A_TBL_45D114) = 0;
+    G32(D4A_TBL_45D11C) = 0;
     c->p_prog = 0;
-    G32(0x45D12C) = 0;
-    G32(0x45D144) = 0;
-    G32(0x45D138) = 1;
-    G32(0x45D120) = 1;
-    G32(0x45D104) = 1;
-    G32(0x45D0F8) = 0;
-    G32(0x45D0FC) = 0;
-    G32(0x45D100) = 0;
-    G32(0x45D108) = 0;
-    G8(0x45E3A2) = 0;
-    G8(0x45E392) = 0;
-    G8(0x45E39B) = 0;
-    G32(0x45AE1C) = 0;
-    G32(0x45AE30) = 0;
-    G32(0x45AE2C) = 0;
-    G8(0x45E38D) = 0; G8(0x45E391) = 0; G8(0x45E38E) = 0;
-    G8(0x45E390) = 0; G8(0x45E38B) = 0; G8(0x45E38C) = 0;
-    G8(0x45E38F) = 0; G8(0x45E389) = 0; G8(0x45E38A) = 0;
-    G32(0x45D160) = 0;
-    G16(0x45D164) = 0;
-    for (i = 0; i < 7; i++) G32(0x44316C + 4*i) = 0;
-    G32(0x45AE18) = 0;
-    G8(0x45E388) = 0;
-    G32(0x45AE14) = 0;
-    G32(0x45ADE4) = 0;
-    G16(0x45DD6A) = 0;
-    G16(0x45DD6C) = 0;
-    G32(0x45D128) = 0;
-    G8(0x45E3A0) = 0;
-    G32(0x45AE28) = G32(0x434514);
+    G32(D4A_BLK_END) = 0;
+    G32(D4A_TBL_45D144) = 0;
+    G32(D4A_FREQ_B) = 1;
+    G32(D4A_FREQ_C) = 1;
+    G32(D4A_FREQ_A) = 1;
+    G32(D4A_CTX_W0) = 0;
+    G32(D4A_CTX_W1) = 0;
+    G32(D4A_CTX_W2) = 0;
+    G32(D4A_TBL_45D108) = 0;
+    G8(D4A_FLAG_45E3A2) = 0;
+    G8(D4A_PHASE) = 0;
+    G8(D4A_ESCAPE_FLAG) = 0;
+    G32(D4A_OUT_COUNT) = 0;
+    G32(D4A_TBL_45AE30) = 0;
+    G32(D4A_MOD_CNT) = 0;
+    G8(D4A_FLAG_45E38D) = 0; G8(D4A_FLAG_45E391) = 0; G8(D4A_PRED_FLAG) = 0;
+    G8(D4A_MODEL_ID) = 0; G8(D4A_FLAG_45E38B) = 0; G8(D4A_FLAG_45E38C) = 0;
+    G8(D4A_FLAG_45E38F) = 0; G8(D4A_FLAG_45E389) = 0; G8(D4A_FLAG_45E38A) = 0;
+    G32(D4A_TBL_45D160) = 0;
+    G16(D4A_TBL_45D164) = 0;
+    for (i = 0; i < 7; i++) G32(D4A_TBL_44316C + 4*i) = 0;
+    G32(D4A_TBL_45AE18) = 0;
+    G8(D4A_FLAG_45E388) = 0;
+    G32(D4A_TBL_45AE14) = 0;
+    G32(D4A_TBL_45ADE4) = 0;
+    G16(D4A_TBL_45DD6A) = 0;
+    G16(D4A_TBL_45DD6C) = 0;
+    G32(D4A_FILE_TAB_PTR) = 0;
+    G8(D4A_FLAG_45E3A0) = 0;
+    G32(D4A_TBL_45AE28) = G32(D4A_OUT_TOTAL);
     /* asm 0x40D3DF..0x40D40E: TWO loops - eax=-2048..-1 stores -eax at
      * [eax&0xFFF] (upper half 2048..1), then eax=0..2047 stores eax at
      * [eax] (low half identity). */
     for (i = 0; i < 2048U; i++) {
-        G32(0x43972C + 4*i) = i;
-        G32(0x43972C + 4*(i + 2048U)) = 2048U - i;
+        G32(D4A_PERM_TAB + 4*i) = i;
+        G32(D4A_PERM_TAB + 4*(i + 2048U)) = 2048U - i;
     }
-    G8(0x45E395) = (G32(0x45D124) != 0) ? 0 : 10;
+    G8(D4A_FLAG_45E395) = (G32(D4A_TBL_45D124) != 0) ? 0 : 10;
     return 0;
 }
 
@@ -2615,8 +2616,8 @@ static int d4_40D58D(dec4_ctx *c)
   v1 = 0;
   while ( 1 )
   {
-    result = 0x20000 >> G8(0x45E392);
-    if ( v0 >= 0x20000 >> G8(0x45E392) )
+    result = 0x20000 >> G8(D4A_PHASE);
+    if ( v0 >= 0x20000 >> G8(D4A_PHASE) )
       break;
     v3 = v1 + c->p_684;
     if ( M8(v1 + c->p_684) )
@@ -2768,73 +2769,73 @@ static int d4_40D6D1(dec4_ctx *c)
   int v47;
   unsigned char savedregs[256];
 
-  v45 = G32(0x45D138);
-  v0 = G32(0x45D110);
-  v42 = G32(0x45D120);
+  v45 = G32(D4A_FREQ_B);
+  v0 = G32(D4A_DICT_POS);
+  v42 = G32(D4A_FREQ_C);
   v1 = c->p_dict;
-  v46 = G32(0x45D104);
+  v46 = G32(D4A_FREQ_A);
   v2 = 0;
   do
   {
     savedregs[v2] = M8(v1 + v0);
-    v0 = G32(0x45D118) & (v0 + 1);
+    v0 = G32(D4A_DICT_MASK) & (v0 + 1);
     ++v2;
   }
   while ( v2 < 0x100 );
-  v3 = (unsigned int)(G32(0x45D10C) - 320) >> 1;
-  v4 = G32(0x45D118) & (G32(0x45D110) + 320);
-  v5 = G32(0x45D118) & (v4 + v3);
-  if ( v3 > G32(0x45AE1C) )
+  v3 = (unsigned int)(G32(D4A_DICT_SIZE) - 320) >> 1;
+  v4 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) + 320);
+  v5 = G32(D4A_DICT_MASK) & (v4 + v3);
+  if ( v3 > G32(D4A_OUT_COUNT) )
     v5 = 0;
-  G8(0x45E39B) = 0;
-  v44 = G32(0x45D118) & (G32(0x45D110) + 320);
-  while ( v5 != G32(0x45D110) )
+  G8(D4A_ESCAPE_FLAG) = 0;
+  v44 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) + 320);
+  while ( v5 != G32(D4A_DICT_POS) )
   {
     v6 = (c->p_dict + v4);
     v7 = ~M8(c->p_dict + v5);
-    v8 = (v4 + 1) & G32(0x45D118);
-    if ( G8(0x45E39B) == 1 )
+    v8 = (v4 + 1) & G32(D4A_DICT_MASK);
+    if ( G8(D4A_ESCAPE_FLAG) == 1 )
     {
       /* asm 0x40D793: movzx ebx,bl - same unsigned-index fix as 40FFFD. */
-      v9 = ~*(&M8(0x427179 + (11 * ((unsigned char)G8(0x45E39E) - 166))) + (unsigned char)v7);
-      G8(0x45E39B) = 0;
+      v9 = ~*(&M8(D4A_PENDING_TAB + (11 * ((unsigned char)G8(D4A_FLAG_45E39E) - 166))) + (unsigned char)v7);
+      G8(D4A_ESCAPE_FLAG) = 0;
 LABEL_23:
       M8(v6) = v9;
       v4 = v8;
       goto LABEL_24;
     }
-    if ( (unsigned char)v7 < 0x80u && !G8(0x45E39B) )
+    if ( (unsigned char)v7 < 0x80u && !G8(D4A_ESCAPE_FLAG) )
     {
       v9 = M8(c->p_dict + v5);
       goto LABEL_23;
     }
-    v10 = M8(0x42711F + ((unsigned char)v7));
-    v11 = G32(0x45D118) & (v4 + 1);
+    v10 = M8(D4A_DECODE_MAP + ((unsigned char)v7));
+    v11 = G32(D4A_DICT_MASK) & (v4 + 1);
     if ( (unsigned char)v10 >= 0xC8u )
     {
-      v16 = v7 - G8(0x45E39B);
-      G8(0x45E39B) = 0;
+      v16 = v7 - G8(D4A_ESCAPE_FLAG);
+      G8(D4A_ESCAPE_FLAG) = 0;
       M8(c->p_dict + v4) = ~v16;
       v4 = v11;
     }
     else if ( v10 == 100 )
     {
-      G8(0x45E39B) = 1;
-      G8(0x45E39E) = v7;
+      G8(D4A_ESCAPE_FLAG) = 1;
+      G8(D4A_FLAG_45E39E) = v7;
     }
     else if ( v10 == 99 )
     {
-      G8(0x45E39B) = 32;
+      G8(D4A_ESCAPE_FLAG) = 32;
     }
     else
     {
       v12 = (unsigned char)v10;
-      v13 = M32(0x426AC3 + (v12) * 4);
-      v14 = M8(0x426C53 + (v12));
-      if ( G8(0x45E39B) )
+      v13 = M32(D4A_SDI_PTR + (v12) * 4);
+      v14 = M8(D4A_SDI_LEN + (v12));
+      if ( G8(D4A_ESCAPE_FLAG) )
       {
         v15 = v13;
-        G8(0x45E39B) = 0;
+        G8(D4A_ESCAPE_FLAG) = 0;
         ++v13;
         M8(c->p_dict + v4) = M8(v15) + 32;
         v4 = v11;
@@ -2843,7 +2844,7 @@ LABEL_23:
       do
       {
         M8(c->p_dict + v4) = M8(v13);
-        v4 = G32(0x45D118) & (v4 + 1);
+        v4 = G32(D4A_DICT_MASK) & (v4 + 1);
         ++v13;
         if ( v5 == v4 )
           break;
@@ -2854,18 +2855,18 @@ LABEL_23:
 LABEL_24:
     if ( v5 == v4 )
       break;
-    v5 = G32(0x45D118) & (v5 + 1);
+    v5 = G32(D4A_DICT_MASK) & (v5 + 1);
   }
-  G8(0x45E39B) = 0;
-  v17 = G32(0x45D118) & (v4 + G32(0x45D140) - G32(0x45D110));
-  G32(0x45D110) = v4;
-  G32(0x45D140) = v17;
+  G8(D4A_ESCAPE_FLAG) = 0;
+  v17 = G32(D4A_DICT_MASK) & (v4 + G32(D4A_TBL_45D140) - G32(D4A_DICT_POS));
+  G32(D4A_DICT_POS) = v4;
+  G32(D4A_TBL_45D140) = v17;
   v18 = 0;
   do
   {
-    M32(0x446064 + (((unsigned char)v4) * 4)) = 1;
+    M32(D4A_TBL_446064 + (((unsigned char)v4) * 4)) = 1;
     M8(c->p_dict + v4) = savedregs[v18++];
-    v4 = G32(0x45D118) & (v4 + 1);
+    v4 = G32(D4A_DICT_MASK) & (v4 + 1);
   }
   while ( v18 < 0x100 );
   v19 = v44;
@@ -2873,13 +2874,13 @@ LABEL_24:
   do
   {
     v21 = c->p_dict;
-    v19 = G32(0x45D118) & (v19 - 1);
+    v19 = G32(D4A_DICT_MASK) & (v19 - 1);
     M8(c->p_dict + v19) = 0;
     --v20;
   }
   while ( v20 );
-  v22 = (v21 + (G32(0x45D10C)));
-  v23 = -(char)((unsigned char)v21 + G32(0x45D10C)) & 3;
+  v22 = (v21 + (G32(D4A_DICT_SIZE)));
+  v23 = -(char)((unsigned char)v21 + G32(D4A_DICT_SIZE)) & 3;
   v24 = 256 - v23;
   if ( v23 < 256 )
   {
@@ -2900,59 +2901,59 @@ LABEL_24:
   d4_4196E0(c, c->p_h2, -1, 0x200000u);
   d4_4196E0(c, c->p_690, 0, 0x40000u);
   d4_4196E0(c, c->p_694, 0, 0x40000u);
-  G32(0x45D0F8) = 0;
-  G32(0x45D0FC) = 0;
+  G32(D4A_CTX_W0) = 0;
+  G32(D4A_CTX_W1) = 0;
   v29 = v44;
-  G32(0x45D100) = 0;
-  G8(0x45E394) = 0;
-  G8(0x45E397) = 0;
-  if ( (G32(0x45D118) & (unsigned int)(G32(0x45D10C) + G32(0x45D110) - v44)) <= 0x8000 )
+  G32(D4A_CTX_W2) = 0;
+  G8(D4A_FLAG_45E394) = 0;
+  G8(D4A_FLAG_45E397) = 0;
+  if ( (G32(D4A_DICT_MASK) & (unsigned int)(G32(D4A_DICT_SIZE) + G32(D4A_DICT_POS) - v44)) <= 0x8000 )
     v30 = -1;
   else
-    v30 = G32(0x45D118) & (G32(0x45D110) - 0x8000);
+    v30 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - 0x8000);
   while ( 2 )
   {
-    if ( v29 != G32(0x45D110) )
+    if ( v29 != G32(D4A_DICT_POS) )
     {
-      v31 = c->p_h1 + 8 * ((G32(0x45D0F8) ^ ((unsigned int)G32(0x45D0F8) >> 13)) & 0x3FFFF);
+      v31 = c->p_h1 + 8 * ((G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x3FFFF);
       v32 = (c->p_h2
                      + 8
-                     * ((G32(0x45D100) ^ ((unsigned int)G32(0x45D100) >> 15) ^ 16
-                                                                           * (G32(0x45D0F8) ^ ((unsigned int)G32(0x45D0F8) >> 15)) ^ ((G32(0x45D0FC) ^ ((unsigned int)G32(0x45D0FC) >> 15)) << 6)) & 0x3FFFF)
+                     * ((G32(D4A_CTX_W2) ^ ((unsigned int)G32(D4A_CTX_W2) >> 15) ^ 16
+                                                                           * (G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 15)) ^ ((G32(D4A_CTX_W1) ^ ((unsigned int)G32(D4A_CTX_W1) >> 15)) << 6)) & 0x3FFFF)
                      + 4);
       /* asm 0x40DA63: ebx=[eax-4]; [eax]=ebx; [eax-4]=edx  (8-byte entries,
        * eax = htab2 + 8*h + 4, so the two slots are -4 apart) */
       M32(v32) = M32(v32 - 4);
       M32(v32 - 4) = v29;
-      v33 = G32(0x45D0F8);
+      v33 = G32(D4A_CTX_W0);
       M32(v31) = v29;
       M32(v31 + 4) = v33;
       if ( v29 == v30 )
       {
         v30 = -1;
 LABEL_39:
-        G32(0x45C6A4) = G32(0x45D0F8);
-        G32(0x45C694) = ((unsigned short)G32(0x45D0F8) ^ (unsigned short)((unsigned int)G32(0x45D0F8) >> 13)) & 0x7FFF;
-        v34 = 32 * (((unsigned short)G32(0x45D0F8) ^ (unsigned short)((unsigned int)G32(0x45D0F8) >> 13)) & 0x7FFF);
+        G32(D4A_CTX_COPY) = G32(D4A_CTX_W0);
+        G32(D4A_COL_IDX) = ((unsigned short)G32(D4A_CTX_W0) ^ (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x7FFF;
+        v34 = 32 * (((unsigned short)G32(D4A_CTX_W0) ^ (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x7FFF);
         while ( 1 )
         {
           v35 = v34 + c->p_680;
           if ( !M8(v34 + c->p_680) )
           {
-            G32(0x45C694) += 0x40000;   /* HIWORD += 4 */
+            G32(D4A_COL_IDX) += 0x40000;   /* HIWORD += 4 */
             goto LABEL_48;
           }
-          if ( M32(v35 + 28) == G32(0x45C6A4) )
+          if ( M32(v35 + 28) == G32(D4A_CTX_COPY) )
             break;
-          G32(0x45C694) += 0x8000;
+          G32(D4A_COL_IDX) += 0x8000;
           v34 += 0x100000;
-          if ( (unsigned int)G32(0x45C694) >= 0x40000 )
+          if ( (unsigned int)G32(D4A_COL_IDX) >= 0x40000 )
             goto LABEL_48;
         }
         v47 = M8(v35);
         v36 = v34 + c->p_680;
         v37 = v35 + 12;
-        G8(0x45E3A3) = -1;
+        G8(D4A_COL_SLOT) = -1;
         v38 = M8(v37 - 11);
         v43 = v37;
         do
@@ -2964,7 +2965,7 @@ LABEL_39:
           v38 = (v38 & ~0x000000FFU) | ((M8(v36 + 1)) & 0x000000FFU);
         }
         while ( (unsigned char)v38 );
-        G32(0x45C678) = v47;
+        G32(D4A_TBL_45C678) = v47;
 LABEL_48:
         d4_40ECC7(c, M8(v29 + c->p_dict));
       }
@@ -2972,23 +2973,23 @@ LABEL_48:
       {
         goto LABEL_39;
       }
-      G32(0x45D100) = ((unsigned int)G32(0x45D0FC) >> 24) + (G32(0x45D100) << 8);
-      G32(0x45D0FC) = ((unsigned int)G32(0x45D0F8) >> 24) + (G32(0x45D0FC) << 8);
+      G32(D4A_CTX_W2) = ((unsigned int)G32(D4A_CTX_W1) >> 24) + (G32(D4A_CTX_W2) << 8);
+      G32(D4A_CTX_W1) = ((unsigned int)G32(D4A_CTX_W0) >> 24) + (G32(D4A_CTX_W1) << 8);
       v39 = M8(v29 + c->p_dict);
-      v29 = G32(0x45D118) & (v29 + 1);
-      G32(0x45D0F8) = v39 + (G32(0x45D0F8) << 8);
+      v29 = G32(D4A_DICT_MASK) & (v29 + 1);
+      G32(D4A_CTX_W0) = v39 + (G32(D4A_CTX_W0) << 8);
       continue;
     }
     break;
   }
-  G32(0x45D138) = v45;
-  G32(0x45D120) = v42;
-  G32(0x45D104) = v46;
+  G32(D4A_FREQ_B) = v45;
+  G32(D4A_FREQ_C) = v42;
+  G32(D4A_FREQ_A) = v46;
   d4_40DBC5(c);
-  G32(0x45D13C) = -1;
-  result = G32(0x434528);
-  G8(0x45E392) = 1;
-  G32(0x45D12C) = G32(0x434528);
+  G32(D4A_NEXT_BLK) = -1;
+  result = G32(D4A_OUT_POS);
+  G8(D4A_PHASE) = 1;
+  G32(D4A_BLK_END) = G32(D4A_OUT_POS);
   return result;
 }
 
@@ -3039,14 +3040,14 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
     for (v4 = 0, v5 = v0 * 64; v4 < 16; v4++)
     {
       v5 += 4;
-      v6 = ((8 * (v0 >= 0x10) + M32(0x42758D + ((v4) * 4)) + (v0 & 4)) << 7) & 0x3FFFFFF;
-      M32((0x457D60) + v5) = v6;
-      M32((0x452860) + v5) = v6;
+      v6 = ((8 * (v0 >= 0x10) + M32(D4A_TBL_42758D + ((v4) * 4)) + (v0 & 4)) << 7) & 0x3FFFFFF;
+      M32((D4A_TBL_457D60) + v5) = v6;
+      M32((D4A_TBL_452860) + v5) = v6;
     }
     ++v2;
-    v3 = M32(0x42764D + ((v2) * 4));
-    M32(0x4578E0 + ((v2) * 4)) = 4096;
-    M32(0x453460 + ((v2) * 4)) = v3 << 7;
+    v3 = M32(D4A_TBL_42764D + ((v2) * 4));
+    M32(D4A_TBL_4578E0 + ((v2) * 4)) = 4096;
+    M32(D4A_TBL_453460 + ((v2) * 4)) = v3 << 7;
   }
   v7 = 0;
   v29 = 0;
@@ -3060,17 +3061,17 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
       v25 = v8;
       v11 = 4 * (v7 >= 0x40);
       if ( v7 < 0x10 )
-        M32(0x453064 + ((v8) * 4)) = ((v23 + M32(0x4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
+        M32(D4A_TBL_453064 + ((v8) * 4)) = ((v23 + M32(D4A_TBL_4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
       if ( v7 < 0x20 )
-        M32(0x45A564 + ((v8) * 4)) = ((4 * (v7 >= 0x10) + M32(0x4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
+        M32(D4A_TBL_45A564 + ((v8) * 4)) = ((4 * (v7 >= 0x10) + M32(D4A_TBL_4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
       if ( v7 < 0x10 )
-        M32(0x4554E4 + ((v8) * 4)) = ((v23 + M32(0x4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
-      M32(0x4558E4 + ((v8) * 4)) = ((v11 + M32(0x4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
-      M32(0x4534E4 + ((v8) * 4)) = ((v11 + M32(0x4275CD + ((v9) * 4)) + (v7 >= 0x10)) << 7) & 0x3FFFFFF;
-      v10 = M32(0x4275CD + ((v9) * 4)) + (v7 >= 0x10);
+        M32(D4A_TBL_4554E4 + ((v8) * 4)) = ((v23 + M32(D4A_TBL_4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
+      M32(D4A_TBL_4558E4 + ((v8) * 4)) = ((v11 + M32(D4A_TBL_4275CD + ((v9) * 4))) << 7) & 0x3FFFFFF;
+      M32(D4A_TBL_4534E4 + ((v8) * 4)) = ((v11 + M32(D4A_TBL_4275CD + ((v9) * 4)) + (v7 >= 0x10)) << 7) & 0x3FFFFFF;
+      v10 = M32(D4A_TBL_4275CD + ((v9) * 4)) + (v7 >= 0x10);
       ++v8;
       ++v9;
-      M32(0x458564 + ((v25) * 4)) = ((v10 + v11) << 7) & 0x3FFFFFF;
+      M32(D4A_TBL_458564 + ((v25) * 4)) = ((v10 + v11) << 7) & 0x3FFFFFF;
     }
     while ( v9 != 16 );
     ++v7;
@@ -3096,11 +3097,11 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
       do
       {
         v15 = v32 + 4 * v33;
-        M32((0x450464) + v15) = 4096;
+        M32((D4A_TBL_450464) + v15) = 4096;
         if ( result > v13 )
-          M32((0x450464) + v15) -= M32((0x42760D) + v28);
+          M32((D4A_TBL_450464) + v15) -= M32((D4A_TBL_42760D) + v28);
         if ( v13 > result )
-          M32((0x450464) + v14) += M32((0x42760D) + v30);
+          M32((D4A_TBL_450464) + v14) += M32((D4A_TBL_42760D) + v30);
         ++v33;
         v14 += 4;
       }
@@ -3117,8 +3118,8 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
     do
     {
       v16 += 4;
-      v18 = (M32(0x42762D + ((result + (v17++ & 1)) * 4)) << 7) & 0x3FFFFFF;
-      M32((0x452460) + v16) = v18;
+      v18 = (M32(D4A_TBL_42762D + ((result + (v17++ & 1)) * 4)) << 7) & 0x3FFFFFF;
+      M32((D4A_TBL_452460) + v16) = v18;
     }
     while ( v17 < 0x20 );
     v19 = v27;
@@ -3126,15 +3127,15 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
     do
     {
       v19 += 4;
-      v21 = (M32(0x42762D + ((result + (v20++ & 1)) * 4)) << 7) & 0x3FFFFFF;
-      M32((0x448460) + v19) = v21;
+      v21 = (M32(D4A_TBL_42762D + ((result + (v20++ & 1)) * 4)) << 7) & 0x3FFFFFF;
+      M32((D4A_TBL_448460) + v19) = v21;
     }
     while ( v20 < 0x400 );
     v22 = result << 10;
     do
     {
       v22 += 4;
-      M32((0x446460) + v22) = 2048;
+      M32((D4A_TBL_446460) + v22) = 2048;
     }
     while ( v22 != v24 );
     v34 += 4;
@@ -3196,54 +3197,54 @@ static int d4_40DEB6(dec4_ctx *c)
   int v43;
   int v44;
 
-  D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(0x434528), G32(0x45D12C), G32(0x45D13C), c->p_prog, G32(0x45D144), G8(0x45E392));
+  D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(D4A_OUT_POS), G32(D4A_BLK_END), G32(D4A_NEXT_BLK), c->p_prog, G32(D4A_TBL_45D144), G8(D4A_PHASE));
 #ifdef D4DEB6DBG
   fprintf(stderr, "DEB6B out=%u dac1=%u c14=%u\n",
-      G32(0x434528), M32(0x445DAC + 4), M32(0x4455A4 + 4));
+      G32(D4A_OUT_POS), M32(D4A_TBL_445DAC + 4), M32(D4A_TBL_4455A4 + 4));
 #endif
 
-  v0 = (unsigned char)G8(0x45E392);
+  v0 = (unsigned char)G8(D4A_PHASE);
   v1 = 0;
   do
   {
     ++v1;
-    M32(0x45BA38 + ((v1) * 4)) = v0;
+    M32(D4A_TBL_45BA38 + ((v1) * 4)) = v0;
   }
   while ( v1 != 521 );
   v2 = 0;
   do
   {
     ++v2;
-    M32(0x45AE34 + ((v2) * 4)) = 0x4000;
+    M32(D4A_TBL_45AE34 + ((v2) * 4)) = 0x4000;
   }
   while ( v2 != 521 );
   v3 = 0;
   do
-    M8(0x45E085 + (++v3)) = -1;
+    M8(D4A_TBL_45E085 + (++v3)) = -1;
   while ( v3 < 0x209 );
   v4 = 0;
   do
-    M8(0x45DD84 + (++v4)) = 0;
+    M8(D4A_TBL_45DD84 + (++v4)) = 0;
   while ( v4 < 0x209 );
-  if ( G8(0x45E392) )
+  if ( G8(D4A_PHASE) )
   {
-    d4_4196E0(c, 0x45AD64, 1, 0x80u);
-    d4_4196E0(c, M32(0x42369C), 0, 0x400000u);
+    d4_4196E0(c, D4A_TBL_45AD64, 1, 0x80u);
+    d4_4196E0(c, M32(D4A_TBL_42369C), 0, 0x400000u);
   }
   d4_4196E0(c, c->p_6bc, 0, 0x41200u);
   d4_4196E0(c, c->p_6c0, 0, 0x41200u);
   v5 = 393728;
   do
   {
-    v6 = (0x422BA0);
+    v6 = (D4A_PPM_PATTERN);
     v7 = (v5 + c->p_6bc);
     v5 += 512;
     v8 = -(char)v7 & 3;
     v9 = 512 - v8;
     if ( v8 < 512 )
     {
-      memcpy(c->mem + (v7), c->mem + ((0x422BA0)), v8);
-      v11 = (0x422BA0) + v8;
+      memcpy(c->mem + (v7), c->mem + ((D4A_PPM_PATTERN)), v8);
+      v11 = (D4A_PPM_PATTERN) + v8;
       v10 = (v7 + (v8));
       v9 = -(char)v8 & 3;
       v12 = (unsigned int)(512 - v8) >> 2;
@@ -3266,7 +3267,7 @@ static int d4_40DEB6(dec4_ctx *c)
   d4_416D40(c, 1, c->p_6c8, 521);
   /* Hex-Rays lost the source of v16 in the 656-byte copy below (the
    * original is just memcpy(unk_445DB4, dword_42372C, 656)). */
-  memcpy(c->mem + 0x445DB4, c->mem + 0x42372C, 656);
+  memcpy(c->mem + D4A_TBL_445DB4, c->mem + D4A_CLS_TREE_SRC, 656);
   v24 = 521;
   do
   {
@@ -3275,71 +3276,71 @@ static int d4_40DEB6(dec4_ctx *c)
   }
   while ( v24 < 0x301 );
   d4_40D58D(c);
-  G32(0x45C6B0) = 0;
-  G32(0x45C6AC) = 0;
-  G32(0x45C6A0) = 0;
-  G32(0x45C6B4) = 511;
-  c->p_68c = 0x45CCD4;
-  d4_4196E0(c, 0x45CCD4, 0, 0x424u);
-  c->p_688 = 0x45C6B8;
-  d4_4196E0(c, 0x45C6B8, 0, 0x61Cu);
-  d4_4196E0(c, 0x444DA4, 0, 0x400u);
-  d4_4196E0(c, 0x4455AC, (int)0x80000000u, 0x400u);
-  d4_4196E0(c, 0x4445A4, 0, 0x400u);
-  G32(0x45C66C) = 0;
-  G32(0x45C674) = 1;
-  G32(0x45C64C) = 1;
-  G32(0x45C670) = 0;
+  G32(D4A_TBL_45C6B0) = 0;
+  G32(D4A_TBL_45C6AC) = 0;
+  G32(D4A_TBL_45C6A0) = 0;
+  G32(D4A_TBL_45C6B4) = 511;
+  c->p_68c = D4A_TBL_45CCD4;
+  d4_4196E0(c, D4A_TBL_45CCD4, 0, 0x424u);
+  c->p_688 = D4A_TBL_45C6B8;
+  d4_4196E0(c, D4A_TBL_45C6B8, 0, 0x61Cu);
+  d4_4196E0(c, D4A_TBL_444DA4, 0, 0x400u);
+  d4_4196E0(c, D4A_TBL_4455AC, (int)0x80000000u, 0x400u);
+  d4_4196E0(c, D4A_TBL_4445A4, 0, 0x400u);
+  G32(D4A_TBL_45C66C) = 0;
+  G32(D4A_BEST_OFF) = 1;
+  G32(D4A_BEST_CNT) = 1;
+  G32(D4A_TBL_45C670) = 0;
   v25 = 0;
   do
   {
     ++v25;
-    M32(0x4451A0 + ((v25) * 4)) = 37440;
+    M32(D4A_TBL_4451A0 + ((v25) * 4)) = 37440;
   }
   while ( v25 != 256 );
-  G32(0x45C650) = 255;
-  G32(0x45C644) = 9547200;
-  M32(0x4455A4 + ((0) * 4)) = 0;
-  G32(0x4455A8) = 0;
-  M32(0x445DAC + ((0) * 4)) = 0;
-  G32(0x445DB0) = 0;
-  G32(0x45C640) = 0;
-  G32(0x45C654) = 0;
+  G32(D4A_TBL_45C650) = 255;
+  G32(D4A_TBL_45C644) = 9547200;
+  M32(D4A_TBL_4455A4 + ((0) * 4)) = 0;
+  G32(D4A_TBL_4455A8) = 0;
+  M32(D4A_TBL_445DAC + ((0) * 4)) = 0;
+  G32(D4A_TBL_445DB0) = 0;
+  G32(D4A_COST_ACCUM) = 0;
+  G32(D4A_COST_GATE) = 0;
   if ( c->p_prog )
   {
-    G32(0x45D12C) += 0x40000 >> 2 * G8(0x45E392);
-    if ( (unsigned int)G32(0x45D12C) > G32(0x434514) )
-      G32(0x45D12C) = G32(0x434514);
-    v26 = 4 * G32(0x45D144);
+    G32(D4A_BLK_END) += 0x40000 >> 2 * G8(D4A_PHASE);
+    if ( (unsigned int)G32(D4A_BLK_END) > G32(D4A_OUT_TOTAL) )
+      G32(D4A_BLK_END) = G32(D4A_OUT_TOTAL);
+    v26 = 4 * G32(D4A_TBL_45D144);
     do
     {
-      if ( M32(c->p_prog + v26) >= (unsigned int)G32(0x45D12C) )
+      if ( M32(c->p_prog + v26) >= (unsigned int)G32(D4A_BLK_END) )
         break;
       v26 += 4;
       v27 = M32(c->p_prog + v26);
-      ++G32(0x45D144);
-      if ( v27 >= G32(0x45D13C) )
+      ++G32(D4A_TBL_45D144);
+      if ( v27 >= G32(D4A_NEXT_BLK) )
         break;
     }
-    while ( v27 < G32(0x45D124) );
-    v28 = M32(c->p_prog + 4 * G32(0x45D144));
+    while ( v27 < G32(D4A_TBL_45D124) );
+    v28 = M32(c->p_prog + 4 * G32(D4A_TBL_45D144));
   }
   else
   {
-    v28 = G32(0x434514);
+    v28 = G32(D4A_OUT_TOTAL);
   }
-  G32(0x45D12C) = v28;
-  if ( G32(0x45D144) )
+  G32(D4A_BLK_END) = v28;
+  if ( G32(D4A_TBL_45D144) )
   {
-    v29 = c->p_prog + 4 * G32(0x45D144);
+    v29 = c->p_prog + 4 * G32(D4A_TBL_45D144);
     v30 = M32(v29 - 4);
-    v31 = G32(0x45D12C) - v30;
-    if ( (unsigned int)G32(0x45D144) > 1 )
+    v31 = G32(D4A_BLK_END) - v30;
+    if ( (unsigned int)G32(D4A_TBL_45D144) > 1 )
       v30 -= M32(v29 - 8);
-    if ( G8(0x45E387) == 1 )
-      v32 = G32(0x45D108);
+    if ( G8(D4A_FLAG_45E387) == 1 )
+      v32 = G32(D4A_TBL_45D108);
     else
-      v32 = G32(0x434528);
+      v32 = G32(D4A_OUT_POS);
     if ( v30 == 586960 && v31 == 2988578 )
     {
       d4_40D604(c);
@@ -3354,48 +3355,48 @@ static int d4_40DEB6(dec4_ctx *c)
     }
     if ( v30 == 3706306 && v31 == 1498414
       || v30 == 513216 && v31 == 246814
-      || v30 != 1029744 && v31 == 1029744 && v32 >= G32(0x45D124) )
+      || v30 != 1029744 && v31 == 1029744 && v32 >= G32(D4A_TBL_45D124) )
     {
       d4_4196E0(c, c->p_680, 0, 0x100000u);
       d4_4196E0(c, c->p_684, 0, 0x140000u);
-      if ( v32 >= G32(0x45D124) )
-        G8(0x45E395) = 10;
+      if ( v32 >= G32(D4A_TBL_45D124) )
+        G8(D4A_FLAG_45E395) = 10;
     }
   }
-  G32(0x45C67C) = 10;
-  v33 = G32(0x4749DC) / 0xAu;
-  G32(0x4749DC) = v33;
-  v34 = (unsigned)d4_div(G32(0x4749D8), v33);
+  G32(D4A_TRI_TOTAL) = 10;
+  v33 = G32(D4A_RC_RANGE) / 0xAu;
+  G32(D4A_RC_RANGE) = v33;
+  v34 = (unsigned)d4_div(G32(D4A_RC_CODE), v33);
   v35 = v34;
   v36 = (unsigned char)v34;
-  G32(0x45C680) = (unsigned char)v34;
-  G32(0x45C684) = (unsigned char)v34 + 1;
-  v37 = M32(0x45C67C + (1) * 4);
-  v38 = M32(0x45C67C + (2) * 4) - v37;
-  result = G32(0x4749DC) * v37;
-  v40 = G32(0x4749DC) * v38;
-  i = (unsigned long)(G32(0x4749D8) - result);
+  G32(D4A_TRI_LOW) = (unsigned char)v34;
+  G32(D4A_TRI_HIGH) = (unsigned char)v34 + 1;
+  v37 = M32(D4A_TRI_TOTAL + (1) * 4);
+  v38 = M32(D4A_TRI_TOTAL + (2) * 4) - v37;
+  result = G32(D4A_RC_RANGE) * v37;
+  v40 = G32(D4A_RC_RANGE) * v38;
+  i = (unsigned long)(G32(D4A_RC_CODE) - result);
   while (v40 && v40 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v40 = (v40 << 8) & 0xFFFFFFFFU;
   }
-  G32(0x4749D8) = (int)i;
-  G32(0x4749DC) = v40;
-  if ( v35 != G8(0x45E390) )
+  G32(D4A_RC_CODE) = (int)i;
+  G32(D4A_RC_RANGE) = v40;
+  if ( v35 != G8(D4A_MODEL_ID) )
   {
-    G8(0x45E390) = v35;
-    result = M32(0x4246C8 + ((v36) * 4));
-    v44 = M32(0x4246A0 + ((v36) * 4));
-    G32(0x45AE20) = M32(0x4246C8 + ((v36) * 4));
-    result = (result & ~0x000000FFU) | ((M8(0x424718 + (v36))) & 0x000000FFU);
-    G32(0x45AE24) = v44;
-    G8(0x45E38C) = result;
+    G8(D4A_MODEL_ID) = v35;
+    result = M32(D4A_TRI2_TOTAL + ((v36) * 4));
+    v44 = M32(D4A_TRI2_RANGE + ((v36) * 4));
+    G32(D4A_TRI2_TOTAL_NEXT) = M32(D4A_TRI2_TOTAL + ((v36) * 4));
+    result = (result & ~0x000000FFU) | ((M8(D4A_TRI2_IDX + (v36))) & 0x000000FFU);
+    G32(D4A_TRI2_RANGE_NEXT) = v44;
+    G8(D4A_FLAG_45E38C) = result;
     result = (result & ~0x000000FFU) | ((v35 == 5 || v35 == 6) & 0x000000FFU);
-    G8(0x45E38E) = 0;
-    G8(0x45E38B) = 0;
-    G32(0x45AE2C) = 0;
-    G8(0x45E38D) = result;
-    if ( (unsigned char)G8(0x45E390) > 4u )
+    G8(D4A_PRED_FLAG) = 0;
+    G8(D4A_FLAG_45E38B) = 0;
+    G32(D4A_MOD_CNT) = 0;
+    G8(D4A_FLAG_45E38D) = result;
+    if ( (unsigned char)G8(D4A_MODEL_ID) > 4u )
       result = d4_412FB0(c);
   }
   return result;
@@ -3404,7 +3405,7 @@ static int d4_40DEB6(dec4_ctx *c)
 static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
 {
 #ifdef D4RSDBG
-  fprintf(stderr, "RS out=%u a1=%d\n", G32(0x434528), a1);
+  fprintf(stderr, "RS out=%u a1=%d\n", G32(D4A_OUT_POS), a1);
 #endif
   int v1;
   int v2;
@@ -3528,7 +3529,7 @@ static int d4_40E4FF(dec4_ctx *c, unsigned int a1)
   {
     if ( M16(v3) )
     {
-      if ( !G8(0x45E392) )
+      if ( !G8(D4A_PHASE) )
       {
         ++M16(v3);
 LABEL_3:
@@ -3589,23 +3590,23 @@ LABEL_4:
     M16(v17 + 2 * v18) >>= 1;
     v19 = M16(v16) + M16(v17 + 2 * v1);
     v20 = v1;
-    v18 = (v18 & ~0x000000FFU) | ((G8(0x45E392)) & 0x000000FFU);
-    M32(0x45AE38 + ((v1) * 4)) = v19;
+    v18 = (v18 & ~0x000000FFU) | ((G8(D4A_PHASE)) & 0x000000FFU);
+    M32(D4A_TBL_45AE38 + ((v1) * 4)) = v19;
     result = 512 >> v18;
     if ( v1 < 512 >> v18 )
     {
-      result = 96 * M32(0x45AE38 + (v20) * 4);
-      M32(0x45AE38 + ((v20) * 4)) = result;
+      result = 96 * M32(D4A_TBL_45AE38 + (v20) * 4);
+      M32(D4A_TBL_45AE38 + ((v20) * 4)) = result;
     }
     else
     {
-      M32(0x45AE38 + ((v1) * 4)) <<= 8;
+      M32(D4A_TBL_45AE38 + ((v1) * 4)) <<= 8;
     }
-    if ( G8(0x45E390) == 3 )
+    if ( G8(D4A_MODEL_ID) == 3 )
     {
       result = 8 * M16(c->p_6c8 + 2 * v1);
       if ( M16(c->p_6bc + (v1 << 9)) > result )
-        M32(0x45AE38 + ((v1) * 4)) *= 16;
+        M32(D4A_TBL_45AE38 + ((v1) * 4)) *= 16;
     }
   }
   return result;
@@ -3614,10 +3615,10 @@ LABEL_4:
 static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
 {
 #ifdef D4E672DBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "E672 out=%u a1=%u a2=%d c690=%u v4=%u\n",
-        G32(0x434528), (unsigned)a1, a2, G32(0x45C690),
-        (unsigned)M16(0x45D166 + ((a2) * 2)));
+        G32(D4A_OUT_POS), (unsigned)a1, a2, G32(D4A_PPM_CTX),
+        (unsigned)M16(D4A_TBL_45D166 + ((a2) * 2)));
 #endif
   int v2;
   unsigned int v3;
@@ -3627,9 +3628,9 @@ static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
   char v7;
 
   v2 = a2;
-  v3 = (c->p_6bc + (G32(0x45C690) << 9));
-  v4 = M16(0x45D166 + ((v2) * 2));
-  M16(c->p_6c0 + 2 * (a1 + (G32(0x45C690) << 8))) += v4;
+  v3 = (c->p_6bc + (G32(D4A_PPM_CTX) << 9));
+  v4 = M16(D4A_TBL_45D166 + ((v2) * 2));
+  M16(c->p_6c0 + 2 * (a1 + (G32(D4A_PPM_CTX) << 8))) += v4;
   result = a1 + 1;
   /* asm 0x40E6A8/0x40E6AA: al is a byte - a1=255 wraps to 0 and skips the
    * Fenwick walk; as an int, result=256 runs once and writes index 256
@@ -3644,7 +3645,7 @@ static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
   }
   M16(v3) += v4;
   if ( M16(v3) >= 0x4000u )
-    result = (unsigned int)d4_40E3EB(c, G32(0x45C690));
+    result = (unsigned int)d4_40E3EB(c, G32(D4A_PPM_CTX));
   return result;
 }
 
@@ -3667,33 +3668,33 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
   v13 = a1;
   v2 = a2;
   v3 = (2 * ((a2 << 8) + a1) + c->p_6c0);
-  v4 = M16(0x45D768 + ((a2) * 2));
+  v4 = M16(D4A_TBL_45D768 + ((a2) * 2));
   v5 = M16(v3) + M16(c->p_6c8 + 2 * a2);
-  if ( M8(0x45E086 + (a2)) == v13 )
+  if ( M8(D4A_TBL_45E086 + (a2)) == v13 )
   {
     v5 *= 32;
-    if ( (unsigned char)M8(0x45DD85 + (a2)) < 0xFu )
-      ++M8(0x45DD85 + (a2));
+    if ( (unsigned char)M8(D4A_RUN_CNT + (a2)) < 0xFu )
+      ++M8(D4A_RUN_CNT + (a2));
   }
   else
   {
-    M8(0x45DD85 + (a2)) = 0;
-    M8(0x45E086 + (a2)) = v13;
+    M8(D4A_RUN_CNT + (a2)) = 0;
+    M8(D4A_TBL_45E086 + (a2)) = v13;
   }
   v6 = a2;
-  M32(0x45AE38 + ((v6) * 4)) -= v5;
+  M32(D4A_TBL_45AE38 + ((v6) * 4)) -= v5;
   v12 = 2 * a2;
   if ( M16(v3) )
   {
-    if ( M16(c->p_6bc + (a2 << 9)) <= (unsigned int)M16(v12 + c->p_6c8) * M32(0x45BA3C + (v6) * 4) )
+    if ( M16(c->p_6bc + (a2 << 9)) <= (unsigned int)M16(v12 + c->p_6c8) * M32(D4A_TBL_45BA3C + (v6) * 4) )
       d4_40E672(c, v13, a2);
-    M32(0x45BA3C + ((v2) * 4)) = (unsigned int)M32(0x45BA3C + ((v2) * 4)) >> 4;
+    M32(D4A_TBL_45BA3C + ((v2) * 4)) = (unsigned int)M32(D4A_TBL_45BA3C + ((v2) * 4)) >> 4;
   }
   else
   {
     d4_40E672(c, v13, a2);
     M16(v12 + c->p_6c8) += v4;
-    M32(0x45BA3C + ((v6) * 4)) += (unsigned char)G8(0x45E392);
+    M32(D4A_TBL_45BA3C + ((v6) * 4)) += (unsigned char)G8(D4A_PHASE);
   }
   M16(v3) += v4;
   v7 = (c->p_6bc + (v2 << 9));
@@ -3709,7 +3710,7 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
   v10 = c->p_6c8;
   M16(v7) += v4;
   result = M16(v7) + M16(v10 + 2 * v2);
-  if ( result >= 0x4000 || (int)M32(0x45AE38 + ((v2) * 4)) < 0 )
+  if ( result >= 0x4000 || (int)M32(D4A_TBL_45AE38 + ((v2) * 4)) < 0 )
     result = d4_40E4FF(c, v2);   /* asm 0x40e7f9: cmpl $0,... = signed */
   return result;
 }
@@ -3726,7 +3727,7 @@ static unsigned char d4_40E810(dec4_ctx *c, unsigned char a1, unsigned char a2)
 
   /* 8-byte entry: +0 pad, +2/+4/+6 cumulative u16 (the class tree). */
   v2 = a2;
-  v3 = 0x445DB4 + 8 * a1;
+  v3 = D4A_TBL_445DB4 + 8 * a1;
   if ( a2 == 1 )
     M16(v3 + 4) += 32;
   M16(v3 + 6) += 32;
@@ -3739,9 +3740,9 @@ static unsigned char d4_40E810(dec4_ctx *c, unsigned char a1, unsigned char a2)
     M16(v3 + 4) = v6;
     M16(v3 + 6) = v6 + v5;
   }
-  v7 = 2 * (unsigned char)G8(0x45E3A2);
-  result = M8(0x4239BB + v7 + v2);
-  G8(0x45E3A2) = M8(0x4239BB + v7 + v2);
+  v7 = 2 * (unsigned char)G8(D4A_FLAG_45E3A2);
+  result = M8(D4A_CLS_CHILD + v7 + v2);
+  G8(D4A_FLAG_45E3A2) = M8(D4A_CLS_CHILD + v7 + v2);
   return result;
 }
 
@@ -3763,7 +3764,7 @@ static unsigned int d4_40E885(dec4_ctx *c)
   v10 = 0;
   v0 = 8;
   c->p_14c = 0;
-  v1 = ((unsigned)HIWORD(G32(0x45D0F8))) << 16;
+  v1 = ((unsigned)HIWORD(G32(D4A_CTX_W0))) << 16;
   v2 = 0;
   v1 = (v1 & ~0x0000FFFFU) | ((0) & 0x0000FFFFU);
   v3 = 0;
@@ -3771,56 +3772,56 @@ static unsigned int d4_40E885(dec4_ctx *c)
   {
     v2 = 0x10000;
   }
-  else if ( (unsigned short)G32(0x45D0F8) == 0xFFFF )
+  else if ( (unsigned short)G32(D4A_CTX_W0) == 0xFFFF )
   {
     v2 = 0x20000;
   }
-  else if ( (G32(0x45D0F8) & 0xFF000000) == -16777216 )
+  else if ( (G32(D4A_CTX_W0) & 0xFF000000) == -16777216 )
   {
     v2 = 196608;
   }
-  else if ( (G32(0x45D0F8) & 0xFF0000) == 16711680 )
+  else if ( (G32(D4A_CTX_W0) & 0xFF0000) == 16711680 )
   {
     v2 = 0x40000;
   }
-  else if ( (G32(0x45D0F8) & 0xFF00) == 65280 )
+  else if ( (G32(D4A_CTX_W0) & 0xFF00) == 65280 )
   {
     v2 = 327680;
   }
-  else if ( (unsigned char)G32(0x45D0F8) == 255 )
+  else if ( (unsigned char)G32(D4A_CTX_W0) == 255 )
   {
     v2 = 393216;
   }
-  v4 = HIWORD(G32(0x45D0F8)) & 0xFF00;
-  G32(0x44604C) = (unsigned int)G32(0x45D0F8) >> 16;
-  M32(0x446044 + ((0) * 4)) = v4 + ((unsigned int)G32(0x45D0FC) >> 24);
-  G32(0x446048) = (unsigned short)((unsigned int)G32(0x45D0F8) >> 8);
-  G32(0x446050) = (unsigned char)G32(0x45D0F8) + (((unsigned int)G32(0x45D0F8) >> 8) & 0xFF00);
-  G32(0x446054) = v4 + ((unsigned short)G32(0x45D0F8) >> 8);
-  G32(0x446058) = (unsigned char)G32(0x45D0F8) + v4;
-  G32(0x44605C) = v2 + (unsigned short)G32(0x45D0FC);
-  if ( (unsigned char)G32(0x45D0F8) == 255 )
+  v4 = HIWORD(G32(D4A_CTX_W0)) & 0xFF00;
+  G32(D4A_TBL_44604C) = (unsigned int)G32(D4A_CTX_W0) >> 16;
+  M32(D4A_TBL_446044 + ((0) * 4)) = v4 + ((unsigned int)G32(D4A_CTX_W1) >> 24);
+  G32(D4A_TBL_446048) = (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 8);
+  G32(D4A_TBL_446050) = (unsigned char)G32(D4A_CTX_W0) + (((unsigned int)G32(D4A_CTX_W0) >> 8) & 0xFF00);
+  G32(D4A_TBL_446054) = v4 + ((unsigned short)G32(D4A_CTX_W0) >> 8);
+  G32(D4A_TBL_446058) = (unsigned char)G32(D4A_CTX_W0) + v4;
+  G32(D4A_TBL_44605C) = v2 + (unsigned short)G32(D4A_CTX_W1);
+  if ( (unsigned char)G32(D4A_CTX_W0) == 255 )
   {
-    G32(0x446048) += 0x10000;
-    G32(0x44604C) += 0x10000;
+    G32(D4A_TBL_446048) += 0x10000;
+    G32(D4A_TBL_44604C) += 0x10000;
   }
-  v5 = M8(c->p_dict + (G32(0x45D118) & (G32(0x45D110) - G32(0x45C64C))));
-  v11 = M8(c->p_dict + (G32(0x45D118) & (G32(0x45D110) - 2 * G32(0x45C64C))));
-  if ( (unsigned char)G8(0x45E395) == G32(0x45C64C) )
+  v5 = M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_CNT))));
+  v11 = M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - 2 * G32(D4A_BEST_CNT))));
+  if ( (unsigned char)G8(D4A_FLAG_45E395) == G32(D4A_BEST_CNT) )
   {
-    if ( (unsigned char)G32(0x45D0F8) == 1 )
+    if ( (unsigned char)G32(D4A_CTX_W0) == 1 )
       v3 = 8;
-    v6 = (unsigned int)G32(0x45D0F8) >> 16 == 63231;
+    v6 = (unsigned int)G32(D4A_CTX_W0) >> 16 == 63231;
   }
   else
   {
-    v6 = G32(0x45AE1C) % (unsigned int)G32(0x45C64C);
+    v6 = G32(D4A_OUT_COUNT) % (unsigned int)G32(D4A_BEST_CNT);
   }
-  G32(0x446060) = (unsigned char)(v5 - v11) + (v6 << 8);
-  M8(M32(0x4236B8) + 4 * G32(0x446060) + 2) = 2 * v5 - v11;
+  G32(D4A_TBL_446060) = (unsigned char)(v5 - v11) + (v6 << 8);
+  M8(M32(D4A_TBL_4236B8) + 4 * G32(D4A_TBL_446060) + 2) = 2 * v5 - v11;
   while ( (unsigned char)v3 < 8u )
   {
-    v7 = 4 * M32(0x446044 + ((unsigned char)v3) * 4) + M32(0x42369C + ((unsigned char)v3) * 4);
+    v7 = 4 * M32(D4A_TBL_446044 + ((unsigned char)v3) * 4) + M32(D4A_TBL_42369C + ((unsigned char)v3) * 4);
     if ( M8(v7) && M8(v7 + 3) < 0x80u )
     {
       v8 = (M8(v7 + 1) << 8) * M8(v7 + 3) / M8(v7);
@@ -3833,35 +3834,35 @@ static unsigned int d4_40E885(dec4_ctx *c)
     ++v3;
   }
   if ( (unsigned char)v0 >= 8u
-    || (result = 4 * M32(0x446044 + ((unsigned char)v0) * 4) + M32(0x42369C + ((unsigned char)v0) * 4),
+    || (result = 4 * M32(D4A_TBL_446044 + ((unsigned char)v0) * 4) + M32(D4A_TBL_42369C + ((unsigned char)v0) * 4),
         M8(result + 1) <= M8(result))
     && (M8(result + 3) & 0x7Fu) <= 1 )
   {
-    if ( (unsigned int)G32(0x45C674) > 1 )
+    if ( (unsigned int)G32(D4A_BEST_OFF) > 1 )
       M32(c->p_68c) >>= 1;
     result = 0;
   }
   else
   {
-    if ( (unsigned int)G32(0x45C64C) > 1 )
-      G8(0x45E398) = v0 == 7;
+    if ( (unsigned int)G32(D4A_BEST_CNT) > 1 )
+      G8(D4A_FLAG_45E398) = v0 == 7;
     if ( M8(result) == 2 && (unsigned char)(M8(result + 1) - 3) < 4u )
-      c->p_14c = 0x45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 24);
+      c->p_14c = D4A_TBL_45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 24);
     if ( M8(result) == 3 && (unsigned char)(M8(result + 1) - 4) < 4u )
-      c->p_14c = 0x45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 32) + 64;
-    G8(0x45E396) = v0;
+      c->p_14c = D4A_TBL_45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 32) + 64;
+    G8(D4A_FLAG_45E396) = v0;
   }
 #ifdef D4E885DBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI) {
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI) {
     unsigned q5;
     fprintf(stderr, "E885 out=%u ret=%d v0=%d v10=%u d0f8=%u d0fc=%u c64c=%u e395=%u ae1c=%u v5=%u v11=%u a060=%u e39c=%u h0=%u h1=%u h2=%u h3=%u\n",
-          G32(0x434528), 
-        result, (int)v0, v10, G32(0x45D0F8), G32(0x45D0FC), G32(0x45C64C), G8(0x45E395),
-        G32(0x45AE1C), (unsigned)(unsigned char)v5, (unsigned)(unsigned char)v11, G32(0x446060),
-        G8(0x45E39C), (unsigned)M8(0x45DD6E), (unsigned)M8(0x45DD6E + 1),
-        (unsigned)M8(0x45DD6E + 2), (unsigned)M8(0x45DD6E + 3));
+          G32(D4A_OUT_POS), 
+        result, (int)v0, v10, G32(D4A_CTX_W0), G32(D4A_CTX_W1), G32(D4A_BEST_CNT), G8(D4A_FLAG_45E395),
+        G32(D4A_OUT_COUNT), (unsigned)(unsigned char)v5, (unsigned)(unsigned char)v11, G32(D4A_TBL_446060),
+        G8(D4A_HIST_LEN), (unsigned)M8(D4A_HIST_SYMS), (unsigned)M8(D4A_HIST_SYMS + 1),
+        (unsigned)M8(D4A_HIST_SYMS + 2), (unsigned)M8(D4A_HIST_SYMS + 3));
     for (q5 = 0; q5 < 8; q5++) {
-      int row = 4 * M32(0x446044 + q5 * 4) + M32(0x42369C + q5 * 4);
+      int row = 4 * M32(D4A_TBL_446044 + q5 * 4) + M32(D4A_TBL_42369C + q5 * 4);
       fprintf(stderr, "E885ROW %u: b0=%u b1=%u b2=%u b3=%u\n", q5,
           (unsigned)M8(row), (unsigned)M8(row+1), (unsigned)M8(row+2), (unsigned)M8(row+3));
     }
@@ -3869,7 +3870,7 @@ static unsigned int d4_40E885(dec4_ctx *c)
 #endif
 #ifdef D4E2DBG
   fprintf(stderr, "E2 out=%u ret=%d e396=%u e39c=%u\n",
-      G32(0x434528), result, G8(0x45E396), G8(0x45E39C));
+      G32(D4A_OUT_POS), result, G8(D4A_FLAG_45E396), G8(D4A_HIST_LEN));
 #endif
   return result;
 }
@@ -3886,25 +3887,25 @@ static int d4_40EBA7(dec4_ctx *c, char a1)
   v2 = 0;
   do
   {
-    result = M32(0x42369C + (v2) * 4);
-    v5 = result + 4 * M32(0x446044 + (v2) * 4);
+    result = M32(D4A_TBL_42369C + (v2) * 4);
+    v5 = result + 4 * M32(D4A_TBL_446044 + (v2) * 4);
     if ( M8(v5) )
     {
-      if ( v2 == G8(0x45E396) )
+      if ( v2 == G8(D4A_FLAG_45E396) )
       {
-        if ( G8(0x45E399) )
+        if ( G8(D4A_FLAG_45E399) )
         {
           if ( v1 == M8(v5 + 2) )
           {
-            G8(0x45E39F) = 0;
+            G8(D4A_FLAG_45E39F) = 0;
             v3 = M8(v5 + 1);
           }
           else
           {
             v3 = M8(v5);
           }
-          result = (unsigned short)M16(0x429ED4 + (((v3 << 14) / (M8(v5 + 1) + (unsigned int)M8(v5) ? M8(v5 + 1) + (unsigned int)M8(v5) : 1)) * 2));
-          G32(0x45C658) += result;
+          result = (unsigned short)M16(D4A_COST_LUT + (((v3 << 14) / (M8(v5 + 1) + (unsigned int)M8(v5) ? M8(v5 + 1) + (unsigned int)M8(v5) : 1)) * 2));
+          G32(D4A_COST_SUM) += result;
         }
         if ( c->p_14c )
         {
@@ -3992,13 +3993,13 @@ static unsigned int d4_40ECC7(dec4_ctx *c, char a1)
   char v19;
 
   v19 = a1;
-  if ( (unsigned int)G32(0x45C694) >= 0x40000 )
+  if ( (unsigned int)G32(D4A_COL_IDX) >= 0x40000 )
   {
-    G32(0x45C694) &= 0x7FFFu;
+    G32(D4A_COL_IDX) &= 0x7FFFu;
     v13 = 0;
-    v14 = c->p_680 + 32 * G32(0x45C694);
+    v14 = c->p_680 + 32 * G32(D4A_COL_IDX);
     v15 = 0;
-    v16 = c->p_680 + 32 * G32(0x45C694);
+    v16 = c->p_680 + 32 * G32(D4A_COL_IDX);
     while ( M8(v16) )
     {
       if ( (M8(v16 + 25) & 0x3F) < (M8(v14 + 32 * v13 + 25) & 0x3F)
@@ -4017,53 +4018,53 @@ LABEL_54:
     /* asm 0x40F006: ecx += 32*edi, the freshly cleared bucket entry */
     v1 = 32 * v13 + v14;
     M8(v1) = 1;
-    v17 = G8(0x45E3A4);
+    v17 = G8(D4A_FLAG_45E3A4);
     M8(v1 + 26) = 32;
     M8(v1 + 1) = v17 + 1;
     M8(v1 + 13) = v19;
-    M32(v1 + 28) = G32(0x45C6A4);
+    M32(v1 + 28) = G32(D4A_CTX_COPY);
   }
   else
   {
-    v1 = c->p_680 + 32 * G32(0x45C694);
-    if ( G8(0x45E3A3) == 0xFF )
+    v1 = c->p_680 + 32 * G32(D4A_COL_IDX);
+    if ( G8(D4A_COL_SLOT) == 0xFF )
     {
-      G8(0x45E3A3) = 0;
+      G8(D4A_COL_SLOT) = 0;
       do
       {
         /* asm 0x40ED0E compares bytes (unsigned); a1 is a signed char */
-        if ( M8(v1 + (unsigned char)G8(0x45E3A3) + 13) == (unsigned char)a1 )
+        if ( M8(v1 + (unsigned char)G8(D4A_COL_SLOT) + 13) == (unsigned char)a1 )
           break;
-        ++G8(0x45E3A3);
+        ++G8(D4A_COL_SLOT);
       }
-      while ( (unsigned char)G8(0x45E3A3) < 0xCu );
+      while ( (unsigned char)G8(D4A_COL_SLOT) < 0xCu );
     }
-    if ( G8(0x45E394)
-      && (unsigned char)G8(0x45E3A3) < 0xCu
-      && (signed int)M8(v1 + (unsigned char)G8(0x45E3A3) + 1) >> 6 > M8(v1) )
+    if ( G8(D4A_FLAG_45E394)
+      && (unsigned char)G8(D4A_COL_SLOT) < 0xCu
+      && (signed int)M8(v1 + (unsigned char)G8(D4A_COL_SLOT) + 1) >> 6 > M8(v1) )
     {
-      G32(0x45D104) += 4;
+      G32(D4A_FREQ_A) += 4;
     }
-    if ( G8(0x45E397) )
+    if ( G8(D4A_FLAG_45E397) )
     {
-      if ( (unsigned char)G8(0x45E3A3) >= 0xCu )
+      if ( (unsigned char)G8(D4A_COL_SLOT) >= 0xCu )
       {
         v2 = M8(v1);
       }
       else
       {
-        G8(0x45E39A) = 0;
-        G8(0x45E399) = 0;
-        G8(0x45E39F) = 0;
-        v2 = M8(v1 + (unsigned char)G8(0x45E3A3) + 1);
+        G8(D4A_FLAG_45E39A) = 0;
+        G8(D4A_FLAG_45E399) = 0;
+        G8(D4A_FLAG_45E39F) = 0;
+        v2 = M8(v1 + (unsigned char)G8(D4A_COL_SLOT) + 1);
       }
-      G32(0x45C658) += (unsigned short)M16(0x429ED4 + (((v2 << 14) / (unsigned int)G32(0x45C698)) * 2));
+      G32(D4A_COST_SUM) += (unsigned short)M16(D4A_COST_LUT + (((v2 << 14) / (unsigned int)G32(D4A_COL_TOT_A)) * 2));
     }
-    v3 = (unsigned char)M8(0x4244A0 + (M8(v1))) < (unsigned int)G32(0x45C678);
-    if ( (unsigned char)G8(0x45E3A3) < 0xCu )
+    v3 = (unsigned char)M8(D4A_FREQ_THRESH1 + (M8(v1))) < (unsigned int)G32(D4A_TBL_45C678);
+    if ( (unsigned char)G8(D4A_COL_SLOT) < 0xCu )
     {
       v4 = M8(v1 + 25) & 0xC0;
-      if ( M8(v1 + (unsigned char)G8(0x45E3A3) + 1) + 1 >= (signed int)M8(v1 + 1) >> 1 )
+      if ( M8(v1 + (unsigned char)G8(D4A_COL_SLOT) + 1) + 1 >= (signed int)M8(v1 + 1) >> 1 )
       {
         v5 = ((signed int)v4 >> 1) & 0xC0;
       }
@@ -4074,9 +4075,9 @@ LABEL_54:
           v3 = 1;
       }
       M8(v1 + 25) = v5 | M8(v1 + 25) & 0x3F;
-      if ( G8(0x45E3A3) )
+      if ( G8(D4A_COL_SLOT) )
       {
-        if ( (signed int)M8(v1 + 26) >> 4 >= 4 && (M8(v1 + 26) & 0xF) == G8(0x45E3A3) )
+        if ( (signed int)M8(v1 + 26) >> 4 >= 4 && (M8(v1 + 26) & 0xF) == G8(D4A_COL_SLOT) )
           goto LABEL_60;
       }
     }
@@ -4091,37 +4092,37 @@ LABEL_60:
       }
       while ( v6 != v1 - 1 );
     }
-    if ( (unsigned char)G8(0x45E3A3) >= 0xCu )
+    if ( (unsigned char)G8(D4A_COL_SLOT) >= 0xCu )
     {
       M8(v1) += 2;
-      G8(0x45E3A3) = 1;
+      G8(D4A_COL_SLOT) = 1;
       M8(v1 + 27) >>= 1;
       do
       {
-        if ( !M8(v1 + (unsigned char)G8(0x45E3A3) + 1) )
+        if ( !M8(v1 + (unsigned char)G8(D4A_COL_SLOT) + 1) )
           break;
-        ++G8(0x45E3A3);
+        ++G8(D4A_COL_SLOT);
       }
-      while ( G8(0x45E3A3) != 11 );
-      v8 = v1 + (unsigned char)G8(0x45E3A3);
+      while ( G8(D4A_COL_SLOT) != 11 );
+      v8 = v1 + (unsigned char)G8(D4A_COL_SLOT);
       if ( M8(v8 + 1) < 6u )
       {
-        M8(v8 + 1) = G8(0x45E3A4) + 2;
+        M8(v8 + 1) = G8(D4A_FLAG_45E3A4) + 2;
         M8(v8 + 13) = v19;
-        M8(v1 + 26) = G8(0x45E3A3);
+        M8(v1 + 26) = G8(D4A_COL_SLOT);
       }
       else
       {
-        G8(0x45E3A3) = 0;
+        G8(D4A_COL_SLOT) = 0;
       }
       M8(v1 + 25) = ((M8(v1 + 25) & 0x3F) >> 1) + (M8(v1 + 25) & 0xC0);
     }
     else
     {
-      M8(v1 + (unsigned char)G8(0x45E3A3) + 1) += 2;
+      M8(v1 + (unsigned char)G8(D4A_COL_SLOT) + 1) += 2;
       if ( (M8(v1 + 25) & 0x3Fu) < 0x3F )
         ++M8(v1 + 25);
-      if ( (M8(v1 + 26) & 0xF) == G8(0x45E3A3) )
+      if ( (M8(v1 + 26) & 0xF) == G8(D4A_COL_SLOT) )
       {
         if ( M8(v1 + 26) < 0xF0u )
           M8(v1 + 26) += 16;
@@ -4130,15 +4131,15 @@ LABEL_60:
       }
       else
       {
-        v7 = G8(0x45E3A3);
+        v7 = G8(D4A_COL_SLOT);
         M8(v1 + 27) >>= 1;
         M8(v1 + 26) = v7;
       }
-      G32(0x45D120) += 5;
+      G32(D4A_FREQ_C) += 5;
     }
-    while ( G8(0x45E3A3) )
+    while ( G8(D4A_COL_SLOT) )
     {
-      v9 = v1 + (unsigned char)G8(0x45E3A3);
+      v9 = v1 + (unsigned char)G8(D4A_COL_SLOT);
       v10 = M8(v9 + 1);
       if ( v10 < M8(v9) )
         break;
@@ -4148,15 +4149,15 @@ LABEL_60:
       M8(v9 + 1) = v12;
       M8(v9 + 12) = M8(v9 + 13);
       M8(v9 + 13) = v11;
-      --G8(0x45E3A3);
+      --G8(D4A_COL_SLOT);
       --M8(v1 + 26);
     }
-    G32(0x45D138) += 2;
-    if ( (unsigned int)G32(0x45D138) > 0x800 )
+    G32(D4A_FREQ_B) += 2;
+    if ( (unsigned int)G32(D4A_FREQ_B) > 0x800 )
     {
-      G32(0x45D138) = (unsigned int)G32(0x45D138) >> 1;
-      G32(0x45D120) = (unsigned int)G32(0x45D120) >> 1;
-      G32(0x45D104) = (unsigned int)G32(0x45D104) >> 1;
+      G32(D4A_FREQ_B) = (unsigned int)G32(D4A_FREQ_B) >> 1;
+      G32(D4A_FREQ_C) = (unsigned int)G32(D4A_FREQ_C) >> 1;
+      G32(D4A_FREQ_A) = (unsigned int)G32(D4A_FREQ_A) >> 1;
     }
   }
   result = c->p_148;
@@ -4176,10 +4177,10 @@ static char d4_40F049(dec4_ctx *c, int a1)
   char v9;
 
   v9 = a1;
-  v1 = c->p_684 + 20 * G32(0x45C69C);
+  v1 = c->p_684 + 20 * G32(D4A_ROW_CTX);
   if ( !M8(v1) )
   {
-    d4_4196E0(c, c->p_684 + 20 * G32(0x45C69C), 0, 0x14u);
+    d4_4196E0(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
     /* asm 0x40F186: memset returns the destination (Hex-Rays lost it as v7);
      * the head of the new 20-byte context entry gets 0x0202, +18 = 4 and
      * +9 = the first candidate byte. */
@@ -4188,15 +4189,15 @@ static char d4_40F049(dec4_ctx *c, int a1)
     M8(v1 + 9) = a1;
     return a1;
   }
-  G8(0x45E3A5) = 0;
+  G8(D4A_ROW_SLOT) = 0;
   do
   {
-    if ( M8(v1 + (unsigned char)G8(0x45E3A5) + 9) == (unsigned char)a1 )
+    if ( M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 9) == (unsigned char)a1 )
       break;
-    ++G8(0x45E3A5);
+    ++G8(D4A_ROW_SLOT);
   }
-  while ( (unsigned char)G8(0x45E3A5) < 8u );
-  if ( M8(v1 + 18) > (unsigned char)M8(0x4245A0 + (M8(v1))) )
+  while ( (unsigned char)G8(D4A_ROW_SLOT) < 8u );
+  if ( M8(v1 + 18) > (unsigned char)M8(D4A_FREQ_THRESH2 + (M8(v1))) )
   {
     v2 = (v1 + 8);
     M8(v1 + 18) = 0;
@@ -4211,11 +4212,11 @@ static char d4_40F049(dec4_ctx *c, int a1)
     while ( v2 != (v1 - 1) );
   }
   ++M8(v1 + 18);
-  if ( (unsigned char)G8(0x45E3A5) < 8u )
+  if ( (unsigned char)G8(D4A_ROW_SLOT) < 8u )
   {
-    ++M8(v1 + (unsigned char)G8(0x45E3A5) + 1);
+    ++M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 1);
     a1 = (a1 & ~0x000000FFU) | ((M8(v1 + 19) & 0xF) & 0x000000FFU);
-    if ( (unsigned char)a1 == G8(0x45E3A5) )
+    if ( (unsigned char)a1 == G8(D4A_ROW_SLOT) )
     {
       if ( M8(v1 + 19) < 0x40u )
         M8(v1 + 19) += 16;
@@ -4224,31 +4225,31 @@ static char d4_40F049(dec4_ctx *c, int a1)
     goto LABEL_18;
   }
   ++M8(v1 + 17);
-  G8(0x45E3A5) = 1;
+  G8(D4A_ROW_SLOT) = 1;
   ++M8(v1);
   do
   {
-    if ( !M8(v1 + (unsigned char)G8(0x45E3A5) + 1) )
+    if ( !M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 1) )
       break;
-    ++G8(0x45E3A5);
+    ++G8(D4A_ROW_SLOT);
   }
-  while ( G8(0x45E3A5) != 7 );
-  a1 = v1 + (unsigned char)G8(0x45E3A5);
+  while ( G8(D4A_ROW_SLOT) != 7 );
+  a1 = v1 + (unsigned char)G8(D4A_ROW_SLOT);
   if ( M8(a1 + 1) < 0xCu )
   {
     M8(v1 + 18) += 1 - M8(a1 + 1);
     M8(a1 + 1) = 1;
     M8(a1 + 9) = v9;
 LABEL_18:
-    a1 = (a1 & ~0x000000FFU) | ((G8(0x45E3A5)) & 0x000000FFU);
-    M8(v1 + 19) = G8(0x45E3A5);
+    a1 = (a1 & ~0x000000FFU) | ((G8(D4A_ROW_SLOT)) & 0x000000FFU);
+    M8(v1 + 19) = G8(D4A_ROW_SLOT);
     goto LABEL_19;
   }
-  G8(0x45E3A5) = 0;
+  G8(D4A_ROW_SLOT) = 0;
 LABEL_19:
-  while ( G8(0x45E3A5) )
+  while ( G8(D4A_ROW_SLOT) )
   {
-    a1 = v1 + (unsigned char)G8(0x45E3A5);
+    a1 = v1 + (unsigned char)G8(D4A_ROW_SLOT);
     v4 = M8(a1 + 1);
     if ( v4 < M8(a1) )
       break;
@@ -4258,7 +4259,7 @@ LABEL_19:
     M8(a1 + 8) = M8(a1 + 9);
     M8(a1 + 1) = v5;
     M8(a1 + 9) = v6;
-    --G8(0x45E3A5);
+    --G8(D4A_ROW_SLOT);
     --M8(v1 + 19);
   }
   return a1;
@@ -4277,35 +4278,35 @@ static char d4_40F19A(dec4_ctx *c, int a1)
   char v10;
 
   v10 = a1;
-  v1 = c->p_684 + 20 * G32(0x45C69C);
+  v1 = c->p_684 + 20 * G32(D4A_ROW_CTX);
   if ( M8(v1) )
   {
-    if ( G8(0x45E3A5) == 0xFF )
+    if ( G8(D4A_ROW_SLOT) == 0xFF )
     {
-      G8(0x45E3A5) = 0;
+      G8(D4A_ROW_SLOT) = 0;
       do
       {
-        if ( M8(v1 + (unsigned char)G8(0x45E3A5) + 9) == (unsigned char)a1 )
+        if ( M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 9) == (unsigned char)a1 )
           break;
-        ++G8(0x45E3A5);
+        ++G8(D4A_ROW_SLOT);
       }
-      while ( (unsigned char)G8(0x45E3A5) < 8u );
+      while ( (unsigned char)G8(D4A_ROW_SLOT) < 8u );
     }
-    if ( G8(0x45E39A) )
+    if ( G8(D4A_FLAG_45E39A) )
     {
-      if ( (unsigned char)G8(0x45E3A5) >= 8u )
+      if ( (unsigned char)G8(D4A_ROW_SLOT) >= 8u )
       {
         v2 = M8(v1);
       }
       else
       {
-        G8(0x45E399) = 0;
-        G8(0x45E39F) = 0;
-        v2 = M8(v1 + (unsigned char)G8(0x45E3A5) + 1);
+        G8(D4A_FLAG_45E399) = 0;
+        G8(D4A_FLAG_45E39F) = 0;
+        v2 = M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 1);
       }
-      G32(0x45C658) += (unsigned short)M16(0x429ED4 + (((v2 << 14) / (unsigned int)G32(0x45C6A8)) * 2));
+      G32(D4A_COST_SUM) += (unsigned short)M16(D4A_COST_LUT + (((v2 << 14) / (unsigned int)G32(D4A_COL_TOT_B)) * 2));
     }
-    if ( M8(v1 + 18) > (unsigned char)M8(0x4245A0 + (M8(v1))) )
+    if ( M8(v1 + 18) > (unsigned char)M8(D4A_FREQ_THRESH2 + (M8(v1))) )
     {
       v3 = (v1 + 8);
       M8(v1 + 18) = 0;
@@ -4320,54 +4321,54 @@ static char d4_40F19A(dec4_ctx *c, int a1)
       while ( v3 != (v1 - 1) );
     }
     M8(v1 + 18) += 4;
-    if ( (unsigned char)G8(0x45E3A5) >= 8u )
+    if ( (unsigned char)G8(D4A_ROW_SLOT) >= 8u )
     {
-      G8(0x45E3A5) = 1;
+      G8(D4A_ROW_SLOT) = 1;
       ++M8(v1 + 17);
-      ++G32(0x45C6AC);
+      ++G32(D4A_TBL_45C6AC);
       M8(v1) += 4;
       do
       {
-        if ( !M8(v1 + (unsigned char)G8(0x45E3A5) + 1) )
+        if ( !M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 1) )
           break;
-        ++G8(0x45E3A5);
+        ++G8(D4A_ROW_SLOT);
       }
-      while ( G8(0x45E3A5) != 7 );
-      a1 = v1 + (unsigned char)G8(0x45E3A5);
+      while ( G8(D4A_ROW_SLOT) != 7 );
+      a1 = v1 + (unsigned char)G8(D4A_ROW_SLOT);
       if ( M8(a1 + 1) < 0xCu )
       {
         M8(v1 + 18) += 4 - M8(a1 + 1);
         M8(a1 + 1) = 4;
         M8(a1 + 9) = v10;
-        a1 = (a1 & ~0x000000FFU) | ((G8(0x45E3A5)) & 0x000000FFU);
-        M8(v1 + 19) = G8(0x45E3A5);
+        a1 = (a1 & ~0x000000FFU) | ((G8(D4A_ROW_SLOT)) & 0x000000FFU);
+        M8(v1 + 19) = G8(D4A_ROW_SLOT);
       }
       else
       {
-        G8(0x45E3A5) = 0;
+        G8(D4A_ROW_SLOT) = 0;
       }
     }
     else
     {
-      G32(0x45C6AC) = (unsigned int)(3 * G32(0x45C6AC)) >> 2;
+      G32(D4A_TBL_45C6AC) = (unsigned int)(3 * G32(D4A_TBL_45C6AC)) >> 2;
       M8(v1 + 17) = (signed int)M8(v1 + 17) >> 1;
-      M8(v1 + (unsigned char)G8(0x45E3A5) + 1) += 4;
+      M8(v1 + (unsigned char)G8(D4A_ROW_SLOT) + 1) += 4;
       a1 = (a1 & ~0x000000FFU) | ((M8(v1 + 19) & 0xF) & 0x000000FFU);
-      if ( (unsigned char)a1 == G8(0x45E3A5) )
+      if ( (unsigned char)a1 == G8(D4A_ROW_SLOT) )
       {
         if ( M8(v1 + 19) < 0xF0u )
           M8(v1 + 19) += 16;
       }
       else
       {
-        a1 = (a1 & ~0x000000FFU) | ((G8(0x45E3A5)) & 0x000000FFU);
-        M8(v1 + 19) = G8(0x45E3A5);
+        a1 = (a1 & ~0x000000FFU) | ((G8(D4A_ROW_SLOT)) & 0x000000FFU);
+        M8(v1 + 19) = G8(D4A_ROW_SLOT);
       }
-      G32(0x45D120) += 5;
+      G32(D4A_FREQ_C) += 5;
     }
-    while ( G8(0x45E3A5) )
+    while ( G8(D4A_ROW_SLOT) )
     {
-      a1 = v1 + (unsigned char)G8(0x45E3A5);
+      a1 = v1 + (unsigned char)G8(D4A_ROW_SLOT);
       v5 = M8(a1 + 1);
       if ( v5 < M8(a1) )
         break;
@@ -4377,20 +4378,20 @@ static char d4_40F19A(dec4_ctx *c, int a1)
       M8(a1 + 8) = M8(a1 + 9);
       M8(a1 + 1) = v6;
       M8(a1 + 9) = v7;
-      --G8(0x45E3A5);
+      --G8(D4A_ROW_SLOT);
       --M8(v1 + 19);
     }
-    G32(0x45D138) += 2;
-    if ( (unsigned int)G32(0x45D138) > 0x800 )
+    G32(D4A_FREQ_B) += 2;
+    if ( (unsigned int)G32(D4A_FREQ_B) > 0x800 )
     {
-      G32(0x45D138) = (unsigned int)G32(0x45D138) >> 1;
-      G32(0x45D120) = (unsigned int)G32(0x45D120) >> 1;
-      G32(0x45D104) = (unsigned int)G32(0x45D104) >> 1;
+      G32(D4A_FREQ_B) = (unsigned int)G32(D4A_FREQ_B) >> 1;
+      G32(D4A_FREQ_C) = (unsigned int)G32(D4A_FREQ_C) >> 1;
+      G32(D4A_FREQ_A) = (unsigned int)G32(D4A_FREQ_A) >> 1;
     }
   }
   else
   {
-    d4_4196E0(c, c->p_684 + 20 * G32(0x45C69C), 0, 0x14u);
+    d4_4196E0(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
     /* asm 0x40F386: the memset destination (v1) gets 0x0303 at +0, 6 at +18
      * and the decoded byte at +9 (Hex-Rays lost it as the unused v8). */
     M16(v1) = 771;
@@ -4431,14 +4432,14 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
   M8(c->p_15c) = a1;
   if ( a2 )
   {
-    v3 = G32(0x45AE1C) & 1;
-    v4 = G32(0x45AE1C) & 1;
-    v5 = 0x45DD6A + v4;
-    v6 = 2 * M8(0x45DD6A + v4) & 0xF;
-    v7 = 0x45DD6C + v4;
+    v3 = G32(D4A_OUT_COUNT) & 1;
+    v4 = G32(D4A_OUT_COUNT) & 1;
+    v5 = D4A_TBL_45DD6A + v4;
+    v6 = 2 * M8(D4A_TBL_45DD6A + v4) & 0xF;
+    v7 = D4A_TBL_45DD6C + v4;
     M8(v5) = v6;
     v8 = 2 * M8(v7) & 0xF;
-    G8(0x45E3A0) = 0;
+    G8(D4A_FLAG_45E3A0) = 0;
     M8(v7) = v8;
     if ( v2 >= 0x80u )
     {
@@ -4446,174 +4447,174 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
       if ( v2 == 0xFF )
       {
         ++M8(v7);
-        if ( M8(0x45DD6A + ((v3 == 0))) == 15 && M8(v7) == 15 )
-          G8(0x45E3A0) = 2;
+        if ( M8(D4A_TBL_45DD6A + ((v3 == 0))) == 15 && M8(v7) == 15 )
+          G8(D4A_FLAG_45E3A0) = 2;
       }
       else if ( v2 <= 0xDFu || v2 >= 0xF2u && v2 <= 0xF6u )
       {
         ++M8(v5);
-        if ( M8(0x45DD6C + ((v3 == 0))) == 15 && M8(v5) == 15 )
-          G8(0x45E3A0) = 1;
+        if ( M8(D4A_TBL_45DD6C + ((v3 == 0))) == 15 && M8(v5) == 15 )
+          G8(D4A_FLAG_45E3A0) = 1;
       }
     }
   }
   if ( v2 && v2 != 0xFF )
   {
-    v9 = G32(0x45D118) & (G32(0x45D110) - M32(0x4455AC + ((v2) * 4)));
+    v9 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - M32(D4A_TBL_4455AC + ((v2) * 4)));
     if ( v9 >= 0x100 )
     {
-      v9 = G32(0x45D118) & (G32(0x45D110) - M32(0x4455AC + (((unsigned char)(v2 - 1)) * 4)));
+      v9 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - M32(D4A_TBL_4455AC + (((unsigned char)(v2 - 1)) * 4)));
       if ( v9 >= 0x100 )
-        v9 = (G32(0x45D110) - M32(0x4455AC + (((unsigned char)(v2 + 1)) * 4))) & G32(0x45D118);
+        v9 = (G32(D4A_DICT_POS) - M32(D4A_TBL_4455AC + (((unsigned char)(v2 + 1)) * 4))) & G32(D4A_DICT_MASK);
     }
     if ( v9 )
     {
       if ( v9 < 0x100 )
       {
-        ++M32(0x4445A4 + ((v9) * 4));
-        if ( v9 != G32(0x45C674) )
+        ++M32(D4A_TBL_4445A4 + ((v9) * 4));
+        if ( v9 != G32(D4A_BEST_OFF) )
         {
-          if ( v2 == M8(c->p_dict + (G32(0x45D118) & (G32(0x45D110) - G32(0x45C674)))) )
-            ++M32(0x4445A4 + ((G32(0x45C674)) * 4));
+          if ( v2 == M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_OFF)))) )
+            ++M32(D4A_TBL_4445A4 + ((G32(D4A_BEST_OFF)) * 4));
           else
-            G32(0x45C66C) += 2;
-          if ( v9 == G32(0x45C670) )
+            G32(D4A_TBL_45C66C) += 2;
+          if ( v9 == G32(D4A_TBL_45C670) )
           {
-            if ( M32(0x4445A4 + ((v9) * 4)) >= (unsigned int)M32(0x4445A4 + ((G32(0x45C674)) * 4)) )
+            if ( M32(D4A_TBL_4445A4 + ((v9) * 4)) >= (unsigned int)M32(D4A_TBL_4445A4 + ((G32(D4A_BEST_OFF)) * 4)) )
             {
-              G32(0x45C670) = G32(0x45C674);
-              G32(0x45C674) = v9;
+              G32(D4A_TBL_45C670) = G32(D4A_BEST_OFF);
+              G32(D4A_BEST_OFF) = v9;
               if ( v9 > 1 )
-                G32(0x45C64C) = v9;
+                G32(D4A_BEST_CNT) = v9;
             }
           }
           else
           {
-            G32(0x45C670) = v9;
+            G32(D4A_TBL_45C670) = v9;
           }
         }
       }
     }
-    if ( (unsigned int)++G32(0x45C66C) >= 0x28 )
+    if ( (unsigned int)++G32(D4A_TBL_45C66C) >= 0x28 )
     {
       v10 = 0;
       do
       {
         ++v10;
-        M32(0x4445A0 + ((v10) * 4)) = (unsigned int)M32(0x4445A0 + ((v10) * 4)) >> 1;
+        M32(D4A_TBL_4445A0 + ((v10) * 4)) = (unsigned int)M32(D4A_TBL_4445A0 + ((v10) * 4)) >> 1;
       }
       while ( v10 != 256 );
-      v11 = G32(0x45C674);
-      G32(0x45C66C) = 0;
-      ++M32(0x4445A4 + ((v11) * 4));
-      if ( v11 == 1 && (unsigned int)G32(0x4445A8) < 4 )
-        ++G32(0x4445A8);
+      v11 = G32(D4A_BEST_OFF);
+      G32(D4A_TBL_45C66C) = 0;
+      ++M32(D4A_TBL_4445A4 + ((v11) * 4));
+      if ( v11 == 1 && (unsigned int)G32(D4A_TBL_4445A8) < 4 )
+        ++G32(D4A_TBL_4445A8);
     }
-    M32(0x4455AC + ((v2) * 4)) = G32(0x45D110);
+    M32(D4A_TBL_4455AC + ((v2) * 4)) = G32(D4A_DICT_POS);
   }
-  if ( G8(0x45E392) )
-    M32(0x444DA4 + ((v2) * 4)) = G32(0x45D110) + 64;
-  if ( G8(0x45E390) )
+  if ( G8(D4A_PHASE) )
+    M32(D4A_TBL_444DA4 + ((v2) * 4)) = G32(D4A_DICT_POS) + 64;
+  if ( G8(D4A_MODEL_ID) )
   {
-    v12 = (v12 & ~0x000000FFU) | ((v2 - G8(0x45E38B)) & 0x000000FFU);
-    if ( G8(0x45E38E) )
+    v12 = (v12 & ~0x000000FFU) | ((v2 - G8(D4A_FLAG_45E38B)) & 0x000000FFU);
+    if ( G8(D4A_PRED_FLAG) )
       v12 = (v12 & ~0x000000FFU) | ((-(char)v12) & 0x000000FFU);
     if ( (unsigned char)v12 >= 0x80u )
-      G8(0x45E38E) = G8(0x45E38E) == 0;
-    if ( G8(0x45E390) == 1 )
+      G8(D4A_PRED_FLAG) = G8(D4A_PRED_FLAG) == 0;
+    if ( G8(D4A_MODEL_ID) == 1 )
     {
-      G32(0x45AE20) = (unsigned char)M8(0x424B3C + ((unsigned char)v12))
-                   + 16 * (unsigned char)M8(0x424B2C + (((unsigned char)G32(0x45AE20) - 9) & 0xF))
+      G32(D4A_TRI2_TOTAL_NEXT) = (unsigned char)M8(D4A_DELTA_LUT2 + ((unsigned char)v12))
+                   + 16 * (unsigned char)M8(D4A_DELTA_LUT + (((unsigned char)G32(D4A_TRI2_TOTAL_NEXT) - 9) & 0xF))
                    + 521;
     }
     else
     {
-      v13 = 16 * G32(0x45AE2C);
-      if ( G8(0x45E390) == 2 )
+      v13 = 16 * G32(D4A_MOD_CNT);
+      if ( G8(D4A_MODEL_ID) == 2 )
       {
-        v14 = v13 + (unsigned char)M8(0x424B3C + ((unsigned char)v12)) + 553;
+        v14 = v13 + (unsigned char)M8(D4A_DELTA_LUT2 + ((unsigned char)v12)) + 553;
       }
-      else if ( G8(0x45E390) == 3 )
+      else if ( G8(D4A_MODEL_ID) == 3 )
       {
-        if ( G8(0x45E389) )
+        if ( G8(D4A_FLAG_45E389) )
         {
-          v12 = v2 - ((unsigned int)G32(0x45D0F8) >> 16);
-          G8(0x45E38E) = G8(0x45E38F);
-          if ( G8(0x45E38F) )
+          v12 = v2 - ((unsigned int)G32(D4A_CTX_W0) >> 16);
+          G8(D4A_PRED_FLAG) = G8(D4A_FLAG_45E38F);
+          if ( G8(D4A_FLAG_45E38F) )
             v12 = (v12 & ~0x000000FFU) | ((-(char)v12) & 0x000000FFU);
           if ( (unsigned char)v12 >= 0x80u )
-            G8(0x45E38E) = G8(0x45E38E) == 0;
+            G8(D4A_PRED_FLAG) = G8(D4A_PRED_FLAG) == 0;
         }
-        v15 = (unsigned char)G8(0x45E38A);
-        if ( v2 == M8(0x45D160 + ((unsigned char)G8(0x45E38A))) )
-          ++M32(0x44316C + ((v15) * 4));
+        v15 = (unsigned char)G8(D4A_FLAG_45E38A);
+        if ( v2 == M8(D4A_TBL_45D160 + ((unsigned char)G8(D4A_FLAG_45E38A))) )
+          ++M32(D4A_TBL_44316C + ((v15) * 4));
         else
-          M32(0x44316C + ((v15) * 4)) = (unsigned int)M32(0x44316C + ((v15) * 4)) >> 1;
-        v14 = (unsigned char)M8(0x424C3C + ((unsigned char)v12)) + 32 * G32(0x45AE2C) + 585;
+          M32(D4A_TBL_44316C + ((v15) * 4)) = (unsigned int)M32(D4A_TBL_44316C + ((v15) * 4)) >> 1;
+        v14 = (unsigned char)M8(D4A_DELTA_LUT3 + ((unsigned char)v12)) + 32 * G32(D4A_MOD_CNT) + 585;
       }
       else
       {
-        if ( G8(0x45E390) != 4 )
+        if ( G8(D4A_MODEL_ID) != 4 )
         {
           d4_413347(c, v2, v12);
           goto LABEL_61;
         }
-        v14 = v13 + (unsigned char)M8(0x424B3C + ((unsigned char)v12)) + 681;
+        v14 = v13 + (unsigned char)M8(D4A_DELTA_LUT2 + ((unsigned char)v12)) + 681;
       }
-      G32(0x45AE20) = v14;
+      G32(D4A_TRI2_TOTAL_NEXT) = v14;
     }
   }
 LABEL_61:
-  ++G32(0x45AE1C);
-  ++G32(0x45C6B0);
-  if ( G8(0x45E392) || v2 < 4u || v2 > 6u )
+  ++G32(D4A_OUT_COUNT);
+  ++G32(D4A_TBL_45C6B0);
+  if ( G8(D4A_PHASE) || v2 < 4u || v2 > 6u )
   {
-    G32(0x45D100) = ((unsigned int)G32(0x45D0FC) >> 24) + (G32(0x45D100) << 8);
-    G32(0x45D0FC) = ((unsigned int)G32(0x45D0F8) >> 24) + (G32(0x45D0FC) << 8);
-    G32(0x45D0F8) = v2 + (G32(0x45D0F8) << 8);
+    G32(D4A_CTX_W2) = ((unsigned int)G32(D4A_CTX_W1) >> 24) + (G32(D4A_CTX_W2) << 8);
+    G32(D4A_CTX_W1) = ((unsigned int)G32(D4A_CTX_W0) >> 24) + (G32(D4A_CTX_W1) << 8);
+    G32(D4A_CTX_W0) = v2 + (G32(D4A_CTX_W0) << 8);
   }
-  else if ( (unsigned char)G32(0x45D0F8) != 0xDF )   /* asm 0x40F733: cmp byte [45D0F8],0xdf / je skip */
+  else if ( (unsigned char)G32(D4A_CTX_W0) != 0xDF )   /* asm 0x40F733: cmp byte [45D0F8],0xdf / je skip */
   {
-    G32(0x45D100) = ((unsigned int)G32(0x45D0FC) >> 24) + (G32(0x45D100) << 8);
-    G32(0x45D0FC) = ((unsigned int)G32(0x45D0F8) >> 24) + (G32(0x45D0FC) << 8);
-    G32(0x45D0F8) = (G32(0x45D0F8) << 8) + 223;
+    G32(D4A_CTX_W2) = ((unsigned int)G32(D4A_CTX_W1) >> 24) + (G32(D4A_CTX_W2) << 8);
+    G32(D4A_CTX_W1) = ((unsigned int)G32(D4A_CTX_W0) >> 24) + (G32(D4A_CTX_W1) << 8);
+    G32(D4A_CTX_W0) = (G32(D4A_CTX_W0) << 8) + 223;
   }
-  if ( G8(0x45E390) )
+  if ( G8(D4A_MODEL_ID) )
   {
-    v16 = G32(0x45AE2C);
-    G32(0x45AE2C) = G32(0x45AE1C) % (unsigned int)G32(0x45AE24);
-    G8(0x45E38B) = (unsigned int)G32(0x45D0F8) >> G8(0x45E38C);
-    if ( G8(0x45E390) == 3 )
+    v16 = G32(D4A_MOD_CNT);
+    G32(D4A_MOD_CNT) = G32(D4A_OUT_COUNT) % (unsigned int)G32(D4A_TRI2_RANGE_NEXT);
+    G8(D4A_FLAG_45E38B) = (unsigned int)G32(D4A_CTX_W0) >> G8(D4A_FLAG_45E38C);
+    if ( G8(D4A_MODEL_ID) == 3 )
     {
-      G8(0x45E38A) = G32(0x45AE1C) % 6u;
-      v17 = G32(0x45AE1C) % 6u;
-      v18 = (unsigned int)M32(0x44316C + ((v17) * 4)) > 8;
-      M8(0x45D160 + (v17)) = G8(0x45E38B) + G32(0x45D0F8) - BYTE3(G32(0x45D0F8));
-      v19 = v18 && (unsigned int)G32(0x45AE18) < 5;
-      G8(0x45E389) = v19;
+      G8(D4A_FLAG_45E38A) = G32(D4A_OUT_COUNT) % 6u;
+      v17 = G32(D4A_OUT_COUNT) % 6u;
+      v18 = (unsigned int)M32(D4A_TBL_44316C + ((v17) * 4)) > 8;
+      M8(D4A_TBL_45D160 + (v17)) = G8(D4A_FLAG_45E38B) + G32(D4A_CTX_W0) - BYTE3(G32(D4A_CTX_W0));
+      v19 = v18 && (unsigned int)G32(D4A_TBL_45AE18) < 5;
+      G8(D4A_FLAG_45E389) = v19;
       if ( v19 )
       {
-        G8(0x45E38F) = G8(0x45E38E);
-        G32(0x45AE20) = 32 * v16 + 601;
-        v20 = M8(0x45D160 + ((unsigned char)G8(0x45E38A)));
-        G8(0x45E38E) = 0;
-        G8(0x45E38B) = v20;
+        G8(D4A_FLAG_45E38F) = G8(D4A_PRED_FLAG);
+        G32(D4A_TRI2_TOTAL_NEXT) = 32 * v16 + 601;
+        v20 = M8(D4A_TBL_45D160 + ((unsigned char)G8(D4A_FLAG_45E38A)));
+        G8(D4A_PRED_FLAG) = 0;
+        G8(D4A_FLAG_45E38B) = v20;
       }
       if ( v18 )
-        ++G32(0x45AE18);
+        ++G32(D4A_TBL_45AE18);
       else
-        G32(0x45AE18) = 0;
+        G32(D4A_TBL_45AE18) = 0;
     }
-    else if ( (unsigned char)G8(0x45E390) >= 5u )
+    else if ( (unsigned char)G8(D4A_MODEL_ID) >= 5u )
     {
       d4_412FFA(c);
     }
   }
-  c->p_150 = c->p_698 + (((unsigned int)G32(0x45D0F8) >> 16) & 0xFF00) + ((unsigned int)G32(0x45D0FC) >> 24);
-  c->p_158 = c->p_698 + (((unsigned int)G32(0x45D0F8) >> 8) & 0xFF00) + 0x20000 + (unsigned char)G32(0x45D0F8);
-  v21 = (unsigned char)G32(0x45D0FC) + (((unsigned short)G32(0x45D0F8) << 8) & 0xFF00) + 196608;
+  c->p_150 = c->p_698 + (((unsigned int)G32(D4A_CTX_W0) >> 16) & 0xFF00) + ((unsigned int)G32(D4A_CTX_W1) >> 24);
+  c->p_158 = c->p_698 + (((unsigned int)G32(D4A_CTX_W0) >> 8) & 0xFF00) + 0x20000 + (unsigned char)G32(D4A_CTX_W0);
+  v21 = (unsigned char)G32(D4A_CTX_W1) + (((unsigned short)G32(D4A_CTX_W0) << 8) & 0xFF00) + 196608;
   result = v21 + c->p_698;
-  c->p_154 = c->p_698 + (unsigned short)((unsigned int)G32(0x45D0F8) >> 8) + 0x10000;
+  c->p_154 = c->p_698 + (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 8) + 0x10000;
   c->p_15c = v21 + c->p_698;
   return result;
 }
@@ -4624,20 +4625,20 @@ static int d4_40F962(dec4_ctx *c, void *a1, int a2)
 
   d4_419A4D(c);
   d4_413A96(c);
-  D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(0x45E392), G32(0x4228BE), G32(0x45D13C), G32(0x45D12C), G32(0x434514), c->p_prog);
+  D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(D4A_PHASE), G32(D4A_HDR_SIZE), G32(D4A_NEXT_BLK), G32(D4A_BLK_END), G32(D4A_OUT_TOTAL), c->p_prog);
   do
   {
-    if ( G32(0x434528) >= (unsigned int)G32(0x45D13C) )
+    if ( G32(D4A_OUT_POS) >= (unsigned int)G32(D4A_NEXT_BLK) )
       d4_40D6D1(c);
-    if ( G32(0x434528) >= (unsigned int)G32(0x45D12C) )
+    if ( G32(D4A_OUT_POS) >= (unsigned int)G32(D4A_BLK_END) )
       d4_40DEB6(c);
     if ( !d4_40F9D0(c, a2) )
       d4_41030F(c);
-    if ( !(G32(0x434528) & 0xF) )
+    if ( !(G32(D4A_OUT_POS) & 0xF) )
       d4_40819B(c);
-    result = G32(0x434528);
+    result = G32(D4A_OUT_POS);
   }
-  while ( (unsigned int)G32(0x434528) < G32(0x434514) && !G32(0x422B90) );
+  while ( (unsigned int)G32(D4A_OUT_POS) < G32(D4A_OUT_TOTAL) && !G32(D4A_IO_ERR) );
   return result;
 }
 
@@ -4689,11 +4690,11 @@ static char d4_40F9D0(dec4_ctx *c, int a1)
   unsigned char v44;
   unsigned char v45;
 
-  v38 = (G32(0x45D0F8) ^ ((unsigned int)G32(0x45D0F8) >> 13)) & 0x3FFFF;
+  v38 = (G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x3FFFF;
   v36 = 8 * v38 + c->p_h1;
   v1 = (8
-                      * ((((G32(0x45D0FC) ^ ((unsigned int)G32(0x45D0FC) >> 15)) << 6) ^ 16
-                                                                                     * (G32(0x45D0F8) ^ ((unsigned int)G32(0x45D0F8) >> 15)) ^ G32(0x45D100) ^ ((unsigned int)G32(0x45D100) >> 15)) & 0x3FFFF)
+                      * ((((G32(D4A_CTX_W1) ^ ((unsigned int)G32(D4A_CTX_W1) >> 15)) << 6) ^ 16
+                                                                                     * (G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 15)) ^ G32(D4A_CTX_W2) ^ ((unsigned int)G32(D4A_CTX_W2) >> 15)) & 0x3FFFF)
                       + 4
                       + c->p_h2);
   v42 = 0;
@@ -4702,17 +4703,17 @@ static char d4_40F9D0(dec4_ctx *c, int a1)
   v43 = 2;
   v40 = M8(c->p_694 + v38);
   c->p_148 = c->p_694 + v38;
-  v35 = G32(0x45D110);
-  if ( (unsigned int)G32(0x45D110) < 0x40 )
-    v35 = G32(0x45D10C) + G32(0x45D110);
+  v35 = G32(D4A_DICT_POS);
+  if ( (unsigned int)G32(D4A_DICT_POS) < 0x40 )
+    v35 = G32(D4A_DICT_SIZE) + G32(D4A_DICT_POS);
   while ( 1 )
   {
     v2 = M32(v1);
     --v43;
-    if ( M32(v1) != -1 && (G32(0x45D118) & (v2 - G32(0x45D110))) >= 0x140 )
+    if ( M32(v1) != -1 && (G32(D4A_DICT_MASK) & (v2 - G32(D4A_DICT_POS))) >= 0x140 )
     {
       if ( v2 < 0x40 )
-        v2 += G32(0x45D10C);
+        v2 += G32(D4A_DICT_SIZE);
       if ( M8(v35 + c->p_dict - 12) == M8(c->p_dict + v2 - 12) )
       {
         v3 = (c->p_dict + v2 - 1);
@@ -4781,17 +4782,17 @@ LABEL_23:
     M32(v1) = M32(v1 - 4);
     v1 -= 4;
   }
-  v8 = G32(0x45D110);
-  M32(v1) = G32(0x45D110);
-  if ( G32(0x45D114) )
+  v8 = G32(D4A_DICT_POS);
+  M32(v1) = G32(D4A_DICT_POS);
+  if ( G32(D4A_TBL_45D114) )
   {
-    a1 = (v8 - G32(0x45D130)) & G32(0x45D118);
+    a1 = (v8 - G32(D4A_TBL_45D130)) & G32(D4A_DICT_MASK);
     v41 = 1;
-    v42 = ((unsigned int)G32(0x45D114) > 2) + 80;
+    v42 = ((unsigned int)G32(D4A_TBL_45D114) > 2) + 80;
   }
   else
   {
-    if ( (unsigned int)G32(0x45D134) >= 0x10 )
+    if ( (unsigned int)G32(D4A_TBL_45D134) >= 0x10 )
       v9 = 12;
     else
       v9 = 48;
@@ -4803,18 +4804,18 @@ LABEL_23:
   }
   if ( !v42 )
   {
-    a1 = (G32(0x45D110) - G32(0x45D130)) & G32(0x45D118);
-    if ( (G32(0x45D118) & (unsigned int)(a1 - G32(0x45D110))) < 0x104
-      || ((v10 = (int)((G32(0x45D118) & (a1 - 4)) + c->p_dict),
+    a1 = (G32(D4A_DICT_POS) - G32(D4A_TBL_45D130)) & G32(D4A_DICT_MASK);
+    if ( (G32(D4A_DICT_MASK) & (unsigned int)(a1 - G32(D4A_DICT_POS))) < 0x104
+      || ((v10 = (int)((G32(D4A_DICT_MASK) & (a1 - 4)) + c->p_dict),
            v37 = ((unsigned)M8(v10) << 24) | ((unsigned)M8(v10 + 1) << 16)
                | ((unsigned)M8(v10 + 2) << 8) | (unsigned)M8(v10 + 3),
-           (v37 & 0xFFFFU) != (G32(0x45D0F8) & 0xFFFFU))
-          && ((v37 & 0xFFFF00FFU) != (G32(0x45D0F8) & 0xFFFF00FFU))
-          && ((v37 & 0xFFFFFF00U) != (G32(0x45D0F8) & 0xFFFFFF00U)) ) )
+           (v37 & 0xFFFFU) != (G32(D4A_CTX_W0) & 0xFFFFU))
+          && ((v37 & 0xFFFF00FFU) != (G32(D4A_CTX_W0) & 0xFFFF00FFU))
+          && ((v37 & 0xFFFFFF00U) != (G32(D4A_CTX_W0) & 0xFFFFFF00U)) ) )
     {
       if ( v40 < 0x40u || M8(v38 + c->p_690) )
       {
-        if ( M32(v36 + 4) == G32(0x45D0F8) )
+        if ( M32(v36 + 4) == G32(D4A_CTX_W0) )
         {
           a1 = M32(v36);
           v42 = M32(v36) != -1;
@@ -4832,116 +4833,116 @@ LABEL_23:
     }
   }
 LABEL_46:
-  M32(v36) = G32(0x45D110);
-  M32(v36 + 4) = G32(0x45D0F8);
-  if ( !v42 || (G32(0x45D118) & (unsigned int)(a1 - G32(0x45D110))) < 0x100 )
+  M32(v36) = G32(D4A_DICT_POS);
+  M32(v36 + 4) = G32(D4A_CTX_W0);
+  if ( !v42 || (G32(D4A_DICT_MASK) & (unsigned int)(a1 - G32(D4A_DICT_POS))) < 0x100 )
     goto LABEL_88;
-  if ( !G32(0x45D114) )
+  if ( !G32(D4A_TBL_45D114) )
   {
     if ( M8(v38 + c->p_690) )
       v15 = -1;
     else
       v15 = 39;
-    v42 += v15 + G8(0x45E3A2);
+    v42 += v15 + G8(D4A_FLAG_45E3A2);
   }
-  if ( G32(0x45D11C) && M8(G32(0x45D11C)) == M8(a1 + c->p_dict) )
+  if ( G32(D4A_TBL_45D11C) && M8(G32(D4A_TBL_45D11C)) == M8(a1 + c->p_dict) )
   {
     d4_40E810(c, v42, 2u);
     goto LABEL_87;
   }
   if ( d4_41013C(c, v42) != 1 )
   {
-    ++G32(0x45D134);
+    ++G32(D4A_TBL_45D134);
 LABEL_87:
     M8(v38 + c->p_690) = 0;
 LABEL_88:
-    G32(0x45D114) = 0;
+    G32(D4A_TBL_45D114) = 0;
     return 0;
   }
   v34 = 14;
-  v16 = 4 * G32(0x45D120);
-  v17 = G32(0x45D118) & (G32(0x45D110) - a1);
+  v16 = 4 * G32(D4A_FREQ_C);
+  v17 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - a1);
   if ( v41 )
   {
-    v18 = M8(0x424280 + (v16 / G32(0x45D138)));
+    v18 = M8(D4A_LEN_LUT_B + (v16 / G32(D4A_FREQ_B)));
   }
   else
   {
-    if ( G32(0x45D104) <= (unsigned int)G32(0x45D138) )
+    if ( G32(D4A_FREQ_A) <= (unsigned int)G32(D4A_FREQ_B) )
     {
-      v44 = M8(0x424290 + (v16 / G32(0x45D138))) - G8(0x45E392);
-      if ( G8(0x45E3A0) )
+      v44 = M8(D4A_LEN_LUT_C + (v16 / G32(D4A_FREQ_B))) - G8(D4A_PHASE);
+      if ( G8(D4A_FLAG_45E3A0) )
         v44 *= 2;
       goto LABEL_63;
     }
-    v18 = M8(0x424270 + (4 * G32(0x45D104) / (unsigned int)G32(0x45D138)));
+    v18 = M8(D4A_LEN_LUT_A + (4 * G32(D4A_FREQ_A) / (unsigned int)G32(D4A_FREQ_B)));
   }
   v44 = v18;
 LABEL_63:
   if ( v41 )
-    v19 = (G32(0x45D114) != 0) + 3 + ((unsigned int)G32(0x45D114) > 2);
+    v19 = (G32(D4A_TBL_45D114) != 0) + 3 + ((unsigned int)G32(D4A_TBL_45D114) > 2);
   else
     v19 = (M8(v38 + c->p_690) > 0xEu) + (M8(v38 + c->p_690) > 0x3Eu);
-  v33 = (0x446464) + 1024 * v19;
+  v33 = (D4A_TBL_446464) + 1024 * v19;
   do
   {
     v45 = v34 + 1;
     if ( v44 < (unsigned char)(v34 + 1) )
     {
-      G32(0x45C67C) = 4096;
-      G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x1000u);
+      G32(D4A_TRI_TOTAL) = 4096;
+      G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0x1000u);
       v20 = v33 + (4 * v34);
-      if ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) >= (unsigned int)M32(v20) )
+      if ( (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) >= (unsigned int)M32(v20) )
       {
-        G32(0x45C680) = M32(v20);
-        G32(0x45C684) = 4096;
-        M32(v20) -= (unsigned int)G32(0x45C680) >> 4;
+        G32(D4A_TRI_LOW) = M32(v20);
+        G32(D4A_TRI_HIGH) = 4096;
+        M32(v20) -= (unsigned int)G32(D4A_TRI_LOW) >> 4;
       }
       else
       {
         v45 = v34;
-        G32(0x45C684) = M32(v20);
+        G32(D4A_TRI_HIGH) = M32(v20);
         v21 = (unsigned int)(4096 - M32(v20)) >> 4;
-        G32(0x45C680) = 0;
+        G32(D4A_TRI_LOW) = 0;
         M32(v20) += v21;
       }
-      v22 = M32(0x45C67C + (1) * 4);
-      v23 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v22);
-      i = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v22);
+      v22 = M32(D4A_TRI_TOTAL + (1) * 4);
+      v23 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v22);
+      i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v22);
   while (v23 && v23 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v23 = (v23 << 8) & 0xFFFFFFFFU;
   }
-      G32(0x4749D8) = (int)i;
-      G32(0x4749DC) = v23;
+      G32(D4A_RC_CODE) = (int)i;
+      G32(D4A_RC_RANGE) = v23;
     }
-    v34 = *(&M8(0x4242A0 + (2 * v34)) + (v45 > v34));
+    v34 = *(&M8(D4A_LEN_NEXT + (2 * v34)) + (v45 > v34));
   }
   while ( v34 );
-  if ( v17 == G32(0x45D130) )
+  if ( v17 == G32(D4A_TBL_45D130) )
   {
-    G32(0x45D134) = (unsigned int)G32(0x45D134) >> 1;
+    G32(D4A_TBL_45D134) = (unsigned int)G32(D4A_TBL_45D134) >> 1;
   }
   else
   {
-    G32(0x45D130) = v17;
-    G32(0x45D134) += v45;
+    G32(D4A_TBL_45D130) = v17;
+    G32(D4A_TBL_45D134) += v45;
   }
   M8(v38 + c->p_690) = v45;
   if ( v45 == 0xFF )   /* asm 0x40FF2E: cmp dl,0xff (v45 is unsigned char) */
   {
-    G32(0x45D11C) = 0;
-    ++G32(0x45D114);
+    G32(D4A_TBL_45D11C) = 0;
+    ++G32(D4A_TBL_45D114);
   }
   else
   {
-    G32(0x45D114) = 0;
-    G32(0x45D11C) = (G32(0x45D118) & (a1 + v45)) + c->p_dict;
+    G32(D4A_TBL_45D114) = 0;
+    G32(D4A_TBL_45D11C) = (G32(D4A_DICT_MASK) & (a1 + v45)) + c->p_dict;
   }
 #ifdef D4MATCHDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "MATCH out=%u a1=%u len=%u\n",
-        G32(0x434528), (unsigned)a1, (unsigned)(unsigned char)v45);
+        G32(D4A_OUT_POS), (unsigned)a1, (unsigned)(unsigned char)v45);
 #endif
   do
   {
@@ -4949,14 +4950,14 @@ LABEL_63:
     d4_40FFFD(c, M8(c->p_dict + a1));
     d4_40F39A(c, v28, v45 <= 8u);
     v30 = c->p_dict;
-    v31 = G32(0x45D110);
+    v31 = G32(D4A_DICT_POS);
     /* asm 0x40FF97/0x40FFA7: both writes store the byte just copied (cl),
      * which Hex-Rays left as the never assigned v29. */
-    M8(c->p_dict + G32(0x45D110)) = v28;
+    M8(c->p_dict + G32(D4A_DICT_POS)) = v28;
     if ( v31 < 0x100 )
-      M8(v30 + G32(0x45D10C) + v31) = v28;
-    a1 = G32(0x45D118) & (a1 + 1);
-    G32(0x45D110) = G32(0x45D118) & (G32(0x45D110) + 1);
+      M8(v30 + G32(D4A_DICT_SIZE) + v31) = v28;
+    a1 = G32(D4A_DICT_MASK) & (a1 + 1);
+    G32(D4A_DICT_POS) = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) + 1);
     --v45;
   }
   while ( v45 );
@@ -4975,60 +4976,60 @@ static int d4_40FFFD(dec4_ctx *c, char a1)
 
   v1 = ~a1;
 #ifdef D4QDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI) {
-    unsigned r6 = 4 * M32(0x446044 + 6 * 4) + M32(0x42369C + 6 * 4);
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI) {
+    unsigned r6 = 4 * M32(D4A_TBL_446044 + 6 * 4) + M32(D4A_TBL_42369C + 6 * 4);
     fprintf(stderr, "Q|out=%u|c640=%u|c654=%u|c648=%u|e39c=%u|r6=%u %u %u %u|h=%u %u %u %u\n",
-        G32(0x434528), M32(0x45C640), G32(0x45C654), G32(0x45C648), G8(0x45E39C),
+        G32(D4A_OUT_POS), M32(D4A_COST_ACCUM), G32(D4A_COST_GATE), G32(D4A_COST_TMP), G8(D4A_HIST_LEN),
         (unsigned)M8(r6), (unsigned)M8(r6+1), (unsigned)M8(r6+2), (unsigned)M8(r6+3),
-        (unsigned)M8(0x45DD6E), (unsigned)M8(0x45DD6E + 1),
-        (unsigned)M8(0x45DD6E + 2), (unsigned)M8(0x45DD6E + 3));
+        (unsigned)M8(D4A_HIST_SYMS), (unsigned)M8(D4A_HIST_SYMS + 1),
+        (unsigned)M8(D4A_HIST_SYMS + 2), (unsigned)M8(D4A_HIST_SYMS + 3));
   }
 #endif
 #ifdef D4FFFDDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "CR out=%u code=%u range=%u\n",
-        G32(0x434528), G32(0x4749D8), G32(0x4749DC));
+        G32(D4A_OUT_POS), G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
 #endif
 #ifdef D4TRIDBG
   fprintf(stderr, "TRI out=%u c67c=%u c680=%u c684=%u\n",
-      G32(0x434528), G32(0x45C67C), G32(0x45C680), G32(0x45C684));
+      G32(D4A_OUT_POS), G32(D4A_TRI_TOTAL), G32(D4A_TRI_LOW), G32(D4A_TRI_HIGH));
 #endif
 #ifdef D4COSTDBG
   fprintf(stderr, "COST out=%u c640=%u c654=%u c648=%u\n",
-      G32(0x434528), M32(0x45C640), G32(0x45C654), G32(0x45C648));
+      G32(D4A_OUT_POS), M32(D4A_COST_ACCUM), G32(D4A_COST_GATE), G32(D4A_COST_TMP));
 #endif
 #ifdef D4MDLDBG
   {
-    unsigned mv2 = (unsigned)(c->p_684 + 20 * G32(0x45C69C));
+    unsigned mv2 = (unsigned)(c->p_684 + 20 * G32(D4A_ROW_CTX));
     fprintf(stderr, "MDL out=%u c69c=%u m0=%u m2=%u m9=%u m17=%u m18=%u\n",
-        G32(0x434528), G32(0x45C69C),
+        G32(D4A_OUT_POS), G32(D4A_ROW_CTX),
         (unsigned)M8(mv2), (unsigned)M8(mv2 + 2), (unsigned)M8(mv2 + 9),
         (unsigned)M8(mv2 + 17), (unsigned)M8(mv2 + 18));
   }
 #endif
 #ifdef D4W16DBG
-  fprintf(stderr, "W16 out=%u w=%u\n", G32(0x434528),
+  fprintf(stderr, "W16 out=%u w=%u\n", G32(D4A_OUT_POS),
       (unsigned)M16(c->p_6c0 + 781 * 512 + 144 * 2));
 #endif
 #ifdef D4CTXDBG
   fprintf(stderr, "CTX out=%u d0f8=%u d0fc=%u e3a0=%u c6a4=%u c69c=%u\n",
-      G32(0x434528), G32(0x45D0F8), G32(0x45D0FC), G8(0x45E3A0),
-      G32(0x45C6A4), G32(0x45C69C));
+      G32(D4A_OUT_POS), G32(D4A_CTX_W0), G32(D4A_CTX_W1), G8(D4A_FLAG_45E3A0),
+      G32(D4A_CTX_COPY), G32(D4A_ROW_CTX));
 #endif
 #ifdef D4FFFDDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "FFFD out=%u a1=%d v1u=%u v4=%u e39b=%u\n",
-        G32(0x434528), (int)a1, (unsigned)(unsigned char)v1,
-        (unsigned)(unsigned char)M8(0x42711F + ((unsigned char)v1)), G8(0x45E39B));
+        G32(D4A_OUT_POS), (int)a1, (unsigned)(unsigned char)v1,
+        (unsigned)(unsigned char)M8(D4A_DECODE_MAP + ((unsigned char)v1)), G8(D4A_ESCAPE_FLAG));
 #endif
-  if ( G8(0x45E39B) == 1 )
+  if ( G8(D4A_ESCAPE_FLAG) == 1 )
   {
-    G8(0x45E39B) = 0;
-    if ( G32(0x434528) < (unsigned int)G32(0x45D124) )
+    G8(D4A_ESCAPE_FLAG) = 0;
+    if ( G32(D4A_OUT_POS) < (unsigned int)G32(D4A_TBL_45D124) )
     {
       /* asm 0x410068: movzx edx,dl - the pending byte is a table index
        * (unsigned); a signed char v1 walks backwards into 42711F. */
-      v2 = *(&M8(0x427179 + (11 * ((unsigned char)G8(0x45E39E) - 166))) + (unsigned char)v1);
+      v2 = *(&M8(D4A_PENDING_TAB + (11 * ((unsigned char)G8(D4A_FLAG_45E39E) - 166))) + (unsigned char)v1);
       return d4_40B178(c, v2);
     }
     if ( v1 == -2 )
@@ -5044,38 +5045,38 @@ LABEL_7:
     v2 = v1;
     return d4_40B178(c, v2);
   }
-  result = G32(0x434528);
-  if ( G32(0x434528) < (unsigned int)G32(0x45D124) || v1 != -2 )
+  result = G32(D4A_OUT_POS);
+  if ( G32(D4A_OUT_POS) < (unsigned int)G32(D4A_TBL_45D124) || v1 != -2 )
   {
-    result = G32(0x434528);
-    if ( G32(0x434528) >= (unsigned int)G32(0x4228BE) || (unsigned char)v1 < 0x80u && !G8(0x45E39B) )
+    result = G32(D4A_OUT_POS);
+    if ( G32(D4A_OUT_POS) >= (unsigned int)G32(D4A_HDR_SIZE) || (unsigned char)v1 < 0x80u && !G8(D4A_ESCAPE_FLAG) )
       goto LABEL_7;
-    v4 = M8(0x42711F + ((unsigned char)v1));
+    v4 = M8(D4A_DECODE_MAP + ((unsigned char)v1));
     if ( (unsigned char)v4 >= 0xC8u )
     {
-      result = d4_40B178(c, v1 - G8(0x45E39B));
-      G8(0x45E39B) = 0;
+      result = d4_40B178(c, v1 - G8(D4A_ESCAPE_FLAG));
+      G8(D4A_ESCAPE_FLAG) = 0;
     }
     else if ( v4 == 100 )
     {
-      G8(0x45E39B) = 1;
-      G8(0x45E39E) = v1;
+      G8(D4A_ESCAPE_FLAG) = 1;
+      G8(D4A_FLAG_45E39E) = v1;
     }
     else if ( v4 == 99 )
     {
-      G8(0x45E39B) = 32;
+      G8(D4A_ESCAPE_FLAG) = 32;
     }
     else
     {
       v5 = (unsigned char)v4;
-      v6 = M32(0x426AC3 + ((unsigned char)v4) * 4);
-      v7 = M8(0x426C53 + (v5));
-      if ( G8(0x45E39B) )
+      v6 = M32(D4A_SDI_PTR + ((unsigned char)v4) * 4);
+      v7 = M8(D4A_SDI_LEN + (v5));
+      if ( G8(D4A_ESCAPE_FLAG) )
       {
         --v7;
         d4_40B178(c, ~M8(v6) - 32);
         ++v6;
-        G8(0x45E39B) = 0;
+        G8(D4A_ESCAPE_FLAG) = 0;
       }
       do
       {
@@ -5088,7 +5089,7 @@ LABEL_7:
   }
   else
   {
-    G8(0x45E39B) = 1;
+    G8(D4A_ESCAPE_FLAG) = 1;
   }
   return result;
 }
@@ -5119,60 +5120,60 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
 
   while ( 1 )
   {
-    if (++guard > 8) { G32(0x422B90) = 3; return 0; }
+    if (++guard > 8) { G32(D4A_IO_ERR) = 3; return 0; }
     v21 = a1;
-    v1 = (0x445DB4) + 8 * a1 + 6;
+    v1 = (D4A_TBL_445DB4) + 8 * a1 + 6;
     v20 = 3;
-    G32(0x45C67C) = M16(v1);
-    G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), (unsigned int)G32(0x45C67C));
+    G32(D4A_TRI_TOTAL) = M16(v1);
+    G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), (unsigned int)G32(D4A_TRI_TOTAL));
     do
     {
       v1 -= 2;
       --v20;
     }
-    while ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) < M16(v1) && v20 );
-    G32(0x45C680) = M16(v1);
-    G32(0x45C684) = M16(v1 + 2);
-    v2 = M32(0x45C67C + (1) * 4);
-    v3 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v2);
-    i = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v2);
+    while ( (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) < M16(v1) && v20 );
+    G32(D4A_TRI_LOW) = M16(v1);
+    G32(D4A_TRI_HIGH) = M16(v1 + 2);
+    v2 = M32(D4A_TRI_TOTAL + (1) * 4);
+    v3 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v2);
+    i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v2);
   while (v3 && v3 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v3 = (v3 << 8) & 0xFFFFFFFFU;
   }
-    G32(0x4749D8) = (int)i;
-    G32(0x4749DC) = v3;
+    G32(D4A_RC_CODE) = (int)i;
+    G32(D4A_RC_RANGE) = v3;
     if ( v20 )
       break;
-    G32(0x45C67C) = 10;
-    G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0xAu);
-    v8 = (unsigned)d4_div(G32(0x4749D8), G32(0x4749DC));
-    v9 = (unsigned char)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC)));
-    G32(0x45C680) = (unsigned char)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC)));
-    G32(0x45C684) = v9 + 1;
-    v10 = M32(0x45C67C + (1) * 4);
-    v11 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v10);
-    j = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v10);
+    G32(D4A_TRI_TOTAL) = 10;
+    G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0xAu);
+    v8 = (unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
+    v9 = (unsigned char)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE)));
+    G32(D4A_TRI_LOW) = (unsigned char)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE)));
+    G32(D4A_TRI_HIGH) = v9 + 1;
+    v10 = M32(D4A_TRI_TOTAL + (1) * 4);
+    v11 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v10);
+    j = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v10);
   while (v11 && v11 < 0x1000000) {
     j = ((unsigned long)((unsigned long)j << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v11 = (v11 << 8) & 0xFFFFFFFFU;
   }
-    G32(0x4749D8) = (int)j;
-    G32(0x4749DC) = v11;
-    if ( (unsigned char)v8 != G8(0x45E390) )
+    G32(D4A_RC_CODE) = (int)j;
+    G32(D4A_RC_RANGE) = v11;
+    if ( (unsigned char)v8 != G8(D4A_MODEL_ID) )
     {
-      G8(0x45E390) = v8;
-      v16 = M32(0x4246A0 + ((v9) * 4));
-      G32(0x45AE20) = M32(0x4246C8 + ((v9) * 4));
-      v17 = M8(0x424718 + (v9));
-      G32(0x45AE24) = v16;
-      G8(0x45E38C) = v17;
+      G8(D4A_MODEL_ID) = v8;
+      v16 = M32(D4A_TRI2_RANGE + ((v9) * 4));
+      G32(D4A_TRI2_TOTAL_NEXT) = M32(D4A_TRI2_TOTAL + ((v9) * 4));
+      v17 = M8(D4A_TRI2_IDX + (v9));
+      G32(D4A_TRI2_RANGE_NEXT) = v16;
+      G8(D4A_FLAG_45E38C) = v17;
       v18 = (unsigned char)v8 == 5 || (unsigned char)v8 == 6;
-      G8(0x45E38E) = 0;
-      G8(0x45E38B) = 0;
-      G32(0x45AE2C) = 0;
-      G8(0x45E38D) = v18;
-      if ( (unsigned char)G8(0x45E390) > 4u )
+      G8(D4A_PRED_FLAG) = 0;
+      G8(D4A_FLAG_45E38B) = 0;
+      G32(D4A_MOD_CNT) = 0;
+      G8(D4A_FLAG_45E38D) = v18;
+      if ( (unsigned char)G8(D4A_MODEL_ID) > 4u )
         d4_412FB0(c);
     }
     a1 = v21;
@@ -5420,66 +5421,66 @@ static int d4_41030F(dec4_ctx *c)
 
   v208 = 1;
   v211 = 1;
-  v209 = G8(0x45E392);
-  if ( G8(0x45E3A0) == 2 )
-    G32(0x45C6A4) = (G32(0x45D0FC) & 0xFF000000)
-                 + ((G32(0x45D0FC) << 8) & 0xFF0000)
-                 + (((unsigned int)G32(0x45D0F8) >> 16) & 0xFF00)
-                 + ((unsigned short)G32(0x45D0F8) >> 8);
+  v209 = G8(D4A_PHASE);
+  if ( G8(D4A_FLAG_45E3A0) == 2 )
+    G32(D4A_CTX_COPY) = (G32(D4A_CTX_W1) & 0xFF000000)
+                 + ((G32(D4A_CTX_W1) << 8) & 0xFF0000)
+                 + (((unsigned int)G32(D4A_CTX_W0) >> 16) & 0xFF00)
+                 + ((unsigned short)G32(D4A_CTX_W0) >> 8);
   else
-    G32(0x45C6A4) = G32(0x45D0F8);
-  if ( (G32(0x45C6A4) & 0xC0) == 192 )
+    G32(D4A_CTX_COPY) = G32(D4A_CTX_W0);
+  if ( (G32(D4A_CTX_COPY) & 0xC0) == 192 )
     v0 = 16;
   else
     v0 = 0;
   v163 = v0;
-  G32(0x45C694) = ((unsigned short)G32(0x45C6A4) ^ (unsigned short)((unsigned int)G32(0x45C6A4) >> 13)) & 0x7FFF;
-  if ( G8(0x45E392) || !M8(0x42738D + ((unsigned char)((unsigned int)G32(0x45C6A4) >> 16))) )
+  G32(D4A_COL_IDX) = ((unsigned short)G32(D4A_CTX_COPY) ^ (unsigned short)((unsigned int)G32(D4A_CTX_COPY) >> 13)) & 0x7FFF;
+  if ( G8(D4A_PHASE) || !M8(D4A_HASH_ENABLE + ((unsigned char)((unsigned int)G32(D4A_CTX_COPY) >> 16))) )
     v1 = 0;
   else
     v1 = 0x10000;
-  G32(0x45C69C) = v1 + (unsigned short)G32(0x45C6A4);
-  G8(0x45E394) = 0;
-  G8(0x45E397) = 0;
-  G8(0x45E39A) = 0;
-  G8(0x45E399) = 0;
-  G8(0x45E39F) = 0;
-  G8(0x45E39D) = 0;
-  G8(0x45E393) = 0;
-  G8(0x45E398) = 0;
-  G8(0x45E39C) = 0;
-  G32(0x45C658) = 0;
-  G32(0x45C668) = 0;
-  G8(0x45E3A1) = 0;
-  G8(0x45E3A4) = 0;
-  v2 = c->p_684 + 20 * G32(0x45C69C);
-  if ( G32(0x45D11C) )
+  G32(D4A_ROW_CTX) = v1 + (unsigned short)G32(D4A_CTX_COPY);
+  G8(D4A_FLAG_45E394) = 0;
+  G8(D4A_FLAG_45E397) = 0;
+  G8(D4A_FLAG_45E39A) = 0;
+  G8(D4A_FLAG_45E399) = 0;
+  G8(D4A_FLAG_45E39F) = 0;
+  G8(D4A_FLAG_45E39D) = 0;
+  G8(D4A_FLAG_45E393) = 0;
+  G8(D4A_FLAG_45E398) = 0;
+  G8(D4A_HIST_LEN) = 0;
+  G32(D4A_COST_SUM) = 0;
+  G32(D4A_TBL_45C668) = 0;
+  G8(D4A_FLAG_45E3A1) = 0;
+  G8(D4A_FLAG_45E3A4) = 0;
+  v2 = c->p_684 + 20 * G32(D4A_ROW_CTX);
+  if ( G32(D4A_TBL_45D11C) )
   {
-    G8(0x45E39C) = 1;
-    v3 = M8(G32(0x45D11C));
-    G32(0x45D11C) = 0;
-    M8(0x45DD6E + (0)) = v3;
+    G8(D4A_HIST_LEN) = 1;
+    v3 = M8(G32(D4A_TBL_45D11C));
+    G32(D4A_TBL_45D11C) = 0;
+    M8(D4A_HIST_SYMS + (0)) = v3;
   }
-  if ( (unsigned int)G32(0x45C674) > 1 || (unsigned char)(G32(0x45C64C) - 2) <= 2u )
+  if ( (unsigned int)G32(D4A_BEST_OFF) > 1 || (unsigned char)(G32(D4A_BEST_CNT) - 2) <= 2u )
   {
-    v4 = G32(0x45C64C);
-    v5 = G32(0x45C64C);
-    if ( (unsigned int)G32(0x45C64C) <= 4 )
-      v5 = G32(0x45AE1C) % (unsigned int)G32(0x45C64C) + M32(0x4236D4 + ((G32(0x45C64C)) * 4));
-    if ( (unsigned int)G32(0x45C64C) <= 0x10 )
-      v4 = G32(0x45AE1C) % (unsigned int)G32(0x45C64C) + M32(0x4236E8 + ((G32(0x45C64C)) * 4));
-    c->p_68c = 0x45CCD4 + 4 * v5;
-    c->p_688 = 0x45C6B8 + 4 * v4;
+    v4 = G32(D4A_BEST_CNT);
+    v5 = G32(D4A_BEST_CNT);
+    if ( (unsigned int)G32(D4A_BEST_CNT) <= 4 )
+      v5 = G32(D4A_OUT_COUNT) % (unsigned int)G32(D4A_BEST_CNT) + M32(D4A_CNT_OFF_5 + ((G32(D4A_BEST_CNT)) * 4));
+    if ( (unsigned int)G32(D4A_BEST_CNT) <= 0x10 )
+      v4 = G32(D4A_OUT_COUNT) % (unsigned int)G32(D4A_BEST_CNT) + M32(D4A_CNT_OFF_17 + ((G32(D4A_BEST_CNT)) * 4));
+    c->p_68c = D4A_TBL_45CCD4 + 4 * v5;
+    c->p_688 = D4A_TBL_45C6B8 + 4 * v4;
   }
   if ( v209 )
   {
-    if ( G8(0x45E38D) )
-      v6 = 31 * M32(0x445DAC + (0) * 4) < (unsigned int)(32 * G32(0x445DB0));
+    if ( G8(D4A_FLAG_45E38D) )
+      v6 = 31 * M32(D4A_TBL_445DAC + (0) * 4) < (unsigned int)(32 * G32(D4A_TBL_445DB0));
     else
-      v6 = M32(0x445DAC + ((0) * 4)) < (unsigned int)G32(0x445DB0);
+      v6 = M32(D4A_TBL_445DAC + ((0) * 4)) < (unsigned int)G32(D4A_TBL_445DB0);
     v209 = v6;
   }
-  v7 = G8(0x45E390) && ((unsigned int)G32(0x45C674) <= 4 || M32(c->p_68c) <= 0x3FEu);
+  v7 = G8(D4A_MODEL_ID) && ((unsigned int)G32(D4A_BEST_OFF) <= 4 || M32(c->p_68c) <= 0x3FEu);
   v216 = v7;
   v8 = v209 && v7;
   v207 = v8;
@@ -5487,48 +5488,48 @@ static int d4_41030F(dec4_ctx *c)
    * (The previous form `v8 &(0x45C640) < X` was a precedence trap: it is
    * `v8 & (0x45C640 < X)`, i.e. always v8, which made the cost gate
    * always true.) */
-  v9 = v8 && (M32(0x45C640) < (unsigned int)G32(0x45C654));
+  v9 = v8 && (M32(D4A_COST_ACCUM) < (unsigned int)G32(D4A_COST_GATE));
   v206 = v9;
 #ifdef D4GATEDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "GATE out=%u v209=%d v7=%d v8=%d v206=%d c640=%u c654=%u c674=%u dac0=%u db0=%u e38d=%u e390=%u\n",
-          G32(0x434528), 
-        v209, v7, v8, v9, M32(0x45C640), G32(0x45C654), G32(0x45C674),
-        M32(0x445DAC), G32(0x445DB0), G8(0x45E38D), G8(0x45E390));
+          G32(D4A_OUT_POS), 
+        v209, v7, v8, v9, M32(D4A_COST_ACCUM), G32(D4A_COST_GATE), G32(D4A_BEST_OFF),
+        M32(D4A_TBL_445DAC), G32(D4A_TBL_445DB0), G8(D4A_FLAG_45E38D), G8(D4A_MODEL_ID));
 #endif
-  v159 = (unsigned char)G32(0x45C6A4);
-  if ( !G8(0x45E392) && M8(0x42738D + (BYTE1(G32(0x45C6A4)))) )
+  v159 = (unsigned char)G32(D4A_CTX_COPY);
+  if ( !G8(D4A_PHASE) && M8(D4A_HASH_ENABLE + (BYTE1(G32(D4A_CTX_COPY)))) )
     v159 += 256;
-  v161 = M32(0x42750D + (((signed int)M8(v2 + 19) >> 4) * 4));
-  v162 = M32(0x4274CD + (((unsigned char)M8(0x45DD85 + (v159))) * 4));
+  v161 = M32(D4A_TBL_42750D + (((signed int)M8(v2 + 19) >> 4) * 4));
+  v162 = M32(D4A_TBL_4274CD + (((unsigned char)M8(D4A_RUN_CNT + (v159))) * 4));
   v210 = M8(v2 + (M8(v2 + 19) & 0xF) + 9);
   v10 = M8(c->p_150);
-  v205 = M8(0x45E086 + (v159));
-  v11 = G32(0x45AE1C);
-  M32(0x457964 + ((v10) * 4)) = G32(0x45AE1C);
-  M32(0x457964 + ((M8(c->p_154)) * 4)) = v11;
-  M32(0x457964 + ((M8(c->p_158)) * 4)) = v11;
-  M32(0x457964 + ((M8(c->p_15c)) * 4)) = v11;
+  v205 = M8(D4A_TBL_45E086 + (v159));
+  v11 = G32(D4A_OUT_COUNT);
+  M32(D4A_LAST_SEEN + ((v10) * 4)) = G32(D4A_OUT_COUNT);
+  M32(D4A_LAST_SEEN + ((M8(c->p_154)) * 4)) = v11;
+  M32(D4A_LAST_SEEN + ((M8(c->p_158)) * 4)) = v11;
+  M32(D4A_LAST_SEEN + ((M8(c->p_15c)) * 4)) = v11;
   v160 = 0;
-  v12 = 32 * G32(0x45C694);
+  v12 = 32 * G32(D4A_COL_IDX);
   while ( 1 )
   {
     v158 = v12 + c->p_680;
     if ( !M8(v12 + c->p_680) )
     {
-      G32(0x45C694) += 0x40000;   /* HIWORD += 4 */
+      G32(D4A_COL_IDX) += 0x40000;   /* HIWORD += 4 */
       goto LABEL_201;
     }
-    if ( M32(v12 + c->p_680 + 28) == G32(0x45C6A4) )
+    if ( M32(v12 + c->p_680 + 28) == G32(D4A_CTX_COPY) )
       break;
-    G32(0x45C694) += 0x8000;
+    G32(D4A_COL_IDX) += 0x8000;
     v12 += 0x100000;
-    if ( (unsigned int)G32(0x45C694) >= 0x40000 )
+    if ( (unsigned int)G32(D4A_COL_IDX) >= 0x40000 )
       goto LABEL_201;
   }
   v166 = 12;
   v167 = 12;
-  G8(0x45E3A3) = -1;
+  G8(D4A_COL_SLOT) = -1;
   v13 = 0;
   v168 = (v168 & ~U64LL(0x00000000FFFFFFFF)) | (((unsigned UHI64)(0)) & U64LL(0x00000000FFFFFFFF));
   v14 = M8(v158);
@@ -5549,39 +5550,39 @@ static int d4_41030F(dec4_ctx *c)
   }
   while ( (unsigned char)v168 );
   v16 = M8(v158 + 26);
-  v160 = M32(0x42754D + ((v16 >> 4) * 4));
+  v160 = M32(D4A_TBL_42754D + ((v16 >> 4) * 4));
   v17 = M8(v158 + (M8(v158 + 26) & 0xF) + 13);
-  G32(0x45C678) = v14;
+  G32(D4A_TBL_45C678) = v14;
   v215 = v17;
-  if ( (G32(0x45C6A0)
-     || (unsigned int)G32(0x45C674) <= 1
-     || G32(0x45D104) > (unsigned int)G32(0x45D138)
+  if ( (G32(D4A_TBL_45C6A0)
+     || (unsigned int)G32(D4A_BEST_OFF) <= 1
+     || G32(D4A_FREQ_A) > (unsigned int)G32(D4A_FREQ_B)
      || M32(c->p_68c) <= 0x3FEu
      || ((signed int)(v16 - (__CFSHL__((unsigned UHI64)v16 >> 32, 4) + 16 * ((unsigned UHI64)v16 >> 32))) >> 4)
       * ((unsigned int)M8(v158 + 27) << 6) >= M32(c->p_688))
     && (!M8(v2)
-     || !G8(0x45E392) && M8(v2 + 19) < 0x30u
+     || !G8(D4A_PHASE) && M8(v2 + 19) < 0x30u
      || (M8(v158 + 25) & 0x38
       || (M8(v158 + 1) + (M8(v158 + 25) & 4) + ((signed int)M8(v158 + 26) >> 4))
-       * (unsigned int)M8(v2 + 18) >= G32(0x45C678)
+       * (unsigned int)M8(v2 + 18) >= G32(D4A_TBL_45C678)
                                             * (((signed int)M8(v2 + 19) >> 4) + (unsigned int)M8(v2 + 1)))
      && (M8(v2 + 19) < 0x60u || (signed int)M8(v2 + 19) >> 2 <= M8(v158 + 26))) )
   {
-    G8(0x45E394) = 1;
-    ++G32(0x45C6B0);
-    G32(0x45C698) = G32(0x45C678);
+    G8(D4A_FLAG_45E394) = 1;
+    ++G32(D4A_TBL_45C6B0);
+    G32(D4A_COL_TOT_A) = G32(D4A_TBL_45C678);
     for (mi = 0; mi < 16u; mi++) vmask13[mi] = 0;
-  for (mi = 0; mi < 13u; mi++) vmask13[mi] = M8(0x40CDA1 + mi);
+  for (mi = 0; mi < 13u; mi++) vmask13[mi] = M8(D4A_MASK13_SRC + mi);
 
 
 
-    if ( G8(0x45E39C) )
+    if ( G8(D4A_HIST_LEN) )
     {
-      v18 = G32(0x45C678);
+      v18 = G32(D4A_TBL_45C678);
       v19 = v158;
       v20 = 0;
       v203 = v158 + 12;
-      while ( M8(0x45DD6E + (0)) != M8(v19 + 13) )
+      while ( M8(D4A_HIST_SYMS + (0)) != M8(v19 + 13) )
       {
         ++v19;
         ++v20;
@@ -5592,13 +5593,13 @@ static int d4_41030F(dec4_ctx *c)
       vmask13[v20] = 0;
       v18 -= v21;
 LABEL_69:
-      G32(0x45C698) = v18;
+      G32(D4A_COL_TOT_A) = v18;
     }
     v22 = M8(v158);
-    if ( v22 >= G32(0x45C698) )
+    if ( v22 >= G32(D4A_COL_TOT_A) )
       goto LABEL_201;
-    G8(0x45E397) = v207;
-    G8(0x45E394) = v206 == 0;
+    G8(D4A_FLAG_45E397) = v207;
+    G8(D4A_FLAG_45E394) = v206 == 0;
     if ( v206 )
       goto LABEL_201;
     v23 = 0;
@@ -5607,48 +5608,48 @@ LABEL_69:
       v170 = 0;
       v172 = 0;
       v175 = 0;
-      v37 = G32(0x45C698) - v22;
+      v37 = G32(D4A_COL_TOT_A) - v22;
       v38 = 0;
-      if ( G32(0x45D104) >= (unsigned int)G32(0x45D138) )
+      if ( G32(D4A_FREQ_A) >= (unsigned int)G32(D4A_FREQ_B) )
         v177 = 12;
       else
         v177 = M8(v158 + 26) & 0xF;
       v176 = v177;
-      G32(0x45C67C) = G32(0x45C698);
+      G32(D4A_TRI_TOTAL) = G32(D4A_COL_TOT_A);
       if ( v37 < 0x80 )
       {
-        if ( G8(0x45E392) )
+        if ( G8(D4A_PHASE) )
         {
-          v197 = BYTE1(G32(0x45C6A4)) & 0xE0;
-          v39 = (G32(0x45C6A4) & 0xC0u) >> 5;
-          v40 = (unsigned char)(G32(0x45C6A4) & 0xE0) == v197;
+          v197 = BYTE1(G32(D4A_CTX_COPY)) & 0xE0;
+          v39 = (G32(D4A_CTX_COPY) & 0xC0u) >> 5;
+          v40 = (unsigned char)(G32(D4A_CTX_COPY) & 0xE0) == v197;
         }
         else
         {
-          v197 = 2 * (unsigned char)M8(0x42738D + (BYTE1(G32(0x45C6A4))));
-          v40 = v197 + 4 * (unsigned char)M8(0x42738D + ((unsigned char)G32(0x45C6A4)));
-          v39 = (unsigned char)G32(0x45C6A4) == 0xDF;   /* asm 0x410B06: cmp al,0xdf */
+          v197 = 2 * (unsigned char)M8(D4A_HASH_ENABLE + (BYTE1(G32(D4A_CTX_COPY))));
+          v40 = v197 + 4 * (unsigned char)M8(D4A_HASH_ENABLE + ((unsigned char)G32(D4A_CTX_COPY)));
+          v39 = (unsigned char)G32(D4A_CTX_COPY) == 0xDF;   /* asm 0x410B06: cmp al,0xdf */
         }
         /* asm 0x410B3E: esi = offset dword_450464; esi += 1024*d4239F0[..];
          * edx = 128*d4239F0[..]; lea esi,[edx+esi+4*eax]  (address, not value) */
-        v23 = 0x450464 + 4 * (256 * M32(0x4239F0 + (M8(v158)) * 4))
-            + 4 * (32 * M32(0x4239F0 + (v37) * 4))
-            + 4 * (16 * ((unsigned int)G32(0x45C6B0) >= 6)
+        v23 = D4A_TBL_450464 + 4 * (256 * M32(D4A_BUCKET_LUT + (M8(v158)) * 4))
+            + 4 * (32 * M32(D4A_BUCKET_LUT + (v37) * 4))
+            + 4 * (16 * ((unsigned int)G32(D4A_TBL_45C6B0) >= 6)
             + 8 * (M8(v2 + 7) != 0)
             + v40
             + v39);
-        G32(0x45C67C) = (v37 << 13) / M32(v23) + 1;
+        G32(D4A_TRI_TOTAL) = (v37 << 13) / M32(v23) + 1;
       }
   #ifdef D4BOUNDSDBG
     if (v176 >= 13 || v166 >= 13 || v167 >= 13)
       fprintf(stderr, "BOUNDS13 out=%u v176=%u v166=%u v167=%u\n",
-          G32(0x434528), v176, v166, v167);
+          G32(D4A_OUT_POS), v176, v166, v167);
 #endif
     if ( vmask13[v176] )
       {
         v174 = M8(v176 + v158 + 1);
         v179 = 0;
-        v178 = G32(0x45C698) - v174;
+        v178 = G32(D4A_COL_TOT_A) - v174;
         v41 = v160 + v174 - (v174 == 2) + ((signed int)M8(v158 + 27) >> 4);
         if ( v215 == v210 )
         {
@@ -5666,37 +5667,37 @@ LABEL_69:
           v42 |= 0x100;   /* BYTE1(v42) |= 1 */
         if ( (v215 & 0xC0) == 0xC0 )
           v42 = (v42 & ~0x000000FFU) | ((v42 | 0x20) & 0x000000FFU);
-        if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v215) * 4)) )
+        if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((v215) * 4)) )
           v42 |= 0x200;   /* BYTE1(v42) |= 2 */
-        if ( M32(0x457964 + ((v215) * 4)) == G32(0x45AE1C) )
+        if ( M32(D4A_LAST_SEEN + ((v215) * 4)) == G32(D4A_OUT_COUNT) )
           v42 |= 0x400;   /* BYTE1(v42) |= 4 */
-        v43 = M32(0x458564 + ((v179 | v42 | v163) * 4)) * v178;
-        v175 = 0x458564 + ((v179 | v42 | v163) * 4);
+        v43 = M32(D4A_TBL_458564 + ((v179 | v42 | v163) * 4)) * v178;
+        v175 = D4A_TBL_458564 + ((v179 | v42 | v163) * 4);
         v197 = 0x2000 - M32(v175);
         v44 = v43 / v197 + 1;
         if ( v44 > v174 )
         {
           if ( v44 >= 0x100 )
             v44 = 255;
-          G32(0x45C67C) += v44 - v174;
+          G32(D4A_TRI_TOTAL) += v44 - v174;
           M8(v176 + v158 + 1) = v44;
         }
       }
       if ( vmask13[v166] && v176 != v166 )
       {
         v171 = M8(v166 + v158 + 1);
-        v180 = G32(0x45C698) - v171;
-        v197 = v162 + v171 + G32(0x45C698) - v171;
+        v180 = G32(D4A_COL_TOT_A) - v171;
+        v197 = v162 + v171 + G32(D4A_COL_TOT_A) - v171;
         v45 = 16 * (v162 + v171) / v197;
         if ( (v205 & 0xC0) == 0xC0 )
           v45 = (v45 & ~0x000000FFU) | ((v45 | 0x20) & 0x000000FFU);
         if ( v205 == v210 )
           v45 = (v45 & ~0x000000FFU) | ((v45 | 0x40) & 0x000000FFU);
-        if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v205) * 4)) )
+        if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((v205) * 4)) )
           v45 = (v45 & ~0x000000FFU) | ((v45 | 0x80) & 0x000000FFU);
-        if ( M32(0x457964 + ((v205) * 4)) == G32(0x45AE1C) )
+        if ( M32(D4A_LAST_SEEN + ((v205) * 4)) == G32(D4A_OUT_COUNT) )
           v45 |= 0x100;   /* BYTE1(v45) |= 1 */
-        v172 = 0x45A564 + ((v163 | v45) * 4);
+        v172 = D4A_TBL_45A564 + ((v163 | v45) * 4);
         v46 = M32(v172) * v180;
         v197 = 0x2000 - M32(v172);
         v47 = v46 / v197 + 1;
@@ -5704,54 +5705,54 @@ LABEL_69:
         {
           if ( v47 >= 0x100 )
             v47 = 255;
-          G32(0x45C67C) += v47 - v171;
+          G32(D4A_TRI_TOTAL) += v47 - v171;
           M8(v166 + v158 + 1) = v47;
         }
       }
       if ( vmask13[v167] && v176 != v167 && v166 != v167 )
       {
         v173 = M8(v167 + v158 + 1);
-        v181 = G32(0x45C698) - v173;
-        v48 = 16 * (v161 + v173) / (G32(0x45C698) - v173 + v161 + v173);
+        v181 = G32(D4A_COL_TOT_A) - v173;
+        v48 = 16 * (v161 + v173) / (G32(D4A_COL_TOT_A) - v173 + v161 + v173);
         if ( (v210 & 0xC0) == 0xC0 )
           v48 = (v48 & ~0x000000FFU) | ((v48 | 0x20) & 0x000000FFU);
-        if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v210) * 4)) )
+        if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((v210) * 4)) )
           v48 = (v48 & ~0x000000FFU) | ((v48 | 0x40) & 0x000000FFU);
-        if ( M32(0x457964 + ((v210) * 4)) == G32(0x45AE1C) )
+        if ( M32(D4A_LAST_SEEN + ((v210) * 4)) == G32(D4A_OUT_COUNT) )
           v48 = (v48 & ~0x000000FFU) | ((v48 | 0x80) & 0x000000FFU);
-        v38 = 0x4554E4 + ((v163 | v48) * 4);
+        v38 = D4A_TBL_4554E4 + ((v163 | v48) * 4);
         v49 = M32(v38) * v181 / (0x2000 - M32(v38)) + 1;
         if ( v49 > v173 )
         {
           if ( v49 >= 0x100 )
             v49 = 255;
-          G32(0x45C67C) += v49 - v173;
+          G32(D4A_TRI_TOTAL) += v49 - v173;
           M8(v167 + v158 + 1) = v49;
         }
       }
       if ( vmask13[0] && v176 && v166 && v167 )
       {
         v169 = M8(v158 + 1);
-        v50 = 16 * v169 / (unsigned int)G32(0x45C698);
+        v50 = 16 * v169 / (unsigned int)G32(D4A_COL_TOT_A);
         if ( (M8(v158 + 13) & 0xC0) == 0xC0 )
           v50 = (v50 & ~0x000000FFU) | ((v50 | 0x20) & 0x000000FFU);
-        if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v158 + 13)) * 4)) )
+        if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((M8(v158 + 13)) * 4)) )
           v50 = (v50 & ~0x000000FFU) | ((v50 | 0x80) & 0x000000FFU);
-        if ( M32(0x457964 + ((M8(v158 + 13)) * 4)) == G32(0x45AE1C) )
+        if ( M32(D4A_LAST_SEEN + ((M8(v158 + 13)) * 4)) == G32(D4A_OUT_COUNT) )
           v50 |= 0x100;   /* BYTE1(v50) |= 1 */
-        v51 = (0x452864) + 4 * (v163 | v50);
-        v52 = ((unsigned int)(M32(v51) * G32(0x45C698)) >> 13) + 1;
+        v51 = (D4A_TBL_452864) + 4 * (v163 | v50);
+        v52 = ((unsigned int)(M32(v51) * G32(D4A_COL_TOT_A)) >> 13) + 1;
         v170 = v51;
         if ( v52 >= 0x100 )
           v52 = 255;
-        G32(0x45C67C) += v52 - v169;
+        G32(D4A_TRI_TOTAL) += v52 - v169;
         M8(v158 + 1) = v52;
       }
       v182 = 0;
-      v53 = G32(0x4749DC) / (unsigned int)G32(0x45C67C);
-      G32(0x4749DC) = v53;
+      v53 = G32(D4A_RC_RANGE) / (unsigned int)G32(D4A_TRI_TOTAL);
+      G32(D4A_RC_RANGE) = v53;
       v183 = 0;
-      v165 = (unsigned short)((unsigned)d4_div(G32(0x4749D8), v53));
+      v165 = (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), v53));
       v54 = v158;
       while ( 1 )
       {
@@ -5769,28 +5770,28 @@ LABEL_69:
             v208 = 0;
             v212 = v55;
 #ifdef D4PATHDBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "PATH P5707 out=%u v212=%u\n", G32(0x434528), (unsigned)v212);
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "PATH P5707 out=%u v212=%u\n", G32(D4A_OUT_POS), (unsigned)v212);
 #endif
 LABEL_175:
-            G32(0x45C680) = v182;
-            G32(0x45C684) = HIDWORD(v168);
-            G8(0x45E3A3) = v183;
+            G32(D4A_TRI_LOW) = v182;
+            G32(D4A_TRI_HIGH) = HIDWORD(v168);
+            G8(D4A_COL_SLOT) = v183;
             if ( (unsigned char)v183 == 12 )
-              G32(0x45C684) = G32(0x45C67C);
-            v57 = M32(0x45C67C + (1) * 4);
-            v58 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v57);
-            i = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v57);
+              G32(D4A_TRI_HIGH) = G32(D4A_TRI_TOTAL);
+            v57 = M32(D4A_TRI_TOTAL + (1) * 4);
+            v58 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v57);
+            i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v57);
   while (v58 && v58 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v58 = (v58 << 8) & 0xFFFFFFFFU;
   }
-            G32(0x4749D8) = (int)i;
-            G32(0x4749DC) = v58;
+            G32(D4A_RC_CODE) = (int)i;
+            G32(D4A_RC_RANGE) = v58;
             if ( v170 )
             {
               M8(v158 + 1) = v169;
-              if ( G8(0x45E3A3) )
+              if ( G8(D4A_COL_SLOT) )
                 M32(v170) -= M32(v170) >> 6;
               else
                 M32(v170) += (0x2000 - M32(v170)) >> 6;
@@ -5798,7 +5799,7 @@ LABEL_175:
             if ( v172 )
             {
               M8(v166 + v158 + 1) = v171;
-              if ( (unsigned char)G8(0x45E3A3) == v166 )
+              if ( (unsigned char)G8(D4A_COL_SLOT) == v166 )
                 M32(v172) += (unsigned int)(0x2000 - M32(v172)) >> 6;
               else
                 M32(v172) -= (unsigned int)M32(v172) >> 6;
@@ -5806,7 +5807,7 @@ LABEL_175:
             if ( v38 )
             {
               M8(v167 + v158 + 1) = v173;
-              if ( (unsigned char)G8(0x45E3A3) == v167 )
+              if ( (unsigned char)G8(D4A_COL_SLOT) == v167 )
                 M32(v38) += (unsigned int)(0x2000 - M32(v38)) >> 6;
               else
                 M32(v38) -= (unsigned int)M32(v38) >> 6;
@@ -5814,7 +5815,7 @@ LABEL_175:
             if ( v175 )
             {
               M8(v176 + v158 + 1) = v174;
-              if ( (unsigned char)G8(0x45E3A3) == v176 )
+              if ( (unsigned char)G8(D4A_COL_SLOT) == v176 )
                 M32(v175) += (unsigned int)(0x2000 - M32(v175)) >> 6;
               else
                 M32(v175) -= (unsigned int)M32(v175) >> 6;
@@ -5829,10 +5830,10 @@ LABEL_195:
             }
             goto LABEL_201;
           }
-          v56 = G8(0x45E39C);
-          M8(0x45DD6E + ((unsigned char)G8(0x45E39C))) = M8(v54 + 13);
+          v56 = G8(D4A_HIST_LEN);
+          M8(D4A_HIST_SYMS + ((unsigned char)G8(D4A_HIST_LEN))) = M8(v54 + 13);
           v182 = HIDWORD(v168);
-          G8(0x45E39C) = v56 + 1;
+          G8(D4A_HIST_LEN) = v56 + 1;
         }
         ++v183;
         ++v54;
@@ -5850,75 +5851,75 @@ LABEL_195:
     if ( M8(v158 + 13) == v205 )
     {
       v24 = (v24 & ~0x000000FFU) | ((v24 | 1) & 0x000000FFU);
-      v25 += (unsigned char)M8(0x45DD85 + (v159));
+      v25 += (unsigned char)M8(D4A_RUN_CNT + (v159));
     }
-    if ( M8(v2 + 7) && (unsigned int)G32(0x45C6B0) < 6 )
+    if ( M8(v2 + 7) && (unsigned int)G32(D4A_TBL_45C6B0) < 6 )
       v24 = (v24 & ~0x000000FFU) | ((v24 | 0x10) & 0x000000FFU);
-    if ( G8(0x45E392) )
+    if ( G8(D4A_PHASE) )
     {
-      if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v158 + 13)) * 4)) )
+      if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((M8(v158 + 13)) * 4)) )
         v24 |= 0x100;   /* BYTE1(v24) |= 1 */
-      if ( M8(v158 + 13) != (unsigned char)G32(0x45C6A4) )
+      if ( M8(v158 + 13) != (unsigned char)G32(D4A_CTX_COPY) )
         goto LABEL_87;
     }
-    else if ( !M8(0x42738D + (M8(v158 + 13))) )
+    else if ( !M8(D4A_HASH_ENABLE + (M8(v158 + 13))) )
     {
 LABEL_87:
       if ( v25 < 0x1E )
       {
-        v26 = G32(0x45C6A4) & 0xE0;
-        v157 = (unsigned int)G32(0x45C6A4) >> 8;
+        v26 = G32(D4A_CTX_COPY) & 0xE0;
+        v157 = (unsigned int)G32(D4A_CTX_COPY) >> 8;
         v24 |= v26;
-        if ( G8(0x45E392) )
+        if ( G8(D4A_PHASE) )
         {
-          if ( v26 == (((unsigned int)G32(0x45C6A4) >> 8) & 0xE0) )
+          if ( v26 == (((unsigned int)G32(D4A_CTX_COPY) >> 8) & 0xE0) )
             v24 = (v24 & ~0x000000FFU) | ((v24 | 8) & 0x000000FFU);
           if ( v26 == (M8(v158 + 13) & 0xE0) )
             v24 = (v24 & ~0x000000FFU) | ((v24 | 4) & 0x000000FFU);
         }
         else
         {
-          v24 |= 4 * (unsigned char)M8(0x42738D + ((unsigned char)v157))
-               + 8 * (unsigned char)M8(0x42738D + ((unsigned char)G32(0x45C6A4)));
+          v24 |= 4 * (unsigned char)M8(D4A_HASH_ENABLE + ((unsigned char)v157))
+               + 8 * (unsigned char)M8(D4A_HASH_ENABLE + ((unsigned char)G32(D4A_CTX_COPY)));
         }
       }
-      if ( M32(0x457964 + ((M8(v158 + 13)) * 4)) == G32(0x45AE1C) )
+      if ( M32(D4A_LAST_SEEN + ((M8(v158 + 13)) * 4)) == G32(D4A_OUT_COUNT) )
         v24 |= 0x200;   /* BYTE1(v24) |= 2 */
-      v23 = ((0x448464) + 4096 * M32(0x423DF0 + (v25) * 4) + 4 * v24);
-      G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x2000u);
-      if ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) >= (unsigned int)M32(v23) )
+      v23 = ((D4A_TBL_448464) + 4096 * M32(D4A_BUCKET_LUT2 + (v25) * 4) + 4 * v24);
+      G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0x2000u);
+      if ( (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) >= (unsigned int)M32(v23) )
       {
-        v29 = G8(0x45E39C);
+        v29 = G8(D4A_HIST_LEN);
         v30 = M8(v158 + 13);
-        G8(0x45E3A3) = 12;
-        M8(0x45DD6E + ((unsigned char)G8(0x45E39C))) = v30;
-        G32(0x45C684) = 0x2000;
-        G32(0x45C680) = M32(v23);
-        G8(0x45E39C) = v29 + 1;
+        G8(D4A_COL_SLOT) = 12;
+        M8(D4A_HIST_SYMS + ((unsigned char)G8(D4A_HIST_LEN))) = v30;
+        G32(D4A_TRI_HIGH) = 0x2000;
+        G32(D4A_TRI_LOW) = M32(v23);
+        G8(D4A_HIST_LEN) = v29 + 1;
       }
       else
       {
         v208 = 0;
         v27 = M8(v158 + 13);
 #ifdef D4PATHDBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "PATH P5835 out=%u v212=%u\n", G32(0x434528), (unsigned)(unsigned char)v27);
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "PATH P5835 out=%u v212=%u\n", G32(D4A_OUT_POS), (unsigned)(unsigned char)v27);
 #endif
-        G8(0x45E3A3) = 0;
+        G8(D4A_COL_SLOT) = 0;
         v212 = v27;
         v28 = M32(v23);
-        G32(0x45C680) = 0;
-        G32(0x45C684) = v28;
+        G32(D4A_TRI_LOW) = 0;
+        G32(D4A_TRI_HIGH) = v28;
       }
-      v31 = M32(0x45C67C + (1) * 4);
-      v32 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v31);
-      j = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v31);
+      v31 = M32(D4A_TRI_TOTAL + (1) * 4);
+      v32 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v31);
+      j = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v31);
   while (v32 && v32 < 0x1000000) {
     j = ((unsigned long)((unsigned long)j << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v32 = (v32 << 8) & 0xFFFFFFFFU;
   }
-      G32(0x4749D8) = (int)j;
-      G32(0x4749DC) = v32;
+      G32(D4A_RC_CODE) = (int)j;
+      G32(D4A_RC_RANGE) = v32;
       goto LABEL_195;
     }
     v24 = (v24 & ~0x000000FFU) | ((v24 | 2) & 0x000000FFU);
@@ -5927,59 +5928,59 @@ LABEL_87:
 LABEL_201:
   if ( !v208 )
   {
-    if ( M8(v158 + (unsigned char)G8(0x45E3A3) + 1) < 7u )
+    if ( M8(v158 + (unsigned char)G8(D4A_COL_SLOT) + 1) < 7u )
       d4_40F049(c, v212);
     goto LABEL_408;
   }
-  if ( G8(0x45E392) )
+  if ( G8(D4A_PHASE) )
     v63 = d4_40E885(c);
   else
     v63 = 0;
   v204 = 1;
   v214 = 0;
-  G32(0x45C6B0) = (unsigned int)G32(0x45C6B0) >> 3;
+  G32(D4A_TBL_45C6B0) = (unsigned int)G32(D4A_TBL_45C6B0) >> 3;
   v184 = v63;
 #ifdef D4GATEDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "GATE2 out=%u v63=%u v107=%d v184=%u\n",
-          G32(0x434528), 
+          G32(D4A_OUT_POS), 
         (unsigned)v63, v107, (unsigned)v184);
 #endif
   if ( v63 )
   {
-    G32(0x45C6A0) += 2;
+    G32(D4A_TBL_45C6A0) += 2;
     v64 = M8(v2 + 19) >= 0x90u
        || 5 * M8(v63) > 3 * M8(v63 + 1) && (M8(v63 + 3) & 0x7Fu) <= 2;
-    G8(0x45E39D) = v64;
+    G8(D4A_FLAG_45E39D) = v64;
   }
   else
   {
-    G8(0x45E39D) = 1;
+    G8(D4A_FLAG_45E39D) = 1;
   }
   v213 = v205 & 0xC0;
   v217 = v210 & 0xC0;
   do
   {
-    if ( !G8(0x45E39D) && !v214 )
+    if ( !G8(D4A_FLAG_45E39D) && !v214 )
       goto LABEL_336;
     v204 = 0;
-    v65 = !G32(0x45C6AC)
+    v65 = !G32(D4A_TBL_45C6AC)
        || !M8(v2 + 17)
-       || (unsigned int)G32(0x45C6B4) < 0xFFFF && M32(c->p_68c) <= 0x3FEu;
+       || (unsigned int)G32(D4A_TBL_45C6B4) < 0xFFFF && M32(c->p_68c) <= 0x3FEu;
 #ifdef D4V65DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "V65 out=%u v65=%d c6ac=%u m2_17=%u c6b4=%u p68c=%u m2_0=%u m2_2=%u m2_9=%u m2_18=%u v2=%u c69c=%u\n",
-          G32(0x434528), v65, G32(0x45C6AC), (unsigned)M8(v2 + 17),
-          G32(0x45C6B4), M32(c->p_68c), (unsigned)M8(v2),
+          G32(D4A_OUT_POS), v65, G32(D4A_TBL_45C6AC), (unsigned)M8(v2 + 17),
+          G32(D4A_TBL_45C6B4), M32(c->p_68c), (unsigned)M8(v2),
           (unsigned)M8(v2 + 2), (unsigned)M8(v2 + 9), (unsigned)M8(v2 + 18),
-          (unsigned)v2, G32(0x45C69C));
+          (unsigned)v2, G32(D4A_ROW_CTX));
 #endif
-    G8(0x45E39D) = v65;
+    G8(D4A_FLAG_45E39D) = v65;
     if ( !v65 || !M8(v2) )
       goto LABEL_336;
     v185 = 0;
     for (mi = 0; mi < 16u; mi++) vmask9[mi] = 0;
-  for (mi = 0; mi < 9u; mi++) vmask9[mi] = M8(0x40CDAD + 1 + mi);
+  for (mi = 0; mi < 9u; mi++) vmask9[mi] = M8(D4A_MASK9_SRC + 1 + mi);
 
 
     v164 = 8;
@@ -5993,9 +5994,9 @@ LABEL_201:
       ++v185;
       if ( v68 == v205 )
         v164 = v66;
-      while ( (unsigned char)G8(0x45E39C) > v187 )
+      while ( (unsigned char)G8(D4A_HIST_LEN) > v187 )
       {
-        v69 = M8(0x45DD6E + (v187++));
+        v69 = M8(D4A_HIST_SYMS + (v187++));
         if ( v69 == M8(v67 + 9) )
         {
           v186 -= M8(v67 + 1);
@@ -6007,14 +6008,14 @@ LABEL_201:
       ++v66;
     }
     while ( M8(v67 + 1) && v66 < 8 );
-    G32(0x45C6A8) = v186;
+    G32(D4A_COL_TOT_B) = v186;
     v70 = 5 * M8(v2);
-    G8(0x45E3A5) = -1;
+    G8(D4A_ROW_SLOT) = -1;
     if ( 4 * v186 <= v70 )
       goto LABEL_336;
-    if ( G32(0x45C6AC) + 4 * (unsigned int)M8(v2 + 17) >= 0x10 )
+    if ( G32(D4A_TBL_45C6AC) + 4 * (unsigned int)M8(v2 + 17) >= 0x10 )
       goto LABEL_336;
-    G8(0x45E39A) = v207;
+    G8(D4A_FLAG_45E39A) = v207;
     if ( v206 )
       goto LABEL_336;
     v71 = 0;
@@ -6025,104 +6026,104 @@ LABEL_201:
       if ( M8(v2 + 9) == v205 )
       {
         v73 = 1;
-        v72 += (unsigned char)M8(0x45DD85 + (v159));
+        v72 += (unsigned char)M8(D4A_RUN_CNT + (v159));
       }
       if ( v72 < 0x10 )
       {
-        if ( G8(0x45E392) )
+        if ( G8(D4A_PHASE) )
         {
-          v74 = (G32(0x45C6A4) & 0xC0u) >> 5;
+          v74 = (G32(D4A_CTX_COPY) & 0xC0u) >> 5;
         }
         else
         {
-          v197 = (unsigned int)G32(0x45C6A4) >> 8;
-          v74 = 2 * (unsigned char)M8(0x42738D + (BYTE1(G32(0x45C6A4))))
-              + 4 * (unsigned char)M8(0x42738D + ((unsigned char)G32(0x45C6A4)));
+          v197 = (unsigned int)G32(D4A_CTX_COPY) >> 8;
+          v74 = 2 * (unsigned char)M8(D4A_HASH_ENABLE + (BYTE1(G32(D4A_CTX_COPY))))
+              + 4 * (unsigned char)M8(D4A_HASH_ENABLE + ((unsigned char)G32(D4A_CTX_COPY)));
         }
         v73 |= v74;
       }
-      if ( G8(0x45E392) && (G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v2 + 9)) * 4))) )
+      if ( G8(D4A_PHASE) && (G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((M8(v2 + 9)) * 4))) )
         v73 = (v73 & ~0x000000FFU) | ((v73 | 8) & 0x000000FFU);
-      if ( M32(0x457964 + ((M8(v2 + 9)) * 4)) == G32(0x45AE1C) )
+      if ( M32(D4A_LAST_SEEN + ((M8(v2 + 9)) * 4)) == G32(D4A_OUT_COUNT) )
         v73 = (v73 & ~0x000000FFU) | ((v73 | 0x10) & 0x000000FFU);
-      v71 = (0x452464) + 128 * M32(0x423DF0 + (v72) * 4) + 4 * v73;
-      G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x2000u);
+      v71 = (D4A_TBL_452464) + 128 * M32(D4A_BUCKET_LUT2 + (v72) * 4) + 4 * v73;
+      G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0x2000u);
 #ifdef D4V65DBG
-      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
         fprintf(stderr, "D5982 out=%u div16=%u m71=%u v72=%u v73=%u\n",
-            G32(0x434528), (unsigned)(unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))),
+            G32(D4A_OUT_POS), (unsigned)(unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))),
             M32(v71), v72, v73);
 #endif
-      if ( (unsigned int)(unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) >= M32(v71) )
+      if ( (unsigned int)(unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) >= M32(v71) )
       {
 #ifdef D4V65DBG
-        if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-          fprintf(stderr, "IF5982 out=%u\n", G32(0x434528));
+        if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+          fprintf(stderr, "IF5982 out=%u\n", G32(D4A_OUT_POS));
 #endif
-        v77 = G8(0x45E39C);
+        v77 = G8(D4A_HIST_LEN);
         v78 = M8(v2 + 9);
-        G8(0x45E3A5) = 8;
-        M8(0x45DD6E + ((unsigned char)G8(0x45E39C))) = v78;
-        G32(0x45C684) = 0x2000;
-        G32(0x45C680) = M32(v71);
-        G8(0x45E39C) = v77 + 1;
+        G8(D4A_ROW_SLOT) = 8;
+        M8(D4A_HIST_SYMS + ((unsigned char)G8(D4A_HIST_LEN))) = v78;
+        G32(D4A_TRI_HIGH) = 0x2000;
+        G32(D4A_TRI_LOW) = M32(v71);
+        G8(D4A_HIST_LEN) = v77 + 1;
       }
       else
       {
         v208 = 0;
-        G8(0x45E3A5) = 0;
+        G8(D4A_ROW_SLOT) = 0;
         v75 = M8(v2 + 9);
 #ifdef D4PATHDBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "PATH P5982 out=%u v212=%u\n", G32(0x434528), (unsigned)(unsigned char)v75);
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "PATH P5982 out=%u v212=%u\n", G32(D4A_OUT_POS), (unsigned)(unsigned char)v75);
 #endif
-        G8(0x45E3A4) = 1;
+        G8(D4A_FLAG_45E3A4) = 1;
         v212 = v75;
         v76 = M32(v71);
-        G32(0x45C680) = 0;
-        G32(0x45C684) = v76;
+        G32(D4A_TRI_LOW) = 0;
+        G32(D4A_TRI_HIGH) = v76;
       }
-      v79 = M32(0x45C67C + (1) * 4);
-      v80 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v79);
-      k = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v79);
+      v79 = M32(D4A_TRI_TOTAL + (1) * 4);
+      v80 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v79);
+      k = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v79);
   while (v80 && v80 < 0x1000000) {
     k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v80 = (v80 << 8) & 0xFFFFFFFFU;
   }
-      G32(0x4749D8) = (int)k;
-      G32(0x4749DC) = v80;
+      G32(D4A_RC_CODE) = (int)k;
+      G32(D4A_RC_RANGE) = v80;
       goto LABEL_332;
     }
     v190 = 0;
     v192 = 0;
     v85 = 0;
-    if ( G32(0x45D104) >= (unsigned int)G32(0x45D138) )
+    if ( G32(D4A_FREQ_A) >= (unsigned int)G32(D4A_FREQ_B) )
       v86 = 8;
     else
       v86 = M8(v2 + 19) & 0xF;
     v194 = v86;
-    G32(0x45C67C) = G32(0x45C6A8);
+    G32(D4A_TRI_TOTAL) = G32(D4A_COL_TOT_B);
     if ( v185 < 8 )
     {
-      v87 = G32(0x45C6A8) - M8(v2);
+      v87 = G32(D4A_COL_TOT_B) - M8(v2);
       if ( v87 < 0x10 )
       {
-        v71 = (0x4578E4) + 4 * ((M8(v2 + 18) == G32(0x45C6A8)) + (v87 & 0xC) + M32(0x4239D0 + ((v185) * 4)));
-        G32(0x45C67C) = ((signed int)M8(v2) >> 1)
-                     + ((G32(0x45C6A8) - (unsigned int)M8(v2)) << 13) / M32(v71)
+        v71 = (D4A_TBL_4578E4) + 4 * ((M8(v2 + 18) == G32(D4A_COL_TOT_B)) + (v87 & 0xC) + M32(D4A_CNT_OFF_8 + ((v185) * 4)));
+        G32(D4A_TRI_TOTAL) = ((signed int)M8(v2) >> 1)
+                     + ((G32(D4A_COL_TOT_B) - (unsigned int)M8(v2)) << 13) / M32(v71)
                      + 1;
       }
     }
 #ifdef D4BOUNDSDBG
     if (v194 >= 9)
       fprintf(stderr, "BOUNDS9 out=%u v194=%u val=%u\n",
-          G32(0x434528), v194, (unsigned)vmask9[v194]);
+          G32(D4A_OUT_POS), v194, (unsigned)vmask9[v194]);
 #endif
     if ( vmask9[v194] )
     {
       v193 = M8(v2 + v194 + 1);
       v88 = 0;
-      v195 = G32(0x45C6A8) - v193;
+      v195 = G32(D4A_COL_TOT_B) - v193;
       v89 = v161 + v193;
       if ( v210 == v205 )
       {
@@ -6137,67 +6138,67 @@ LABEL_201:
         v90 = (v90 & ~0x000000FFU) | ((v90 | 0x20) & 0x000000FFU);
       if ( v184 && v210 == M8(v184 + 2) )
         v90 = (v90 & ~0x000000FFU) | ((v90 | 0x40) & 0x000000FFU);
-      if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v210) * 4)) )
+      if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((v210) * 4)) )
         v90 |= 0x200;   /* BYTE1(v90) |= 2 */
-      if ( M32(0x457964 + ((v210) * 4)) == G32(0x45AE1C) )
+      if ( M32(D4A_LAST_SEEN + ((v210) * 4)) == G32(D4A_OUT_COUNT) )
         v90 |= 0x400;   /* BYTE1(v90) |= 4 */
-      v85 = 0x4534E4 + ((v163 | v88 | v90) * 4);
+      v85 = D4A_TBL_4534E4 + ((v163 | v88 | v90) * 4);
       v91 = M32(v85) * v195 / (0x2000 - M32(v85)) + 1;
       if ( v91 > v193 )
       {
         if ( v91 >= 0x100 )
           v91 = 255;
-        G32(0x45C67C) += v91 - v193;
+        G32(D4A_TRI_TOTAL) += v91 - v193;
         M8(v2 + v194 + 1) = v91;
       }
     }
     if ( vmask9[v164] && v194 != v164 )
     {
       v191 = M8(v2 + v164 + 1);
-      v196 = G32(0x45C6A8) - v191;
-      v197 = v162 + v191 + G32(0x45C6A8) - v191;
+      v196 = G32(D4A_COL_TOT_B) - v191;
+      v197 = v162 + v191 + G32(D4A_COL_TOT_B) - v191;
       v92 = 16 * (v162 + v191) / v197;
       if ( v213 == -64 )
         v92 = (v92 & ~0x000000FFU) | ((v92 | 0x20) & 0x000000FFU);
-      if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((v205) * 4)) )
+      if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((v205) * 4)) )
         v92 = (v92 & ~0x000000FFU) | ((v92 | 0x40) & 0x000000FFU);
-      if ( M32(0x457964 + ((v205) * 4)) == G32(0x45AE1C) )
+      if ( M32(D4A_LAST_SEEN + ((v205) * 4)) == G32(D4A_OUT_COUNT) )
         v92 = (v92 & ~0x000000FFU) | ((v92 | 0x80) & 0x000000FFU);
-      v192 = 0x453064 + ((v163 | v92) * 4);
+      v192 = D4A_TBL_453064 + ((v163 | v92) * 4);
       v93 = M32(v192) * v196 / (0x2000 - M32(v192)) + 1;
       if ( v93 > v191 )
       {
         if ( v93 >= 0x100 )
           v93 = 255;
-        G32(0x45C67C) += v93 - v191;
+        G32(D4A_TRI_TOTAL) += v93 - v191;
         M8(v2 + v164 + 1) = v93;
       }
     }
     if ( vmask9[0] && v194 && v164 )
     {
       v189 = M8(v2 + 1);
-      v94 = 16 * v189 / (unsigned int)G32(0x45C6A8);
+      v94 = 16 * v189 / (unsigned int)G32(D4A_COL_TOT_B);
       if ( (M8(v2 + 9) & 0xC0) == 0xC0 )
         v94 = (v94 & ~0x000000FFU) | ((v94 | 0x20) & 0x000000FFU);
       if ( v184 && M8(v2 + 9) == M8(v184 + 2) )
         v94 = (v94 & ~0x000000FFU) | ((v94 | 0x40) & 0x000000FFU);
-      if ( G32(0x45D110) <= (unsigned int)M32(0x444DA4 + ((M8(v2 + 9)) * 4)) )
+      if ( G32(D4A_DICT_POS) <= (unsigned int)M32(D4A_TBL_444DA4 + ((M8(v2 + 9)) * 4)) )
         v94 = (v94 & ~0x000000FFU) | ((v94 | 0x80) & 0x000000FFU);
-      if ( M32(0x457964 + ((M8(v2 + 9)) * 4)) == G32(0x45AE1C) )
+      if ( M32(D4A_LAST_SEEN + ((M8(v2 + 9)) * 4)) == G32(D4A_OUT_COUNT) )
         v94 |= 0x100;   /* BYTE1(v94) |= 1 */
-      v95 = (0x457D64) + 4 * (v163 | v94);
-      v96 = ((unsigned int)(M32(v95) * G32(0x45C6A8)) >> 13) + 1;
+      v95 = (D4A_TBL_457D64) + 4 * (v163 | v94);
+      v96 = ((unsigned int)(M32(v95) * G32(D4A_COL_TOT_B)) >> 13) + 1;
       v190 = v95;
       if ( v96 >= 0x100 )
         v96 = 255;
-      G32(0x45C67C) += v96 - v189;
+      G32(D4A_TRI_TOTAL) += v96 - v189;
       M8(v2 + 1) = v96;
     }
     v199 = 0;
-    v97 = G32(0x4749DC) / (unsigned int)G32(0x45C67C);
-    G32(0x4749DC) = v97;
+    v97 = G32(D4A_RC_RANGE) / (unsigned int)G32(D4A_TRI_TOTAL);
+    G32(D4A_RC_RANGE) = v97;
     v200 = 0;
-    v188 = (unsigned short)((unsigned)d4_div(G32(0x4749D8), v97));
+    v188 = (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), v97));
     v98 = v2;
     while ( !vmask9[v200] )
     {
@@ -6215,38 +6216,38 @@ LABEL_312:
     v198 = M8(v98 + 1) + v199;
     if ( v188 >= v198 )
     {
-      v100 = G8(0x45E39C);
-      M8(0x45DD6E + ((unsigned char)G8(0x45E39C))) = M8(v98 + 9);
+      v100 = G8(D4A_HIST_LEN);
+      M8(D4A_HIST_SYMS + ((unsigned char)G8(D4A_HIST_LEN))) = M8(v98 + 9);
       v199 = v198;
-      G8(0x45E39C) = v100 + 1;
+      G8(D4A_HIST_LEN) = v100 + 1;
       goto LABEL_312;
     }
     v99 = M8(v98 + 9);
     v208 = 0;
     v212 = v99;
 #ifdef D4PATHDBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "PATH P6126 out=%u v212=%u\n", G32(0x434528), (unsigned)v212);
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "PATH P6126 out=%u v212=%u\n", G32(D4A_OUT_POS), (unsigned)v212);
 #endif
 LABEL_313:
-    G32(0x45C680) = v199;
-    G32(0x45C684) = v198;
-    G8(0x45E3A5) = v200;
+    G32(D4A_TRI_LOW) = v199;
+    G32(D4A_TRI_HIGH) = v198;
+    G8(D4A_ROW_SLOT) = v200;
     if ( (unsigned char)v200 == 8 )
-      G32(0x45C684) = G32(0x45C67C);
-    v101 = M32(0x45C67C + (1) * 4);
-    v102 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v101);
-    l = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v101);
+      G32(D4A_TRI_HIGH) = G32(D4A_TRI_TOTAL);
+    v101 = M32(D4A_TRI_TOTAL + (1) * 4);
+    v102 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v101);
+    l = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v101);
   while (v102 && v102 < 0x1000000) {
     l = ((unsigned long)((unsigned long)l << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v102 = (v102 << 8) & 0xFFFFFFFFU;
   }
-    G32(0x4749D8) = (int)l;
-    G32(0x4749DC) = v102;
+    G32(D4A_RC_CODE) = (int)l;
+    G32(D4A_RC_RANGE) = v102;
     if ( v190 )
     {
       M8(v2 + 1) = v189;
-      if ( G8(0x45E3A5) )
+      if ( G8(D4A_ROW_SLOT) )
         M32(v190) -= M32(v190) >> 6;
       else
         M32(v190) += (0x2000 - M32(v190)) >> 6;
@@ -6254,7 +6255,7 @@ LABEL_313:
     if ( v192 )
     {
       M8(v2 + v164 + 1) = v191;
-      if ( (unsigned char)G8(0x45E3A5) == v164 )
+      if ( (unsigned char)G8(D4A_ROW_SLOT) == v164 )
         M32(v192) += (unsigned int)(0x2000 - M32(v192)) >> 6;
       else
         M32(v192) -= (unsigned int)M32(v192) >> 6;
@@ -6262,13 +6263,13 @@ LABEL_313:
     if ( v85 )
     {
       M8(v2 + v194 + 1) = v193;
-      if ( (unsigned char)G8(0x45E3A5) == v194 )
+      if ( (unsigned char)G8(D4A_ROW_SLOT) == v194 )
         M32(v85) += (unsigned int)(0x2000 - M32(v85)) >> 6;
       else
         M32(v85) -= (unsigned int)M32(v85) >> 6;
     }
-    if ( !v208 && 4 * (unsigned int)M8(v2 + (unsigned char)G8(0x45E3A5) + 1) >= G32(0x45C6A8) )
-      G8(0x45E3A4) = ((unsigned int)G32(0x45C6A8) > 0x10) + 1;
+    if ( !v208 && 4 * (unsigned int)M8(v2 + (unsigned char)G8(D4A_ROW_SLOT) + 1) >= G32(D4A_COL_TOT_B) )
+      G8(D4A_FLAG_45E3A4) = ((unsigned int)G32(D4A_COL_TOT_B) > 0x10) + 1;
 LABEL_332:
     if ( v71 )
     {
@@ -6280,41 +6281,41 @@ LABEL_332:
 LABEL_336:
     if ( v214 )
       break;
-    G8(0x45E393) = v208;
+    G8(D4A_FLAG_45E393) = v208;
     if ( v208 )
     {
       v214 = 1;
       v107 = 1;
-      if ( !G8(0x45E392) )
-        G8(0x45E393) = 0;
+      if ( !G8(D4A_PHASE) )
+        G8(D4A_FLAG_45E393) = 0;
       if ( v184 )
       {
-        G32(0x45C6A0) = (unsigned int)G32(0x45C6A0) >> 2;
+        G32(D4A_TBL_45C6A0) = (unsigned int)G32(D4A_TBL_45C6A0) >> 2;
         v108 = 0;
 #ifdef D4SCANDBG
-        if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+        if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
           fprintf(stderr, "SCAN out=%u e39c=%u h0=%u rowb2=%u\n",
-              G32(0x434528), G8(0x45E39C),
-              (unsigned)M8(0x45DD6E), (unsigned)M8(v184 + 2));
+              G32(D4A_OUT_POS), G8(D4A_HIST_LEN),
+              (unsigned)M8(D4A_HIST_SYMS), (unsigned)M8(v184 + 2));
 #endif
-        while ( v108 < (unsigned char)G8(0x45E39C) )
+        while ( v108 < (unsigned char)G8(D4A_HIST_LEN) )
         {
-          v109 = M8(0x45DD6E + (v108++));
+          v109 = M8(D4A_HIST_SYMS + (v108++));
           if ( v109 == M8(v184 + 2) )
           {
             v107 = 0;
 #ifdef D4V65DBG
-            if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-              fprintf(stderr, "SCAN-HIT out=%u\n", G32(0x434528));
+            if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+              fprintf(stderr, "SCAN-HIT out=%u\n", G32(D4A_OUT_POS));
 #endif
             if ( M8(v184) > 3u || (signed int)M8(v184 + 1) >> 6 > M8(v184) )
-              G8(0x45E393) = 0;
+              G8(D4A_FLAG_45E393) = 0;
             break;
           }
         }
         if ( v107 )
         {
-          G8(0x45E399) = v207;
+          G8(D4A_FLAG_45E399) = v207;
           if ( !v206 )
           {
             if ( c->p_14c )
@@ -6330,7 +6331,7 @@ LABEL_336:
             /* asm 0x411A3E..0x411A92: the table value is added into v110 in
              * place and the three conditional adds may target v110 as well;
              * rewrite the Hex-Rays (*(&v155 + cond)) trick explicitly. */
-            v156 = M32(0x4274CD + ((((signed int)M8(v184 + 3) >> 3) & 0xF) * 4));
+            v156 = M32(D4A_TBL_4274CD + ((((signed int)M8(v184 + 3) >> 3) & 0xF) * 4));
             v110 += v156;
             /* asm 0x411A53/0x411A6C/0x411A85: pair[M8(v184+2)==cmp] += value,
              * pair[0]=v155, pair[1]=v110 - the byte always lands in one. */
@@ -6346,60 +6347,60 @@ LABEL_336:
               v110 += v162;
             else
               v155 += v162;
-            G32(0x45C67C) = v155 + v110;
-            G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), v155 + v110);
+            G32(D4A_TRI_TOTAL) = v155 + v110;
+            G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), v155 + v110);
 #ifdef D4208DBG
-            if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+            if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
               fprintf(stderr, "V208LP out=%u v184=%u v155=%u v110=%u div=%u\n",
-          G32(0x434528), 
+          G32(D4A_OUT_POS), 
                   (unsigned)v184, (unsigned)v155, (unsigned)v110,
-                  (unsigned)d4_div(G32(0x4749D8), G32(0x4749DC)));
+                  (unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE)));
 #endif
-            if ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) < v155 )
+            if ( (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) < v155 )
             {
-              if ( G8(0x45E398) )
+              if ( G8(D4A_FLAG_45E398) )
               {
                 M32(c->p_68c) >>= 1;
                 M32(c->p_688) >>= 1;
-                G32(0x45C6B4) = ((unsigned int)G32(0x45C6B4) >> 1) + 255;
+                G32(D4A_TBL_45C6B4) = ((unsigned int)G32(D4A_TBL_45C6B4) >> 1) + 255;
               }
-              G32(0x45C684) = v155;
-              v113 = (unsigned char)G8(0x45E39C);
-              M8(0x45DD6E + (v113)) = M8(v184 + 2);
-              G32(0x45C680) = 0;
-              G8(0x45E39C) = v113 + 1;
+              G32(D4A_TRI_HIGH) = v155;
+              v113 = (unsigned char)G8(D4A_HIST_LEN);
+              M8(D4A_HIST_SYMS + (v113)) = M8(v184 + 2);
+              G32(D4A_TRI_LOW) = 0;
+              G8(D4A_HIST_LEN) = v113 + 1;
             }
             else
             {
-              if ( G8(0x45E398) )
+              if ( G8(D4A_FLAG_45E398) )
               {
-                v111 = G32(0x45C6B4);
-                M32(c->p_68c) += G32(0x45C6B4);
-                G32(0x45C6B4) *= 2;
+                v111 = G32(D4A_TBL_45C6B4);
+                M32(c->p_68c) += G32(D4A_TBL_45C6B4);
+                G32(D4A_TBL_45C6B4) *= 2;
                 M32(c->p_688) += v111;
-                if ( (unsigned int)G32(0x45C6B4) > 0xFFFF )
-                  G32(0x45C6B4) = 0xFFFF;
+                if ( (unsigned int)G32(D4A_TBL_45C6B4) > 0xFFFF )
+                  G32(D4A_TBL_45C6B4) = 0xFFFF;
               }
-              G32(0x45C680) = v155;
-              G32(0x45C684) = G32(0x45C67C);
+              G32(D4A_TRI_LOW) = v155;
+              G32(D4A_TRI_HIGH) = G32(D4A_TRI_TOTAL);
               v112 = M8(v184 + 2);
               v208 = 0;
               v212 = v112;
 #ifdef D4212DBG
-              if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+              if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
                 fprintf(stderr, "FAST out=%u v212=%u code=%u range=%u e392=%u\n",
-                    G32(0x434528), (unsigned)v212, G32(0x4749D8), G32(0x4749DC), G8(0x45E392));
+                    G32(D4A_OUT_POS), (unsigned)v212, G32(D4A_RC_CODE), G32(D4A_RC_RANGE), G8(D4A_PHASE));
 #endif
             }
-            v114 = M32(0x45C67C + (1) * 4);
-            v115 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v114);
-            m = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v114);
+            v114 = M32(D4A_TRI_TOTAL + (1) * 4);
+            v115 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v114);
+            m = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v114);
   while (v115 && v115 < 0x1000000) {
     m = ((unsigned long)((unsigned long)m << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v115 = (v115 << 8) & 0xFFFFFFFFU;
   }
-            G32(0x4749D8) = (int)m;
-            G32(0x4749DC) = v115;
+            G32(D4A_RC_CODE) = (int)m;
+            G32(D4A_RC_RANGE) = v115;
           }
         }
       }
@@ -6417,11 +6418,11 @@ LABEL_336:
   {
     v120 = v159;
     v211 = 0;
-    G8(0x45E39F) = v207;
-    if ( G8(0x45E392) )
+    G8(D4A_FLAG_45E39F) = v207;
+    if ( G8(D4A_PHASE) )
     {
-      v218 = M8(c->p_dict + (G32(0x45D118) & (G32(0x45D110) - G32(0x45C674))));
-      if ( (unsigned int)G32(0x45C674) > 1 && M32(c->p_68c) )
+      v218 = M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_OFF))));
+      if ( (unsigned int)G32(D4A_BEST_OFF) > 1 && M32(c->p_68c) )
       {
         v211 = 1;
         v120 = v218 + 256;
@@ -6430,16 +6431,16 @@ LABEL_336:
       {
         /* asm 0x411c40..0x411c51: v216 = (v216 && byte_45E38E), not a
          * bitwise AND with the address (Hex-Rays dropped the dereference). */
-        v216 = v216 && G8(0x45E38E);
-        v218 = G8(0x45E38B);
-        v201 = G32(0x45AE20);
-        v202 = (unsigned char)G8(0x45E390) + 772;
+        v216 = v216 && G8(D4A_PRED_FLAG);
+        v218 = G8(D4A_FLAG_45E38B);
+        v201 = G32(D4A_TRI2_TOTAL_NEXT);
+        v202 = (unsigned char)G8(D4A_MODEL_ID) + 772;
       }
       else
       {
-        v122 = M32(0x42472C + (((unsigned char)(v218
+        v122 = M32(D4A_SEL_LUT + (((unsigned char)(v218
                                             - M8(c->p_dict
-                                                       + (G32(0x45D118) & (G32(0x45D110) - 2 * G32(0x45C674)))))) * 4));
+                                                       + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - 2 * G32(D4A_BEST_OFF)))))) * 4));
         v202 = 772;
         v201 = v122 + 513;
       }
@@ -6449,7 +6450,7 @@ LABEL_336:
       v123 = 0;
       if ( v216 )
       {
-        while ( v123 < (unsigned char)G8(0x45E39C) )
+        while ( v123 < (unsigned char)G8(D4A_HIST_LEN) )
         {
           ++v123;
           M8(v123 + 4578669) = v218 - M8(v123 + 4578669);
@@ -6458,10 +6459,10 @@ LABEL_336:
       else
       {
         v124 = v218;
-        while ( v123 < (unsigned char)G8(0x45E39C) )
+        while ( v123 < (unsigned char)G8(D4A_HIST_LEN) )
         {
           v125 = v123++;
-          M8(0x45DD6E + (v125)) -= v124;
+          M8(D4A_HIST_SYMS + (v125)) -= v124;
         }
       }
       v126 = d4_411F8B(c, v201, v202);
@@ -6471,19 +6472,19 @@ LABEL_336:
         v128 = v126 + v218;
       v212 = v128;
 #ifdef D4209DBG
-      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
         fprintf(stderr, "V209 out=%u v216=%d v218=%u v201=%u v202=%d v126=%u v128=%u e38e=%u e390=%u\n",
-            G32(0x434528), v216, (unsigned)v218, v201, v202, (unsigned)v126, (unsigned)v128, G8(0x45E38E), G8(0x45E390));
+            G32(D4A_OUT_POS), v216, (unsigned)v218, v201, v202, (unsigned)v126, (unsigned)v128, G8(D4A_PRED_FLAG), G8(D4A_MODEL_ID));
 #endif
 #ifdef D4209DBG
-      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+      if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
         fprintf(stderr, "V209 out=%u v216=%d v218=%u v201=%u v202=%d v126=%u v128=%u e38e=%u\n",
-            G32(0x434528), v216, (unsigned)v218, v201, v202, (unsigned)v126, (unsigned)v128, G8(0x45E38E));
+            G32(D4A_OUT_POS), v216, (unsigned)v218, v201, v202, (unsigned)v126, (unsigned)v128, G8(D4A_PRED_FLAG));
 #endif
       v129 = 0;
       if ( v216 )
       {
-        while ( v129 < (unsigned char)G8(0x45E39C) )
+        while ( v129 < (unsigned char)G8(D4A_HIST_LEN) )
         {
           ++v129;
           M8(v129 + 4578669) = v218 - M8(v129 + 4578669);
@@ -6492,10 +6493,10 @@ LABEL_336:
       else
       {
         v130 = v218;
-        while ( v129 < (unsigned char)G8(0x45E39C) )
+        while ( v129 < (unsigned char)G8(D4A_HIST_LEN) )
         {
           v131 = v129++;
-          M8(0x45DD6E + (v131)) += v130;
+          M8(D4A_HIST_SYMS + (v131)) += v130;
         }
       }
       v132 = v212;
@@ -6507,11 +6508,11 @@ LABEL_336:
     v135 = d4_411F8B(c, v120, 769);
     v212 = v135;
 #ifdef D4V135DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "V135 out=%u v120=%u v135=%u\n",
-          G32(0x434528), (unsigned)v120, (unsigned)v135);
+          G32(D4A_OUT_POS), (unsigned)v120, (unsigned)v135);
 #endif
-    if ( G8(0x45E392) )
+    if ( G8(D4A_PHASE) )
     {
       v136 = 0;
       if ( v216 )
@@ -6520,7 +6521,7 @@ LABEL_336:
         v132 = v135 - v218;   /* asm 0x411d9c: sub bl,[v218] (path B) */
       if ( v216 )
       {
-        while ( v136 < (unsigned char)G8(0x45E39C) )
+        while ( v136 < (unsigned char)G8(D4A_HIST_LEN) )
         {
           ++v136;
           M8(v136 + 4578669) = v218 - M8(v136 + 4578669);
@@ -6529,10 +6530,10 @@ LABEL_336:
       else
       {
         v137 = v218;
-        while ( v136 < (unsigned char)G8(0x45E39C) )
+        while ( v136 < (unsigned char)G8(D4A_HIST_LEN) )
         {
           v138 = v136++;
-          M8(0x45DD6E + (v138)) -= v137;
+          M8(D4A_HIST_SYMS + (v138)) -= v137;
         }
       }
       v133 = v202;
@@ -6543,56 +6544,56 @@ LABEL_394:
   }
 LABEL_408:
   d4_40ECC7(c, v212);
-  if ( G8(0x45E39D) )
+  if ( G8(D4A_FLAG_45E39D) )
     d4_40F19A(c, v212);   /* asm 0x411E16: eax = edx = the decoded byte (was a
                            * Hex-Rays leftover v139, never assigned) */
-  if ( G8(0x45E393) )
+  if ( G8(D4A_FLAG_45E393) )
     d4_40EBA7(c, v212);
   if ( v207 )
   {
-    v140 = v212 - G8(0x45E38B);
-    if ( G8(0x45E38E) )
+    v140 = v212 - G8(D4A_FLAG_45E38B);
+    if ( G8(D4A_PRED_FLAG) )
       v140 = -v140;
-    G8(0x45E39C) = 0;
-    d4_412F80(c, G32(0x45AE20), (unsigned char)G8(0x45E390) + 772, v140);
-    if ( G8(0x45E39F) )
-      G32(0x45C658) += G32(0x45C668);
-    G32(0x45C654) = G32(0x45C658) + ((unsigned int)(31 * G32(0x45C654)) >> 5);
+    G8(D4A_HIST_LEN) = 0;
+    d4_412F80(c, G32(D4A_TRI2_TOTAL_NEXT), (unsigned char)G8(D4A_MODEL_ID) + 772, v140);
+    if ( G8(D4A_FLAG_45E39F) )
+      G32(D4A_COST_SUM) += G32(D4A_TBL_45C668);
+    G32(D4A_COST_GATE) = G32(D4A_COST_SUM) + ((unsigned int)(31 * G32(D4A_COST_GATE)) >> 5);
   }
-  while ( (G8(0x45E3A1) = (unsigned char)(G8(0x45E3A1) - 1)) != 0xFF )
+  while ( (G8(D4A_FLAG_45E3A1) = (unsigned char)(G8(D4A_FLAG_45E3A1) - 1)) != 0xFF )
   {
-    v141 = (unsigned char)G8(0x45E3A1);
-    G32(0x45C690) = M32(0x444584 + ((v141) * 4));
-    if ( M32(0x444594 + ((v141) * 4)) == 512 )
-      d4_40E672(c, M8(0x45AE34 + (unsigned char)G8(0x45E3A1)), M32(0x444594 + ((v141) * 4)));
+    v141 = (unsigned char)G8(D4A_FLAG_45E3A1);
+    G32(D4A_PPM_CTX) = M32(D4A_TBL_444584 + ((v141) * 4));
+    if ( M32(D4A_TBL_444594 + ((v141) * 4)) == 512 )
+      d4_40E672(c, M8(D4A_TBL_45AE34 + (unsigned char)G8(D4A_FLAG_45E3A1)), M32(D4A_TBL_444594 + ((v141) * 4)));
     else
-      d4_40E6D5(c, M8(0x45AE34 + (unsigned char)G8(0x45E3A1)), M32(0x444594 + ((v141) * 4)));
+      d4_40E6D5(c, M8(D4A_TBL_45AE34 + (unsigned char)G8(D4A_FLAG_45E3A1)), M32(D4A_TBL_444594 + ((v141) * 4)));
   }
   d4_40FFFD(c, v212);
   if ( v211 )
   {
-    if ( M8(0x45E086 + (v159)) == v212 )
+    if ( M8(D4A_TBL_45E086 + (v159)) == v212 )
     {
-      if ( (unsigned char)M8(0x45DD85 + (v159)) < 0xFu )
-        ++M8(0x45DD85 + (v159));
+      if ( (unsigned char)M8(D4A_RUN_CNT + (v159)) < 0xFu )
+        ++M8(D4A_RUN_CNT + (v159));
     }
     else
     {
       v142 = v159;
       v143 = v212;
-      M8(0x45DD85 + (v159)) = 0;
-      M8(0x45E086 + (v142)) = v143;
+      M8(D4A_RUN_CNT + (v159)) = 0;
+      M8(D4A_TBL_45E086 + (v142)) = v143;
     }
   }
   d4_40F39A(c, v212, 1);
   v144 = c->p_dict;
-  v145 = G32(0x45D110);
+  v145 = G32(D4A_DICT_POS);
   v146 = v212;
-  M8(c->p_dict + G32(0x45D110)) = v212;
+  M8(c->p_dict + G32(D4A_DICT_POS)) = v212;
   if ( v145 < 0x100 )
-    M8(v144 + G32(0x45D10C) + v145) = v146;
-  result = G32(0x45D118);
-  G32(0x45D110) = G32(0x45D118) & (G32(0x45D110) + 1);
+    M8(v144 + G32(D4A_DICT_SIZE) + v145) = v146;
+  result = G32(D4A_DICT_MASK);
+  G32(D4A_DICT_POS) = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) + 1);
   return result;
 }
 
@@ -6606,7 +6607,7 @@ LABEL_408:
 static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 {
 #ifdef D4F8BDBG
-  fprintf(stderr, "F8B out=%u a1=%u a2=%d\n", G32(0x434528), a1, a2);
+  fprintf(stderr, "F8B out=%u a1=%u a2=%d\n", G32(D4A_OUT_POS), a1, a2);
 #endif
   unsigned int v2;
   int v3;
@@ -6638,50 +6639,50 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
   v2 = a1;
   v3 = a2;
   v28 = 1;
-  G32(0x45C648) = 0;
+  G32(D4A_COST_TMP) = 0;
   #ifdef D4C648DBG
-      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-        fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+      if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+        fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
   #endif
-  v4 = (unsigned char)(G32(0x45C650) + 1);
+  v4 = (unsigned char)(G32(D4A_TBL_45C650) + 1);
   v5 = a2 == 769;
-  G32(0x45C650) = v4;
-  v6 = M32(0x4451A4 + ((v4) * 4));
-  G32(0x45C690) = v3;
-  G32(0x45C644) -= v6;
+  G32(D4A_TBL_45C650) = v4;
+  v6 = M32(D4A_TBL_4451A4 + ((v4) * 4));
+  G32(D4A_PPM_CTX) = v3;
+  G32(D4A_TBL_45C644) -= v6;
   v27 = v5;
 #ifdef D411F8BDBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
     fprintf(stderr, "1F8B out=%u a1=%u a2=%d c644=%u code=%u range=%u\n",
-        G32(0x434528), a1, a2, G32(0x45C644), G32(0x4749D8), G32(0x4749DC));
+        G32(D4A_OUT_POS), a1, a2, G32(D4A_TBL_45C644), G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
 #endif
-  if ( (unsigned int)G32(0x45C644) < 0x6D4250 || (unsigned int)G32(0x45C644) >= 0xFEFF01 )
+  if ( (unsigned int)G32(D4A_TBL_45C644) < 0x6D4250 || (unsigned int)G32(D4A_TBL_45C644) >= 0xFEFF01 )
   {
     v26 = d4_412257(c, v2);
-    if ( G8(0x45E39F) )
-      G32(0x45C668) += G32(0x45C648);
+    if ( G8(D4A_FLAG_45E39F) )
+      G32(D4A_TBL_45C668) += G32(D4A_COST_TMP);
   }
-  else if ( (unsigned int)G32(0x45C644) < 0x91ADC0 )
+  else if ( (unsigned int)G32(D4A_TBL_45C644) < 0x91ADC0 )
   {
     v13 = v5;
-    v14 = M32(0x4455A4 + ((v5) * 4));
+    v14 = M32(D4A_TBL_4455A4 + ((v5) * 4));
 #ifdef D411F8BDBG
-    if ((G32(0x434528) >= 407840 && G32(0x434528) <= 407860) || (G32(0x434528) >= 760195 && G32(0x434528) <= 760215) || G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
+    if ((G32(D4A_OUT_POS) >= 407840 && G32(D4A_OUT_POS) <= 407860) || (G32(D4A_OUT_POS) >= 760195 && G32(D4A_OUT_POS) <= 760215) || G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "1F8BB out=%u v14=%u dac=%u e39c=%u\n",
-          G32(0x434528), M32(0x4455A4 + 4), M32(0x445DAC + 4), G8(0x45E39C));
+          G32(D4A_OUT_POS), M32(D4A_TBL_4455A4 + 4), M32(D4A_TBL_445DAC + 4), G8(D4A_HIST_LEN));
 #endif
     v15 = v5 + 770;
-    if ( v14 < M32(0x445DAC + ((v13) * 4)) )
+    if ( v14 < M32(D4A_TBL_445DAC + ((v13) * 4)) )
     {
-      G32(0x45C690) = v15;
+      G32(D4A_PPM_CTX) = v15;
       v18 = d4_412257(c, 512);
-      v19 = G32(0x45C648);
+      v19 = G32(D4A_COST_TMP);
       v26 = v18;
-      G32(0x45C690) = v3;
-      G32(0x45C648) = 0;
+      G32(D4A_PPM_CTX) = v3;
+      G32(D4A_COST_TMP) = 0;
       #ifdef D4C648DBG
-          if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-            fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+          if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+            fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
       #endif
       v25 = v19;
       d4_412A59(c, v2, v18);
@@ -6693,62 +6694,62 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
     else
     {
       v26 = d4_412257(c, v2);
-      v17 = G32(0x45C648);      /* cost saved across the reset */
-      G32(0x45C690) = v15;      /* Hex-Rays had an undefined v16 here */
-      G32(0x45C648) = 0;
+      v17 = G32(D4A_COST_TMP);      /* cost saved across the reset */
+      G32(D4A_PPM_CTX) = v15;      /* Hex-Rays had an undefined v16 here */
+      G32(D4A_COST_TMP) = 0;
       #ifdef D4C648DBG
-          if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-            fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+          if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+            fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
       #endif
       d4_412A59(c, 0x200u, v26);
-      v25 = G32(0x45C648);
-      G32(0x45C648) = v17;
+      v25 = G32(D4A_COST_TMP);
+      G32(D4A_COST_TMP) = v17;
     }
-    if ( G8(0x45E39F) )
-      G32(0x45C668) += v17;
-    v20 = (unsigned char)G8(0x45E3A1);
-    M8(0x45AE34 + v20) = v26;
-    M32(0x4451A4 + ((G32(0x45C650)) * 4)) = v17;
-    M32(0x444594 + ((v20) * 4)) = 512;
-    M32(0x444584 + ((v20) * 4)) = v27 + 770;
+    if ( G8(D4A_FLAG_45E39F) )
+      G32(D4A_TBL_45C668) += v17;
+    v20 = (unsigned char)G8(D4A_FLAG_45E3A1);
+    M8(D4A_TBL_45AE34 + v20) = v26;
+    M32(D4A_TBL_4451A4 + ((G32(D4A_TBL_45C650)) * 4)) = v17;
+    M32(D4A_TBL_444594 + ((v20) * 4)) = 512;
+    M32(D4A_TBL_444584 + ((v20) * 4)) = v27 + 770;
     v28 = 0;
-    v21 = (unsigned int)(31 * M32(0x4455A4 + (v27) * 4)) >> 5;
-    G32(0x45C644) += v17;
-    ++G8(0x45E3A1);
-    M32(0x4455A4 + ((v27) * 4)) = v25 + v21;
+    v21 = (unsigned int)(31 * M32(D4A_TBL_4455A4 + (v27) * 4)) >> 5;
+    G32(D4A_TBL_45C644) += v17;
+    ++G8(D4A_FLAG_45E3A1);
+    M32(D4A_TBL_4455A4 + ((v27) * 4)) = v25 + v21;
   }
   else
   {
-    G32(0x45C67C) = 256;
-    G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x100u);
-    v26 = (unsigned)d4_div(G32(0x4749D8), G32(0x4749DC));
-    G32(0x45C680) = v26;
-    G32(0x45C684) = v26 + 1;
-    v7 = M32(0x45C67C + (1) * 4);
-    v8 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v7);
-    i = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v7);
+    G32(D4A_TRI_TOTAL) = 256;
+    G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0x100u);
+    v26 = (unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
+    G32(D4A_TRI_LOW) = v26;
+    G32(D4A_TRI_HIGH) = v26 + 1;
+    v7 = M32(D4A_TRI_TOTAL + (1) * 4);
+    v8 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v7);
+    i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v7);
   while (v8 && v8 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v8 = (v8 << 8) & 0xFFFFFFFFU;
   }
-    G32(0x4749D8) = (int)i;
-    G32(0x4749DC) = v8;
-    if ( G8(0x45E39F) )
-      G32(0x45C668) += 37440;
+    G32(D4A_RC_CODE) = (int)i;
+    G32(D4A_RC_RANGE) = v8;
+    if ( G8(D4A_FLAG_45E39F) )
+      G32(D4A_TBL_45C668) += 37440;
     d4_412A59(c, v2, v26);
   }
-  v22 = (unsigned char)G8(0x45E3A1)++;
-  M32(0x444584 + ((v22) * 4)) = v3;
-  M32(0x444594 + ((v22) * 4)) = v2;
-  M8(0x45AE34 + v22) = v26;
+  v22 = (unsigned char)G8(D4A_FLAG_45E3A1)++;
+  M32(D4A_TBL_444584 + ((v22) * 4)) = v3;
+  M32(D4A_TBL_444594 + ((v22) * 4)) = v2;
+  M8(D4A_TBL_45AE34 + v22) = v26;
   if ( v28 )
   {
-    v23 = G32(0x45C648);
-    M32(0x4451A4 + ((G32(0x45C650)) * 4)) = G32(0x45C648);
-    G32(0x45C644) += v23;
-    M32(0x4455A4 + ((v27) * 4)) = G32(0x45C648) + ((unsigned int)(31 * M32(0x4455A4 + (v27) * 4)) >> 5);
+    v23 = G32(D4A_COST_TMP);
+    M32(D4A_TBL_4451A4 + ((G32(D4A_TBL_45C650)) * 4)) = G32(D4A_COST_TMP);
+    G32(D4A_TBL_45C644) += v23;
+    M32(D4A_TBL_4455A4 + ((v27) * 4)) = G32(D4A_COST_TMP) + ((unsigned int)(31 * M32(D4A_TBL_4455A4 + (v27) * 4)) >> 5);
   }
-  M32(0x445DAC + ((v27) * 4)) = G32(0x45C648) + ((unsigned int)(31 * M32(0x445DAC + (v27) * 4)) >> 5);
+  M32(D4A_TBL_445DAC + ((v27) * 4)) = G32(D4A_COST_TMP) + ((unsigned int)(31 * M32(D4A_TBL_445DAC + (v27) * 4)) >> 5);
   return v26;
 }
 
@@ -6848,27 +6849,27 @@ static unsigned char d4_412257(dec4_ctx *c, int a1)
   /* Hex-Rays lost the definition of v63: it is the incoming context
    * argument (the asm loads dword_45C690, which the caller sets to a2). */
   v63 = a1;
-  v70 = (unsigned char)G8(0x45E39C);
+  v70 = (unsigned char)G8(D4A_HIST_LEN);
   v80 = (c->p_6bc + (v63 << 9));
   a1 = (a1 & ~0x0000FFFFU) | ((M16(v80)) & 0x0000FFFFU);
   v67 = M16(c->p_6c8 + 2 * v63);
 #ifdef D42257DBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI) {
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI) {
     unsigned q2;
     fprintf(stderr, "2257 out=%u ctx=%u tot=%u v67=%u e39c=%u code=%u range=%u\n",
-        G32(0x434528), v63, (unsigned)(unsigned short)a1, (unsigned)v67,
-        v70, G32(0x4749D8), G32(0x4749DC));
+        G32(D4A_OUT_POS), v63, (unsigned)(unsigned short)a1, (unsigned)v67,
+        v70, G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
     fprintf(stderr, "PBC:");
     for (q2 = 0; q2 < 256; q2++) fprintf(stderr, "%s%u", (q2 % 16) ? "," : "\n", (unsigned)M16(v80 + 2 * q2));
     fprintf(stderr, "\n");
   }
 #endif
   v1 = 0;
-  if ( (unsigned short)a1 <= (unsigned int)(M32(0x45BA3C + ((v63) * 4)) * v67) )
+  if ( (unsigned short)a1 <= (unsigned int)(M32(D4A_TBL_45BA3C + ((v63) * 4)) * v67) )
   {
     v2 = v70;
-    v80 = ((G32(0x45C690) << 9) + c->p_6bc);
-    v79 = (G32(0x45C690) << 9) + c->p_6c0;
+    v80 = ((G32(D4A_PPM_CTX) << 9) + c->p_6bc);
+    v79 = (G32(D4A_PPM_CTX) << 9) + c->p_6c0;
     a1 = (a1 & ~0x0000FFFFU) | ((M16(v80)) & 0x0000FFFFU);
     while ( v2 )
     {
@@ -6876,9 +6877,9 @@ static unsigned char d4_412257(dec4_ctx *c, int a1)
       a1 = (a1 & ~0x0000FFFFU) | ((a1 - M16(v3)) & 0x0000FFFFU);
     }
 LABEL_5:
-    G32(0x45C67C) = (unsigned short)a1;
-    G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), (unsigned int)(unsigned short)a1);
-    v83 = (unsigned)d4_div(G32(0x4749D8), G32(0x4749DC));
+    G32(D4A_TRI_TOTAL) = (unsigned short)a1;
+    G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), (unsigned int)(unsigned short)a1);
+    v83 = (unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
 LABEL_73:
     if ( v70 )
     {
@@ -6967,23 +6968,23 @@ LABEL_73:
       v52 = v80 - v53;
     }
     v70 = v52 >> 1;
-    G32(0x45C684) = (unsigned short)(v83 + v45);
-    v56 = G32(0x45C684) - M16(v79 + 2 * (v52 >> 1));
-    G32(0x45C680) = v56;
-    G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((((G32(0x45C684) - v56) << 14) / (unsigned int)G32(0x45C67C)) * 2));
+    G32(D4A_TRI_HIGH) = (unsigned short)(v83 + v45);
+    v56 = G32(D4A_TRI_HIGH) - M16(v79 + 2 * (v52 >> 1));
+    G32(D4A_TRI_LOW) = v56;
+    G32(D4A_COST_TMP) += (unsigned short)M16(D4A_COST_LUT + ((((G32(D4A_TRI_HIGH) - v56) << 14) / (unsigned int)G32(D4A_TRI_TOTAL)) * 2));
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S1 c684=%u v56=%d c67c=%u add=%u\n", G32(0x45C684), v56, G32(0x45C67C), (unsigned)(unsigned short)M16(0x429ED4 + ((((G32(0x45C684) - v56) << 14) / (unsigned int)G32(0x45C67C)) * 2)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S1 c684=%u v56=%d c67c=%u add=%u\n", G32(D4A_TRI_HIGH), v56, G32(D4A_TRI_TOTAL), (unsigned)(unsigned short)M16(D4A_COST_LUT + ((((G32(D4A_TRI_HIGH) - v56) << 14) / (unsigned int)G32(D4A_TRI_TOTAL)) * 2)));
 #endif
-    v57 = M32(0x45C67C + (1) * 4);
-    v58 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v57);
-    i = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v57);
+    v57 = M32(D4A_TRI_TOTAL + (1) * 4);
+    v58 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v57);
+    i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v57);
   while (v58 && v58 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v58 = (v58 << 8) & 0xFFFFFFFFU;
   }
-    G32(0x4749D8) = (int)i;
-    G32(0x4749DC) = v58;
+    G32(D4A_RC_CODE) = (int)i;
+    G32(D4A_RC_RANGE) = v58;
     if ( v1 )
       M32(v1) += (unsigned int)(0x2000 - M32(v1)) >> 6;
     return v70;
@@ -6992,18 +6993,18 @@ LABEL_73:
   v79 = (v63 << 9) + c->p_6c0;
   while ( v4 < v70 )
   {
-    v5 = (v79 + 2 * (unsigned char)M8(0x45DD6E + (v4++)));
+    v5 = (v79 + 2 * (unsigned char)M8(D4A_HIST_SYMS + (v4++)));
     a1 = (a1 & ~0x0000FFFFU) | ((a1 - M16(v5)) & 0x0000FFFFU);
   }
-  if ( 512 >> G8(0x45E392) > v63 )
+  if ( 512 >> G8(D4A_PHASE) > v63 )
   {
-    v84 = M8(0x45E086 + (v63));
-    for ( j = 0; j < v70 && M8(0x45DD6E + (j)) != v84; ++j )
+    v84 = M8(D4A_TBL_45E086 + (v63));
+    for ( j = 0; j < v70 && M8(D4A_HIST_SYMS + (j)) != v84; ++j )
       ;
     if ( j == v70 )
     {
       v78 = M16(v79 + 2 * v84);
-      v77 = M32(0x42748D + (((unsigned char)M8(0x45DD85 + (v63))) * 4));
+      v77 = M32(D4A_TBL_42748D + (((unsigned char)M8(D4A_RUN_CNT + (v63))) * 4));
       v77 = 16 * (v77 + v78) / ((unsigned short)a1 + (unsigned int)M16(c->p_6c8 + 2 * v63) + v77);
       if ( v78 <= 0x600 )
       {
@@ -7026,51 +7027,51 @@ LABEL_73:
       if ( (v84 & 0xC0) == 0xC0 )   /* asm 0x412410: and 0xc0 / cmp 0xc0 */
         v77 |= 128 << (v84 == 0xFF);
       v8 = v77 | 0x200;   /* asm: or ch,2 (Hex-Rays wrote a HIWORD form) */
-      if ( G8(0x45E392) )
+      if ( G8(D4A_PHASE) )
       {
-        if ( (unsigned int)(G32(0x45D110) - M32(0x4455AC + ((v84) * 4))) > 0x40 )
+        if ( (unsigned int)(G32(D4A_DICT_POS) - M32(D4A_TBL_4455AC + ((v84) * 4))) > 0x40 )
           goto LABEL_31;
       }
-      else if ( !M8(0x42738D + (v84)) )
+      else if ( !M8(D4A_HASH_ENABLE + (v84)) )
       {
         goto LABEL_31;
       }
       v77 = v8;
 LABEL_31:
-      if ( M32(0x457964 + ((v84) * 4)) == G32(0x45AE1C) )
+      if ( M32(D4A_LAST_SEEN + ((v84) * 4)) == G32(D4A_OUT_COUNT) )
         v77 |= 0x400;   /* asm: or byte [var_20+1],4 */
-      G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x2000u);
-      v9 = 0x4558E4 + ((v77) * 4);   /* Hex-Rays took the value; the asm uses the address */
-      v77 = (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) < (unsigned int)M32(v9);
+      G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0x2000u);
+      v9 = D4A_TBL_4558E4 + ((v77) * 4);   /* Hex-Rays took the value; the asm uses the address */
+      v77 = (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) < (unsigned int)M32(v9);
       if ( v77 )
       {
         v10 = M32(v9);
-        G32(0x45C680) = 0;
-        G32(0x45C684) = v10;
+        G32(D4A_TRI_LOW) = 0;
+        G32(D4A_TRI_HIGH) = v10;
       }
       else
       {
-        G32(0x45C684) = 0x2000;
-        M8(0x45DD6E + (v70)) = v84;
+        G32(D4A_TRI_HIGH) = 0x2000;
+        M8(D4A_HIST_SYMS + (v70)) = v84;
         a1 -= v78;
         v11 = M32(v9);
         ++v70;
-        G32(0x45C680) = v11;
+        G32(D4A_TRI_LOW) = v11;
       }
-      G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((2 * (G32(0x45C684) - G32(0x45C680))) * 2));
+      G32(D4A_COST_TMP) += (unsigned short)M16(D4A_COST_LUT + ((2 * (G32(D4A_TRI_HIGH) - G32(D4A_TRI_LOW))) * 2));
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S2 c684=%u c680=%u add=%u\n", G32(0x45C684), G32(0x45C680), (unsigned)(unsigned short)M16(0x429ED4 + ((2 * (G32(0x45C684) - G32(0x45C680))) * 2)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S2 c684=%u c680=%u add=%u\n", G32(D4A_TRI_HIGH), G32(D4A_TRI_LOW), (unsigned)(unsigned short)M16(D4A_COST_LUT + ((2 * (G32(D4A_TRI_HIGH) - G32(D4A_TRI_LOW))) * 2)));
 #endif
-      v12 = M32(0x45C67C + (1) * 4);
-      v13 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v12);
-      k = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v12);
+      v12 = M32(D4A_TRI_TOTAL + (1) * 4);
+      v13 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v12);
+      k = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v12);
   while (v13 && v13 < 0x1000000) {
     k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v13 = (v13 << 8) & 0xFFFFFFFFU;
   }
-      G32(0x4749D8) = (int)k;
-      G32(0x4749DC) = v13;
+      G32(D4A_RC_CODE) = (int)k;
+      G32(D4A_RC_RANGE) = v13;
       if ( v77 )
         M32(v9) += (unsigned int)(0x2000 - M32(v9)) >> 6;
       else
@@ -7083,9 +7084,9 @@ LABEL_31:
 LABEL_43:
   if ( !(unsigned short)a1 )
   {
-    v19 = ((G32(0x45C690) << 9) + c->p_6bc);
+    v19 = ((G32(D4A_PPM_CTX) << 9) + c->p_6bc);
     v80 = v19;
-    v79 = (G32(0x45C690) << 9) + c->p_6c0;
+    v79 = (G32(D4A_PPM_CTX) << 9) + c->p_6c0;
     a1 = (a1 & ~0x0000FFFFU) | ((M16(v19)) & 0x0000FFFFU);
     v20 = v70;
     while ( v20 )
@@ -7097,47 +7098,47 @@ LABEL_43:
   }
   if ( v63 >= 0x200 || (unsigned short)a1 >= 0x2000u )
   {
-    G32(0x45C67C) = M16(c->p_6c8 + 2 * v63) + (unsigned short)a1;
+    G32(D4A_TRI_TOTAL) = M16(c->p_6c8 + 2 * v63) + (unsigned short)a1;
   }
   else
   {
-    v1 = (0x453464)
+    v1 = (D4A_TBL_453464)
        + 4 * (unsigned)d4_div(32u * M16(c->p_6c8 + 2 * v63),
                               (unsigned short)a1 + M16(c->p_6c8 + 2 * v63));
-    G32(0x45C67C) = (unsigned)d4_div((unsigned int)(unsigned short)a1 << 13,
+    G32(D4A_TRI_TOTAL) = (unsigned)d4_div((unsigned int)(unsigned short)a1 << 13,
                                      M32(v1)) + 1;
-    if ( (unsigned int)G32(0x45C67C) >= 0x4000 )
-      G32(0x45C67C) = 0x3FFF;
+    if ( (unsigned int)G32(D4A_TRI_TOTAL) >= 0x4000 )
+      G32(D4A_TRI_TOTAL) = 0x3FFF;
   }
-  G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), (unsigned int)G32(0x45C67C));
-  v83 = (unsigned)d4_div(G32(0x4749D8), G32(0x4749DC));
-  if ( (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC))) < (unsigned short)a1 )
+  G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), (unsigned int)G32(D4A_TRI_TOTAL));
+  v83 = (unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE));
+  if ( (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE))) < (unsigned short)a1 )
     goto LABEL_73;
   memset(v64, 0, 0x100u);
   while ( v70 )
-    v64[(unsigned char)M8(0x45DD6E + (--v70))] = 1;
-  G32(0x45C680) = (unsigned short)a1;
-  G32(0x45C684) = G32(0x45C67C);
-  G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((((G32(0x45C67C) - (unsigned int)(unsigned short)a1) << 14)
-                                              / G32(0x45C67C)) * 2));
+    v64[(unsigned char)M8(D4A_HIST_SYMS + (--v70))] = 1;
+  G32(D4A_TRI_LOW) = (unsigned short)a1;
+  G32(D4A_TRI_HIGH) = G32(D4A_TRI_TOTAL);
+  G32(D4A_COST_TMP) += (unsigned short)M16(D4A_COST_LUT + ((((G32(D4A_TRI_TOTAL) - (unsigned int)(unsigned short)a1) << 14)
+                                              / G32(D4A_TRI_TOTAL)) * 2));
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S3 c67c=%u a1lo=%u add=%u\n", G32(0x45C67C), (unsigned)(unsigned short)a1, (unsigned)(unsigned short)M16(0x429ED4 + ((((G32(0x45C67C) - (unsigned int)(unsigned short)a1) << 14) / G32(0x45C67C)) * 2)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S3 c67c=%u a1lo=%u add=%u\n", G32(D4A_TRI_TOTAL), (unsigned)(unsigned short)a1, (unsigned)(unsigned short)M16(D4A_COST_LUT + ((((G32(D4A_TRI_TOTAL) - (unsigned int)(unsigned short)a1) << 14) / G32(D4A_TRI_TOTAL)) * 2)));
 #endif
-  v22 = M32(0x45C67C + (1) * 4);
-  v23 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v22);
-  l = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v22);
+  v22 = M32(D4A_TRI_TOTAL + (1) * 4);
+  v23 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v22);
+  l = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v22);
   while (v23 && v23 < 0x1000000) {
     l = ((unsigned long)((unsigned long)l << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v23 = (v23 << 8) & 0xFFFFFFFFU;
   }
-  G32(0x4749D8) = (int)l;
-  G32(0x4749DC) = v23;
+  G32(D4A_RC_CODE) = (int)l;
+  G32(D4A_RC_RANGE) = v23;
   v28 = 0;
   v71 = c->p_6c0 + (v63 << 9);
-  v76 = (G32(0x45C690) << 9) + c->p_6c0;
+  v76 = (G32(D4A_PPM_CTX) << 9) + c->p_6c0;
   v29 = (c->p_6c0 + (v63 << 9));
-  v30 = ((G32(0x45C690) << 9) + c->p_6c0);
+  v30 = ((G32(D4A_PPM_CTX) << 9) + c->p_6c0);
   v31 = 0;
   do
   {
@@ -7150,21 +7151,21 @@ LABEL_43:
   }
   while ( v31 < 0x100 );
   v32 = 256;
-  G32(0x45C67C) = M16(c->p_6bc + (G32(0x45C690) << 9)) - v28;
+  G32(D4A_TRI_TOTAL) = M16(c->p_6bc + (G32(D4A_PPM_CTX) << 9)) - v28;
 #ifdef D4ZDIVDBG
-  if (G32(0x45C67C) == 0) {
+  if (G32(D4A_TRI_TOTAL) == 0) {
     unsigned qz;
     fprintf(stderr, "ZDIV out=%u v63=%u c690=%u base=%u v28=%u e39c=%u\n",
-        G32(0x434528), v63, G32(0x45C690),
-        (unsigned)M16(c->p_6bc + (G32(0x45C690) << 9)), v28, G8(0x45E39C));
+        G32(D4A_OUT_POS), v63, G32(D4A_PPM_CTX),
+        (unsigned)M16(c->p_6bc + (G32(D4A_PPM_CTX) << 9)), v28, G8(D4A_HIST_LEN));
     fprintf(stderr, "ZDIVH:");
-    for (qz = 0; qz < 16; qz++) fprintf(stderr, " %u", (unsigned)M8(0x45DD6E + qz));
+    for (qz = 0; qz < 16; qz++) fprintf(stderr, " %u", (unsigned)M8(D4A_HIST_SYMS + qz));
     fprintf(stderr, "\n");
   }
 #endif
-  v33 = G32(0x4749DC) / (unsigned int)G32(0x45C67C);
-  G32(0x4749DC) = v33;
-  v82 = (unsigned)d4_div(G32(0x4749D8), v33);
+  v33 = G32(D4A_RC_RANGE) / (unsigned int)G32(D4A_TRI_TOTAL);
+  G32(D4A_RC_RANGE) = v33;
+  v82 = (unsigned)d4_div(G32(D4A_RC_CODE), v33);
   v34 = 0;
   v35 = (v71 + 512);
   do
@@ -7175,22 +7176,22 @@ LABEL_43:
       v34 += M16(v76 + 2 * v32);
   }
   while ( v34 <= (unsigned short)v82 );
-  G32(0x45C684) = v34;
-  G32(0x45C680) = v34 - M16(v76 + 2 * v32);
-  G32(0x45C648) += (unsigned short)M16(0x429ED4 + (((((unsigned int)v34 - G32(0x45C680)) << 14) / G32(0x45C67C)) * 2));
+  G32(D4A_TRI_HIGH) = v34;
+  G32(D4A_TRI_LOW) = v34 - M16(v76 + 2 * v32);
+  G32(D4A_COST_TMP) += (unsigned short)M16(D4A_COST_LUT + (((((unsigned int)v34 - G32(D4A_TRI_LOW)) << 14) / G32(D4A_TRI_TOTAL)) * 2));
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S4 v34=%u c680=%u c67c=%u add=%u\n", v34, G32(0x45C680), G32(0x45C67C), (unsigned)(unsigned short)M16(0x429ED4 + (((((unsigned int)v34 - G32(0x45C680)) << 14) / G32(0x45C67C)) * 2)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S4 v34=%u c680=%u c67c=%u add=%u\n", v34, G32(D4A_TRI_LOW), G32(D4A_TRI_TOTAL), (unsigned)(unsigned short)M16(D4A_COST_LUT + (((((unsigned int)v34 - G32(D4A_TRI_LOW)) << 14) / G32(D4A_TRI_TOTAL)) * 2)));
 #endif
-  v36 = M32(0x45C67C + (1) * 4);
-  v37 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v36);
-  m = (unsigned long)(G32(0x4749D8) - G32(0x4749DC) * v36);
+  v36 = M32(D4A_TRI_TOTAL + (1) * 4);
+  v37 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v36);
+  m = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v36);
   while (v37 && v37 < 0x1000000) {
     m = ((unsigned long)((unsigned long)m << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v37 = (v37 << 8) & 0xFFFFFFFFU;
   }
-  G32(0x4749D8) = (int)m;
-  G32(0x4749DC) = v37;
+  G32(D4A_RC_CODE) = (int)m;
+  G32(D4A_RC_RANGE) = v37;
   if ( v1 )
     M32(v1) -= M32(v1) >> 6;
   return v32;
@@ -7201,8 +7202,8 @@ LABEL_43:
 static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
 {
 #ifdef D4C648DBG
-  if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-    fprintf(stderr, "C648CALL out=%u a1=%u a2=%u ra=%p\n", G32(0x434528), a1, (unsigned)a2,
+  if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+    fprintf(stderr, "C648CALL out=%u a1=%u a2=%u ra=%p\n", G32(D4A_OUT_POS), a1, (unsigned)a2,
         __builtin_return_address(0));
 #endif
   unsigned int v2;
@@ -7242,13 +7243,13 @@ static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
 
   v2 = a1;
   v35 = a2;
-  v3 = M16(c->p_6c8 + 2 * a1) * M32(0x45BA3C + (a1) * 4);
+  v3 = M16(c->p_6c8 + 2 * a1) * M32(D4A_TBL_45BA3C + (a1) * 4);
   v32 = 0;
-  v4 = (unsigned char)G8(0x45E39C);
+  v4 = (unsigned char)G8(D4A_HIST_LEN);
   if ( M16((a1 << 9) + c->p_6bc) <= v3 )
   {
-    v2 = G32(0x45C690);
-    v31 = ((G32(0x45C690) << 9) + c->p_6c0);
+    v2 = G32(D4A_PPM_CTX);
+    v31 = ((G32(D4A_PPM_CTX) << 9) + c->p_6c0);
 LABEL_50:
     v19 = M16(c->p_6bc + (v2 << 9));
     if ( v2 >= 0x301 )
@@ -7320,30 +7321,30 @@ LABEL_50:
       else
       {
         v21 = ((unsigned int)v19 << 13)
-            / (M32(0x453464 + (((32 * M16(c->p_6c8 + 2 * v2) / (v19 + M16(c->p_6c8 + 2 * v2) ? v19 + M16(c->p_6c8 + 2 * v2) : 1)) & 31) * 4)) ? M32(0x453464 + (((32 * M16(c->p_6c8 + 2 * v2) / (v19 + M16(c->p_6c8 + 2 * v2) ? v19 + M16(c->p_6c8 + 2 * v2) : 1)) & 31) * 4)) : 1)
+            / (M32(D4A_TBL_453464 + (((32 * M16(c->p_6c8 + 2 * v2) / (v19 + M16(c->p_6c8 + 2 * v2) ? v19 + M16(c->p_6c8 + 2 * v2) : 1)) & 31) * 4)) ? M32(D4A_TBL_453464 + (((32 * M16(c->p_6c8 + 2 * v2) / (v19 + M16(c->p_6c8 + 2 * v2) ? v19 + M16(c->p_6c8 + 2 * v2) : 1)) & 31) * 4)) : 1)
             + 1;
         if ( v21 >= 0x4000 )
           v21 = (v21 & ~0x0000FFFFU) | ((0x3FFF) & 0x0000FFFFU);
       }
       v19 = v21;
     }
-    result = (unsigned short)M16(0x429ED4 + ((((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19) * 2));
-    G32(0x45C648) += (int)result;
+    result = (unsigned short)M16(D4A_COST_LUT + ((((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19) * 2));
+    G32(D4A_COST_TMP) += (int)result;
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S5 a1=%u a2=%u v2=%u c690=%u v31=%u v19=%u m16=%u m16a=%u idx=%u result=%d e39c=%u h0=%u h1=%u init=%u dec=%u\n", a1, (unsigned)v35, v2, G32(0x45C690), v31, (unsigned)v19, (unsigned)M16(v31 + ((v35) * 2)), (unsigned)(v31 + ((v35) * 2)), ((unsigned)(((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19)), result, G8(0x45E39C), (unsigned)M8(0x45DD6E), (unsigned)M8(0x45DD6E + 1), (unsigned)M16(c->p_6bc + (v2 << 9)), (unsigned)M16(v31 + (((unsigned char)M8(0x45DD6E)) << 1)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S5 a1=%u a2=%u v2=%u c690=%u v31=%u v19=%u m16=%u m16a=%u idx=%u result=%d e39c=%u h0=%u h1=%u init=%u dec=%u\n", a1, (unsigned)v35, v2, G32(D4A_PPM_CTX), v31, (unsigned)v19, (unsigned)M16(v31 + ((v35) * 2)), (unsigned)(v31 + ((v35) * 2)), ((unsigned)(((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19)), result, G8(D4A_HIST_LEN), (unsigned)M8(D4A_HIST_SYMS), (unsigned)M8(D4A_HIST_SYMS + 1), (unsigned)M16(c->p_6bc + (v2 << 9)), (unsigned)M16(v31 + (((unsigned char)M8(D4A_HIST_SYMS)) << 1)));
 #endif
   return;
   }
   v31 = ((a1 << 9) + c->p_6c0);
   v33 = 0xFFFF;
-  if ( a1 >= 512 >> G8(0x45E392) )
+  if ( a1 >= 512 >> G8(D4A_PHASE) )
     goto LABEL_37;
   v5 = 0;
-  v34 = M8(0x45E086 + (a1));
-  while ( v5 < (unsigned char)G8(0x45E39C) && M8(0x45DD6E + (v5)) != v34 )
+  v34 = M8(D4A_TBL_45E086 + (a1));
+  while ( v5 < (unsigned char)G8(D4A_HIST_LEN) && M8(D4A_HIST_SYMS + (v5)) != v34 )
     ++v5;
-  if ( v5 != (unsigned char)G8(0x45E39C) )
+  if ( v5 != (unsigned char)G8(D4A_HIST_LEN) )
   {
 LABEL_37:
     if ( !M16(v31 + ((v35) * 2)) )
@@ -7356,7 +7357,7 @@ LABEL_37:
         v33 = v15;
         while ( v16 < v4 )
         {
-          v17 = (v31 + (((unsigned char)M8(0x45DD6E + (v16))) << 1));
+          v17 = (v31 + (((unsigned char)M8(D4A_HIST_SYMS + (v16))) << 1));
           v17 = (unsigned long)(M16(v17));
           ++v16;
           v33 -= (signed int)v17;
@@ -7371,22 +7372,22 @@ LABEL_37:
         else
         {
           v18 = ((unsigned int)(unsigned short)v33 << 13)
-              / M32(0x453464 + ((32
+              / M32(D4A_TBL_453464 + ((32
                            * M16(c->p_6c8 + 2 * v2)
                            / ((unsigned short)v33 + M16(c->p_6c8 + 2 * v2))) * 4))
               + 1;
           if ( v18 >= 0x4000 )
             v18 = 0x3FFF;
         }
-        G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((((v18 - (unsigned short)v33) << 14) / v18) * 2));
+        G32(D4A_COST_TMP) += (unsigned short)M16(D4A_COST_LUT + ((((v18 - (unsigned short)v33) << 14) / v18) * 2));
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S6 v18=%u v33=%u idx=%u add=%u\n", v18, (unsigned)(unsigned short)v33, ((unsigned)((((v18 - (unsigned short)v33) << 14) / v18))), (unsigned)(unsigned short)M16(0x429ED4 + ((((v18 - (unsigned short)v33) << 14) / v18) * 2)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S6 v18=%u v33=%u idx=%u add=%u\n", v18, (unsigned)(unsigned short)v33, ((unsigned)((((v18 - (unsigned short)v33) << 14) / v18))), (unsigned)(unsigned short)M16(D4A_COST_LUT + ((((v18 - (unsigned short)v33) << 14) / v18) * 2)));
 #endif
         v32 = v31;
       }
-      v2 = G32(0x45C690);
-      v31 = ((G32(0x45C690) << 9) + c->p_6c0);
+      v2 = G32(D4A_PPM_CTX);
+      v31 = ((G32(D4A_PPM_CTX) << 9) + c->p_6c0);
     }
     goto LABEL_50;
   }
@@ -7401,7 +7402,7 @@ LABEL_37:
     --v5;
     v33 -= (signed int)v7;
   }
-  v8 = M32(0x42748D + (((unsigned char)M8(0x45DD85 + (v2))) * 4));
+  v8 = M32(D4A_TBL_42748D + (((unsigned char)M8(D4A_RUN_CNT + (v2))) * 4));
   v9 = 16 * (v8 + v30) / ((unsigned short)v33 + (unsigned int)M16(c->p_6c8 + 2 * v2) + v8);
   if ( v30 <= 0x600 )
   {
@@ -7424,21 +7425,21 @@ LABEL_37:
   if ( (v34 & 0xC0) == 0xC0 )   /* asm 0x412BA2: and 0xc0 / cmp 0xc0 */
     v9 |= 128 << (v34 == 0xFF);
   v11 = (v11 & ~0xFFFF0000U) | (((HIWORD(v9)) << 16) & 0xFFFF0000U);
-  if ( G8(0x45E392) )
+  if ( G8(D4A_PHASE) )
   {
-    if ( (unsigned int)(G32(0x45D110) - M32(0x4455AC + ((v34) * 4))) > 0x40 )
+    if ( (unsigned int)(G32(D4A_DICT_POS) - M32(D4A_TBL_4455AC + ((v34) * 4))) > 0x40 )
       goto LABEL_28;
   }
-  else if ( !M8(0x42738D + (v34)) )
+  else if ( !M8(D4A_HASH_ENABLE + (v34)) )
   {
     goto LABEL_28;
   }
   v11 = (v11 & ~0x0000FFFFU) | ((v9 | 0x200) & 0x0000FFFFU);
   v9 = v11;
 LABEL_28:
-  if ( M32(0x457964 + ((v34) * 4)) == G32(0x45AE1C) )
+  if ( M32(D4A_LAST_SEEN + ((v34) * 4)) == G32(D4A_OUT_COUNT) )
     v9 |= 0x400;   /* BYTE1(v9) |= 4 */
-  result = 0x4558E4 + ((v9) * 4);
+  result = D4A_TBL_4558E4 + ((v9) * 4);
   v13 = v34 == v35;
   if ( v34 == v35 )
   {
@@ -7446,16 +7447,16 @@ LABEL_28:
   }
   else
   {
-    M8(0x45DD6E + ((unsigned char)G8(0x45E39C))) = v34;
+    M8(D4A_HIST_SYMS + ((unsigned char)G8(D4A_HIST_LEN))) = v34;
     v33 -= v30;
     v14 = 0x2000 - M32(result);
     ++v4;
   }
   v30 = v14;
-  G32(0x45C648) += (unsigned short)M16(0x429ED4 + ((2 * v14) * 2));
+  G32(D4A_COST_TMP) += (unsigned short)M16(D4A_COST_LUT + ((2 * v14) * 2));
 #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648 S7 v14=%d add=%u\n", v14, (unsigned)(unsigned short)M16(0x429ED4 + ((2 * v14) * 2)));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648 S7 v14=%d add=%u\n", v14, (unsigned)(unsigned short)M16(D4A_COST_LUT + ((2 * v14) * 2)));
 #endif
   if ( v13 )
     M32(result) += (unsigned int)(0x2000 - M32(result)) >> 6;
@@ -7470,7 +7471,7 @@ static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 {
 #ifdef D4ED2DBG
   fprintf(stderr, "ED2 out=%u a1=%u a2=%d a3=%u\n",
-      G32(0x434528), a1, a2, (unsigned)a3);
+      G32(D4A_OUT_POS), a1, a2, (unsigned)a3);
 #endif
   int v3;
   int v4;
@@ -7479,24 +7480,24 @@ static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 
   v3 = a1;
   v5 = a2;
-  G32(0x45C690) = a2;
-  G32(0x45C648) = 0;
+  G32(D4A_PPM_CTX) = a2;
+  G32(D4A_COST_TMP) = 0;
   #ifdef D4C648DBG
-      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-        fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+      if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+        fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
   #endif
   #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648SITE D-412ED2 out=%u\n", G32(0x434528));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648SITE D-412ED2 out=%u\n", G32(D4A_OUT_POS));
   #endif
   d4_412A59(c, a1, a3);
-  v4 = (unsigned char)G8(0x45E3A1)++;
-  M32(0x444584 + ((v4) * 4)) = G32(0x45C690);
-  M32(0x444594 + ((v4) * 4)) = v3;
-  M8(0x45AE34 + v4) = a3;
-  M32(0x4455A4 + ((v5 == 769) * 4)) = ((unsigned int)(31 * M32(0x4455A4 + (v5 == 769) * 4)) >> 5) + G32(0x45C648);
+  v4 = (unsigned char)G8(D4A_FLAG_45E3A1)++;
+  M32(D4A_TBL_444584 + ((v4) * 4)) = G32(D4A_PPM_CTX);
+  M32(D4A_TBL_444594 + ((v4) * 4)) = v3;
+  M8(D4A_TBL_45AE34 + v4) = a3;
+  M32(D4A_TBL_4455A4 + ((v5 == 769) * 4)) = ((unsigned int)(31 * M32(D4A_TBL_4455A4 + (v5 == 769) * 4)) >> 5) + G32(D4A_COST_TMP);
   result = v5 == 769;
-  M32(0x445DAC + ((result) * 4)) = ((unsigned int)(31 * M32(0x445DAC + (result) * 4)) >> 5) + G32(0x45C648);
+  M32(D4A_TBL_445DAC + ((result) * 4)) = ((unsigned int)(31 * M32(D4A_TBL_445DAC + (result) * 4)) >> 5) + G32(D4A_COST_TMP);
   return result;
 }
 
@@ -7504,19 +7505,19 @@ static int d4_412F80(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 {
   int result;
 
-  G32(0x45C690) = a2;
-  G32(0x45C648) = 0;
+  G32(D4A_PPM_CTX) = a2;
+  G32(D4A_COST_TMP) = 0;
   #ifdef D4C648DBG
-      if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-        fprintf(stderr, "C648R out=%u\n", G32(0x434528));
+      if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+        fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
   #endif
   #ifdef D4C648DBG
-    if (G32(0x434528) >= D4WLO && G32(0x434528) < D4WHI)
-      fprintf(stderr, "C648SITE E-412F80 out=%u\n", G32(0x434528));
+    if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
+      fprintf(stderr, "C648SITE E-412F80 out=%u\n", G32(D4A_OUT_POS));
   #endif
   d4_412A59(c, a1, a3);
-  result = (int)G32(0x45C648);
-  M32(0x45C640) = G32(0x45C648) + ((31 * M32(0x45C640)) >> 5);
+  result = (int)G32(D4A_COST_TMP);
+  M32(D4A_COST_ACCUM) = G32(D4A_COST_TMP) + ((31 * M32(D4A_COST_ACCUM)) >> 5);
   return result;
 }
 
@@ -7524,15 +7525,15 @@ static int d4_412FB0(dec4_ctx *c)
 {
   int result;
 
-  d4_4196E0(c, 0x43D72C, 0, 0x1E40u);
-  G32(0x43D734) = 2;
+  d4_4196E0(c, D4A_TBL_43D72C, 0, 0x1E40u);
+  G32(D4A_TBL_43D734) = 2;
   result = 0;
   do
   {
     result += 31;
-    M32(0x43F36C + ((result) * 4)) = -1;
-    M32(0x43F370 + ((result) * 4)) = -1;
-    M32(0x43F374 + ((result) * 4)) = -1;
+    M32(D4A_TBL_43F36C + ((result) * 4)) = -1;
+    M32(D4A_TBL_43F370 + ((result) * 4)) = -1;
+    M32(D4A_TBL_43F374 + ((result) * 4)) = -1;
   }
   while ( result != 124 );
   return result * 4;
@@ -7552,51 +7553,51 @@ static int d4_412FFA(dec4_ctx *c)
   char v9;
   int v10;
 
-  if ( G8(0x45E391) || G32(0x45AE14) >= (unsigned int)G32(0x45ADE4) )
+  if ( G8(D4A_FLAG_45E391) || G32(D4A_TBL_45AE14) >= (unsigned int)G32(D4A_TBL_45ADE4) )
   {
-    if ( (unsigned char)G8(0x45E390) >= 7u )
+    if ( (unsigned char)G8(D4A_MODEL_ID) >= 7u )
     {
-      v3 = 0x43F378 + ((31 * G32(0x45AE2C)) * 4);
+      v3 = D4A_ROW_REGION + ((31 * G32(D4A_MOD_CNT)) * 4);
       M32(v3 + ((3) * 4)) = M32(v3 + ((2) * 4));
       M32(v3 + ((2) * 4)) = M32(v3 + ((1) * 4));
       M32(v3 + ((1) * 4)) = M32(v3 + ((11) * 4)) - M32(v3);
       M32(v3) = M32(v3 + ((11) * 4));
-      v4 = M32(v3 + ((3) * 4)) * M32(v3 + ((8) * 4)) + M32(v3 + ((2) * 4)) * M32(v3 + ((7) * 4)) + M32(v3 + ((1) * 4)) * M32(v3 + ((6) * 4)) + M32(v3) * M32(v3 + ((5) * 4)) + 16 * M32(v3 + ((10) * 4)) + G32(0x43D740) * M32(v3 + ((9) * 4));
+      v4 = M32(v3 + ((3) * 4)) * M32(v3 + ((8) * 4)) + M32(v3 + ((2) * 4)) * M32(v3 + ((7) * 4)) + M32(v3 + ((1) * 4)) * M32(v3 + ((6) * 4)) + M32(v3) * M32(v3 + ((5) * 4)) + 16 * M32(v3 + ((10) * 4)) + G32(D4A_TBL_43D740) * M32(v3 + ((9) * 4));
       /* asm 0x4131E1..0x4131E7 truncates toward zero (see 43DB54 note). */
-      M32(0x43DB48 + ((0) * 4)) = ((int)(unsigned int)v4) / 16;
+      M32(D4A_TBL_43DB48 + ((0) * 4)) = ((int)(unsigned int)v4) / 16;
       if ( M32(v3 + ((23) * 4)) <= (unsigned int)M32(v3 + ((24) * 4)) )
-        v5 = M32(0x43DB48 + ((0) * 4));
+        v5 = M32(D4A_TBL_43DB48 + ((0) * 4));
       else
         v5 = M8(v3 + 0x28);   /* asm 0x4131F7: byte [ecx+28h] (dword 10),
                                * not dword [40] */
-      G8(0x45E38B) = v5;
-      if ( G8(0x45E390) == 7 )
+      G8(D4A_FLAG_45E38B) = v5;
+      if ( G8(D4A_MODEL_ID) == 7 )
       {
-        G8(0x45E38B) += -128;
-        v2 = G32(0x45AE2C) + 753;
+        G8(D4A_FLAG_45E38B) += -128;
+        v2 = G32(D4A_MOD_CNT) + 753;
         if ( M32(v3 + ((28) * 4)) )
         {
           if ( M32(v3 + ((29) * 4)) )
           {
             if ( !M32(v3 + ((30) * 4)) )
-              v2 = G32(0x45AE2C) + 759;
+              v2 = G32(D4A_MOD_CNT) + 759;
           }
           else
           {
-            v2 = G32(0x45AE2C) + 757;
+            v2 = G32(D4A_MOD_CNT) + 757;
           }
         }
         else
         {
-          v2 = G32(0x45AE2C) + 755;
+          v2 = G32(D4A_MOD_CNT) + 755;
         }
       }
-      else if ( G8(0x45E390) == 8 )
+      else if ( G8(D4A_MODEL_ID) == 8 )
       {
         /* REVERTED 26-Oct inversion experiment: crashed inside Gmud.dll.
          * Restored original polarity pending asm re-proof. */
         if ( M32(v3 + ((28) * 4)) )
-          v6 = G32(0x45AE2C);
+          v6 = G32(D4A_MOD_CNT);
         else
           v6 = 2;
         v2 = v6 + 761;
@@ -7604,53 +7605,53 @@ static int d4_412FFA(dec4_ctx *c)
       else
       {
         if ( M32(v3 + ((28) * 4)) )
-          v7 = G32(0x45AE2C);
+          v7 = G32(D4A_MOD_CNT);
         else
           v7 = 4;
         v2 = v7 + 764;
       }
-      G8(0x45E38E) = M8(0x43F568 + (G32(0x45AE2C)));
+      G8(D4A_PRED_FLAG) = M8(D4A_TBL_43F568 + (G32(D4A_MOD_CNT)));
     }
     else
     {
-      M32(0x43DB48 + ((0) * 4)) = 0;
-      G32(0x43DB4C) = G32(0x43D738);
-      v0 = ((unsigned char)G32(0x45AE1C) - (unsigned char)G32(0x43D730)) & 0x7F;
-      G32(0x43DB50) = 2 * G32(0x43D738) - G32(0x43D73C);
-      G32(0x43F388) = M32(0x43D948 + ((v0) * 4));
-      G32(0x43F384) = G32(0x43F380);
-      G32(0x43F380) = G32(0x43F37C);
-      G32(0x43F37C) = G32(0x43F3A4) - M32(0x43F378 + ((0) * 4));
-      M32(0x43F378 + ((0) * 4)) = G32(0x43F3A4);
-      v1 = G32(0x43F384) * G32(0x43F398)
-         + G32(0x43F380) * G32(0x43F394)
-         + G32(0x43F37C) * G32(0x43F390)
+      M32(D4A_TBL_43DB48 + ((0) * 4)) = 0;
+      G32(D4A_TBL_43DB4C) = G32(D4A_TBL_43D738);
+      v0 = ((unsigned char)G32(D4A_OUT_COUNT) - (unsigned char)G32(D4A_TBL_43D730)) & 0x7F;
+      G32(D4A_TBL_43DB50) = 2 * G32(D4A_TBL_43D738) - G32(D4A_TBL_43D73C);
+      G32(D4A_TBL_43F388) = M32(D4A_TBL_43D948 + ((v0) * 4));
+      G32(D4A_TBL_43F384) = G32(D4A_TBL_43F380);
+      G32(D4A_TBL_43F380) = G32(D4A_TBL_43F37C);
+      G32(D4A_TBL_43F37C) = G32(D4A_TBL_43F3A4) - M32(D4A_ROW_REGION + ((0) * 4));
+      M32(D4A_ROW_REGION + ((0) * 4)) = G32(D4A_TBL_43F3A4);
+      v1 = G32(D4A_TBL_43F384) * G32(D4A_TBL_43F398)
+         + G32(D4A_TBL_43F380) * G32(D4A_TBL_43F394)
+         + G32(D4A_TBL_43F37C) * G32(D4A_TBL_43F390)
          /* asm 0x413093: imul eax(43F38C), 43F378[0] - not 43F3A4. */
-         + M32(0x43F378 + ((0) * 4)) * G32(0x43F38C)
-         + 16 * G32(0x43F3A0)
-         + G32(0x43F388) * G32(0x43F39C);
+         + M32(D4A_ROW_REGION + ((0) * 4)) * G32(D4A_TBL_43F38C)
+         + 16 * G32(D4A_TBL_43F3A0)
+         + G32(D4A_TBL_43F388) * G32(D4A_TBL_43F39C);
       /* asm 0x4130E1..0x4130E7 (cdq/shl/sbb/sar) truncates toward zero;
        * an arithmetic >> floors negatives (off by one). v1 is mod 2^32. */
-      G32(0x43DB54) = ((int)(unsigned int)v1) / 16;
-      G32(0x43DB58) = M32(0x43D948 + ((v0) * 4));
-      G32(0x43DB5C) = M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - (unsigned char)G32(0x43D734)) & 0x7F) * 4));
-      G8(0x45E38B) = M32(0x43DB48 + ((G32(0x43D72C)) * 4));
-      if ( (unsigned int)G32(0x43D72C) >= 4 )
-        G8(0x45E38B) += G32(0x43D738);
-      if ( G8(0x45E390) == 5 )
+      G32(D4A_TBL_43DB54) = ((int)(unsigned int)v1) / 16;
+      G32(D4A_TBL_43DB58) = M32(D4A_TBL_43D948 + ((v0) * 4));
+      G32(D4A_TBL_43DB5C) = M32(D4A_TBL_43D948 + ((((unsigned char)G32(D4A_OUT_COUNT) - (unsigned char)G32(D4A_TBL_43D734)) & 0x7F) * 4));
+      G8(D4A_FLAG_45E38B) = M32(D4A_TBL_43DB48 + ((G32(D4A_TBL_43D72C)) * 4));
+      if ( (unsigned int)G32(D4A_TBL_43D72C) >= 4 )
+        G8(D4A_FLAG_45E38B) += G32(D4A_TBL_43D738);
+      if ( G8(D4A_MODEL_ID) == 5 )
       {
         v2 = 745;
-        G8(0x45E38B) += -128;
+        G8(D4A_FLAG_45E38B) += -128;
       }
       else
       {
         v2 = 749;
       }
-      if ( M32(0x43F378 + ((28) * 4)) )
+      if ( M32(D4A_ROW_REGION + ((28) * 4)) )
       {
-        if ( M32(0x43F378 + ((29) * 4)) )
+        if ( M32(D4A_ROW_REGION + ((29) * 4)) )
         {
-          if ( !M32(0x43F378 + ((30) * 4)) )
+          if ( !M32(D4A_ROW_REGION + ((30) * 4)) )
             v2 += 3;
         }
         else
@@ -7663,27 +7664,27 @@ static int d4_412FFA(dec4_ctx *c)
         ++v2;
       }
     }
-    result = G32(0x45AE14);
-    if ( G32(0x45AE14) < (unsigned int)G32(0x45ADE4) )
+    result = G32(D4A_TBL_45AE14);
+    if ( G32(D4A_TBL_45AE14) < (unsigned int)G32(D4A_TBL_45ADE4) )
     {
-      ++G32(0x45AE14);
+      ++G32(D4A_TBL_45AE14);
       result = c->p_ade8 + 8 * result;
-      v9 = G8(0x45E38E);
+      v9 = G8(D4A_PRED_FLAG);
       M32(result) = v2;
       M8(result + 4) = v9;
-      M8(result + 5) = G8(0x45E38B);
+      M8(result + 5) = G8(D4A_FLAG_45E38B);
     }
   }
   else
   {
-    v10 = 8 * G32(0x45AE14)++;
+    v10 = 8 * G32(D4A_TBL_45AE14)++;
     result = c->p_ade8 + v10;
     v2 = M32(c->p_ade8 + v10);
     result = (result & ~0x000000FFU) | ((M8(c->p_ade8 + v10 + 5)) & 0x000000FFU);
-    G8(0x45E38E) = M8(c->p_ade8 + v10 + 4);
-    G8(0x45E38B) = result;
+    G8(D4A_PRED_FLAG) = M8(c->p_ade8 + v10 + 4);
+    G8(D4A_FLAG_45E38B) = result;
   }
-  G32(0x45AE20) = v2;
+  G32(D4A_TRI2_TOTAL_NEXT) = v2;
   return result;
 }
 
@@ -7736,50 +7737,50 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
   unsigned char v47;
 
   v47 = a2;
-  if ( G8(0x45E391) || G32(0x45AE14) >= (unsigned int)G32(0x45ADE4) )
+  if ( G8(D4A_FLAG_45E391) || G32(D4A_TBL_45AE14) >= (unsigned int)G32(D4A_TBL_45ADE4) )
   {
-    if ( (unsigned char)G8(0x45E390) < 7u )
+    if ( (unsigned char)G8(D4A_MODEL_ID) < 7u )
     {
-      v2 = G32(0x43F378);
-      if ( G8(0x45E390) == 6 )
+      v2 = G32(D4A_ROW_REGION);
+      if ( G8(D4A_MODEL_ID) == 6 )
         v3 = (char)result;
       else
         v3 = (unsigned char)result - 128;
-      v43 = v3 - G32(0x43D738);
-      v4 = 16 * (char)(G32(0x43DB54) - v3);
-      M32(0x43F378 + ((12) * 4)) += M32(0x43972C + ((16 * (char)(G32(0x43DB54) - v3) & 0xFFF) * 4));
-      M32(0x43F378 + ((13) * 4)) += M32(0x43972C + (((v4 - M32(0x43F378 + (0) * 4)) & 0xFFF) * 4));
-      M32(0x43F378 + ((14) * 4)) += M32(0x43972C + ((((unsigned short)v4 + LOWORD(M32(0x43F378 + (0) * 4))) & 0xFFF) * 4));
-      M32(0x43F378 + ((15) * 4)) += M32(0x43972C + (((v4 - M32(0x43F378 + (1) * 4)) & 0xFFF) * 4));
-      M32(0x43F378 + ((16) * 4)) += M32(0x43972C + ((((unsigned short)v4 + (unsigned short)M32(0x43F378 + (1) * 4)) & 0xFFF) * 4));
-      M32(0x43F378 + ((17) * 4)) += M32(0x43972C + (((v4 - M32(0x43F378 + (2) * 4)) & 0xFFF) * 4));
-      M32(0x43F378 + ((18) * 4)) += M32(0x43972C + ((((unsigned short)v4 + (unsigned short)M32(0x43F378 + (2) * 4)) & 0xFFF) * 4));
-      M32(0x43F378 + ((19) * 4)) += M32(0x43972C + (((v4 - M32(0x43F378 + (3) * 4)) & 0xFFF) * 4));
-      M32(0x43F378 + ((20) * 4)) += M32(0x43972C + ((((unsigned short)v4 + (unsigned short)M32(0x43F378 + (3) * 4)) & 0xFFF) * 4));
-      v5 = M32(0x43972C + (((v4 - M32(0x43F378 + (4) * 4)) & 0xFFF) * 4));
-      v6 = (M32(0x43F378 + ((4) * 4)) + v4) & 0xFFF;
-      M32(0x43F378 + ((21) * 4)) += v5;
-      M32(0x43F378 + ((22) * 4)) += M32(0x43972C + ((v6) * 4));
-      v6 = (v6 & ~0x000000FFU) | ((v3 - LOBYTE(M32(0x43F378 + ((10) * 4)))) & 0x000000FFU);
-      ++M32(0x43F378 + ((27) * 4));
-      M32(0x43F378 + ((10) * 4)) = v3;
-      M32(0x43F378 + ((11) * 4)) = (char)v6;
-      if ( !(M32(0x43F378 + ((27) * 4)) & 0xF) )
+      v43 = v3 - G32(D4A_TBL_43D738);
+      v4 = 16 * (char)(G32(D4A_TBL_43DB54) - v3);
+      M32(D4A_ROW_REGION + ((12) * 4)) += M32(D4A_PERM_TAB + ((16 * (char)(G32(D4A_TBL_43DB54) - v3) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((13) * 4)) += M32(D4A_PERM_TAB + (((v4 - M32(D4A_ROW_REGION + (0) * 4)) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((14) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v4 + LOWORD(M32(D4A_ROW_REGION + (0) * 4))) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((15) * 4)) += M32(D4A_PERM_TAB + (((v4 - M32(D4A_ROW_REGION + (1) * 4)) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((16) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v4 + (unsigned short)M32(D4A_ROW_REGION + (1) * 4)) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((17) * 4)) += M32(D4A_PERM_TAB + (((v4 - M32(D4A_ROW_REGION + (2) * 4)) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((18) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v4 + (unsigned short)M32(D4A_ROW_REGION + (2) * 4)) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((19) * 4)) += M32(D4A_PERM_TAB + (((v4 - M32(D4A_ROW_REGION + (3) * 4)) & 0xFFF) * 4));
+      M32(D4A_ROW_REGION + ((20) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v4 + (unsigned short)M32(D4A_ROW_REGION + (3) * 4)) & 0xFFF) * 4));
+      v5 = M32(D4A_PERM_TAB + (((v4 - M32(D4A_ROW_REGION + (4) * 4)) & 0xFFF) * 4));
+      v6 = (M32(D4A_ROW_REGION + ((4) * 4)) + v4) & 0xFFF;
+      M32(D4A_ROW_REGION + ((21) * 4)) += v5;
+      M32(D4A_ROW_REGION + ((22) * 4)) += M32(D4A_PERM_TAB + ((v6) * 4));
+      v6 = (v6 & ~0x000000FFU) | ((v3 - LOBYTE(M32(D4A_ROW_REGION + ((10) * 4)))) & 0x000000FFU);
+      ++M32(D4A_ROW_REGION + ((27) * 4));
+      M32(D4A_ROW_REGION + ((10) * 4)) = v3;
+      M32(D4A_ROW_REGION + ((11) * 4)) = (char)v6;
+      if ( !(M32(D4A_ROW_REGION + ((27) * 4)) & 0xF) )
       {
         v7 = 1;
         v8 = 0;
-        v41 = M32(0x43F378 + ((12) * 4));
-        M32(0x43F378 + ((12) * 4)) = 0;
+        v41 = M32(D4A_ROW_REGION + ((12) * 4));
+        M32(D4A_ROW_REGION + ((12) * 4)) = 0;
 #ifdef D4SWDBG
-        if (G32(0x434528) == 80)
+        if (G32(D4A_OUT_POS) == 80)
           fprintf(stderr, "SWPRE out=80 e390=%u s13=%d s14=%d s15=%d s16=%d s17=%d s18=%d s19=%d s20=%d s21=%d s22=%d\n",
-              G8(0x45E390),
-              (int)M32(0x43F378+52), (int)M32(0x43F378+56), (int)M32(0x43F378+60),
-              (int)M32(0x43F378+64), (int)M32(0x43F378+68), (int)M32(0x43F378+72),
-              (int)M32(0x43F378+76), (int)M32(0x43F378+80), (int)M32(0x43F378+84),
-              (int)M32(0x43F378+88));
+              G8(D4A_MODEL_ID),
+              (int)M32(D4A_ROW_REGION+52), (int)M32(D4A_ROW_REGION+56), (int)M32(D4A_ROW_REGION+60),
+              (int)M32(D4A_ROW_REGION+64), (int)M32(D4A_ROW_REGION+68), (int)M32(D4A_ROW_REGION+72),
+              (int)M32(D4A_ROW_REGION+76), (int)M32(D4A_ROW_REGION+80), (int)M32(D4A_ROW_REGION+84),
+              (int)M32(D4A_ROW_REGION+88));
 #endif
-        v9 = 0x43F378 + ((1) * 4);
+        v9 = D4A_ROW_REGION + ((1) * 4);
         do
         {
           if ( M32(v9 + ((12) * 4)) < v41 )
@@ -7795,7 +7796,7 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
         }
         while ( v7 < 11 );
 #ifdef D4SWDBG
-        if (G32(0x434528) == 80)
+        if (G32(D4A_OUT_POS) == 80)
           fprintf(stderr, "SW out=80 v8=%d\n", v8);
 #endif
         switch ( v8 )
@@ -7804,46 +7805,46 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
            * unsigned, so (signed int) casts are required (else > -32
            * never fires and < 32 misfires on negatives). */
           case 1:
-            if ( (signed int)M32(0x43F378 + ((5) * 4)) > -32 )
-              --M32(0x43F378 + ((5) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((5) * 4)) > -32 )
+              --M32(D4A_ROW_REGION + ((5) * 4));
             break;
           case 2:
-            if ( (signed int)M32(0x43F378 + ((5) * 4)) < 32 )
-              ++M32(0x43F378 + ((5) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((5) * 4)) < 32 )
+              ++M32(D4A_ROW_REGION + ((5) * 4));
             break;
           case 3:
-            if ( (signed int)M32(0x43F378 + ((6) * 4)) > -32 )
-              --M32(0x43F378 + ((6) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((6) * 4)) > -32 )
+              --M32(D4A_ROW_REGION + ((6) * 4));
             break;
           case 4:
-            if ( (signed int)M32(0x43F378 + ((6) * 4)) < 32 )
-              ++M32(0x43F378 + ((6) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((6) * 4)) < 32 )
+              ++M32(D4A_ROW_REGION + ((6) * 4));
             break;
           case 5:
-            if ( (signed int)M32(0x43F378 + ((7) * 4)) > -32 )
-              --M32(0x43F378 + ((7) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((7) * 4)) > -32 )
+              --M32(D4A_ROW_REGION + ((7) * 4));
             break;
           case 6:
-            if ( (signed int)M32(0x43F378 + ((7) * 4)) < 32 )
-              ++M32(0x43F378 + ((7) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((7) * 4)) < 32 )
+              ++M32(D4A_ROW_REGION + ((7) * 4));
             break;
           case 7:
-            if ( (signed int)M32(0x43F378 + ((8) * 4)) > -32 )
+            if ( (signed int)M32(D4A_ROW_REGION + ((8) * 4)) > -32 )
             {
-              --M32(0x43F378 + ((8) * 4));
+              --M32(D4A_ROW_REGION + ((8) * 4));
             }
             break;
           case 8:
-            if ( (signed int)M32(0x43F378 + ((8) * 4)) < 32 )
-              ++M32(0x43F378 + ((8) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((8) * 4)) < 32 )
+              ++M32(D4A_ROW_REGION + ((8) * 4));
             break;
           case 9:
-            if ( (signed int)M32(0x43F378 + ((8) * 4)) > -32 )
-              --M32(0x43F378 + ((9) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((8) * 4)) > -32 )
+              --M32(D4A_ROW_REGION + ((9) * 4));
             break;
           case 10:
-            if ( (signed int)M32(0x43F378 + ((8) * 4)) < 32 )
-              ++M32(0x43F378 + ((9) * 4));
+            if ( (signed int)M32(D4A_ROW_REGION + ((8) * 4)) < 32 )
+              ++M32(D4A_ROW_REGION + ((9) * 4));
             break;
           default:
             break;
@@ -7851,124 +7852,124 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
       }
       /* asm 0x413578/0x4135DF/0x4135EC: single-stride 43D948[eax*4]; the
        * 2* factor addressed the wrong slots and starved 412FFA's reads. */
-      M32(0x43D948 + ((G32(0x45AE1C) & 0x7F)) * 4) = v43;
-      if ( !(G32(0x45AE1C) & M32(0x424D3C + ((G32(0x43D72C)) * 4))) )
+      M32(D4A_TBL_43D948 + ((G32(D4A_OUT_COUNT) & 0x7F)) * 4) = v43;
+      if ( !(G32(D4A_OUT_COUNT) & M32(D4A_MASK_LUT + ((G32(D4A_TBL_43D72C)) * 4))) )
       {
         v40 = 0xFFFF;
-        G32(0x43D730) = 2;
-        G32(0x43D734) = 2;
+        G32(D4A_TBL_43D730) = 2;
+        G32(D4A_TBL_43D734) = 2;
         v10 = 2;
         v11 = 2;
         do
         {
-          v37 = G32(0x45AE1C);
-          v46 = M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 1) & 0x7F)) * 4)
-              - M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 1 - (unsigned char)v10) & 0x7F)) * 4);
+          v37 = G32(D4A_OUT_COUNT);
+          v46 = M32(D4A_TBL_43D948 + ((((unsigned char)G32(D4A_OUT_COUNT) - 1) & 0x7F)) * 4)
+              - M32(D4A_TBL_43D948 + ((((unsigned char)G32(D4A_OUT_COUNT) - 1 - (unsigned char)v10) & 0x7F)) * 4);
           v38 = 4 * (v46 & 0xFFF);
-          v39 = 4 * (((unsigned char)G32(0x45AE1C) - (unsigned char)v10) & 0x7F);
-          v46 = M32(0x43972C + ((v38 / 4) * 4))
-              + M32(0x43972C + (((M32(0x43D948 + (((G32(0x45AE1C) & 0x7F))) * 4)
-                            - M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - (unsigned char)v10) & 0x7F)) * 4)) & 0xFFF) * 4));
+          v39 = 4 * (((unsigned char)G32(D4A_OUT_COUNT) - (unsigned char)v10) & 0x7F);
+          v46 = M32(D4A_PERM_TAB + ((v38 / 4) * 4))
+              + M32(D4A_PERM_TAB + (((M32(D4A_TBL_43D948 + (((G32(D4A_OUT_COUNT) & 0x7F))) * 4)
+                            - M32(D4A_TBL_43D948 + ((((unsigned char)G32(D4A_OUT_COUNT) - (unsigned char)v10) & 0x7F)) * 4)) & 0xFFF) * 4));
           v39 = v46;
-          v46 = M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 2) & 0x7F)) * 4)
-              - M32(0x43D948 + ((((unsigned char)G32(0x45AE1C) - 2 - (unsigned char)v10) & 0x7F)) * 4);
-          v12 = M32(0x43972C + ((v46 & 0xFFF) * 4)) + v39;
-          M32(0x43D748 + ((v11) * 4)) = v12 + ((unsigned int)(13 * M32(0x43D748 + (v11) * 4)) >> 4);
+          v46 = M32(D4A_TBL_43D948 + ((((unsigned char)G32(D4A_OUT_COUNT) - 2) & 0x7F)) * 4)
+              - M32(D4A_TBL_43D948 + ((((unsigned char)G32(D4A_OUT_COUNT) - 2 - (unsigned char)v10) & 0x7F)) * 4);
+          v12 = M32(D4A_PERM_TAB + ((v46 & 0xFFF) * 4)) + v39;
+          M32(D4A_TBL_43D748 + ((v11) * 4)) = v12 + ((unsigned int)(13 * M32(D4A_TBL_43D748 + (v11) * 4)) >> 4);
           v44 = v12;
-          if ( M32(0x43D748 + ((v11) * 4)) < (unsigned int)M32(0x43D748 + ((G32(0x43D730)) * 4)) )
-            G32(0x43D730) = v10;
+          if ( M32(D4A_TBL_43D748 + ((v11) * 4)) < (unsigned int)M32(D4A_TBL_43D748 + ((G32(D4A_TBL_43D730)) * 4)) )
+            G32(D4A_TBL_43D730) = v10;
           if ( v44 < v40 )
           {
             v40 = v44;
-            G32(0x43D734) = v10;
+            G32(D4A_TBL_43D734) = v10;
           }
           ++v10;
           ++v11;
         }
         while ( v10 < 0x7C );
       }
-      v31_6[0] = v3 - M32(0x43DB48 + ((0) * 4));
-      v31_6[1] = v3 - G32(0x43DB4C);
-      v31_6[2] = v3 - G32(0x43DB50);
-      v31_6[3] = v3 - G32(0x43DB54);
-      G32(0x43D72C) = 0;
-      v31_6[4] = v43 - G32(0x43DB58);
+      v31_6[0] = v3 - M32(D4A_TBL_43DB48 + ((0) * 4));
+      v31_6[1] = v3 - G32(D4A_TBL_43DB4C);
+      v31_6[2] = v3 - G32(D4A_TBL_43DB50);
+      v31_6[3] = v3 - G32(D4A_TBL_43DB54);
+      G32(D4A_TBL_43D72C) = 0;
+      v31_6[4] = v43 - G32(D4A_TBL_43DB58);
       v45 = 0;
       v42 = 0;
-      v31_6[5] = v43 - G32(0x43DB5C);
+      v31_6[5] = v43 - G32(D4A_TBL_43DB5C);
       /* asm 0x413731 jumps straight into the body (0x41374A) with v45=0,
        * v42=0 on row R0; the increment/exit-check at 0x413738..0x413748
        * only runs between bodies. 6 bodies: v45=0..5, v42=0..20, rows
        * R0..R5. Row 0's accumulator doubles as threshold[0]. */
-      v13 = (0x43DB60);
+      v13 = (D4A_TBL_43DB60);
       do
       {
         /* asm 0x41374A..0x413797: the row holds dwords (M32 at v14*4 and
          * +1024 accumulator), not bytes; BYTE accesses corrupt the model. */
-        v14 = (unsigned char)G32(0x45AE1C);
+        v14 = (unsigned char)G32(D4A_OUT_COUNT);
         M32((v13 + (1024))) -= M32((v13 + ((v14) * 4)));
         /* asm 0x41375F..0x41376C reads the v31..v36 record off the STACK;
          * routing it through the arena accessor (M32((char*)v31_6+v42))
          * clamps the stack address into the arena tail and yields zeros
          * (v42/4 == v45, so element [v45]). */
-        v15 = M32(0x424D54 + ((((unsigned int)v31_6[v45]) & 0x1FF) * 4));
+        v15 = M32(D4A_SEL_HIST + ((((unsigned int)v31_6[v45]) & 0x1FF) * 4));
         M32((v13 + ((v14) * 4))) = v15;
         M32((v13 + (1024))) += v15;
         /* asm 0x41378C: jge (signed). The accumulator wraps negative on
          * deficit, which an unsigned compare can never see. */
-        if ( (signed int)M32((v13 + (1024))) < (signed int)M32(0x43DF60 + ((257 * G32(0x43D72C)) * 4)) )
-          G32(0x43D72C) = v45;
+        if ( (signed int)M32((v13 + (1024))) < (signed int)M32(D4A_TBL_43DF60 + ((257 * G32(D4A_TBL_43D72C)) * 4)) )
+          G32(D4A_TBL_43D72C) = v45;
         v42 += 4;
         ++v45;
         v13 = v13 + 1028;
       }
       while ( v45 < 6 );
-      G32(0x43D73C) = G32(0x43D738);
-      G32(0x43D738) = v3;
+      G32(D4A_TBL_43D73C) = G32(D4A_TBL_43D738);
+      G32(D4A_TBL_43D738) = v3;
       /* REVERTED current-row experiment 26-Oct: crashed inside Gmud.dll
        * (0 bytes flushed vs 572416 before). Row-0 absolute base restored
        * pending EDX-entry proof. */
-      v16 = M32(0x43F378 + ((29) * 4));
-      M32(0x43F378 + ((28) * 4)) = v47 + (M32(0x43F378 + ((28) * 4)) << 8);
+      v16 = M32(D4A_ROW_REGION + ((29) * 4));
+      M32(D4A_ROW_REGION + ((28) * 4)) = v47 + (M32(D4A_ROW_REGION + ((28) * 4)) << 8);
       v17 = v47;
-      v18 = M32(0x43F378 + ((30) * 4));
-      M32(0x43F378 + ((29) * 4)) = M32(0x425554 + ((v47) * 4)) + (v16 << 8);
+      v18 = M32(D4A_ROW_REGION + ((30) * 4));
+      M32(D4A_ROW_REGION + ((29) * 4)) = M32(D4A_BYTE_CURVE_0 + ((v47) * 4)) + (v16 << 8);
       v19 = v18 << 8;
-      result = M32(0x425D54 + ((v17) * 4));
+      result = M32(D4A_BYTE_CURVE_2 + ((v17) * 4));
       /* asm 0x4137E1 jumps to 0x413A8B which stores to [edx+78h] with
        * edx = the region base (0x43F378 here). It must NOT share LABEL_80
        * below: there v2 is the >=7 region base, but here v2 holds [0]'s
        * VALUE, so the shared store corrupts low arena and [30] never
        * updates (stuck at its -1 init, breaking 412FFA's v2 select).
        * (Row-0 base restored - see note above.) */
-      M32(0x43F378 + ((30) * 4)) = result + v19;
+      M32(D4A_ROW_REGION + ((30) * 4)) = result + v19;
       return result;
     }
-    v20 = 31 * G32(0x45AE2C);
-    M8(0x43F568 + (G32(0x45AE2C))) = G8(0x45E38E);
-    v2 = 0x43F378 + ((v20) * 4);
-    if ( (unsigned char)G8(0x45E390) < 8u )
+    v20 = 31 * G32(D4A_MOD_CNT);
+    M8(D4A_TBL_43F568 + (G32(D4A_MOD_CNT))) = G8(D4A_PRED_FLAG);
+    v2 = D4A_ROW_REGION + ((v20) * 4);
+    if ( (unsigned char)G8(D4A_MODEL_ID) < 8u )
       v21 = (unsigned char)result - 128;
     else
       v21 = (char)result;
-    v22 = 16 * (char)(LOBYTE(M32(0x43DB48 + ((0) * 4))) - v21);
-    M32(v2 + ((12) * 4)) += M32(0x43972C + ((16 * (char)(LOBYTE(M32(0x43DB48 + (0) * 4)) - v21) & 0xFFF) * 4));
-    M32(v2 + ((13) * 4)) += M32(0x43972C + (((v22 - M32(v2)) & 0xFFF) * 4));
-    M32(v2 + ((14) * 4)) += M32(0x43972C + ((((unsigned short)v22 + (unsigned short)M32(v2)) & 0xFFF) * 4));
-    M32(v2 + ((15) * 4)) += M32(0x43972C + (((v22 - M32(v2 + ((1) * 4))) & 0xFFF) * 4));
-    M32(v2 + ((16) * 4)) += M32(0x43972C + ((((unsigned short)v22 + (unsigned short)M32(v2 + ((1) * 4))) & 0xFFF) * 4));
-    M32(v2 + ((17) * 4)) += M32(0x43972C + (((v22 - M32(v2 + ((2) * 4))) & 0xFFF) * 4));
-    M32(v2 + ((18) * 4)) += M32(0x43972C + ((((unsigned short)v22 + (unsigned short)M32(v2 + ((2) * 4))) & 0xFFF) * 4));
-    M32(v2 + ((19) * 4)) += M32(0x43972C + (((v22 - M32(v2 + ((3) * 4))) & 0xFFF) * 4));
-    M32(v2 + ((20) * 4)) += M32(0x43972C + ((((unsigned short)v22 + (unsigned short)M32(v2 + ((3) * 4))) & 0xFFF) * 4));
-    M32(v2 + ((21) * 4)) += M32(0x43972C + ((((unsigned short)v22 - (unsigned short)G32(0x43D740)) & 0xFFF) * 4));
-    M32(v2 + ((22) * 4)) += M32(0x43972C + ((((unsigned short)G32(0x43D740) + (unsigned short)v22) & 0xFFF) * 4));
-    M32(v2 + ((23) * 4)) += M32(0x426554 + (((unsigned char)(LOBYTE(M32(0x43DB48 + (0) * 4)) - v21)) * 4));
-    M32(v2 + ((24) * 4)) += M32(0x426554 + (((unsigned char)(M8(v2 + 0x28) - v21)) * 4));
+    v22 = 16 * (char)(LOBYTE(M32(D4A_TBL_43DB48 + ((0) * 4))) - v21);
+    M32(v2 + ((12) * 4)) += M32(D4A_PERM_TAB + ((16 * (char)(LOBYTE(M32(D4A_TBL_43DB48 + (0) * 4)) - v21) & 0xFFF) * 4));
+    M32(v2 + ((13) * 4)) += M32(D4A_PERM_TAB + (((v22 - M32(v2)) & 0xFFF) * 4));
+    M32(v2 + ((14) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v22 + (unsigned short)M32(v2)) & 0xFFF) * 4));
+    M32(v2 + ((15) * 4)) += M32(D4A_PERM_TAB + (((v22 - M32(v2 + ((1) * 4))) & 0xFFF) * 4));
+    M32(v2 + ((16) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v22 + (unsigned short)M32(v2 + ((1) * 4))) & 0xFFF) * 4));
+    M32(v2 + ((17) * 4)) += M32(D4A_PERM_TAB + (((v22 - M32(v2 + ((2) * 4))) & 0xFFF) * 4));
+    M32(v2 + ((18) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v22 + (unsigned short)M32(v2 + ((2) * 4))) & 0xFFF) * 4));
+    M32(v2 + ((19) * 4)) += M32(D4A_PERM_TAB + (((v22 - M32(v2 + ((3) * 4))) & 0xFFF) * 4));
+    M32(v2 + ((20) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v22 + (unsigned short)M32(v2 + ((3) * 4))) & 0xFFF) * 4));
+    M32(v2 + ((21) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)v22 - (unsigned short)G32(D4A_TBL_43D740)) & 0xFFF) * 4));
+    M32(v2 + ((22) * 4)) += M32(D4A_PERM_TAB + ((((unsigned short)G32(D4A_TBL_43D740) + (unsigned short)v22) & 0xFFF) * 4));
+    M32(v2 + ((23) * 4)) += M32(D4A_BYTE_CURVE_4 + (((unsigned char)(LOBYTE(M32(D4A_TBL_43DB48 + (0) * 4)) - v21)) * 4));
+    M32(v2 + ((24) * 4)) += M32(D4A_BYTE_CURVE_4 + (((unsigned char)(M8(v2 + 0x28) - v21)) * 4));
     v23 = (char)(v21 - M8(v2 + 0x28));   /* asm 0x413922/0x413934: byte
                                           * [edx+28h] (dword 10), not dword [40] */
     M32(v2 + ((11) * 4)) = v23;
-    G32(0x43D740) = v23;
+    G32(D4A_TBL_43D740) = v23;
     M32(v2 + ((10) * 4)) = v21;
     ++M32(v2 + ((27) * 4));
     /* asm 0x41394A: test BYTE [edx+6Ch],0Fh - low-nibble of the low byte,
@@ -8051,21 +8052,21 @@ static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
         M32(v2 + ((26) * 4)) = M32(v2 + ((24) * 4));
       }
     }
-    if ( G8(0x45E390) == 9 )
+    if ( G8(D4A_MODEL_ID) == 9 )
     {
-      v28 = G32(0x43D740);
-      G32(0x43D740) = G32(0x43D744);
-      G32(0x43D744) = v28;
+      v28 = G32(D4A_TBL_43D740);
+      G32(D4A_TBL_43D740) = G32(D4A_TBL_43D744);
+      G32(D4A_TBL_43D744) = v28;
     }
     result = v47;
     M32(v2 + ((28) * 4)) = v47 + (M32(v2 + ((28) * 4)) << 8);
-    if ( G8(0x45E390) == 7 )
+    if ( G8(D4A_MODEL_ID) == 7 )
     {
       v29 = v47;
       v30 = M32(v2 + ((30) * 4));
-      M32(v2 + ((29) * 4)) = M32(0x425954 + ((v47) * 4)) + (M32(v2 + ((29) * 4)) << 8);
+      M32(v2 + ((29) * 4)) = M32(D4A_BYTE_CURVE_1 + ((v47) * 4)) + (M32(v2 + ((29) * 4)) << 8);
       v19 = v30 << 8;
-      result = M32(0x426154 + ((v29) * 4));
+      result = M32(D4A_BYTE_CURVE_3 + ((v29) * 4));
 LABEL_80:
       M32(v2 + ((30) * 4)) = result + v19;
       return result;
@@ -8101,62 +8102,62 @@ static int d4_413A96(dec4_ctx *c)
   int v22;
   int v23;
 
-  G32(0x45C67C) = 2;
-  v0 = G32(0x4749DC) / 2u;
-  G32(0x4749DC) = v0;
-  v1 = G32(0x4749D8) / v0;
-  G8(0x45E392) = v1;
-  G32(0x45C680) = (unsigned char)v1;
-  G32(0x45C684) = (unsigned char)v1 + 1;
-  v2 = M32(0x45C67C + (1) * 4);
-  v3 = M32(0x45C67C + (2) * 4) - v2;
-  result = G32(0x4749DC) * v2;
-  v5 = G32(0x4749DC) * v3;
-  i = (unsigned long)(G32(0x4749D8) - result);
+  G32(D4A_TRI_TOTAL) = 2;
+  v0 = G32(D4A_RC_RANGE) / 2u;
+  G32(D4A_RC_RANGE) = v0;
+  v1 = G32(D4A_RC_CODE) / v0;
+  G8(D4A_PHASE) = v1;
+  G32(D4A_TRI_LOW) = (unsigned char)v1;
+  G32(D4A_TRI_HIGH) = (unsigned char)v1 + 1;
+  v2 = M32(D4A_TRI_TOTAL + (1) * 4);
+  v3 = M32(D4A_TRI_TOTAL + (2) * 4) - v2;
+  result = G32(D4A_RC_RANGE) * v2;
+  v5 = G32(D4A_RC_RANGE) * v3;
+  i = (unsigned long)(G32(D4A_RC_CODE) - result);
   while (v5 && v5 < 0x1000000) {
     i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v5 = (v5 << 8) & 0xFFFFFFFFU;
   }
-  G32(0x4749D8) = (int)i;
-  G32(0x4749DC) = v5;
-  if ( !G8(0x45E392) )
+  G32(D4A_RC_CODE) = (int)i;
+  G32(D4A_RC_RANGE) = v5;
+  if ( !G8(D4A_PHASE) )
   {
     v23 = 0;
     do
     {
-      G32(0x45C67C) = 2048;
-      G32(0x4749DC) = (unsigned)d4_div(G32(0x4749DC), 0x800u);
-      v9 = (unsigned short)((unsigned)d4_div(G32(0x4749D8), G32(0x4749DC)));
-      G32(0x45C680) = v9;
-      G32(0x45C684) = v9 + 1;
-      v10 = M32(0x45C67C + (1) * 4);
-      v11 = G32(0x4749DC) * (M32(0x45C67C + (2) * 4) - v10);
-      j = G32(0x4749D8) - G32(0x4749DC) * v10;
+      G32(D4A_TRI_TOTAL) = 2048;
+      G32(D4A_RC_RANGE) = (unsigned)d4_div(G32(D4A_RC_RANGE), 0x800u);
+      v9 = (unsigned short)((unsigned)d4_div(G32(D4A_RC_CODE), G32(D4A_RC_RANGE)));
+      G32(D4A_TRI_LOW) = v9;
+      G32(D4A_TRI_HIGH) = v9 + 1;
+      v10 = M32(D4A_TRI_TOTAL + (1) * 4);
+      v11 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v10);
+      j = G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v10;
   while (v11 && v11 < 0x1000000) {
     j = (j << 8) | (unsigned)d4_40B093(c);
     v11 = (v11 << 8) & 0xFFFFFFFFU;
   }
-      G32(0x4749D8) = j;
-      G32(0x45C67C) = 2;
-      G32(0x4228BE) += v9 << v23;
-      G32(0x4749DC) = v11 / 2;
+      G32(D4A_RC_CODE) = j;
+      G32(D4A_TRI_TOTAL) = 2;
+      G32(D4A_HDR_SIZE) += v9 << v23;
+      G32(D4A_RC_RANGE) = v11 / 2;
       v16 = (unsigned short)(j / (v11 / 2));
-      G32(0x45C680) = v16;
-      G32(0x45C684) = v16 + 1;
+      G32(D4A_TRI_LOW) = v16;
+      G32(D4A_TRI_HIGH) = v16 + 1;
       v23 += 11;
-      v17 = M32(0x45C67C + (1) * 4);
-      v18 = v11 / 2 * (M32(0x45C67C + (2) * 4) - v17);
-      k = (unsigned long)(j - G32(0x4749DC) * v17);
+      v17 = M32(D4A_TRI_TOTAL + (1) * 4);
+      v18 = v11 / 2 * (M32(D4A_TRI_TOTAL + (2) * 4) - v17);
+      k = (unsigned long)(j - G32(D4A_RC_RANGE) * v17);
   while (v18 && v18 < 0x1000000) {
     k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_40B093(c));
     v18 = (v18 << 8) & 0xFFFFFFFFU;
   }
-      G32(0x4749D8) = (int)k;
-      G32(0x4749DC) = v18;
+      G32(D4A_RC_CODE) = (int)k;
+      G32(D4A_RC_RANGE) = v18;
     }
     while ( v16 );
-    result = G32(0x4228BE);
-    G32(0x45D13C) = G32(0x4228BE);
+    result = G32(D4A_HDR_SIZE);
+    G32(D4A_NEXT_BLK) = G32(D4A_HDR_SIZE);
   }
   return result;
 }
@@ -8225,39 +8226,39 @@ int uharc_dec4_decode_b(void *ctx,
     c->rcb = rcb; c->rctx = rctx;
     c->wcb = wcb; c->wctx = wctx;
     c->in_pos = 0; c->in_avail = 0; c->in_eof = 0;
-    G32(0x434514) = (unsigned)out_len;
-    G32(0x434528) = 0;
-    G32(0x43451C) = 0;
-    G32(0x434524) = 0;
-    G32(0x422B90) = 0;
+    G32(D4A_OUT_TOTAL) = (unsigned)out_len;
+    G32(D4A_OUT_POS) = 0;
+    G32(D4A_OUTBUF_LEN) = 0;
+    G32(D4A_IN_CHUNKS) = 0;
+    G32(D4A_IO_ERR) = 0;
     c->steps = 0;
-    G32(0x45D12C) = 0;
-    G32(0x45D144) = 0;
-    G32(0x45D124) = 0xFFFFFFFFU;
-    G32(0x45D13C) = 0xFFFFFFFFU;
+    G32(D4A_BLK_END) = 0;
+    G32(D4A_TBL_45D144) = 0;
+    G32(D4A_TBL_45D124) = 0xFFFFFFFFU;
+    G32(D4A_NEXT_BLK) = 0xFFFFFFFFU;
     if (cum && ncum) {
         for (i = 0; i < ncum; i++)
             M32(A_PROG + 4 * i) = (unsigned)cum[i];
         M32(A_PROG + 4 * ncum) = (unsigned)out_len;
-        G32(0x45D128) = A_PROG;
+        G32(D4A_FILE_TAB_PTR) = A_PROG;
         c->p_prog = A_PROG;
     } else {
-        G32(0x45D128) = 0;
+        G32(D4A_FILE_TAB_PTR) = 0;
         c->p_prog = 0;
     }
     d4_40F962(c, 0, 0);
-    if (G32(0x43451C)) {
-        unsigned n = G32(0x43451C);
-        if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(0x422B90) = 4;
-        G32(0x43451C) = 0;
+    if (G32(D4A_OUTBUF_LEN)) {
+        unsigned n = G32(D4A_OUTBUF_LEN);
+        if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(D4A_IO_ERR) = 4;
+        G32(D4A_OUTBUF_LEN) = 0;
     }
 #ifdef SPLITDBG
     fprintf(stderr, "SPLITDBG end 422B90=%u out=%u total=%u blk=%u next=%u idx=%u steps=%lu\n",
-        G32(0x422B90), G32(0x434528), G32(0x434514), G32(0x45D12C), G32(0x45D13C),
-        G32(0x45D144), c->steps);
+        G32(D4A_IO_ERR), G32(D4A_OUT_POS), G32(D4A_OUT_TOTAL), G32(D4A_BLK_END), G32(D4A_NEXT_BLK),
+        G32(D4A_TBL_45D144), c->steps);
 #endif
-    if (G32(0x422B90) == 4) return 4;
-    if (G32(0x422B90)) return 3;
-    if (G32(0x434528) != G32(0x434514)) return 3;
+    if (G32(D4A_IO_ERR) == 4) return 4;
+    if (G32(D4A_IO_ERR)) return 3;
+    if (G32(D4A_OUT_POS) != G32(D4A_OUT_TOTAL)) return 3;
     return 0;
 }
