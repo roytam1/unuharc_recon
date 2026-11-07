@@ -276,6 +276,19 @@ static void d4v_rcrenorm(dec4v_ctx *c, unsigned int *pcode, unsigned int *prange
     }
 }
 
+/* Range renormalize preserving caller byte register (goto-style sites).
+ * *pcode/*prange are locals (e_ecx/e_edx or ecx/edx); *pbyte is the
+ * caller register (e_eax/eax) clobbered with the last byte read. */
+static void d4v_rcrenorm_reg(dec4v_ctx *c, unsigned int *pcode, unsigned int *prange, unsigned int *pbyte)
+{
+    while (*prange < 0x1000000UL) {
+        *pbyte = d4v_get_byte(c) & 0xFFU;
+        *pcode = ((*pcode << 8) | *pbyte) & 0xFFFFFFFFUL;
+        *prange = (*prange << 8) & 0xFFFFFFFFUL;
+    }
+}
+
+
 /* ---- range reader init (sub_41F2A0) ----
  * Entry esi = 0x45AF68 area base (constant; the second half sets it
  * explicitly and the first half uses the same [eax+4]/[eax+8] shape). */
@@ -2936,11 +2949,7 @@ L_418C76: e_eax = (D4V_RSLOT_LO); e_edx = (M32(e_eax + 0x8u)); e_eax = (M32(e_ea
     d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_ecx));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418C8C */;
     e_ecx = (M32(D4V_RC_CODE)); e_ecx = ((e_ecx) - (e_eax)); /* cmp e_edx, 0x1000000u (flags folded into jnb @0x00418C9D below) */; /* 0x00418C8F,0x00418C95,0x00418C97 */
-    if ((e_edx) >= (0x1000000u)) goto L_418CB9; /* jnb, unsigned=True */ /* 0x00418C9D */
-L_418C9F: e_eax = (unsigned)(d4v_get_byte(c)); /* 0x00418C9F */
-    e_ecx = ((e_ecx) << 8); e_eax = ((e_eax) & (0xFFu)); e_edx = ((e_edx) << 8); e_ecx = ((e_ecx) | (e_eax)); /* 0x00418CA4,0x00418CA7,0x00418CAC,0x00418CAF */
-    /* cmp e_edx, 0x1000000u (flags folded into jb @0x00418CB7 below) */; /* 0x00418CB1 */
-    if ((e_edx) < (0x1000000u)) goto L_418C9F; /* jb, unsigned=True */ /* 0x00418CB7 */
+    d4v_rcrenorm_reg(c, &e_ecx, &e_edx, &e_eax);
 L_418CB9: M32(D4V_RC_CODE) = (e_ecx); M32(D4V_RC_RANGE) = (e_edx); /* 0x00418CB9,0x00418CBF */
 L_418CC5: e_ebx = ((e_ebx & ~(0xFFu << 8)) | ((stk[0x3C]) << 8)); /* test ((e_ebx >> 8) & 0xFFu), ((e_ebx >> 8) & 0xFFu) (flags folded into jz @0x00418CCB below) */; /* 0x00418CC5,0x00418CC9 */
     if ((((((((e_ebx >> 8) & 0xFFu)) & (((e_ebx >> 8) & 0xFFu)))) & 0xFFu) == 0u)) goto L_419482; /* jz, unsigned=True */ /* 0x00418CCB */
@@ -3054,11 +3063,7 @@ L_418F98: e_eax = (D4V_RSLOT_LO); e_edx = (M32(e_eax + 0x8u)); e_eax = (M32(e_ea
     d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_ecx));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x00418FAE */;
     e_ecx = (M32(D4V_RC_CODE)); e_ecx = ((e_ecx) - (e_eax)); /* cmp e_edx, 0x1000000u (flags folded into jnb @0x00418FBF below) */; /* 0x00418FB1,0x00418FB7,0x00418FB9 */
-    if ((e_edx) >= (0x1000000u)) goto L_418FDB; /* jnb, unsigned=True */ /* 0x00418FBF */
-L_418FC1: e_eax = (unsigned)(d4v_get_byte(c)); /* 0x00418FC1 */
-    e_ecx = ((e_ecx) << 8); e_eax = ((e_eax) & (0xFFu)); e_edx = ((e_edx) << 8); e_ecx = ((e_ecx) | (e_eax)); /* 0x00418FC6,0x00418FC9,0x00418FCE,0x00418FD1 */
-    /* cmp e_edx, 0x1000000u (flags folded into jb @0x00418FD9 below) */; /* 0x00418FD3 */
-    if ((e_edx) < (0x1000000u)) goto L_418FC1; /* jb, unsigned=True */ /* 0x00418FD9 */
+    d4v_rcrenorm_reg(c, &e_ecx, &e_edx, &e_eax);
 L_418FDB: M32(D4V_RC_CODE) = (e_ecx); M32(D4V_RC_RANGE) = (e_edx); /* 0x00418FDB,0x00418FE1 */
     goto L_418AA7; /* 0x00418FE7 */
 L_418FEC: e_eax = ((e_eax & ~(0xFFu << 8)) | ((M8(e_edx + 0xEu)) << 8)); /* cmp ((e_eax >> 8) & 0xFFu), stk[0x34] (flags folded into jnz @0x00418FF3 below) */; /* 0x00418FEC,0x00418FEF */
@@ -3272,11 +3277,7 @@ L_4195C3: e_eax = (D4V_RSLOT_LO); e_edx = (M32(e_eax + 0x8u)); e_eax = (M32(e_ea
     d4v_q = ((UHI64)(int)(e_edx)) * ((UHI64)(int)(e_ecx));
     e_edx = (unsigned)d4v_q /* imul flags (cf/of/zf/sf) dead here: next setter precedes any consumer */ /* 0x004195D9 */;
     e_ecx = (M32(D4V_RC_CODE)); e_ecx = ((e_ecx) - (e_eax)); /* cmp e_edx, 0x1000000u (flags folded into jnb @0x004195EA below) */; /* 0x004195DC,0x004195E2,0x004195E4 */
-    if ((e_edx) >= (0x1000000u)) goto L_419606; /* jnb, unsigned=True */ /* 0x004195EA */
-L_4195EC: e_eax = (unsigned)(d4v_get_byte(c)); /* 0x004195EC */
-    e_ecx = ((e_ecx) << 8); e_eax = ((e_eax) & (0xFFu)); e_edx = ((e_edx) << 8); e_ecx = ((e_ecx) | (e_eax)); /* 0x004195F1,0x004195F4,0x004195F9,0x004195FC */
-    /* cmp e_edx, 0x1000000u (flags folded into jb @0x00419604 below) */; /* 0x004195FE */
-    if ((e_edx) < (0x1000000u)) goto L_4195EC; /* jb, unsigned=True */ /* 0x00419604 */
+    d4v_rcrenorm_reg(c, &e_ecx, &e_edx, &e_eax);
 L_419606: M32(D4V_RC_CODE) = (e_ecx); M32(D4V_RC_RANGE) = (e_edx); /* 0x00419606,0x0041960C */
 L_419612: /* cmp stk[0x20], 0x0u (flags folded into jz @0x00419617 below) */; /* 0x00419612 */
     if ((stk[0x20]) == (0x0u)) goto L_418CD1; /* jz, unsigned=True */ /* 0x00419617 */
