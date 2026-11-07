@@ -109,7 +109,7 @@ void d4v_prices(dec4v_ctx *c)
     }
 }
 
-int d4v_415130(dec4v_ctx *c, int method, unsigned int al_in);
+int d4v_init_file(dec4v_ctx *c, int method, unsigned int al_in);
 
 int uharc_dec4v_init(void **pctx, int method)
 {
@@ -133,7 +133,7 @@ int uharc_dec4v_init(void **pctx, int method)
         extern const unsigned char d4v_dgroup[73728];
         memcpy(c->mem + D4V_DGROUP_BASE, d4v_dgroup, 73728);
     }
-    rc = d4v_415130(c, method, 0);
+    rc = d4v_init_file(c, method, 0);
     if (rc) { free(c->mem); free(c); return rc; }
     *pctx = c;
     return 0;
@@ -160,7 +160,7 @@ static void d4v_memmove(dec4v_ctx *c, unsigned int dst, unsigned int src,
 /* indirect stream reader ([4370D8]): read up to n bytes to dst, return
  * bytes read (0 at EOF). 45CD24 is NOT bumped here: consumption is
  * counted per byte by sub_4220B0. */
-static unsigned int d4v_4370d8(dec4v_ctx *c, unsigned int dst,
+static unsigned int d4v_read_stream(dec4v_ctx *c, unsigned int dst,
                                unsigned int n, unsigned int aux)
 {
     int r;
@@ -181,7 +181,7 @@ static void d4v_refill(dec4v_ctx *c)
     G32(D4V_IO_SNAP_IN) = G32(D4V_IO_IN_TOTAL);
     G32(D4V_IO_IN_POS) = 0;
     G32(D4V_IO_SNAP_OUT) = G32(D4V_IO_OUT_TOTAL);
-    got = d4v_4370d8(c, G32(D4V_IO_IN_PTR), G32(D4V_IO_IN_CAP), 0);
+    got = d4v_read_stream(c, G32(D4V_IO_IN_PTR), G32(D4V_IO_IN_CAP), 0);
     G32(D4V_IO_IN_VALID) = got;
     if (!got) {
         G32(D4V_IO_ERR) = 3;
@@ -430,52 +430,52 @@ void d4v_lzp(dec4v_ctx *c);
 int d4v_ppm(dec4v_ctx *c);
 unsigned int d4v_ppmdec(dec4v_ctx *c);
 void d4v_sym(dec4v_ctx *c, unsigned int a_eax);
-unsigned int d4v_419970(dec4v_ctx *c, unsigned int eax_in,
+unsigned int d4v_ppm_sym_split(dec4v_ctx *c, unsigned int eax_in,
                         unsigned int edx_in, unsigned int ebx_in);
-unsigned int d4v_419ca0(dec4v_ctx *c, unsigned int eax_in);
-unsigned int d4v_41a360(dec4v_ctx *c, unsigned int eax_in,
+unsigned int d4v_ppm_prob_decode(dec4v_ctx *c, unsigned int eax_in);
+unsigned int d4v_freq_divide_price(dec4v_ctx *c, unsigned int eax_in,
                         unsigned int edx_in);
-void d4v_41ad60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in,
+void d4v_freq_adapt_459398(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in,
                 unsigned int ebx_in);
-void d4v_41ae30(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in,
+void d4v_freq_adapt_45af60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in,
                 unsigned int ebx_in);
-unsigned int d4v_41ae70(dec4v_ctx *c, unsigned int tab,
+unsigned int d4v_freq_scale_step(dec4v_ctx *c, unsigned int tab,
                         unsigned int edx_in);
-void d4v_41aeb0(dec4v_ctx *c, unsigned int tab, unsigned int flag_in);
-void d4v_415ae0(dec4v_ctx *c);
-void d4v_415b50(dec4v_ctx *c);
-void d4v_416a00(dec4v_ctx *c, unsigned int idx);
-void d4v_416b50(dec4v_ctx *c, unsigned int sym, unsigned int arg);
-unsigned int d4v_416d10(dec4v_ctx *c, unsigned int ebx_in);
-void d4v_4177a0(dec4v_ctx *c, unsigned int sym, unsigned int flag);
-void d4v_4183d0(dec4v_ctx *c, unsigned int sym, unsigned int flag);
-unsigned int d4v_418780(dec4v_ctx *c, unsigned int obj);
-void d4v_416c80(dec4v_ctx *c, unsigned int len, unsigned int flag);
-void d4v_417090(dec4v_ctx *c, unsigned int sym);
-void d4v_417220(dec4v_ctx *c, unsigned int sym);
-void d4v_417570(dec4v_ctx *c, unsigned int sym);
-unsigned int d4v_418590(dec4v_ctx *c, unsigned int len);
-int d4v_41cf60(dec4v_ctx *c, unsigned int a);
-void d4v_41e5f0(dec4v_ctx *c);
+void d4v_counter_bump_halve(dec4v_ctx *c, unsigned int tab, unsigned int flag_in);
+void d4v_rescale_blk02(dec4v_ctx *c);
+void d4v_rescale_blk01(dec4v_ctx *c);
+void d4v_rescale_ppm_plane(dec4v_ctx *c, unsigned int idx);
+void d4v_ppm_order_update(dec4v_ctx *c, unsigned int sym, unsigned int arg);
+unsigned int d4v_ppm_score_orders(dec4v_ctx *c, unsigned int ebx_in);
+void d4v_ppm_mask_select(dec4v_ctx *c, unsigned int sym, unsigned int flag);
+void d4v_ppm_escape_emit(dec4v_ctx *c, unsigned int sym, unsigned int flag);
+unsigned int d4v_ppm_pair_price(dec4v_ctx *c, unsigned int obj);
+void d4v_ppm_touch_len(dec4v_ctx *c, unsigned int len, unsigned int flag);
+void d4v_ppm_rescale_orders(dec4v_ctx *c, unsigned int sym);
+void d4v_ppm_list_update_32(dec4v_ctx *c, unsigned int sym);
+void d4v_ppm_list_update_20(dec4v_ctx *c, unsigned int sym);
+unsigned int d4v_ppm_len_decode(dec4v_ctx *c, unsigned int len);
+int d4v_ppm_window_decode(dec4v_ctx *c, unsigned int a);
+void d4v_s4_reset_tables(dec4v_ctx *c);
 /* S4 leaves (stubs below until draft_s4a/s4b land) */
-unsigned int d4v_41d540(dec4v_ctx *c, unsigned int a, unsigned int d,
+unsigned int d4v_s4_score_candidate(dec4v_ctx *c, unsigned int a, unsigned int d,
                         unsigned int e, unsigned int b);
-unsigned int d4v_41dbc0(dec4v_ctx *c, unsigned int base, unsigned int count);
-unsigned int d4v_41e0a0(dec4v_ctx *c, unsigned int a, unsigned int d,
+unsigned int d4v_pick_model_order(dec4v_ctx *c, unsigned int base, unsigned int count);
+unsigned int d4v_score_adaptive_order(dec4v_ctx *c, unsigned int a, unsigned int d,
                         unsigned int b, unsigned int e);
-void d4v_41e640(dec4v_ctx *c);
-void d4v_41e9f0(dec4v_ctx *c, unsigned int sym, unsigned int arg);
-void d4v_421fa0(dec4v_ctx *c, unsigned int n);
+void d4v_s4_pick_predictor(dec4v_ctx *c);
+void d4v_s4_update_model(dec4v_ctx *c, unsigned int sym, unsigned int arg);
+void d4v_ensure_input(dec4v_ctx *c, unsigned int n);
 void d4v_rc(dec4v_ctx *c, unsigned int sym, unsigned int sel);
-void d4v_41d480(dec4v_ctx *c, unsigned int a);
+void d4v_rescale_s4_pair(dec4v_ctx *c, unsigned int a);
 /* init helpers (defined in base, called by the 415130 draft) */
 unsigned long d4v_alloc(dec4v_ctx *c, unsigned long size);
 void d4v_prices(dec4v_ctx *c);
 void d4v_fill16(dec4v_ctx *c, unsigned int count, unsigned int dst,
                 unsigned int val);
-int d4v_415130(dec4v_ctx *c, int method, unsigned int al_in);
+int d4v_init_file(dec4v_ctx *c, int method, unsigned int al_in);
 void d4v_rc(dec4v_ctx *c, unsigned int sym, unsigned int sel);
-void d4v_41d480(dec4v_ctx *c, unsigned int a);
+void d4v_rescale_s4_pair(dec4v_ctx *c, unsigned int a);
 
 /* ---- buffered emit (sub_40DBE0, functional port) ----
  * The original manages progress display, watermark globals
@@ -496,7 +496,7 @@ static void d4v_emit(dec4v_ctx *c, unsigned int a1, unsigned int a2)
  * 426F70 + 41F2A0 setup, then per-symbol: maybe 415C40, maybe 416220,
  * 417E10 (->al; if 0, 418830), 40DBE0 emit; until 45CD28 >= 45CD14
  * or 436EC8 error. */
-static void d4v_417da0(dec4v_ctx *c)
+static void d4v_decode_block(dec4v_ctx *c)
 {
     unsigned int eax;
     unsigned int edx;
@@ -564,7 +564,7 @@ int uharc_dec4v_decode_b(void *ctx, const unsigned long *cum,
             G32(D4V_FILETAB_PTR) = (unsigned int)tab;
         }
     }
-    d4v_417da0(c);
+    d4v_decode_block(c);
     d4v_flush_out(c);
     if (c->err == 3) return 3;
     if (c->err == 4) return 4;
@@ -574,7 +574,7 @@ int uharc_dec4v_decode_b(void *ctx, const unsigned long *cum,
 }
 
 /* ---- init (from draft_init.c; replaces hand version) ---- */
-int d4v_415130(dec4v_ctx *c, int method, unsigned int al_in)
+int d4v_init_file(dec4v_ctx *c, int method, unsigned int al_in)
 {
     unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
     unsigned int quot = 0, rem = 0, dict = 0;
@@ -1244,8 +1244,8 @@ l_415DE9:
         edi = (edi + 1) & U32MASK;
         ecx = (ecx - 1) & U32MASK;
     }
-    /* 0x00415DED */ d4v_415b50(c); /* call sub_415B50 */
-    /* 0x00415DF2 */ d4v_415ae0(c); /* call sub_415AE0 */
+    /* 0x00415DED */ d4v_rescale_blk01(c); /* call sub_415B50 */
+    /* 0x00415DF2 */ d4v_rescale_blk02(c); /* call sub_415AE0 */
     /* 0x00415DF7 */ eax = (unsigned long)G32(D4V_BLK_PTR_03);
     /* 0x00415DFC */ d4v_fill(c, (unsigned int)ebx /*0x200000*/,
         (unsigned int)eax, (unsigned int)(edx & 0xFFUL) /*0xFF*/);
@@ -1367,7 +1367,7 @@ l_415FA4:
         (unsigned long)M8((esi + eax) & U32MASK); /* mov al,[esi+eax] */
     /* 0x00415FA9 */ eax &= 0xFFUL;
     /* 0x00415FAE */ G32(D4V_BLK_PTR_00_DICT) = (unsigned int)ebp;
-    /* 0x00415FB4 */ d4v_417220(c, (unsigned int)eax); /* call sub_417220 */
+    /* 0x00415FB4 */ d4v_ppm_list_update_32(c, (unsigned int)eax); /* call sub_417220 */
     /* 0x00415FB9 */ ebp = (unsigned long)G32(D4V_BLK_PTR_00_DICT);
 l_415FBF:
     /* 0x00415FBF */ edx = (unsigned long)G32(D4V_SHIFT_R2);
@@ -1921,10 +1921,10 @@ l_4165A1:
 l_4165AA:
     /* 0x004165AA */ eax = edx;
     /* 0x004165AC */ edx = (edx + 1) & U32MASK; /* inc */
-    /* 0x004165AD */ d4v_416a00(c, (unsigned int)eax); /* call sub_416A00 */
+    /* 0x004165AD */ d4v_rescale_ppm_plane(c, (unsigned int)eax); /* call sub_416A00 */
     /* 0x004165B2 */ /* cmp edx,2FFh */;
     /* 0x004165B8 jb */ if (edx < 0x2FFUL) goto l_4165AA; /* unsigned */
-    /* 0x004165BA */ d4v_415ae0(c); /* call sub_415AE0 */
+    /* 0x004165BA */ d4v_rescale_blk02(c); /* call sub_415AE0 */
     /* 0x004165BF */ ecx = 0x1FFUL;
     /* 0x004165C4 */ ebx = D4V_TBL_45B5F4;
     /* 0x004165C9 */ esi = D4V_TBL_45AFD8;
@@ -2053,8 +2053,8 @@ l_41679E:
     /* 0x004167AA */ /* cmp esi,2CC640h */;
     /* 0x004167B0 jnz */ if (esi != 0x2CC640UL) goto l_41696A;
 l_4167B6:
-    /* 0x004167B6 */ d4v_415b50(c); /* call sub_415B50 */
-    /* 0x004167BB */ d4v_415ae0(c); /* call sub_415AE0 */
+    /* 0x004167B6 */ d4v_rescale_blk01(c); /* call sub_415B50 */
+    /* 0x004167BB */ d4v_rescale_blk02(c); /* call sub_415AE0 */
 l_4167C0:
     /* 0x004167C0 */ /* cmp ecx,388DC2h */;
     /* 0x004167C6 jnz */ if (ecx != 0x388DC2UL) goto l_416987;
@@ -2205,7 +2205,7 @@ l_41699B:
     /* 0x004169BF jmp */ goto l_416809;
 l_4169C4:
     /* 0x004169C4 */ eax = 0xFFUL;
-    /* 0x004169C9 */ eax = (unsigned long)(unsigned int)d4v_41cf60(c,
+    /* 0x004169C9 */ eax = (unsigned long)(unsigned int)d4v_ppm_window_decode(c,
         (unsigned int)(eax & 0xFFUL)); /* call sub_41CF60 */
     /* epilogue 0x004169CE add esp,1Ch; 0x004169D1 pop ebp;
      * 0x004169D2 pop edi; 0x004169D3 pop esi; 0x004169D4 pop edx;
@@ -2218,7 +2218,7 @@ l_4169D8:
     /* 0x004169E1 */ eax &= 0xFFFFFF00UL; /* xor al,al */
     /* 0x004169E3 jmp */ goto l_4168DE;
 l_4169E8:
-    /* 0x004169E8 */ d4v_41e5f0(c); /* call sub_41E5F0 */
+    /* 0x004169E8 */ d4v_s4_reset_tables(c); /* call sub_41E5F0 */
     /* epilogue 0x004169ED add esp,1Ch; 0x004169F0 pop ebp;
      * 0x004169F1 pop edi; 0x004169F2 pop esi; 0x004169F3 pop edx;
      * 0x004169F4 pop ecx; 0x004169F5 pop ebx; 0x004169F6 retn
@@ -2532,7 +2532,7 @@ l_418112:
 l_418120:
     /* 0x00418120 */ eax = 0; /* xor */
     /* 0x00418122 */ eax |= v24; /* mov al,[var_24] */
-    /* 0x00418126 */ eax = d4v_418590(c, (unsigned int)(eax & 0xFFUL));
+    /* 0x00418126 */ eax = d4v_ppm_len_decode(c, (unsigned int)(eax & 0xFFUL));
     /* 0x0041812B */ /* cmp al,1 */;
     /* 0x0041812D jnz */ if ((eax & 0xFFUL) != 1) goto l_418240;
     /* 0x00418133 */ ebx = (ebx & 0xFFFFFF00UL) | v1c; /* mov bl,[var_1C] */
@@ -2624,7 +2624,7 @@ l_418220:
     /* 0x00418230 */ eax = 0; /* xor */
     /* 0x00418232 */ edx = 2;
     /* 0x00418237 */ eax |= v24; /* mov al,[var_24] */
-    /* 0x0041823B */ d4v_416c80(c, (unsigned int)(eax & 0xFFUL),
+    /* 0x0041823B */ d4v_ppm_touch_len(c, (unsigned int)(eax & 0xFFUL),
         (unsigned int)(edx & 0xFFUL)); /* call sub_416C80 */
 l_418240:
     /* 0x00418240 */ ebx = v30;
@@ -2682,14 +2682,14 @@ l_4182BE:
     /* 0x004182E2 */ edx = (edx + 0x2FDUL) & U32MASK;
 l_4182E8:
     /* 0x004182E8 */ eax = edx;
-    /* 0x004182EA */ eax = d4v_419ca0(c, (unsigned int)(eax & U32MASK));
+    /* 0x004182EA */ eax = d4v_ppm_prob_decode(c, (unsigned int)(eax & U32MASK));
     /* 0x004182EF */ ebx = (ebx & 0xFFFF00FFUL) |
         (((eax & 0xFFUL) << 8) & 0xFF00UL); /* mov bh,al */
     /* 0x004182F1 */ ebx = (ebx & 0xFFFFFF00UL) | (eax & 0xFFUL); /* mov bl,al */
     /* 0x004182F3 */ eax = 0; /* xor */
     /* 0x004182F5 */ eax |= ((ebx >> 8) & 0xFFUL); /* mov al,bh */
     /* 0x004182F7 */ esi = v30;
-    /* 0x004182FB */ d4v_416b50(c, (unsigned int)(eax & 0xFFUL),
+    /* 0x004182FB */ d4v_ppm_order_update(c, (unsigned int)(eax & 0xFFUL),
         (unsigned int)(edx & U32MASK)); /* call sub_416B50 */
     /* 0x00418300 */ eax = (unsigned long)G32(D4V_BLK_PTR_05);
     /* 0x00418305 */ ebp = 0; /* xor */
@@ -2721,7 +2721,7 @@ l_418349:
     /* 0x00418353 */ ecx |= ((ebx >> 8) & 0xFFUL); /* mov cl,bh */
     /* 0x00418355 */ eax = ecx;
     /* 0x00418357 */ edx = 0; /* xor */
-    /* 0x00418359 */ d4v_4183d0(c, (unsigned int)(eax & U32MASK),
+    /* 0x00418359 */ d4v_ppm_escape_emit(c, (unsigned int)(eax & U32MASK),
         (unsigned int)(edx & U32MASK)); /* call sub_4183D0 (ecx dead:
         entry ecx is written before any read; full edx live: mov dl,al) */
     /* 0x0041835E */ /* cmp bl,8 */;
@@ -2730,7 +2730,7 @@ l_418349:
         (unsigned long)((ebx & 0xFFUL) <= 8UL ? 1 : 0);
     /* 0x00418364 */ edx = (edx & 0xFFFFFF00UL) | (eax & 0xFFUL); /* mov dl,al */
     /* 0x00418366 */ eax = ecx;
-    /* 0x00418368 */ d4v_4177a0(c, (unsigned int)(eax & 0xFFUL),
+    /* 0x00418368 */ d4v_ppm_mask_select(c, (unsigned int)(eax & 0xFFUL),
         (unsigned int)(edx & 0xFFUL)); /* call sub_4177A0 */
     /* 0x0041836D */ edx = (unsigned long)G32(D4V_BLK_PTR_00_DICT);
     /* 0x00418373 */ eax = (unsigned long)G32(D4V_DICT_CURSOR);
@@ -2860,7 +2860,7 @@ L_418AA7: /* cmp stk[0x20], 0x0u (flags folded into jz @0x00418AAC below) */; /*
     if ((stk[0x20]) == (0x0u)) goto L_41979F; /* jz, unsigned=True */ /* 0x00418AAC */
     /* cmp M8(0x45C67Fu), 0x0u (flags folded into jz @0x00418AB9 below) */; /* 0x00418AB2 */
     if ((M8(D4V_CTX_B_45C67F)) == (0x0u)) goto L_41927F; /* jz, unsigned=True */ /* 0x00418AB9 */
-    e_eax = (unsigned)(d4v_416d10(c, e_ebx)); /* 0x00418ABF (ebx live: mov bh,8 partial) */
+    e_eax = (unsigned)(d4v_ppm_score_orders(c, e_ebx)); /* 0x00418ABF (ebx live: mov bh,8 partial) */
 L_418AC4: stk[0x38] = (0x1u); e_edx = ((e_edx & ~(0xFFu << 8)) | ((0u) << 8)); /* 0x00418AC4,0x00418AC9 */
     (stk[0x18] = ((e_eax) & 0xFFu), stk[0x19] = (((e_eax) >> 8) & 0xFFu), stk[0x1A] = (((e_eax) >> 16) & 0xFFu), stk[0x1B] = (((e_eax) >> 24) & 0xFFu)); /* 0x00418ACB */
     stk[0x3C] = (((e_edx >> 8) & 0xFFu)); /* test e_eax, e_eax (flags folded into jz @0x00418AD5 below) */; /* 0x00418ACF,0x00418AD3 */
@@ -2919,7 +2919,7 @@ L_418BBB: e_ebx = ((e_ebx & ~0xFFu) | (0xFFu)); e_eax = (0u); e_ecx = (0u); e_ed
     if ((M32(e_ebp + 0x1u)) >= (0x10u)) goto L_419308; /* jnb, unsigned=True */ /* 0x00418C25 */
     e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | (M8(e_ebp + 0x1u))); e_eax = ((unsigned)((int)(e_eax) >> 2)); e_eax = ((e_eax) + (e_eax)); /* 0x00418C2B,0x00418C2D,0x00418C30,0x00418C33 */
     e_eax = ((e_eax) + (D4V_CTX_B_45A278)); /* 0x00418C35 */
-    e_eax = (unsigned)(d4v_418780(c, e_eax)); /* 0x00418C3A */
+    e_eax = (unsigned)(d4v_ppm_pair_price(c, e_eax)); /* 0x00418C3A */
     /* test (e_eax & 0xFFu), (e_eax & 0xFFu) (flags folded into jz @0x00418C41 below) */; /* 0x00418C3F */
     if (((((((e_eax & 0xFFu)) & ((e_eax & 0xFFu)))) & 0xFFu) == 0u)) goto L_4192E2; /* jz, unsigned=True */ /* 0x00418C41 */
     e_eax = ((e_eax & ~0xFFu) | (M8(e_ebp + 0x9u))); stk[0x24] = ((e_eax & 0xFFu)); e_eax = (e_edx); e_edx = ((unsigned)((int)(e_edx) >> 31)); /* 0x00418C47,0x00418C4A,0x00418C4E,0x00418C50 */
@@ -3043,7 +3043,7 @@ L_418EF8: e_eax = (0u); e_edx = (M32(D4V_TBL_45AFB8)); e_eax = ((e_eax & ~0xFFu)
     if ((M8(D4V_CTX_B_45C67F)) == (0x0u)) goto L_419021; /* jz, unsigned=True */ /* 0x00418F5D */
     e_edx = (M32(D4V_TBL_45AFC4)); e_edx = ((e_edx) >> 11); e_edx = ((e_edx) & (0xCu)); /* 0x00418F63,0x00418F69,0x00418F6C */
 L_418F6F: e_eax = ((e_eax) + (e_edx)); e_eax = ((e_eax) + (e_eax)); e_eax = ((e_eax) + (D4V_TBL_45AA80)); /* 0x00418F6F,0x00418F71,0x00418F73 */
-    e_eax = (unsigned)(d4v_418780(c, e_eax)); /* 0x00418F78 */
+    e_eax = (unsigned)(d4v_ppm_pair_price(c, e_eax)); /* 0x00418F78 */
     /* test (e_eax & 0xFFu), (e_eax & 0xFFu) (flags folded into jz @0x00418F7F below) */; /* 0x00418F7D */
     if (((((((e_eax & 0xFFu)) & ((e_eax & 0xFFu)))) & 0xFFu) == 0u)) goto L_419059; /* jz, unsigned=True */ /* 0x00418F7F */
     e_eax = ((e_eax & ~0xFFu) | (M8(e_ebx + 0xEu))); e_ebx = ((e_ebx & ~0xFFu) | (0u)); stk[0x24] = ((e_eax & 0xFFu)); stk[0x20] = ((e_ebx & 0xFFu)); /* 0x00418F85,0x00418F88,0x00418F8A,0x00418F8E */
@@ -3102,7 +3102,7 @@ L_4190F4: /* cmp e_edi, 0xFFFFFFFFu (flags folded into jz @0x004190F7 below) */;
     /* test ((e_ebx >> 8) & 0xFFu), ((e_ebx >> 8) & 0xFFu) (flags folded into setz @0x00419105 below) */; /* 0x00419103 */
     e_edx = ((e_edx & ~0xFFu) | (((((((((((e_ebx >> 8) & 0xFFu)) & (((e_ebx >> 8) & 0xFFu)))) & 0xFFu) == 0u) )) & 0xFFu))); e_eax = (e_edi + e_edi); /* 0x00419105,0x00419108 */
     e_eax = ((e_eax) + (D4V_TBL_45A280)); /* 0x0041910B */
-    d4v_41aeb0(c, e_eax, e_edx); /* 0x00419110 */
+    d4v_counter_bump_halve(c, e_eax, e_edx); /* 0x00419110 */
     goto L_418F98; /* 0x00419115 */
 L_41911A: e_edx = (0u); e_edx = ((e_edx & ~0xFFu) | ((e_ecx & 0xFFu))); e_eax = ((e_eax) - (e_edx)); e_edx = (e_eax); /* 0x0041911A,0x0041911C,0x0041911E,0x00419120 */
     /* cmp e_eax, 0x80u (flags folded into jnb @0x00419127 below) */; /* 0x00419122 */
@@ -3112,7 +3112,7 @@ L_41911A: e_edx = (0u); e_edx = ((e_edx & ~0xFFu) | ((e_ecx & 0xFFu))); e_eax = 
     if ((M8(D4V_CTX_B_45C67F)) == (0x0u)) goto L_419173; /* jz, unsigned=True */ /* 0x0041914C */
     e_eax = (M32(D4V_TBL_45AFC4)); e_eax = ((e_eax) & (0xC0u)); e_eax = ((e_eax) + (e_eax)); /* 0x0041914E,0x00419153,0x00419158 */
 L_41915A: e_edi = ((e_edi) + (e_eax)); e_eax = (e_edi + e_edi); e_eax = ((e_eax) + (D4V_TBL_45A280)); /* 0x0041915A,0x0041915C,0x0041915F */
-    e_eax = (unsigned)(d4v_41ae70(c, e_eax, e_edx)); /* 0x00419164 */
+    e_eax = (unsigned)(d4v_freq_scale_step(c, e_eax, e_edx)); /* 0x00419164 */
     M32(D4V_RSLOT_LO) = (e_eax); /* 0x00419169 */
     goto L_4190A5; /* 0x0041916E */
 L_419173: e_eax = (M32(D4V_TBL_45AFC4)); e_eax = ((e_eax) >> 8); e_eax = ((e_eax) & (0xFFu)); e_eax = ((e_eax & ~0xFFu) | (M8(D4V_TBL_436B8A + e_eax))); e_ecx = (e_eax); /* 0x00419173,0x00419178,0x0041917B,0x00419180,0x00419186 */
@@ -3188,14 +3188,14 @@ L_41937D: /* cmp e_esi, 0xFFFFFFFFu (flags folded into jz @0x00419380 below) */;
     e_ebx = ((e_ebx & ~0xFFu) | (stk[0x20])); e_edx = (0u); /* test (e_ebx & 0xFFu), (e_ebx & 0xFFu) (flags folded into setz @0x0041938E below) */; /* 0x00419386,0x0041938A,0x0041938C */
     e_edx = ((e_edx & ~0xFFu) | ((((((((((e_ebx & 0xFFu)) & ((e_ebx & 0xFFu)))) & 0xFFu) == 0u) )) & 0xFFu))); e_eax = (e_esi + e_esi); /* 0x0041938E,0x00419391 */
     e_eax = ((e_eax) + (D4V_TBL_45A258)); /* 0x00419394 */
-    d4v_41aeb0(c, e_eax, e_edx); /* 0x00419399 */
+    d4v_counter_bump_halve(c, e_eax, e_edx); /* 0x00419399 */
     goto L_418C76; /* 0x0041939E */
 L_4193A3: e_eax = (0u); e_edx = (0u); e_eax = ((e_eax & ~0xFFu) | (stk[0x44])); e_edx = ((e_edx & ~0xFFu) | (M8(e_ebp + 0x0u))); e_eax = ((e_eax) - (e_edx)); /* 0x004193A3,0x004193A5,0x004193A7,0x004193AB,0x004193AE */
     e_edx = (e_eax); /* cmp e_eax, 0x10u (flags folded into jnb @0x004193B5 below) */; /* 0x004193B0,0x004193B2 */
     if ((e_eax) >= (0x10u)) goto L_41931A; /* jnb, unsigned=True */ /* 0x004193B5 */
     e_ecx = (0u); e_eax = ((e_eax) & (0xCu)); e_ecx = ((e_ecx & ~0xFFu) | (stk[0x40])); e_eax = ((e_eax) + (e_ecx)); e_esi = (e_eax - 0x1u); e_eax = (e_esi + e_esi); /* 0x004193BB,0x004193BD,0x004193C0,0x004193C4,0x004193C6,0x004193C9 */
     e_eax = ((e_eax) + (D4V_TBL_45A258)); /* 0x004193CC */
-    e_eax = (unsigned)(d4v_41ae70(c, e_eax, e_edx)); /* 0x004193D1 */
+    e_eax = (unsigned)(d4v_freq_scale_step(c, e_eax, e_edx)); /* 0x004193D1 */
     stk[0x44] = ((e_eax & 0xFFu)); /* 0x004193D6 */
     goto L_41931A; /* 0x004193DA */
 L_4193DF: e_ecx = (0u); e_ecx = ((e_ecx & ~0xFFu) | ((e_edx & 0xFFu))); e_edx = (M32(D4V_RSLOT_MID)); e_edx = ((e_edx) + (e_ecx)); M32(D4V_RSLOT_HI) = (e_edx); e_edx = (0u); /* 0x004193DF,0x004193E1,0x004193E3,0x004193E9,0x004193EB,0x004193F1 */
@@ -3319,7 +3319,7 @@ L_419705: e_edx = (0u); e_edx = ((e_edx & ~0xFFu) | (M8(D4V_CTX_B_45C68A))); /* 
     M8(D4V_CTX_B_45C65E + e_edx) = (((e_ebx >> 8) & 0xFFu)); /* 0x0041971C */
     goto L_419705; /* 0x00419722 */
 L_419724: e_edx = (e_edi); e_eax = (e_ecx); e_ebx = ((e_ebx & ~(0xFFu << 8)) | ((stk[0x2C]) << 8)); /* 0x00419724,0x00419726,0x00419728 */
-    e_eax = ((e_eax & ~0xFFu) | ((unsigned)(d4v_419970(c, e_eax, e_edx, e_ebx)) & 0xFFu)); /* 0x0041972C */
+    e_eax = ((e_eax & ~0xFFu) | ((unsigned)(d4v_ppm_sym_split(c, e_eax, e_edx, e_ebx)) & 0xFFu)); /* 0x0041972C */
     /* test ((e_ebx >> 8) & 0xFFu), ((e_ebx >> 8) & 0xFFu) (flags folded into jz @0x00419733 below) */; /* 0x00419731 */
     if ((((((((e_ebx >> 8) & 0xFFu)) & (((e_ebx >> 8) & 0xFFu)))) & 0xFFu) == 0u)) goto L_419766; /* jz, unsigned=True */ /* 0x00419733 */
     e_eax = ((e_eax & ~(0xFFu << 8)) | (((e_ebx & 0xFFu)) << 8)); /* 0x00419735 */
@@ -3340,17 +3340,17 @@ L_41976E: e_edx = (0u); e_edx = ((e_edx & ~0xFFu) | (M8(D4V_CTX_B_45C68A))); /* 
     M8(D4V_CTX_B_45C65E + e_edx) = (((e_ecx >> 8) & 0xFFu)); /* 0x00419785 */
     goto L_41976E; /* 0x0041978B */
 L_41978D: e_edx = (0x2FFu); e_ebx = (0u); e_eax = (e_esi); e_ebx = ((e_ebx & ~0xFFu) | (stk[0x24])); /* 0x0041978D,0x00419792,0x00419794,0x00419796 */
-L_41979A: d4v_41ad60(c, e_eax, e_edx, e_ebx); /* 0x0041979A */
+L_41979A: d4v_freq_adapt_459398(c, e_eax, e_edx, e_ebx); /* 0x0041979A */
 L_41979F: e_edx = (0u); e_edx = ((e_edx & ~0xFFu) | (stk[0x24])); e_eax = (e_edx); /* 0x0041979F,0x004197A1,0x004197A5 */
-    d4v_417220(c, e_eax); /* 0x004197A7 */
+    d4v_ppm_list_update_32(c, e_eax); /* 0x004197A7 */
     /* cmp M8(0x45C68Bu), 0x0u (flags folded into jz @0x004197B3 below) */; /* 0x004197AC */
     if ((M8(D4V_CTX_B_45C68B)) == (0x0u)) goto L_4197BC; /* jz, unsigned=True */ /* 0x004197B3 */
     e_eax = (e_edx); /* 0x004197B5 */
-    d4v_417570(c, e_eax); /* 0x004197B7 */
+    d4v_ppm_list_update_20(c, e_eax); /* 0x004197B7 */
 L_4197BC: /* cmp M8(0x45C680u), 0x0u (flags folded into jz @0x004197C3 below) */; /* 0x004197BC */
     if ((M8(D4V_CTX_B_45C680)) == (0x0u)) goto L_4197D0; /* jz, unsigned=True */ /* 0x004197C3 */
     e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | (stk[0x24])); /* 0x004197C5,0x004197C7 */
-    d4v_417090(c, e_eax); /* 0x004197CB */
+    d4v_ppm_rescale_orders(c, e_eax); /* 0x004197CB */
 L_4197D0: /* cmp stk[0x28], 0x0u (flags folded into jnz @0x004197D5 below) */; /* 0x004197D0 */
     if ((stk[0x28]) != (0x0u)) goto L_419898; /* jnz, unsigned=True */ /* 0x004197D5 */
 L_4197DB: e_ebx = ((e_ebx & ~0xFFu) | (M8(D4V_CTX_B_45C690))); e_ebx = ((e_ebx & ~0xFFu) | ((((((e_ebx & 0xFFu)) - 1u)) & 0xFFu))); M8(D4V_CTX_B_45C690) = ((e_ebx & 0xFFu)); /* 0x004197DB,0x004197E1,0x004197E3 */
@@ -3358,10 +3358,10 @@ L_4197DB: e_ebx = ((e_ebx & ~0xFFu) | (M8(D4V_CTX_B_45C690))); e_ebx = ((e_ebx &
     if (((e_ebx & 0xFFu)) == (0xFFu)) goto L_419909; /* jz, unsigned=True */ /* 0x004197EC */
     e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | ((e_ebx & 0xFFu))); e_ecx = (M32(D4V_TBL_458778 + e_eax * 4)); e_edx = (M32(D4V_TBL_458788 + e_eax * 4)); /* 0x004197F2,0x004197F4,0x004197F6,0x004197FD */
     M32(D4V_TBL_45AFA4) = (e_ecx); e_eax = ((e_eax & ~0xFFu) | (M8(D4V_TBL_45AF50 + e_eax))); e_eax = ((e_eax) & (0xFFu)); /* 0x00419804,0x0041980A,0x00419810 */
-    d4v_416b50(c, e_eax, e_edx); /* 0x00419815 (ecx dead: written before read) */
+    d4v_ppm_order_update(c, e_eax, e_edx); /* 0x00419815 (ecx dead: written before read) */
     goto L_4197DB; /* 0x0041981A */
 L_41981C: e_edx = (0x2FFu); e_eax = (e_esi); /* 0x0041981C,0x00419821 */
-    e_eax = ((e_eax & ~0xFFu) | ((unsigned)(d4v_419970(c, e_eax, e_edx, e_ebx)) & 0xFFu)); /* 0x00419823 */
+    e_eax = ((e_eax & ~0xFFu) | ((unsigned)(d4v_ppm_sym_split(c, e_eax, e_edx, e_ebx)) & 0xFFu)); /* 0x00419823 */
     stk[0x24] = ((e_eax & 0xFFu)); /* cmp M8(0x45C67Fu), 0x0u (flags folded into jz @0x00419833 below) */; /* 0x00419828,0x0041982C */
     if ((M8(D4V_CTX_B_45C67F)) == (0x0u)) goto L_41979F; /* jz, unsigned=True */ /* 0x00419833 */
     /* test ((e_ebx >> 8) & 0xFFu), ((e_ebx >> 8) & 0xFFu) (flags folded into jz @0x0041983B below) */; /* 0x00419839 */
@@ -3390,7 +3390,7 @@ L_419898: e_eax = ((e_eax & ~0xFFu) | (stk[0x24])); e_eax = ((e_eax & ~0xFFu) | 
     e_eax = ((e_eax & ~0xFFu) | ((((0u - ((e_eax & 0xFFu)))) & 0xFFu))); /* 0x004198AB */
 L_4198AD: e_edx = ((e_edx & ~0xFFu) | (0u)); e_ebx = (0u); M8(D4V_CTX_B_45C68A) = ((e_edx & 0xFFu)); e_edx = (0u); e_ebx = ((e_ebx & ~0xFFu) | ((e_eax & 0xFFu))); /* 0x004198AD,0x004198AF,0x004198B1,0x004198B7,0x004198B9 */
     e_edx = ((e_edx & ~0xFFu) | (M8(D4V_CTX_B_45C67D))); e_eax = (M32(D4V_TBL_45AF3C)); e_edx = ((e_edx) + (0x302u)); /* 0x004198BB,0x004198C1,0x004198C6 */
-    d4v_41ae30(c, e_eax, e_edx, e_ebx); /* 0x004198CC */
+    d4v_freq_adapt_45af60(c, e_eax, e_edx, e_ebx); /* 0x004198CC */
     /* cmp M8(0x45C68Du), 0x0u (flags folded into jz @0x004198D8 below) */; /* 0x004198D1 */
     if ((M8(D4V_CTX_B_45C68D)) == (0x0u)) goto L_4198E5; /* jz, unsigned=True */ /* 0x004198D8 */
     e_eax = (M32(D4V_TBL_45AF8C)); M32(D4V_TBL_45AF88) = (((M32(D4V_TBL_45AF88)) + (e_eax))); /* 0x004198DA,0x004198DF */
@@ -3398,9 +3398,9 @@ L_4198E5: e_edx = (M32(D4V_TBL_45AF84)); e_eax = (e_edx); e_eax = ((e_eax) << 5)
     e_edx = ((e_edx) >> 5); e_edx = ((e_edx) + (e_eax)); M32(D4V_TBL_45AF84) = (e_edx); /* 0x004198F9,0x004198FC,0x004198FE */
     goto L_4197DB; /* 0x00419904 */
 L_419909: e_ecx = (0u); e_ecx = ((e_ecx & ~0xFFu) | (stk[0x24])); e_eax = (e_ecx); e_edx = (0x1u); /* 0x00419909,0x0041990B,0x0041990F,0x00419911 */
-    d4v_4183d0(c, e_eax, e_edx); /* 0x00419916 */
+    d4v_ppm_escape_emit(c, e_eax, e_edx); /* 0x00419916 */
     e_eax = (e_ecx); /* 0x0041991B */
-    d4v_4177a0(c, e_eax, e_edx); /* 0x0041991D */
+    d4v_ppm_mask_select(c, e_eax, e_edx); /* 0x0041991D */
     e_edx = (M32(D4V_BLK_PTR_00_DICT)); e_eax = (M32(D4V_DICT_CURSOR)); M8(e_edx + e_eax) = ((e_ecx & 0xFFu)); /* cmp e_eax, 0x100u (flags folded into jb @0x00419935 below) */; /* 0x00419922,0x00419928,0x0041992D,0x00419930 */
     if ((e_eax) < (0x100u)) goto L_419955; /* jb, unsigned=True */ /* 0x00419935 */
 L_419937: e_edx = (M32(D4V_DICT_CURSOR)); e_eax = (M32(D4V_DICT_MASK)); e_edx = ((e_edx) + 1u); e_edx = ((e_edx) & (e_eax)); M32(D4V_DICT_CURSOR) = (e_edx); /* 0x00419937,0x0041993D,0x00419942,0x00419943,0x00419945 */
@@ -3410,13 +3410,13 @@ L_419955: e_eax = ((e_eax) + (M32(D4V_DICT_SIZE))); e_eax = ((e_eax) + (e_edx));
 }
 
 /* ---- workers: range-splitter cluster (from draft_s1.c) ---- */
-unsigned int d4v_419970(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in);
-unsigned int d4v_419ca0(dec4v_ctx *c, unsigned int eax_in);
-unsigned int d4v_41a360(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in);
-void d4v_41ad60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in);
-void d4v_41ae30(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in);
-unsigned int d4v_41ae70(dec4v_ctx *c, unsigned int tab, unsigned int edx_in);
-void d4v_41aeb0(dec4v_ctx *c, unsigned int tab, unsigned int flag_in);
+unsigned int d4v_ppm_sym_split(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in);
+unsigned int d4v_ppm_prob_decode(dec4v_ctx *c, unsigned int eax_in);
+unsigned int d4v_freq_divide_price(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in);
+void d4v_freq_adapt_459398(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in);
+void d4v_freq_adapt_45af60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in);
+unsigned int d4v_freq_scale_step(dec4v_ctx *c, unsigned int tab, unsigned int edx_in);
+void d4v_counter_bump_halve(dec4v_ctx *c, unsigned int tab, unsigned int flag_in);
 
 /* sub_419970: range/PPM symbol splitter.
  * Role hypothesis: consumes one range-coded decision (45AF64 cursor minus
@@ -3428,7 +3428,7 @@ void d4v_41aeb0(dec4v_ctx *c, unsigned int tab, unsigned int flag_in);
  * Returns al (=bl, decoded symbol). Calls: sub_4220B0, sub_41A360,
  * sub_419CA0.
  */
-unsigned int d4v_419970(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in)
+unsigned int d4v_ppm_sym_split(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -3509,7 +3509,7 @@ L_419A84:
     edx = 0U; /* 0x00419A84 */
     eax = esi; /* 0x00419A86 */
     edx = (edx & 0xFFFFFF00UL) | (ebx & 0xFFUL); /* 0x00419A88 */
-    (void)d4v_41a360(c, eax, edx); /* 0x00419A8A */
+    (void)d4v_freq_divide_price(c, eax, edx); /* 0x00419A8A */
 L_419A8F:
     eax = 0U; /* 0x00419A8F */
     eax = (eax & 0xFFFFFF00UL) | (unsigned int)G8(D4V_CTX_B_45C690); /* 0x00419A91 */
@@ -3541,7 +3541,7 @@ L_419AF4:
     edi = M32(D4V_TBL_459398 + (edx & 0xFFUL) * 4UL); /* 0x00419AF8 */
     if (edi < M32(D4V_TBL_459BA0 + (edx & 0xFFUL) * 4UL)) goto L_419BDE; /* 0x00419AFF 0x00419B06 */
     eax = esi; /* 0x00419B0C */
-    eax = (unsigned int)d4v_419ca0(c, eax); /* 0x00419B0E */
+    eax = (unsigned int)d4v_ppm_prob_decode(c, eax); /* 0x00419B0E */
     ebx = (ebx & 0xFFFFFF00UL) | (eax & 0xFFUL); /* 0x00419B13 */
     eax = (eax & 0xFFFFFF00UL) | (unsigned int)G8(D4V_CTX_B_45C68D); /* 0x00419B15 */
     ebp = G32(D4V_TBL_45AF74); /* 0x00419B1A */
@@ -3556,7 +3556,7 @@ L_419B2A:
     edx = (edx & 0xFFFFFF00UL) | (ebx & 0xFFUL); /* 0x00419B3A */
     G32(D4V_TBL_45AFA4) = eax; /* 0x00419B3C */
     eax = 0x200UL; /* 0x00419B41 */
-    (void)d4v_41a360(c, eax, edx); /* 0x00419B46 */
+    (void)d4v_freq_divide_price(c, eax, edx); /* 0x00419B46 */
     edi = G32(D4V_TBL_45AF74); /* 0x00419B4B */
 L_419B51:
     eax = 0U; /* 0x00419B51 */
@@ -3594,7 +3594,7 @@ L_419BDE:
     edx = edx + 0x300UL; /* 0x00419BDE */
     eax = 0x200UL; /* 0x00419BE4 */
     G32(D4V_TBL_45AFA4) = edx; /* 0x00419BE9 */
-    eax = (unsigned int)d4v_419ca0(c, eax); /* 0x00419BEF */
+    eax = (unsigned int)d4v_ppm_prob_decode(c, eax); /* 0x00419BEF */
     edi = G32(D4V_TBL_45AF74); /* 0x00419BF4 */
     edx = (edx & 0xFFFF00FFUL) | ((unsigned int)G8(D4V_CTX_B_45C68D) << 8); /* 0x00419BFA */
     ebx = (ebx & 0xFFFFFF00UL) | (eax & 0xFFUL); /* 0x00419C00 */
@@ -3606,12 +3606,12 @@ L_419C0C:
     G32(D4V_TBL_45AF74) = edx; /* 0x00419C10 */
     edx = (edx & 0xFFFFFF00UL) | (ebx & 0xFFUL); /* 0x00419C16 */
     G32(D4V_TBL_45AFA4) = ecx; /* 0x00419C18 */
-    (void)d4v_41a360(c, eax, edx); /* 0x00419C1E */
+    (void)d4v_freq_divide_price(c, eax, edx); /* 0x00419C1E */
     ebp = G32(D4V_TBL_45AF74); /* 0x00419C23 */
     goto L_419B51; /* 0x00419C29 */
 L_419C2E:
     eax = esi; /* 0x00419C2E */
-    eax = (unsigned int)d4v_419ca0(c, eax); /* 0x00419C30 */
+    eax = (unsigned int)d4v_ppm_prob_decode(c, eax); /* 0x00419C30 */
     edx = (edx & 0xFFFFFF00UL) | (unsigned int)G8(D4V_CTX_B_45C68D); /* 0x00419C35 */
     ebx = (ebx & 0xFFFFFF00UL) | (eax & 0xFFUL); /* 0x00419C3B */
     if ((edx & 0xFFUL) == 0U) goto L_419A8F; /* 0x00419C3D 0x00419C3F */
@@ -3646,7 +3646,7 @@ L_419C55:
  * Entry: eax (context/symbol index). Frame: 0xAC.
  * Returns al. Calls: sub_4220B0.
  */
-unsigned int d4v_419ca0(dec4v_ctx *c, unsigned int eax_in)
+unsigned int d4v_ppm_prob_decode(dec4v_ctx *c, unsigned int eax_in)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -4154,7 +4154,7 @@ L_41A32D:
  * Entry: eax, dl. Frame: 8 (var_1C dword, var_18 byte). Returns leftover
  * eax (price remnant; callers ignore -> effectively void).
  */
-unsigned int d4v_41a360(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in)
+unsigned int d4v_freq_divide_price(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -4327,7 +4327,7 @@ L_41A50E:
  * selected by (entry_edx == 0x2FF).
  * Entry: eax, edx, bl. Void. No frame.
  */
-void d4v_41ad60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in)
+void d4v_freq_adapt_459398(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -4348,7 +4348,7 @@ void d4v_41ad60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned
     G32(D4V_TBL_45AF74) = edx; /* 0x0041AD69 */
     edx = (edx & 0xFFFFFF00UL) | (ebx & 0xFFUL); /* 0x0041AD6F */
     G32(D4V_TBL_45AFA4) = ecx; /* 0x0041AD71 */
-    (void)d4v_41a360(c, esi, edx); /* 0x0041AD77 eax=esi implied */
+    (void)d4v_freq_divide_price(c, esi, edx); /* 0x0041AD77 eax=esi implied */
     edx = 0U; /* 0x0041AD7C */
     edx = (edx & 0xFFFFFF00UL) | (unsigned int)G8(D4V_CTX_B_45C690); /* 0x0041AD7E */
     edi = G32(D4V_TBL_45AFA4); /* 0x0041AD84 */
@@ -4392,7 +4392,7 @@ void d4v_41ad60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned
  * counter (old*31/32 + 45AF74).
  * Entry: eax (passthrough), edx, bl. Void. No frame.
  */
-void d4v_41ae30(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in)
+void d4v_freq_adapt_45af60(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned int ebx_in)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -4408,7 +4408,7 @@ void d4v_41ae30(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned
     ecx = 0U; /* 0x0041AE39 */
     edx = (edx & 0xFFFFFF00UL) | (ebx & 0xFFUL); /* 0x0041AE3B */
     G32(D4V_TBL_45AF74) = ecx; /* 0x0041AE3D */
-    (void)d4v_41a360(c, eax, edx); /* 0x0041AE43 eax=entry passthrough */
+    (void)d4v_freq_divide_price(c, eax, edx); /* 0x0041AE43 eax=entry passthrough */
     edx = G32(D4V_TBL_45AF60); /* 0x0041AE48 */
     eax = edx; /* 0x0041AE4E */
     eax = eax << 5; /* 0x0041AE50 */
@@ -4427,7 +4427,7 @@ void d4v_41ae30(dec4v_ctx *c, unsigned int eax_in, unsigned int edx_in, unsigned
  * Entry: eax = tab (arena pointer: tab[0], tab[1] bytes), edx. Frame: none.
  * Returns eax.
  */
-unsigned int d4v_41ae70(dec4v_ctx *c, unsigned int tab, unsigned int edx_in)
+unsigned int d4v_freq_scale_step(dec4v_ctx *c, unsigned int tab, unsigned int edx_in)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -4465,7 +4465,7 @@ L_41AE9D:
  * either reaches >=0xFE, stores (x+1)>>1 back into both bytes.
  * Entry: eax = tab (arena pointer), dl = flag. Void. No frame.
  */
-void d4v_41aeb0(dec4v_ctx *c, unsigned int tab, unsigned int flag_in)
+void d4v_counter_bump_halve(dec4v_ctx *c, unsigned int tab, unsigned int flag_in)
 {
     unsigned int eax = 0;
     unsigned int ecx = 0;
@@ -4502,7 +4502,7 @@ L_41AEC9:
 }
 
 /* ---- workers: PPM helpers batch S2 (from draft_s2.c) ---- */
-void d4v_415ae0(dec4v_ctx *c)
+void d4v_rescale_blk02(dec4v_ctx *c)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0;
 
@@ -4555,7 +4555,7 @@ l_415B3E:
 }
 
 /* ------------------------------------------------------------------ */
-/* sub_415B50 (lst 31845-31948) -> d4v_415b50                          */
+/* sub_415B50 (lst 31845-31948) -> d4v_rescale_blk01                          */
 /*                                                                      */
 /* Role: rescale/decay the table at [0x433B44] (0x20-byte entries over  */
 /* banks 0..3 at +0x8000 index / +0x100000 address steps; halves 13     */
@@ -4566,7 +4566,7 @@ l_415B3E:
 /* Frame: 4 bytes (var_1C @ sp+0) + 6 pushed regs.                     */
 /* Globals touched: 433B44.                                            */
 /* ------------------------------------------------------------------ */
-void d4v_415b50(dec4v_ctx *c)
+void d4v_rescale_blk01(dec4v_ctx *c)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
     unsigned long t_1c = 0;
@@ -4673,7 +4673,7 @@ l_415C2C:
     /* 0x00415C3B jmp */ goto l_415C12; /* unconditional */
 }
 /* ------------------------------------------------------------------ */
-/* sub_416A00 (lst 33012-33150) -> d4v_416a00                          */
+/* sub_416A00 (lst 33012-33150) -> d4v_rescale_ppm_plane                          */
 /*                                                                      */
 /* Role: small PPM-context helper. Halves (round-half-up per u16) the   */
 /* 0x200-byte plane at [0x433B7C]+idx*0x200 into itself while summing   */
@@ -4688,7 +4688,7 @@ l_415C2C:
 /* Frame: 4 bytes (var_1C @ sp+0) + 6 pushed regs.                     */
 /* Globals touched: 433B78, 433B7C, 433B84.                            */
 /* ------------------------------------------------------------------ */
-void d4v_416a00(dec4v_ctx *c, unsigned int idx)
+void d4v_rescale_ppm_plane(dec4v_ctx *c, unsigned int idx)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
     unsigned long t_1c = 0;
@@ -4832,12 +4832,12 @@ l_416B25:
 }
 
 /* ------------------------------------------------------------------ */
-/* sub_416B50 (lst 33156-33283) -> d4v_416b50                          */
+/* sub_416B50 (lst 33156-33283) -> d4v_ppm_order_update                          */
 /*                                                                      */
 /* Role: PPM order-N update helper. Indexes the u16 plane at [0x433B7C] */
 /* by (arg*0x100+sym), prices against word_45BA5E/word_45C05C side      */
 /* tables, accumulates into the [0x433B78] prefix plane (lowest-set-bit */
-/* stepping) and the [0x433B84] totals; rescales via d4v_416a00 when a  */
+/* stepping) and the [0x433B84] totals; rescales via d4v_rescale_ppm_plane when a  */
 /* total reaches 0x4000.                                                */
 /* Entry-live regs: al = sym (mov bl,al), edx = arg (mov ebp,edx and   */
 /* mov eax,edx; no stack args). Verified at all four call sites        */
@@ -4845,9 +4845,9 @@ l_416B25:
 /* void (callers ignore eax; exits leave callee residue).              */
 /* Frame: 8 bytes (var_1C @ sp+0, var_18 @ sp+4) + 5 pushed regs.      */
 /* Globals touched: 433B78, 433B7C, 433B84, 45AFA4, 45BA5E, 45C05C.     */
-/* Calls sub_416A00 as d4v_416a00 (eax = rescale index).                */
+/* Calls sub_416A00 as d4v_rescale_ppm_plane (eax = rescale index).                */
 /* ------------------------------------------------------------------ */
-void d4v_416b50(dec4v_ctx *c, unsigned int sym, unsigned int arg)
+void d4v_ppm_order_update(dec4v_ctx *c, unsigned int sym, unsigned int arg)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
     unsigned long t_1c = 0, t_18 = 0;
@@ -4949,17 +4949,17 @@ l_416C49:
     /* 0x00416C55 cmp dx,4000h */;
     /* 0x00416C5A jb */ if ((edx & 0xFFFFUL) < 0x4000UL) goto l_416B86; /* unsigned */
     /* 0x00416C60 */ eax = (unsigned long)G32(D4V_TBL_45AFA4); /* mov eax,ds:dword_45AFA4 */
-    /* 0x00416C65 */ d4v_416a00(c, (unsigned int)eax); /* call sub_416A00, eax=rescale index */
+    /* 0x00416C65 */ d4v_rescale_ppm_plane(c, (unsigned int)eax); /* call sub_416A00, eax=rescale index */
     /* 0x00416C6A jmp */ goto l_416B86; /* unconditional */
 l_416C6F:
     /* 0x00416C6F */ eax = ebp; /* mov eax,ebp */
-    /* 0x00416C71 */ d4v_416a00(c, (unsigned int)eax); /* call sub_416A00, eax=rescale index */
+    /* 0x00416C71 */ d4v_rescale_ppm_plane(c, (unsigned int)eax); /* call sub_416A00, eax=rescale index */
     /* epilogue 0x00416C76 add esp,8; 0x00416C79 pop ebp;
      * 0x00416C7A pop edi; 0x00416C7B pop esi; 0x00416C7C pop ecx;
      * 0x00416C7D pop ebx; 0x00416C7E retn. */
 }
 /* ------------------------------------------------------------------ */
-/* sub_418780 (lst 35765-35840) -> d4v_418780                          */
+/* sub_418780 (lst 35765-35840) -> d4v_ppm_pair_price                          */
 /*                                                                      */
 /* Role: tiny PPM param setter. Treats entry eax as a 2-byte object    */
 /* (counts at [obj]/[obj+1]); prices sum=[0]+[1] against 45D0BC/45D0B8 */
@@ -4972,7 +4972,7 @@ l_416C6F:
 /* Frame: no locals; 3 pushed regs (ebx/ecx/edx).                      */
 /* Globals touched: 45AF68, 45AF6C, 45AF70, 45D0B8, 45D0BC.             */
 /* ------------------------------------------------------------------ */
-unsigned int d4v_418780(dec4v_ctx *c, unsigned int obj)
+unsigned int d4v_ppm_pair_price(dec4v_ctx *c, unsigned int obj)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0;
 
@@ -5054,7 +5054,7 @@ l_41880B:
     return (unsigned int)(eax & 0xFFUL);
 }
 /* ------------------------------------------------------------------ */
-/* sub_416D10 (lst 33352-33644) -> d4v_416d10                          */
+/* sub_416D10 (lst 33352-33644) -> d4v_ppm_score_orders                          */
 /*                                                                      */
 /* Role: PPM exclusion/counter update. Folds the 45BA18/45BA1C shift    */
 /* registers plus the 45AF7C/433B40/45BA34/45BA3C context bytes into    */
@@ -5075,7 +5075,7 @@ l_41880B:
 /* Deviations: div @417053 and idiv @416EF0 are direct C / with        */
 /* comments (zero divisor faults like x86, no guard added).            */
 /* ------------------------------------------------------------------ */
-unsigned int d4v_416d10(dec4v_ctx *c, unsigned int ebx_in)
+unsigned int d4v_ppm_score_orders(dec4v_ctx *c, unsigned int ebx_in)
 {
     unsigned long ebx0 = ebx_in; /* entry ebx (callee-saved, live) */
     unsigned long eax = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
@@ -5346,7 +5346,7 @@ l_41707B:
     return (unsigned int)eax;
 }
 /* ------------------------------------------------------------------ */
-/* sub_4177A0 (lst 34383-34854) -> d4v_4177a0                          */
+/* sub_4177A0 (lst 34383-34854) -> d4v_ppm_mask_select                          */
 /*                                                                      */
 /* Role: PPM mask/order selector. Prices the symbol (entry al) against  */
 /* the 4593A0 last-pos table and the 458798 frequency table (with      */
@@ -5369,12 +5369,12 @@ l_41707B:
 /* 45AF90, 45AF94, 45AF98, 45AF7C, 45BA18, 45BA1C, 45BA20, 45BA58,      */
 /* 45BA34, 45BA3C, 45C65A, 45C65C, 45C677, 45C678, 45C679, 45C67A,      */
 /* 45C67B, 45C67C, 45C67D, 45C67F, 45C68E.                              */
-/* Calls d4v_41e9f0 (eax=sym, edx=derived byte) and d4v_41e640.         */
+/* Calls d4v_s4_update_model (eax=sym, edx=derived byte) and d4v_s4_pick_predictor.         */
 /* Deviations: div @417A38 (edx pre-zeroed) and @417CB3 (divisor is    */
 /* const 6) are direct C / with comments (zero divisor faults like     */
 /* x86); shr eax,cl @417A51 masks the count to 5 bits per x86.         */
 /* ------------------------------------------------------------------ */
-void d4v_4177a0(dec4v_ctx *c, unsigned int sym, unsigned int flag)
+void d4v_ppm_mask_select(dec4v_ctx *c, unsigned int sym, unsigned int flag)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
     unsigned long t_18b = 0;
@@ -5708,7 +5708,7 @@ l_417C4A:
     /* 0x00417C4C */ edx |= (eax & 0xFFUL); /* mov dl,al */
     /* 0x00417C4E */ eax = 0; /* xor eax,eax */
     /* 0x00417C50 */ eax |= (ecx & 0xFFUL); /* mov al,cl */
-    /* 0x00417C52 */ d4v_41e9f0(c, (unsigned int)(eax & 0xFFUL), (unsigned int)(edx & 0xFFUL)); /* call sub_41E9F0 */
+    /* 0x00417C52 */ d4v_s4_update_model(c, (unsigned int)(eax & 0xFFUL), (unsigned int)(edx & 0xFFUL)); /* call sub_41E9F0 */
     /* 0x00417C57 jmp */ goto l_41799B; /* unconditional */
 l_417C5C:
     /* 0x00417C5C */ edx = (unsigned long)G32(D4V_SHIFT_R2); /* mov edx,ds:dword_45BA20 */
@@ -5798,7 +5798,7 @@ l_417D65:
      * 0x00417D7F pop ebx; 0x00417D80 retn. */
     return;
 l_417D81:
-    /* 0x00417D81 */ d4v_41e640(c); /* call sub_41E640 */
+    /* 0x00417D81 */ d4v_s4_pick_predictor(c); /* call sub_41E640 */
     /* 0x00417D86 */ ebx = (unsigned long)G32(D4V_TBL_45AF90); /* mov ebx,ds:dword_45AF90 */
     /* epilogue 0x00417D8C add esp,4; 0x00417D8F pop ebp;
      * 0x00417D90 pop edi; 0x00417D91 pop esi; 0x00417D92 pop ecx;
@@ -5807,7 +5807,7 @@ l_417D81:
 }
 
 /* ------------------------------------------------------------------ */
-/* sub_4183D0 (lst 35411-35586) -> d4v_4183d0                          */
+/* sub_4183D0 (lst 35411-35586) -> d4v_ppm_escape_emit                          */
 /*                                                                      */
 /* Role: PPM child-table allocator/init. Folds the symbol (entry al,   */
 /* complemented into dl) with the 45C689 escape-state machine and the  */
@@ -5831,7 +5831,7 @@ l_417D81:
 /* 45CD28, 45C689, 45C68C. */
 /* Calls d4v_4221f0 (eax = emit item).                                 */
 /* ------------------------------------------------------------------ */
-void d4v_4183d0(dec4v_ctx *c, unsigned int sym, unsigned int flag)
+void d4v_ppm_escape_emit(dec4v_ctx *c, unsigned int sym, unsigned int flag)
 {
     unsigned long eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0;
 
@@ -5981,13 +5981,13 @@ l_418569:
 }
 
 /* ---- workers: PPM helpers batch S3 (from draft_s3.c) ---- */
-void d4v_416c80(dec4v_ctx *c, unsigned int len, unsigned int flag);
-void d4v_417090(dec4v_ctx *c, unsigned int sym);
-void d4v_417220(dec4v_ctx *c, unsigned int sym);
-void d4v_417570(dec4v_ctx *c, unsigned int sym);
-unsigned int d4v_418590(dec4v_ctx *c, unsigned int len);
-int d4v_41cf60(dec4v_ctx *c, unsigned int a);
-void d4v_41e5f0(dec4v_ctx *c);
+void d4v_ppm_touch_len(dec4v_ctx *c, unsigned int len, unsigned int flag);
+void d4v_ppm_rescale_orders(dec4v_ctx *c, unsigned int sym);
+void d4v_ppm_list_update_32(dec4v_ctx *c, unsigned int sym);
+void d4v_ppm_list_update_20(dec4v_ctx *c, unsigned int sym);
+unsigned int d4v_ppm_len_decode(dec4v_ctx *c, unsigned int len);
+int d4v_ppm_window_decode(dec4v_ctx *c, unsigned int a);
+void d4v_s4_reset_tables(dec4v_ctx *c);
 
 /* sub_416C80 (UHARC04.lst:33289-33346).
  * Role: PPM per-length touch/rescale on the 8-byte entry at
@@ -5999,7 +5999,7 @@ void d4v_41e5f0(dec4v_ctx *c);
  * Frame: no locals; pushes ebx/ecx/esi only.
  * Deviation: none (void return; original leaves garbage in eax).
  */
-void d4v_416c80(dec4v_ctx *c, unsigned int len, unsigned int flag)
+void d4v_ppm_touch_len(dec4v_ctx *c, unsigned int len, unsigned int flag)
 {
     unsigned int p = 0;    /* entry = 0x459BA8 + (len & 0xFF) * 8 */
     unsigned int eax = 0;  /* eax/al scratch */
@@ -6071,7 +6071,7 @@ l_416CD1:
  * Frame: no locals; pushes ebx/ecx/edx only.
  * Deviation: void return; the original retn leaves garbage eax = 0x1F0.
  */
-void d4v_41e5f0(dec4v_ctx *c)
+void d4v_s4_reset_tables(dec4v_ctx *c)
 {
     unsigned int eax = 0;  /* loop cursor 0x7C..0x1F0 */
     unsigned int ecx = 0;  /* fill/count constant */
@@ -6115,7 +6115,7 @@ l_41E616:
  * stage-1 divs and the two stage-2 divs); x86 div would also #DE on
  * quotient overflow, which the model keeps in range.
  */
-unsigned int d4v_418590(dec4v_ctx *c, unsigned int len)
+unsigned int d4v_ppm_len_decode(dec4v_ctx *c, unsigned int len)
 {
     unsigned int p = 0;      /* 8-byte table entry */
     unsigned int ebp = 0;    /* = 0x45AF68 (3-dword range-decoder slot) */
@@ -6198,7 +6198,7 @@ l_418645:
     edx = 0; /* 0x41865A xor edx,edx */
     eax = var_18; /* 0x41865C mov al,[esp+1Ch+var_18] */
     edx = var_1C & 0xFFU; /* 0x418660 mov dl,ch */
-    d4v_416c80(c, eax, edx); /* 0x418662 call sub_416C80 */
+    d4v_ppm_touch_len(c, eax, edx); /* 0x418662 call sub_416C80 */
     eax = var_1C & 0xFFU; /* 0x418667 mov al,ch */
     /* UNCERTAIN(00418667): `mov al,ch` leaves stale ah (garbage from the
      * sub_416C80 call); callers use al only, so we zero-extend here. */
@@ -6275,7 +6275,7 @@ l_418737:
     G8(D4V_CTX_B_45C679) = 0; /* 0x418752 mov ds:byte_45C679,ah */
     if (((edx >> 8) & 0xFFU) <= 4) /* 0x418758 cmp dh,4 */ /* 0x41875B jbe loc_4185A1 */
         goto l_4185A1;
-    d4v_41e5f0(c); /* 0x418761 call sub_41E5F0 */
+    d4v_s4_reset_tables(c); /* 0x418761 call sub_41E5F0 */
     goto l_4185A1; /* 0x418766 jmp loc_4185A1 */
 }
 
@@ -6291,7 +6291,7 @@ l_418737:
  * Deviations: div-by-zero: direct `/` with comment (0x4170FD site);
  * x86 div would also #DE on quotient overflow, model-kept in range.
  */
-void d4v_417090(dec4v_ctx *c, unsigned int sym)
+void d4v_ppm_rescale_orders(dec4v_ctx *c, unsigned int sym)
 {
     unsigned int p = 0;    /* context entry pointer */
     unsigned int eax = 0;  /* eax/ax/ah/al scratch, div quotient */
@@ -6465,7 +6465,7 @@ l_417213:
  * Deviations: div-by-zero: direct `/` with comment (0x4172D5 site);
  * x86 div would also #DE on quotient overflow, model-kept in range.
  */
-void d4v_417220(dec4v_ctx *c, unsigned int sym)
+void d4v_ppm_list_update_32(dec4v_ctx *c, unsigned int sym)
 {
     unsigned int eax = 0;    /* eax/ax/ah/al scratch */
     unsigned int ebx = 0;    /* ebx/bx/bl/bh scratch, bank cursor */
@@ -6768,7 +6768,7 @@ l_41751C:
  * Deviations: div-by-zero: direct `/` with comment (0x4175EE site);
  * x86 div would also #DE on quotient overflow, model-kept in range.
  */
-void d4v_417570(dec4v_ctx *c, unsigned int sym)
+void d4v_ppm_list_update_20(dec4v_ctx *c, unsigned int sym)
 {
     unsigned int eax = 0;    /* eax/ax/ah/al scratch */
     unsigned int ebx = 0;    /* ebx/bx/bl/bh scratch */
@@ -6979,7 +6979,7 @@ l_417777:
  * quotient overflow, model-kept in range. The 0x41CFDB rep-movsb/
  * movsd sequence is folded to a 20-byte loop (see UNCERTAIN).
  */
-int d4v_41cf60(dec4v_ctx *c, unsigned int a)
+int d4v_ppm_window_decode(dec4v_ctx *c, unsigned int a)
 {
     unsigned int eax = 0;  /* eax/ax/ah/al scratch, div quotients */
     unsigned int ebx = 0;  /* ebx/bx/bl/bh scratch */
@@ -7022,7 +7022,7 @@ l_41CF9D:
     if (ebp <= 0x100U) /* 0x41CFC8 cmp ebp,100h */ /* 0x41CFCE jbe short loc_41CFDB */
         goto l_41CFDB;
     eax = (ebp - 0x100U) & U32MASK; /* 0x41CFD0 lea eax,[ebp-100h] */
-    d4v_421fa0(c, eax); /* 0x41CFD6 call sub_421FA0 */
+    d4v_ensure_input(c, eax); /* 0x41CFD6 call sub_421FA0 */
 l_41CFDB:
     ecx = 0x14; /* 0x41CFDB mov ecx,14h */
     edi = D4V_TBL_45AF00; /* 0x41CFE0 mov edi,offset dword_45AF00 */
@@ -7045,7 +7045,7 @@ l_41D025:
     eax = var_2C; /* 0x41D02F mov eax,[esp+44h+var_2C] */
     edx = ebp; /* 0x41D033 mov edx,ebp */
     ecx = esi; /* 0x41D035 mov ecx,esi */
-    eax = d4v_41d540(c, eax, edx, ecx, ebx); /* 0x41D037 call sub_41D540 */
+    eax = d4v_s4_score_candidate(c, eax, edx, ecx, ebx); /* 0x41D037 call sub_41D540 */
     edx &= 0xFFFF00FFUL; /* 0x41D03C xor dh,dh */
     t[esi & 0xFFU] = eax; /* 0x41D03E mov [esp+esi*4+44h+var_44],eax */
     var_20 = 0; /* 0x41D041 mov [esp+44h+var_20],dh */
@@ -7059,7 +7059,7 @@ l_41D045:
     eax = var_2C; /* 0x41D059 mov eax,[esp+44h+var_2C] */
     ecx = esi; /* 0x41D05D mov ecx,esi */
     ebx = t[edi & 0xFFU]; /* 0x41D05F mov ebx,[esp+edi*4+44h+var_44] */
-    eax = d4v_41d540(c, eax, edx, ecx, ebx); /* 0x41D062 call sub_41D540 */
+    eax = d4v_s4_score_candidate(c, eax, edx, ecx, ebx); /* 0x41D062 call sub_41D540 */
     t[esi & 0xFFU] = eax; /* 0x41D067 mov [esp+esi*4+44h+var_44],eax */
     if (eax >= t[edi & 0xFFU]) /* 0x41D06A cmp eax,[esp+edi*4+44h+var_44] */ /* 0x41D06D jnb short loc_41D077 */
         goto l_41D077;
@@ -7117,7 +7117,7 @@ l_41D0C7:
     ecx = eax; /* 0x41D119 mov ecx,eax */
     eax = var_2C; /* 0x41D11B mov eax,[esp+44h+var_2C] */
 l_41D11F:
-    eax = d4v_41e0a0(c, eax, edx, ebx, ecx); /* 0x41D11F call sub_41E0A0 */
+    eax = d4v_score_adaptive_order(c, eax, edx, ebx, ecx); /* 0x41D11F call sub_41E0A0 */
     edx = (edx & 0xFFFFFF00UL) | (eax & 0xFFU); /* 0x41D124 mov dl,al */
 l_41D126:
     if ((edx & 0xFFU) == 0) /* 0x41D126 test dl,dl */ /* 0x41D128 jz loc_41D449 */
@@ -7313,7 +7313,7 @@ l_41D35A:
 l_41D370:
     eax = var_2C; /* 0x41D370 mov eax,[esp+44h+var_2C] */
     edx = (ebp - 0x100U) & U32MASK; /* 0x41D374 lea edx,[ebp-100h] */
-    eax = d4v_41dbc0(c, eax, edx); /* 0x41D37A call sub_41DBC0 */
+    eax = d4v_pick_model_order(c, eax, edx); /* 0x41D37A call sub_41DBC0 */
     ebp = eax; /* 0x41D37F mov ebp,eax */
     goto l_41D025; /* 0x41D381 jmp loc_41D025 */
 l_41D386:
@@ -7478,7 +7478,7 @@ rc_done: /* 0x41CE04 loc_41CE04 */
     G32(D4V_RC_CARRY_CNT) = esi; /* 0x41CE16 */
     edx = saved; /* 0x41CE1C mov edx,[var_18] */
     eax = ebp; /* 0x41CE1F mov eax,ebp */
-    d4v_416c80(c, eax, edx); /* 0x41CE21 call sub_416C80 */
+    d4v_ppm_touch_len(c, eax, edx); /* 0x41CE21 call sub_416C80 */
     /* 0x41CE26 add esp,4; pops; 0x41CE2E retn */
 }
 
@@ -7492,7 +7492,7 @@ rc_done: /* 0x41CE04 loc_41CE04 */
  * esi/edi/edx/ecx/ebx all defined before use. Confirmed.
  * Frame: 5 pushes, no locals.
  */
-void d4v_421fa0(dec4v_ctx *c, unsigned int n)
+void d4v_ensure_input(dec4v_ctx *c, unsigned int n)
 {
     unsigned int esi = 0;
     unsigned int edi = 0;
@@ -7527,7 +7527,7 @@ void d4v_421fa0(dec4v_ctx *c, unsigned int n)
         edx -= esi; /* 0x422005 sub edx,esi */
         eax += esi; /* 0x422007 add eax,esi */
         G32(D4V_IO_IN_VALID) = esi; /* 0x422009a mov [45CD20],esi */
-        eax = d4v_4370d8(c, eax, edx, ecx); /* 0x422009b call [4370D8]; UNCERTAIN(0x422009): arg mapping guessed */
+        eax = d4v_read_stream(c, eax, edx, ecx); /* 0x422009b call [4370D8]; UNCERTAIN(0x422009): arg mapping guessed */
         esi = eax; /* 0x422015 mov esi,eax */
         if (eax == 0) { /* 0x422017 test eax,eax; 0x422019 jnz */
             G32(D4V_IO_ERR) = ebx; /* 0x42201B (ebx=3) */
@@ -7558,7 +7558,7 @@ void d4v_421fa0(dec4v_ctx *c, unsigned int n)
  * ebp by mem load (0x41E674); esi/edi from 45AF28/45AF48 loads.
  * Frame: 6 pushes, no locals.
  */
-void d4v_41e640(dec4v_ctx *c)
+void d4v_s4_pick_predictor(dec4v_ctx *c)
 {
     unsigned int esi = 0;
     unsigned int edi = 0;
@@ -7820,7 +7820,7 @@ e640_store: /* 0x41E7CF loc_41E7CF */
  * (only cl is read before full-width overwrite); edx callers zero it.
  * Frame: 5 pushes + sub esp,30h (var_44..var_18 locals).
  */
-void d4v_41e9f0(dec4v_ctx *c, unsigned int sym, unsigned int arg)
+void d4v_s4_update_model(dec4v_ctx *c, unsigned int sym, unsigned int arg)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -8408,12 +8408,12 @@ e9f0_histore: /* 0x41F178 loc_41F178 */
 
 /* MORE */
 
-/* ---- sub_41D480 (UHARC04.lst:42448-42514) -> d4v_41d480 ----
+/* ---- sub_41D480 (UHARC04.lst:42448-42514) -> d4v_rescale_s4_pair ----
  * Rescale the model pair: halve 32 dwords at 433B80[a<<9] (packed
  * 16-bit lanes: +0x10001, mask 0xFFFEFFFE, shr 1, cross-sum into ebx),
  * then bump the 433B8C[a] word (shr 2, inc) and publish
  * 433B88[a] = (ebx + (word&0xFFFF)) low word. Entry-live: eax only. */
-void d4v_41d480(dec4v_ctx *c, unsigned int a)
+void d4v_rescale_s4_pair(dec4v_ctx *c, unsigned int a)
 {
     unsigned int ebp, ecx, eax, ebx, edi, esi, edx;
     ebp = a & 0xFFFFFFFFUL; /* 0x41D486 mov ebp,eax */
@@ -8470,7 +8470,7 @@ void d4v_41d480(dec4v_ctx *c, unsigned int a)
 }
 
 /* ---- workers: S4a cluster (from draft_s4a.c) ---- */
-unsigned int d4v_41d540(dec4v_ctx *c, unsigned int a, unsigned int d,
+unsigned int d4v_s4_score_candidate(dec4v_ctx *c, unsigned int a, unsigned int d,
     unsigned int e, unsigned int b)
 {
     unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
@@ -8726,7 +8726,7 @@ s540_840: /* 0x41D840 loc_41D840 */
     M16(edx + ebx * 2U) = (unsigned short)(esi & 0xFFFFU); /* 0x41D894 mov [edx+ebx*2],si */
     if ((esi & 0xFFFFU) < 0x4000U) goto s540_8a6; /* 0x41D898 cmp si,4000h; 0x41D89D jb (unsigned) */
     eax = ebx; /* 0x41D89F mov eax,ebx */
-    d4v_41d480(c, eax); /* 0x41D8A1 call sub_41D480 */
+    d4v_rescale_s4_pair(c, eax); /* 0x41D8A1 call sub_41D480 */
 s540_8a6: /* 0x41D8A6 loc_41D8A6 */
     dlb = v14; /* 0x41D8A6 mov dl,[var_14] (edx high half stale, dead) */
     ebp = G32(D4V_TBL_45AF54); /* 0x41D8AA */
@@ -8986,7 +8986,7 @@ s540_bb8: /* 0x41DBB8 loc_41DBB8 */
  * two d4v_40d570 calls, and `xor ecx,ecx` (0x41DC19) across one; the
  * draft reads the C locals, matching the original's register survival.
  */
-unsigned int d4v_41dbc0(dec4v_ctx *c, unsigned int base, unsigned int count)
+unsigned int d4v_pick_model_order(dec4v_ctx *c, unsigned int base, unsigned int count)
 {
     unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
     unsigned int v24 = 0, v28 = 0, v2c = 0, v30 = 0, v34 = 0, v38 = 0, v3c = 0, v40 = 0, v44 = 0, v48 = 0, v50 = 0;
@@ -9341,11 +9341,11 @@ sdbc_107f: /* 0x41E07F loc_41E07F (predictors disagree: record and return) */
  * edi 0x41E2A5/0x41E1CA, ebp 0x41E0EE xor). DEVIATION: none from the 4-arg
  * call-site shape; only CL of the 4th arg is live. Frame: 3 pushes +
  * sub esp,5Ch = 0x68 (var_68..var_10).
- * UNCERTAIN(0x41E58A): d4v_41e9f0/d4v_41e640 take the callees' own entry
+ * UNCERTAIN(0x41E58A): d4v_s4_update_model/d4v_s4_pick_predictor take the callees' own entry
  * footage on trust (al=bh, dl=bl here matches draft_s4b.c's 0x41E58A
  * caller note; E640 takes no regs per its first-use prologue there).
  */
-unsigned int d4v_41e0a0(dec4v_ctx *c, unsigned int a, unsigned int d,
+unsigned int d4v_score_adaptive_order(dec4v_ctx *c, unsigned int a, unsigned int d,
     unsigned int b, unsigned int e)
 {
     unsigned int eax = 0, ebx = 0, ecx = 0, edx = 0, esi = 0, edi = 0, ebp = 0;
@@ -9606,7 +9606,7 @@ se0a0_383: /* 0x41E383 loc_41E383 (order-class change: reset model) */
     alb = v14; /* 0x41E39C mov al,[var_14] */
     G32(D4V_TBL_45AF48) = edx; /* 0x41E3A0 */
     G8(D4V_CTX_B_45C67D) = alb; /* 0x41E3A6 */
-    d4v_41e5f0(c); /* 0x41E3AB call sub_41E5F0 */
+    d4v_s4_reset_tables(c); /* 0x41E3AB call sub_41E5F0 */
     goto se0a0_1c2; /* 0x41E3B0 jmp */
 se0a0_3b5: /* 0x41E3B5 loc_41E3B5 (main loop setup) */
     eax = v38; /* 0x41E3B5 mov eax,[var_38] */
@@ -9732,13 +9732,13 @@ se0a0_55d: /* 0x41E55D loc_41E55D (accept symbol, update model) */
     M16(edx + ecx * 2U) = (unsigned short)(edi & 0xFFFFU); /* 0x41E570 mov [edx+ecx*2],di */
     if ((edi & 0xFFFFU) < 0x4000U) goto se0a0_582; /* 0x41E574 cmp di,4000h; 0x41E579 jb (unsigned) */
     eax = ecx; /* 0x41E57B mov eax,ecx */
-    d4v_41d480(c, eax); /* 0x41E57D call sub_41D480 */
+    d4v_rescale_s4_pair(c, eax); /* 0x41E57D call sub_41D480 */
 se0a0_582: /* 0x41E582 loc_41E582 */
     edx = 0; /* 0x41E582 xor edx,edx */
     eax = 0; /* 0x41E584 xor eax,eax */
     edx = blb; /* 0x41E586 mov dl,bl (edx was zero) */
     eax = bhb; /* 0x41E588 mov al,bh (eax was zero) */
-    d4v_41e9f0(c, eax, edx); /* 0x41E58A call sub_41E9F0 */
+    d4v_s4_update_model(c, eax, edx); /* 0x41E58A call sub_41E9F0 */
     ecx = G32(D4V_TBL_45AF38); /* 0x41E58F */
     ebx = v54; /* 0x41E595 mov ebx,[var_54] */
     ecx++; /* 0x41E599 inc ecx */
@@ -9753,7 +9753,7 @@ se0a0_582: /* 0x41E582 loc_41E582 */
     v2c = esi; /* 0x41E5AA mov [var_2C],esi */
     G32(D4V_TBL_45AF38) = ecx; /* 0x41E5AE */
     G32(D4V_TBL_45AF48) = edx; /* 0x41E5B4 */
-    d4v_41e640(c); /* 0x41E5BA call sub_41E640 */
+    d4v_s4_pick_predictor(c); /* 0x41E5BA call sub_41E640 */
     eax = v24; /* 0x41E5BF mov eax,[var_24] */
     v40 = edi; /* 0x41E5C3 mov [var_40],edi */
     eax++; /* 0x41E5C7 inc eax */
