@@ -238,7 +238,7 @@ static void d4v_flush_out(dec4v_ctx *c)
 /* ---- range coder reset (sub_426F70) ----
  * NOTE: the 417DA0 decode driver calls sub_426F30, not this; 426F70
  * belongs to the 41CE30 block-driver path. Kept for reference. */
-static void d4v_426f70(dec4v_ctx *c)
+static void d4v_rc_reset(dec4v_ctx *c) /* range reset (orig d4v_426f70) */
 {
     G32(D4V_RC_CODE_LO) = 0;
     G32(D4V_RC_CODE_HI) = 0;
@@ -250,7 +250,7 @@ static void d4v_426f70(dec4v_ctx *c)
 /* ---- range prime (sub_426F30): 45D0B8 = 0, 45D0BC = 0xFFFFFFFF, then
  * fold 5 input bytes big-endian into 45D0B8 (the decode code register).
  * Entry regs: none. */
-static void d4v_426f30(dec4v_ctx *c)
+static void d4v_rc_init(dec4v_ctx *c) /* range prime: 5 bytes BE (orig d4v_426f30) */
 {
     unsigned int edx;
     unsigned int ecx;
@@ -270,7 +270,7 @@ static void d4v_426f30(dec4v_ctx *c)
 /* ---- range reader init (sub_41F2A0) ----
  * Entry esi = 0x45AF68 area base (constant; the second half sets it
  * explicitly and the first half uses the same [eax+4]/[eax+8] shape). */
-static void d4v_41f2a0(dec4v_ctx *c)
+static void d4v_rc_primer(dec4v_ctx *c) /* range reader init + primer (orig d4v_41f2a0) */
 {
     unsigned int edx;
     unsigned int ecx;
@@ -572,8 +572,8 @@ static void d4v_417da0(dec4v_ctx *c)
 {
     unsigned int eax;
     unsigned int edx;
-    d4v_426f30(c);
-    d4v_41f2a0(c);
+    d4v_rc_init(c);
+    d4v_rc_primer(c);
     for (;;) {
         eax = G32(D4V_IO_OUT_TOTAL);
         if (eax >= G32(D4V_LZP_TRIGGER))
