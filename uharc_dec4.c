@@ -41,21 +41,21 @@
 
 #define D4_ARENA 0x09000000UL
 
-#define A_680   0x00610000UL
-#define A_684   0x00E10000UL
-#define A_H1    0x01350000UL
-#define A_H2    0x01550000UL
-#define A_690   0x01750000UL
-#define A_694   0x01790000UL
-#define A_698   0x017D0000UL
-#define A_6BC   0x01810000UL
-#define A_6C0   0x01872000UL
-#define A_6C4   0x018D4000UL
-#define A_6C8   0x018E0000UL
-#define A_6CC   0x018E0700UL
-#define A_6D0   0x018E0800UL
-#define A_ADE8  0x018E0900UL
-#define A_DICTB 0x01908000UL
+#define A_COL_TAB   0x00610000UL
+#define A_ROW_TAB   0x00E10000UL
+#define A_HASH1    0x01350000UL
+#define A_HASH2    0x01550000UL
+#define A_HASH_HEAD   0x01750000UL
+#define A_HASH_BYTE   0x01790000UL
+#define A_BYTE_HIST   0x017D0000UL
+#define A_FENWICK1   0x01810000UL
+#define A_FENWICK2   0x01872000UL
+#define A_PPM_UNUSED   0x018D4000UL
+#define A_PPM_TOT   0x018E0000UL
+#define A_PPM_SPARE1   0x018E0700UL
+#define A_PPM_SPARE2   0x018E0800UL
+#define A_PRED_CACHE  0x018E0900UL
+#define A_DICT_BUF 0x01908000UL
 
 static UHI64 d4_cfshl(unsigned UHI64 a, int b) { return (UHI64)(a << b); }
 #define __CFSHL__(a,b) d4_cfshl((unsigned UHI64)(a),(b))
@@ -83,15 +83,15 @@ typedef struct dec4_ctx_s {
     int in_eof;
     unsigned char outbuf[0x10000];
 
-    unsigned int p_dict;
-    unsigned int p_680, p_684, p_h1, p_h2;
-    unsigned int p_690, p_694, p_698;
-    unsigned int p_6bc, p_6c0, p_6c4, p_6c8, p_6cc, p_6d0;
-    unsigned int p_ade8;
-    unsigned int p_prog;
-    unsigned int p_148, p_14c;
-    unsigned int p_150, p_154, p_158, p_15c;
-    unsigned int p_688, p_68c;
+    unsigned int dict_buf;
+    unsigned int col_tab, row_tab, hash1, hash2;
+    unsigned int hash_head, hash_byte, byte_hist;
+    unsigned int fenwick1, fenwick2, ppm_unused, ppm_tot, ppm_spare1, ppm_spare2;
+    unsigned int pred_cache;
+    unsigned int file_table;
+    unsigned int ctx_byte_ptr, pair_ptr;
+    unsigned int hist_ptr_0, hist_ptr_1, hist_ptr_2, hist_ptr_3;
+    unsigned int cost_cnt_a, cost_cnt_b;
     unsigned long steps;
     unsigned int p_69C, p_6A0, p_6A4, p_6A8;
     unsigned int p_6AC, p_6B0, p_6B4, p_6B8;
@@ -2371,7 +2371,7 @@ static void *d4_406690(dec4_ctx *c, void *p) { (void)c; (void)p; return 0; }
 
 static unsigned char *d4_4079B0(dec4_ctx *c, unsigned n) { (void)c; (void)n; return 0; }
 
-static unsigned int d4_40807F(dec4_ctx *c) { return c->p_prog; }
+static unsigned int d4_40807F(dec4_ctx *c) { return c->file_table; }
 
 static void d4_fill8(dec4_ctx *c, unsigned int dst, int val, unsigned count)
 {
@@ -2504,45 +2504,45 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     G32(D4A_DICT_POS) = 0;
     G32(D4A_DICT_MASK) = dict - 1;
     G32(D4A_TBL_45D140) = 0;
-    c->p_dict = A_DICTB;
-    c->p_680 = A_680;
-    c->p_684 = A_684;
-    c->p_h1 = A_H1;
-    c->p_h2 = A_H2;
-    c->p_690 = A_690;
-    c->p_694 = A_694;
-    c->p_698 = A_698;
-    c->p_6bc = A_6BC;
-    c->p_6c0 = A_6C0;
-    c->p_6c4 = A_6C4;
-    c->p_6c8 = A_6C8;
-    c->p_6cc = A_6CC;
-    c->p_6d0 = A_6D0;
-    c->p_ade8 = A_ADE8;
-    M32(D4A_TBL_42369C)   = c->p_684 + 1310720;
-    M32(D4A_TBL_4236A0)   = c->p_684 + 1572864;
-    M32(D4A_TBL_4236A4)   = c->p_684 + 0x200000;
-    M32(D4A_TBL_4236A8)   = c->p_684 + 2621440;
-    M32(D4A_TBL_4236AC)   = c->p_684 + 2883584;
-    M32(D4A_TBL_4236B0)   = c->p_684 + 3145728;
-    M32(D4A_TBL_4236B8)   = c->p_684 + 5242880;
-    M32(D4A_TBL_4236B4)   = c->p_684 + 3407872;
-    c->p_150   = c->p_698;
-    c->p_154   = c->p_698 + 0x10000;
-    c->p_158   = c->p_698 + 0x20000;
-    c->p_15c   = c->p_698 + 0x30000;
-    memset(c->mem + c->p_dict, 0, dict + 256);
-    memset(c->mem + c->p_680, 0, 0x100000);
-    memset(c->mem + c->p_684, 0, 0x280000);
-    memset(c->mem + c->p_h1, 0xFF, 0x200000);
-    memset(c->mem + c->p_h2, 0xFF, 0x200000);
-    memset(c->mem + c->p_690, 0, 0x40000);
-    memset(c->mem + c->p_694, 0, 0x40000);
-    memset(c->mem + c->p_698, 0, 0x40000);
+    c->dict_buf = A_DICT_BUF;
+    c->col_tab = A_COL_TAB;
+    c->row_tab = A_ROW_TAB;
+    c->hash1 = A_HASH1;
+    c->hash2 = A_HASH2;
+    c->hash_head = A_HASH_HEAD;
+    c->hash_byte = A_HASH_BYTE;
+    c->byte_hist = A_BYTE_HIST;
+    c->fenwick1 = A_FENWICK1;
+    c->fenwick2 = A_FENWICK2;
+    c->ppm_unused = A_PPM_UNUSED;
+    c->ppm_tot = A_PPM_TOT;
+    c->ppm_spare1 = A_PPM_SPARE1;
+    c->ppm_spare2 = A_PPM_SPARE2;
+    c->pred_cache = A_PRED_CACHE;
+    M32(D4A_TBL_42369C)   = c->row_tab + 1310720;
+    M32(D4A_TBL_4236A0)   = c->row_tab + 1572864;
+    M32(D4A_TBL_4236A4)   = c->row_tab + 0x200000;
+    M32(D4A_TBL_4236A8)   = c->row_tab + 2621440;
+    M32(D4A_TBL_4236AC)   = c->row_tab + 2883584;
+    M32(D4A_TBL_4236B0)   = c->row_tab + 3145728;
+    M32(D4A_TBL_4236B8)   = c->row_tab + 5242880;
+    M32(D4A_TBL_4236B4)   = c->row_tab + 3407872;
+    c->hist_ptr_0   = c->byte_hist;
+    c->hist_ptr_1   = c->byte_hist + 0x10000;
+    c->hist_ptr_2   = c->byte_hist + 0x20000;
+    c->hist_ptr_3   = c->byte_hist + 0x30000;
+    memset(c->mem + c->dict_buf, 0, dict + 256);
+    memset(c->mem + c->col_tab, 0, 0x100000);
+    memset(c->mem + c->row_tab, 0, 0x280000);
+    memset(c->mem + c->hash1, 0xFF, 0x200000);
+    memset(c->mem + c->hash2, 0xFF, 0x200000);
+    memset(c->mem + c->hash_head, 0, 0x40000);
+    memset(c->mem + c->hash_byte, 0, 0x40000);
+    memset(c->mem + c->byte_hist, 0, 0x40000);
     memset(c->mem + D4A_LAST_SEEN, 0, 0x400);
-    memset(c->mem + c->p_6bc + 266752, 0, 0x1F000);
-    memset(c->mem + c->p_6c0 + 266752, 0, 0x1F000);
-    d4_fill16(c, 1, c->p_6c8 + 1042, 248);
+    memset(c->mem + c->fenwick1 + 266752, 0, 0x1F000);
+    memset(c->mem + c->fenwick2 + 266752, 0, 0x1F000);
+    d4_fill16(c, 1, c->ppm_tot + 1042, 248);
     d4_fill16(c, 32, D4A_TBL_45D768, 769);
     d4_fill16(c, 16, D4A_TBL_45D166, 769);
     d4_fill16(c, 10, D4A_TBL_45DD5A, 8);
@@ -2568,7 +2568,7 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     G32(D4A_TBL_45D134) = 0;
     G32(D4A_TBL_45D114) = 0;
     G32(D4A_TBL_45D11C) = 0;
-    c->p_prog = 0;
+    c->file_table = 0;
     G32(D4A_BLK_END) = 0;
     G32(D4A_TBL_45D144) = 0;
     G32(D4A_FREQ_B) = 1;
@@ -2633,8 +2633,8 @@ static int d4_40D58D(dec4_ctx *c)
     result = 0x20000 >> G8(D4A_PHASE);
     if ( v0 >= 0x20000 >> G8(D4A_PHASE) )
       break;
-    v3 = v1 + c->p_684;
-    if ( M8(v1 + c->p_684) )
+    v3 = v1 + c->row_tab;
+    if ( M8(v1 + c->row_tab) )
     {
       v4 = 8;
       v5 = 0;
@@ -2681,7 +2681,7 @@ static unsigned int d4_40D604(dec4_ctx *c)
   {
     do
     {
-      v3 = c->p_680 + 32 * result;
+      v3 = c->col_tab + 32 * result;
       if ( !M8(v3) )
         break;
       v4 = 12;
@@ -2713,8 +2713,8 @@ static unsigned int d4_40D604(dec4_ctx *c)
           v8 += 0x100000;   /* HIWORD += 16 */
           if ( v1 >= 0x40000 )
             break;
-          v2 = v8 + c->p_680;
-          if ( !M8(v8 + c->p_680) )
+          v2 = v8 + c->col_tab;
+          if ( !M8(v8 + c->col_tab) )
             break;
           memcpy(c->mem + (v3), c->mem + (v2), 0x20u);
           v3 = (int)v2;
@@ -2786,7 +2786,7 @@ static int d4_40D6D1(dec4_ctx *c)
   v45 = G32(D4A_FREQ_B);
   v0 = G32(D4A_DICT_POS);
   v42 = G32(D4A_FREQ_C);
-  v1 = c->p_dict;
+  v1 = c->dict_buf;
   v46 = G32(D4A_FREQ_A);
   v2 = 0;
   do
@@ -2805,8 +2805,8 @@ static int d4_40D6D1(dec4_ctx *c)
   v44 = G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) + 320);
   while ( v5 != G32(D4A_DICT_POS) )
   {
-    v6 = (c->p_dict + v4);
-    v7 = ~M8(c->p_dict + v5);
+    v6 = (c->dict_buf + v4);
+    v7 = ~M8(c->dict_buf + v5);
     v8 = (v4 + 1) & G32(D4A_DICT_MASK);
     if ( G8(D4A_ESCAPE_FLAG) == 1 )
     {
@@ -2820,7 +2820,7 @@ LABEL_23:
     }
     if ( (unsigned char)v7 < 0x80u && !G8(D4A_ESCAPE_FLAG) )
     {
-      v9 = M8(c->p_dict + v5);
+      v9 = M8(c->dict_buf + v5);
       goto LABEL_23;
     }
     v10 = M8(D4A_DECODE_MAP + ((unsigned char)v7));
@@ -2829,7 +2829,7 @@ LABEL_23:
     {
       v16 = v7 - G8(D4A_ESCAPE_FLAG);
       G8(D4A_ESCAPE_FLAG) = 0;
-      M8(c->p_dict + v4) = ~v16;
+      M8(c->dict_buf + v4) = ~v16;
       v4 = v11;
     }
     else if ( v10 == 100 )
@@ -2851,13 +2851,13 @@ LABEL_23:
         v15 = v13;
         G8(D4A_ESCAPE_FLAG) = 0;
         ++v13;
-        M8(c->p_dict + v4) = M8(v15) + 32;
+        M8(c->dict_buf + v4) = M8(v15) + 32;
         v4 = v11;
         --v14;
       }
       do
       {
-        M8(c->p_dict + v4) = M8(v13);
+        M8(c->dict_buf + v4) = M8(v13);
         v4 = G32(D4A_DICT_MASK) & (v4 + 1);
         ++v13;
         if ( v5 == v4 )
@@ -2879,7 +2879,7 @@ LABEL_24:
   do
   {
     M32(D4A_TBL_446064 + (((unsigned char)v4) * 4)) = 1;
-    M8(c->p_dict + v4) = savedregs[v18++];
+    M8(c->dict_buf + v4) = savedregs[v18++];
     v4 = G32(D4A_DICT_MASK) & (v4 + 1);
   }
   while ( v18 < 0x100 );
@@ -2887,9 +2887,9 @@ LABEL_24:
   v20 = 64;
   do
   {
-    v21 = c->p_dict;
+    v21 = c->dict_buf;
     v19 = G32(D4A_DICT_MASK) & (v19 - 1);
-    M8(c->p_dict + v19) = 0;
+    M8(c->dict_buf + v19) = 0;
     --v20;
   }
   while ( v20 );
@@ -2910,11 +2910,11 @@ LABEL_24:
   }
   memcpy(c->mem + (v22), c->mem + (v21), v24 + v23);
   d4_40D604(c);
-  d4_fill8(c, c->p_684, 0, 0x140000u);
-  d4_fill8(c, c->p_h1, -1, 0x200000u);
-  d4_fill8(c, c->p_h2, -1, 0x200000u);
-  d4_fill8(c, c->p_690, 0, 0x40000u);
-  d4_fill8(c, c->p_694, 0, 0x40000u);
+  d4_fill8(c, c->row_tab, 0, 0x140000u);
+  d4_fill8(c, c->hash1, -1, 0x200000u);
+  d4_fill8(c, c->hash2, -1, 0x200000u);
+  d4_fill8(c, c->hash_head, 0, 0x40000u);
+  d4_fill8(c, c->hash_byte, 0, 0x40000u);
   G32(D4A_CTX_W0) = 0;
   G32(D4A_CTX_W1) = 0;
   v29 = v44;
@@ -2929,8 +2929,8 @@ LABEL_24:
   {
     if ( v29 != G32(D4A_DICT_POS) )
     {
-      v31 = c->p_h1 + 8 * ((G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x3FFFF);
-      v32 = (c->p_h2
+      v31 = c->hash1 + 8 * ((G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x3FFFF);
+      v32 = (c->hash2
                      + 8
                      * ((G32(D4A_CTX_W2) ^ ((unsigned int)G32(D4A_CTX_W2) >> 15) ^ 16
                                                                            * (G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 15)) ^ ((G32(D4A_CTX_W1) ^ ((unsigned int)G32(D4A_CTX_W1) >> 15)) << 6)) & 0x3FFFF)
@@ -2951,8 +2951,8 @@ LABEL_39:
         v34 = 32 * (((unsigned short)G32(D4A_CTX_W0) ^ (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x7FFF);
         while ( 1 )
         {
-          v35 = v34 + c->p_680;
-          if ( !M8(v34 + c->p_680) )
+          v35 = v34 + c->col_tab;
+          if ( !M8(v34 + c->col_tab) )
           {
             G32(D4A_COL_IDX) += 0x40000;   /* HIWORD += 4 */
             goto LABEL_48;
@@ -2965,7 +2965,7 @@ LABEL_39:
             goto LABEL_48;
         }
         v47 = M8(v35);
-        v36 = v34 + c->p_680;
+        v36 = v34 + c->col_tab;
         v37 = v35 + 12;
         G8(D4A_COL_SLOT) = -1;
         v38 = M8(v37 - 11);
@@ -2981,7 +2981,7 @@ LABEL_39:
         while ( (unsigned char)v38 );
         G32(D4A_TBL_45C678) = v47;
 LABEL_48:
-        d4_40ECC7(c, M8(v29 + c->p_dict));
+        d4_40ECC7(c, M8(v29 + c->dict_buf));
       }
       else if ( v30 == -1 )
       {
@@ -2989,7 +2989,7 @@ LABEL_48:
       }
       G32(D4A_CTX_W2) = ((unsigned int)G32(D4A_CTX_W1) >> 24) + (G32(D4A_CTX_W2) << 8);
       G32(D4A_CTX_W1) = ((unsigned int)G32(D4A_CTX_W0) >> 24) + (G32(D4A_CTX_W1) << 8);
-      v39 = M8(v29 + c->p_dict);
+      v39 = M8(v29 + c->dict_buf);
       v29 = G32(D4A_DICT_MASK) & (v29 + 1);
       G32(D4A_CTX_W0) = v39 + (G32(D4A_CTX_W0) << 8);
       continue;
@@ -3211,7 +3211,7 @@ static int d4_40DEB6(dec4_ctx *c)
   int v43;
   int v44;
 
-  D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(D4A_OUT_POS), G32(D4A_BLK_END), G32(D4A_NEXT_BLK), c->p_prog, G32(D4A_TBL_45D144), G8(D4A_PHASE));
+  D4TRACE("DEB6 out=%u blk=%u next=%u prog=%u idx=%u phase=%u\n", G32(D4A_OUT_POS), G32(D4A_BLK_END), G32(D4A_NEXT_BLK), c->file_table, G32(D4A_TBL_45D144), G8(D4A_PHASE));
 #ifdef D4DEB6DBG
   fprintf(stderr, "DEB6B out=%u dac1=%u c14=%u\n",
       G32(D4A_OUT_POS), M32(D4A_TBL_445DAC + 4), M32(D4A_TBL_4455A4 + 4));
@@ -3245,13 +3245,13 @@ static int d4_40DEB6(dec4_ctx *c)
     d4_fill8(c, D4A_TBL_45AD64, 1, 0x80u);
     d4_fill8(c, M32(D4A_TBL_42369C), 0, 0x400000u);
   }
-  d4_fill8(c, c->p_6bc, 0, 0x41200u);
-  d4_fill8(c, c->p_6c0, 0, 0x41200u);
+  d4_fill8(c, c->fenwick1, 0, 0x41200u);
+  d4_fill8(c, c->fenwick2, 0, 0x41200u);
   v5 = 393728;
   do
   {
     v6 = (D4A_PPM_PATTERN);
-    v7 = (v5 + c->p_6bc);
+    v7 = (v5 + c->fenwick1);
     v5 += 512;
     v8 = -(char)v7 & 3;
     v9 = 512 - v8;
@@ -3274,11 +3274,11 @@ static int d4_40DEB6(dec4_ctx *c)
   do
   {
     v13 += 2;
-    M16(v13 + c->p_6bc + 393726) *= 8;
+    M16(v13 + c->fenwick1 + 393726) *= 8;
   }
   while ( v13 != 7168 );
-  d4_fill16(c, 8, c->p_6c0 + 393728, 3584);
-  d4_fill16(c, 1, c->p_6c8, 521);
+  d4_fill16(c, 8, c->fenwick2 + 393728, 3584);
+  d4_fill16(c, 1, c->ppm_tot, 521);
   /* Hex-Rays lost the source of v16 in the 656-byte copy below (the
    * original is just memcpy(unk_445DB4, dword_42372C, 656)). */
   memcpy(c->mem + D4A_TBL_445DB4, c->mem + D4A_CLS_TREE_SRC, 656);
@@ -3294,9 +3294,9 @@ static int d4_40DEB6(dec4_ctx *c)
   G32(D4A_TBL_45C6AC) = 0;
   G32(D4A_TBL_45C6A0) = 0;
   G32(D4A_TBL_45C6B4) = 511;
-  c->p_68c = D4A_TBL_45CCD4;
+  c->cost_cnt_b = D4A_TBL_45CCD4;
   d4_fill8(c, D4A_TBL_45CCD4, 0, 0x424u);
-  c->p_688 = D4A_TBL_45C6B8;
+  c->cost_cnt_a = D4A_TBL_45C6B8;
   d4_fill8(c, D4A_TBL_45C6B8, 0, 0x61Cu);
   d4_fill8(c, D4A_TBL_444DA4, 0, 0x400u);
   d4_fill8(c, D4A_TBL_4455AC, (int)0x80000000u, 0x400u);
@@ -3320,7 +3320,7 @@ static int d4_40DEB6(dec4_ctx *c)
   G32(D4A_TBL_445DB0) = 0;
   G32(D4A_COST_ACCUM) = 0;
   G32(D4A_COST_GATE) = 0;
-  if ( c->p_prog )
+  if ( c->file_table )
   {
     G32(D4A_BLK_END) += 0x40000 >> 2 * G8(D4A_PHASE);
     if ( (unsigned int)G32(D4A_BLK_END) > G32(D4A_OUT_TOTAL) )
@@ -3328,16 +3328,16 @@ static int d4_40DEB6(dec4_ctx *c)
     v26 = 4 * G32(D4A_TBL_45D144);
     do
     {
-      if ( M32(c->p_prog + v26) >= (unsigned int)G32(D4A_BLK_END) )
+      if ( M32(c->file_table + v26) >= (unsigned int)G32(D4A_BLK_END) )
         break;
       v26 += 4;
-      v27 = M32(c->p_prog + v26);
+      v27 = M32(c->file_table + v26);
       ++G32(D4A_TBL_45D144);
       if ( v27 >= G32(D4A_NEXT_BLK) )
         break;
     }
     while ( v27 < G32(D4A_TBL_45D124) );
-    v28 = M32(c->p_prog + 4 * G32(D4A_TBL_45D144));
+    v28 = M32(c->file_table + 4 * G32(D4A_TBL_45D144));
   }
   else
   {
@@ -3346,7 +3346,7 @@ static int d4_40DEB6(dec4_ctx *c)
   G32(D4A_BLK_END) = v28;
   if ( G32(D4A_TBL_45D144) )
   {
-    v29 = c->p_prog + 4 * G32(D4A_TBL_45D144);
+    v29 = c->file_table + 4 * G32(D4A_TBL_45D144);
     v30 = M32(v29 - 4);
     v31 = G32(D4A_BLK_END) - v30;
     if ( (unsigned int)G32(D4A_TBL_45D144) > 1 )
@@ -3371,8 +3371,8 @@ static int d4_40DEB6(dec4_ctx *c)
       || v30 == 513216 && v31 == 246814
       || v30 != 1029744 && v31 == 1029744 && v32 >= G32(D4A_TBL_45D124) )
     {
-      d4_fill8(c, c->p_680, 0, 0x100000u);
-      d4_fill8(c, c->p_684, 0, 0x140000u);
+      d4_fill8(c, c->col_tab, 0, 0x100000u);
+      d4_fill8(c, c->row_tab, 0, 0x140000u);
       if ( v32 >= G32(D4A_TBL_45D124) )
         G8(D4A_FLAG_45E395) = 10;
     }
@@ -3444,7 +3444,7 @@ static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
   int v24;
 
   v1 = a1;
-  v2 = (a1 << 9) + c->p_6c0;
+  v2 = (a1 << 9) + c->fenwick2;
   v3 = 0;
   v4 = v1 << 8;
   v24 = v2 + 512;
@@ -3466,8 +3466,8 @@ static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
   }
   while ( v2 != v24 );
   v12 = 2 * v4;
-  v13 = (c->p_6bc + 2 * v4 + 2);
-  v14 = (v12 + c->p_6c0);
+  v13 = (c->fenwick1 + 2 * v4 + 2);
+  v14 = (v12 + c->fenwick2);
   v15 = (-2 - (unsigned char)v13 + 2) & 3;
   v16 = 510 - v15;
   if ( v15 < 510 )
@@ -3483,8 +3483,8 @@ static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
     v15 = 0;
   }
   memcpy(c->mem + (v13), c->mem + (v14), v16 + v15);
-  v20 = v12 + c->p_6bc;
-  M16(v12 + c->p_6bc) = HIWORD(v3) + v3;
+  v20 = v12 + c->fenwick1;
+  M16(v12 + c->fenwick1) = HIWORD(v3) + v3;
   v21 = 1;
   do
   {
@@ -3534,7 +3534,7 @@ static int d4_40E4FF(dec4_ctx *c, unsigned int a1)
   v1 = a1;
   v23 = a1 << 8;
   v2 = 0;
-  v3 = (c->p_6c0 + (a1 << 9));
+  v3 = (c->fenwick2 + (a1 << 9));
   v4 = (int)(v3 + 0x200);   /* asm 0x40e520: esi = start + 0x200, stride 2 */
   do
   {
@@ -3557,8 +3557,8 @@ LABEL_4:
   }
   while ( v3 != v4 );
   v22 = 2 * v23;
-  v5 = (2 * v23 + c->p_6c0);
-  v6 = (c->p_6bc + 2 * v23 + 2);
+  v5 = (2 * v23 + c->fenwick2);
+  v6 = (c->fenwick1 + 2 * v23 + 2);
   v7 = (-2 - (unsigned char)v6 + 2) & 3;
   v8 = 510 - v7;
   if ( v7 < 510 )
@@ -3574,8 +3574,8 @@ LABEL_4:
     v7 = 0;
   }
   memcpy(c->mem + (v6), c->mem + (v5), v8 + v7);
-  v21 = v22 + c->p_6bc;
-  M16(v22 + c->p_6bc) = v2;
+  v21 = v22 + c->fenwick1;
+  M16(v22 + c->fenwick1) = v2;
   v12 = 1;
   do
   {
@@ -3591,11 +3591,11 @@ LABEL_4:
     while ( v14 != v21 );
   }
   while ( v12 < 0x80 );
-  result = c->p_6bc;
-  v16 = (c->p_6bc + 2 * v23);
+  result = c->fenwick1;
+  v16 = (c->fenwick1 + 2 * v23);
   if ( M16(v16) )
   {
-    v17 = c->p_6c8;
+    v17 = c->ppm_tot;
     v18 = v1;
     ++M16(v17 + 2 * v18);
     M16(v17 + 2 * v18) >>= 1;
@@ -3615,8 +3615,8 @@ LABEL_4:
     }
     if ( G8(D4A_MODEL_ID) == 3 )
     {
-      result = 8 * M16(c->p_6c8 + 2 * v1);
-      if ( M16(c->p_6bc + (v1 << 9)) > result )
+      result = 8 * M16(c->ppm_tot + 2 * v1);
+      if ( M16(c->fenwick1 + (v1 << 9)) > result )
         M32(D4A_TBL_45AE38 + ((v1) * 4)) *= 16;
     }
   }
@@ -3639,9 +3639,9 @@ static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
   char v7;
 
   v2 = a2;
-  v3 = (c->p_6bc + (G32(D4A_PPM_CTX) << 9));
+  v3 = (c->fenwick1 + (G32(D4A_PPM_CTX) << 9));
   v4 = M16(D4A_TBL_45D166 + ((v2) * 2));
-  M16(c->p_6c0 + 2 * (a1 + (G32(D4A_PPM_CTX) << 8))) += v4;
+  M16(c->fenwick2 + 2 * (a1 + (G32(D4A_PPM_CTX) << 8))) += v4;
   result = a1 + 1;
   /* asm 0x40E6A8/0x40E6AA: al is a byte - a1=255 wraps to 0 and skips the
    * Fenwick walk; as an int, result=256 runs once and writes index 256
@@ -3678,9 +3678,9 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
 
   v13 = a1;
   v2 = a2;
-  v3 = (2 * ((a2 << 8) + a1) + c->p_6c0);
+  v3 = (2 * ((a2 << 8) + a1) + c->fenwick2);
   v4 = M16(D4A_TBL_45D768 + ((a2) * 2));
-  v5 = M16(v3) + M16(c->p_6c8 + 2 * a2);
+  v5 = M16(v3) + M16(c->ppm_tot + 2 * a2);
   if ( M8(D4A_TBL_45E086 + (a2)) == v13 )
   {
     v5 *= 32;
@@ -3697,18 +3697,18 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
   v12 = 2 * a2;
   if ( M16(v3) )
   {
-    if ( M16(c->p_6bc + (a2 << 9)) <= (unsigned int)M16(v12 + c->p_6c8) * M32(D4A_TBL_45BA3C + (v6) * 4) )
+    if ( M16(c->fenwick1 + (a2 << 9)) <= (unsigned int)M16(v12 + c->ppm_tot) * M32(D4A_TBL_45BA3C + (v6) * 4) )
       d4_40E672(c, v13, a2);
     M32(D4A_TBL_45BA3C + ((v2) * 4)) = (unsigned int)M32(D4A_TBL_45BA3C + ((v2) * 4)) >> 4;
   }
   else
   {
     d4_40E672(c, v13, a2);
-    M16(v12 + c->p_6c8) += v4;
+    M16(v12 + c->ppm_tot) += v4;
     M32(D4A_TBL_45BA3C + ((v6) * 4)) += (unsigned char)G8(D4A_PHASE);
   }
   M16(v3) += v4;
-  v7 = (c->p_6bc + (v2 << 9));
+  v7 = (c->fenwick1 + (v2 << 9));
   v8 = v13 == 255;
   v14 = v13 + 1;
   while ( !v8 )
@@ -3718,7 +3718,7 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
     v8 = (unsigned char)(v9 + v14) == 0;
     v14 += v9;
   }
-  v10 = c->p_6c8;
+  v10 = c->ppm_tot;
   M16(v7) += v4;
   result = M16(v7) + M16(v10 + 2 * v2);
   if ( result >= 0x4000 || (int)M32(D4A_TBL_45AE38 + ((v2) * 4)) < 0 )
@@ -3774,7 +3774,7 @@ static unsigned int d4_40E885(dec4_ctx *c)
 
   v10 = 0;
   v0 = 8;
-  c->p_14c = 0;
+  c->pair_ptr = 0;
   v1 = ((unsigned)HIWORD(G32(D4A_CTX_W0))) << 16;
   v2 = 0;
   v1 = (v1 & ~0x0000FFFFU) | ((0) & 0x0000FFFFU);
@@ -3816,8 +3816,8 @@ static unsigned int d4_40E885(dec4_ctx *c)
     G32(D4A_TBL_446048) += 0x10000;
     G32(D4A_TBL_44604C) += 0x10000;
   }
-  v5 = M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_CNT))));
-  v11 = M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - 2 * G32(D4A_BEST_CNT))));
+  v5 = M8(c->dict_buf + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_CNT))));
+  v11 = M8(c->dict_buf + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - 2 * G32(D4A_BEST_CNT))));
   if ( (unsigned char)G8(D4A_FLAG_45E395) == G32(D4A_BEST_CNT) )
   {
     if ( (unsigned char)G32(D4A_CTX_W0) == 1 )
@@ -3850,7 +3850,7 @@ static unsigned int d4_40E885(dec4_ctx *c)
     && (M8(result + 3) & 0x7Fu) <= 1 )
   {
     if ( (unsigned int)G32(D4A_BEST_OFF) > 1 )
-      M32(c->p_68c) >>= 1;
+      M32(c->cost_cnt_b) >>= 1;
     result = 0;
   }
   else
@@ -3858,9 +3858,9 @@ static unsigned int d4_40E885(dec4_ctx *c)
     if ( (unsigned int)G32(D4A_BEST_CNT) > 1 )
       G8(D4A_FLAG_45E398) = v0 == 7;
     if ( M8(result) == 2 && (unsigned char)(M8(result + 1) - 3) < 4u )
-      c->p_14c = D4A_TBL_45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 24);
+      c->pair_ptr = D4A_TBL_45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 24);
     if ( M8(result) == 3 && (unsigned char)(M8(result + 1) - 4) < 4u )
-      c->p_14c = D4A_TBL_45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 32) + 64;
+      c->pair_ptr = D4A_TBL_45AD64 + 2 * ((unsigned char)v0 + 8 * M8(result + 1) - 32) + 64;
     G8(D4A_FLAG_45E396) = v0;
   }
 #ifdef D4E885DBG
@@ -3918,13 +3918,13 @@ static int d4_40EBA7(dec4_ctx *c, char a1)
           result = (unsigned short)M16(D4A_COST_LUT + (((v3 << 14) / (M8(v5 + 1) + (unsigned int)M8(v5) ? M8(v5 + 1) + (unsigned int)M8(v5) : 1)) * 2));
           G32(D4A_COST_SUM) += result;
         }
-        if ( c->p_14c )
+        if ( c->pair_ptr )
         {
-          result = c->p_14c;
+          result = c->pair_ptr;
           ++M8((v1 == M8(v5 + 2)) + result);
           if ( M8(result + 1) >= 0xFEu || M8(result) >= 0xFEu )
           {
-            result = c->p_14c;
+            result = c->pair_ptr;
             ++M8(result);
             ++M8(result + 1);
             M8(result) >>= 1;
@@ -4008,9 +4008,9 @@ static unsigned int d4_40ECC7(dec4_ctx *c, char a1)
   {
     G32(D4A_COL_IDX) &= 0x7FFFu;
     v13 = 0;
-    v14 = c->p_680 + 32 * G32(D4A_COL_IDX);
+    v14 = c->col_tab + 32 * G32(D4A_COL_IDX);
     v15 = 0;
-    v16 = c->p_680 + 32 * G32(D4A_COL_IDX);
+    v16 = c->col_tab + 32 * G32(D4A_COL_IDX);
     while ( M8(v16) )
     {
       if ( (M8(v16 + 25) & 0x3F) < (M8(v14 + 32 * v13 + 25) & 0x3F)
@@ -4037,7 +4037,7 @@ LABEL_54:
   }
   else
   {
-    v1 = c->p_680 + 32 * G32(D4A_COL_IDX);
+    v1 = c->col_tab + 32 * G32(D4A_COL_IDX);
     if ( G8(D4A_COL_SLOT) == 0xFF )
     {
       G8(D4A_COL_SLOT) = 0;
@@ -4171,8 +4171,8 @@ LABEL_60:
       G32(D4A_FREQ_A) = (unsigned int)G32(D4A_FREQ_A) >> 1;
     }
   }
-  result = c->p_148;
-  M8(c->p_148) = M8(v1 + 26);
+  result = c->ctx_byte_ptr;
+  M8(c->ctx_byte_ptr) = M8(v1 + 26);
   return result;
 }
 
@@ -4188,10 +4188,10 @@ static char d4_40F049(dec4_ctx *c, int a1)
   char v9;
 
   v9 = a1;
-  v1 = c->p_684 + 20 * G32(D4A_ROW_CTX);
+  v1 = c->row_tab + 20 * G32(D4A_ROW_CTX);
   if ( !M8(v1) )
   {
-    d4_fill8(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
+    d4_fill8(c, c->row_tab + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
     /* asm 0x40F186: memset returns the destination (Hex-Rays lost it as v7);
      * the head of the new 20-byte context entry gets 0x0202, +18 = 4 and
      * +9 = the first candidate byte. */
@@ -4289,7 +4289,7 @@ static char d4_40F19A(dec4_ctx *c, int a1)
   char v10;
 
   v10 = a1;
-  v1 = c->p_684 + 20 * G32(D4A_ROW_CTX);
+  v1 = c->row_tab + 20 * G32(D4A_ROW_CTX);
   if ( M8(v1) )
   {
     if ( G8(D4A_ROW_SLOT) == 0xFF )
@@ -4402,7 +4402,7 @@ static char d4_40F19A(dec4_ctx *c, int a1)
   }
   else
   {
-    d4_fill8(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
+    d4_fill8(c, c->row_tab + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
     /* asm 0x40F386: the memset destination (v1) gets 0x0303 at +0, 6 at +18
      * and the decoded byte at +9 (Hex-Rays lost it as the unused v8). */
     M16(v1) = 771;
@@ -4437,10 +4437,10 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
   int result;
 
   v2 = a1;
-  M8(c->p_150) = a1;
-  M8(c->p_154) = a1;
-  M8(c->p_158) = a1;
-  M8(c->p_15c) = a1;
+  M8(c->hist_ptr_0) = a1;
+  M8(c->hist_ptr_1) = a1;
+  M8(c->hist_ptr_2) = a1;
+  M8(c->hist_ptr_3) = a1;
   if ( a2 )
   {
     v3 = G32(D4A_OUT_COUNT) & 1;
@@ -4485,7 +4485,7 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
         ++M32(D4A_TBL_4445A4 + ((v9) * 4));
         if ( v9 != G32(D4A_BEST_OFF) )
         {
-          if ( v2 == M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_OFF)))) )
+          if ( v2 == M8(c->dict_buf + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_OFF)))) )
             ++M32(D4A_TBL_4445A4 + ((G32(D4A_BEST_OFF)) * 4));
           else
             G32(D4A_TBL_45C66C) += 2;
@@ -4621,12 +4621,12 @@ LABEL_61:
       d4_412FFA(c);
     }
   }
-  c->p_150 = c->p_698 + (((unsigned int)G32(D4A_CTX_W0) >> 16) & 0xFF00) + ((unsigned int)G32(D4A_CTX_W1) >> 24);
-  c->p_158 = c->p_698 + (((unsigned int)G32(D4A_CTX_W0) >> 8) & 0xFF00) + 0x20000 + (unsigned char)G32(D4A_CTX_W0);
+  c->hist_ptr_0 = c->byte_hist + (((unsigned int)G32(D4A_CTX_W0) >> 16) & 0xFF00) + ((unsigned int)G32(D4A_CTX_W1) >> 24);
+  c->hist_ptr_2 = c->byte_hist + (((unsigned int)G32(D4A_CTX_W0) >> 8) & 0xFF00) + 0x20000 + (unsigned char)G32(D4A_CTX_W0);
   v21 = (unsigned char)G32(D4A_CTX_W1) + (((unsigned short)G32(D4A_CTX_W0) << 8) & 0xFF00) + 196608;
-  result = v21 + c->p_698;
-  c->p_154 = c->p_698 + (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 8) + 0x10000;
-  c->p_15c = v21 + c->p_698;
+  result = v21 + c->byte_hist;
+  c->hist_ptr_1 = c->byte_hist + (unsigned short)((unsigned int)G32(D4A_CTX_W0) >> 8) + 0x10000;
+  c->hist_ptr_3 = v21 + c->byte_hist;
   return result;
 }
 
@@ -4636,7 +4636,7 @@ static int d4_40F962(dec4_ctx *c, void *a1, int a2)
 
   d4_rc_init(c);
   d4_413A96(c);
-  D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(D4A_PHASE), G32(D4A_HDR_SIZE), G32(D4A_NEXT_BLK), G32(D4A_BLK_END), G32(D4A_OUT_TOTAL), c->p_prog);
+  D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(D4A_PHASE), G32(D4A_HDR_SIZE), G32(D4A_NEXT_BLK), G32(D4A_BLK_END), G32(D4A_OUT_TOTAL), c->file_table);
   do
   {
     if ( G32(D4A_OUT_POS) >= (unsigned int)G32(D4A_NEXT_BLK) )
@@ -4702,18 +4702,18 @@ static char d4_40F9D0(dec4_ctx *c, int a1)
   unsigned char v45;
 
   v38 = (G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 13)) & 0x3FFFF;
-  v36 = 8 * v38 + c->p_h1;
+  v36 = 8 * v38 + c->hash1;
   v1 = (8
                       * ((((G32(D4A_CTX_W1) ^ ((unsigned int)G32(D4A_CTX_W1) >> 15)) << 6) ^ 16
                                                                                      * (G32(D4A_CTX_W0) ^ ((unsigned int)G32(D4A_CTX_W0) >> 15)) ^ G32(D4A_CTX_W2) ^ ((unsigned int)G32(D4A_CTX_W2) >> 15)) & 0x3FFFF)
                       + 4
-                      + c->p_h2);
+                      + c->hash2);
   v42 = 0;
   v41 = 0;
   v39 = 0;
   v43 = 2;
-  v40 = M8(c->p_694 + v38);
-  c->p_148 = c->p_694 + v38;
+  v40 = M8(c->hash_byte + v38);
+  c->ctx_byte_ptr = c->hash_byte + v38;
   v35 = G32(D4A_DICT_POS);
   if ( (unsigned int)G32(D4A_DICT_POS) < 0x40 )
     v35 = G32(D4A_DICT_SIZE) + G32(D4A_DICT_POS);
@@ -4725,11 +4725,11 @@ static char d4_40F9D0(dec4_ctx *c, int a1)
     {
       if ( v2 < 0x40 )
         v2 += G32(D4A_DICT_SIZE);
-      if ( M8(v35 + c->p_dict - 12) == M8(c->p_dict + v2 - 12) )
+      if ( M8(v35 + c->dict_buf - 12) == M8(c->dict_buf + v2 - 12) )
       {
-        v3 = (c->p_dict + v2 - 1);
+        v3 = (c->dict_buf + v2 - 1);
         v4 = 64;
-        v5 = (c->p_dict + v35 - 1);
+        v5 = (c->dict_buf + v35 - 1);
         while ( (unsigned char)v4 >= 8u )
         {
           if ( M8(v5) == M8(v3) )
@@ -4817,14 +4817,14 @@ LABEL_23:
   {
     a1 = (G32(D4A_DICT_POS) - G32(D4A_TBL_45D130)) & G32(D4A_DICT_MASK);
     if ( (G32(D4A_DICT_MASK) & (unsigned int)(a1 - G32(D4A_DICT_POS))) < 0x104
-      || ((v10 = (int)((G32(D4A_DICT_MASK) & (a1 - 4)) + c->p_dict),
+      || ((v10 = (int)((G32(D4A_DICT_MASK) & (a1 - 4)) + c->dict_buf),
            v37 = ((unsigned)M8(v10) << 24) | ((unsigned)M8(v10 + 1) << 16)
                | ((unsigned)M8(v10 + 2) << 8) | (unsigned)M8(v10 + 3),
            (v37 & 0xFFFFU) != (G32(D4A_CTX_W0) & 0xFFFFU))
           && ((v37 & 0xFFFF00FFU) != (G32(D4A_CTX_W0) & 0xFFFF00FFU))
           && ((v37 & 0xFFFFFF00U) != (G32(D4A_CTX_W0) & 0xFFFFFF00U)) ) )
     {
-      if ( v40 < 0x40u || M8(v38 + c->p_690) )
+      if ( v40 < 0x40u || M8(v38 + c->hash_head) )
       {
         if ( M32(v36 + 4) == G32(D4A_CTX_W0) )
         {
@@ -4850,13 +4850,13 @@ LABEL_46:
     goto LABEL_88;
   if ( !G32(D4A_TBL_45D114) )
   {
-    if ( M8(v38 + c->p_690) )
+    if ( M8(v38 + c->hash_head) )
       v15 = -1;
     else
       v15 = 39;
     v42 += v15 + G8(D4A_FLAG_45E3A2);
   }
-  if ( G32(D4A_TBL_45D11C) && M8(G32(D4A_TBL_45D11C)) == M8(a1 + c->p_dict) )
+  if ( G32(D4A_TBL_45D11C) && M8(G32(D4A_TBL_45D11C)) == M8(a1 + c->dict_buf) )
   {
     d4_40E810(c, v42, 2u);
     goto LABEL_87;
@@ -4865,7 +4865,7 @@ LABEL_46:
   {
     ++G32(D4A_TBL_45D134);
 LABEL_87:
-    M8(v38 + c->p_690) = 0;
+    M8(v38 + c->hash_head) = 0;
 LABEL_88:
     G32(D4A_TBL_45D114) = 0;
     return 0;
@@ -4893,7 +4893,7 @@ LABEL_63:
   if ( v41 )
     v19 = (G32(D4A_TBL_45D114) != 0) + 3 + ((unsigned int)G32(D4A_TBL_45D114) > 2);
   else
-    v19 = (M8(v38 + c->p_690) > 0xEu) + (M8(v38 + c->p_690) > 0x3Eu);
+    v19 = (M8(v38 + c->hash_head) > 0xEu) + (M8(v38 + c->hash_head) > 0x3Eu);
   v33 = (D4A_TBL_446464) + 1024 * v19;
   do
   {
@@ -4936,7 +4936,7 @@ LABEL_63:
     G32(D4A_TBL_45D130) = v17;
     G32(D4A_TBL_45D134) += v45;
   }
-  M8(v38 + c->p_690) = v45;
+  M8(v38 + c->hash_head) = v45;
   if ( v45 == 0xFF )   /* asm 0x40FF2E: cmp dl,0xff (v45 is unsigned char) */
   {
     G32(D4A_TBL_45D11C) = 0;
@@ -4945,7 +4945,7 @@ LABEL_63:
   else
   {
     G32(D4A_TBL_45D114) = 0;
-    G32(D4A_TBL_45D11C) = (G32(D4A_DICT_MASK) & (a1 + v45)) + c->p_dict;
+    G32(D4A_TBL_45D11C) = (G32(D4A_DICT_MASK) & (a1 + v45)) + c->dict_buf;
   }
 #ifdef D4MATCHDBG
   if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
@@ -4954,14 +4954,14 @@ LABEL_63:
 #endif
   do
   {
-    v28 = M8(c->p_dict + a1);
-    d4_40FFFD(c, M8(c->p_dict + a1));
+    v28 = M8(c->dict_buf + a1);
+    d4_40FFFD(c, M8(c->dict_buf + a1));
     d4_40F39A(c, v28, v45 <= 8u);
-    v30 = c->p_dict;
+    v30 = c->dict_buf;
     v31 = G32(D4A_DICT_POS);
     /* asm 0x40FF97/0x40FFA7: both writes store the byte just copied (cl),
      * which Hex-Rays left as the never assigned v29. */
-    M8(c->p_dict + G32(D4A_DICT_POS)) = v28;
+    M8(c->dict_buf + G32(D4A_DICT_POS)) = v28;
     if ( v31 < 0x100 )
       M8(v30 + G32(D4A_DICT_SIZE) + v31) = v28;
     a1 = G32(D4A_DICT_MASK) & (a1 + 1);
@@ -5008,7 +5008,7 @@ static int d4_40FFFD(dec4_ctx *c, char a1)
 #endif
 #ifdef D4MDLDBG
   {
-    unsigned mv2 = (unsigned)(c->p_684 + 20 * G32(D4A_ROW_CTX));
+    unsigned mv2 = (unsigned)(c->row_tab + 20 * G32(D4A_ROW_CTX));
     fprintf(stderr, "MDL out=%u c69c=%u m0=%u m2=%u m9=%u m17=%u m18=%u\n",
         G32(D4A_OUT_POS), G32(D4A_ROW_CTX),
         (unsigned)M8(mv2), (unsigned)M8(mv2 + 2), (unsigned)M8(mv2 + 9),
@@ -5017,7 +5017,7 @@ static int d4_40FFFD(dec4_ctx *c, char a1)
 #endif
 #ifdef D4W16DBG
   fprintf(stderr, "W16 out=%u w=%u\n", G32(D4A_OUT_POS),
-      (unsigned)M16(c->p_6c0 + 781 * 512 + 144 * 2));
+      (unsigned)M16(c->fenwick2 + 781 * 512 + 144 * 2));
 #endif
 #ifdef D4CTXDBG
   fprintf(stderr, "CTX out=%u d0f8=%u d0fc=%u e3a0=%u c6a4=%u c69c=%u\n",
@@ -5455,7 +5455,7 @@ static int d4_41030F(dec4_ctx *c)
   G32(D4A_TBL_45C668) = 0;
   G8(D4A_FLAG_45E3A1) = 0;
   G8(D4A_FLAG_45E3A4) = 0;
-  v2 = c->p_684 + 20 * G32(D4A_ROW_CTX);
+  v2 = c->row_tab + 20 * G32(D4A_ROW_CTX);
   if ( G32(D4A_TBL_45D11C) )
   {
     G8(D4A_HIST_LEN) = 1;
@@ -5471,8 +5471,8 @@ static int d4_41030F(dec4_ctx *c)
       v5 = G32(D4A_OUT_COUNT) % (unsigned int)G32(D4A_BEST_CNT) + M32(D4A_CNT_OFF_5 + ((G32(D4A_BEST_CNT)) * 4));
     if ( (unsigned int)G32(D4A_BEST_CNT) <= 0x10 )
       v4 = G32(D4A_OUT_COUNT) % (unsigned int)G32(D4A_BEST_CNT) + M32(D4A_CNT_OFF_17 + ((G32(D4A_BEST_CNT)) * 4));
-    c->p_68c = D4A_TBL_45CCD4 + 4 * v5;
-    c->p_688 = D4A_TBL_45C6B8 + 4 * v4;
+    c->cost_cnt_b = D4A_TBL_45CCD4 + 4 * v5;
+    c->cost_cnt_a = D4A_TBL_45C6B8 + 4 * v4;
   }
   if ( v209 )
   {
@@ -5482,7 +5482,7 @@ static int d4_41030F(dec4_ctx *c)
       v6 = M32(D4A_TBL_445DAC + ((0) * 4)) < (unsigned int)G32(D4A_TBL_445DB0);
     v209 = v6;
   }
-  v7 = G8(D4A_MODEL_ID) && ((unsigned int)G32(D4A_BEST_OFF) <= 4 || M32(c->p_68c) <= 0x3FEu);
+  v7 = G8(D4A_MODEL_ID) && ((unsigned int)G32(D4A_BEST_OFF) <= 4 || M32(c->cost_cnt_b) <= 0x3FEu);
   v216 = v7;
   v8 = v209 && v7;
   v207 = v8;
@@ -5505,24 +5505,24 @@ static int d4_41030F(dec4_ctx *c)
   v161 = M32(D4A_TBL_42750D + (((signed int)M8(v2 + 19) >> 4) * 4));
   v162 = M32(D4A_TBL_4274CD + (((unsigned char)M8(D4A_RUN_CNT + (v159))) * 4));
   v210 = M8(v2 + (M8(v2 + 19) & 0xF) + 9);
-  v10 = M8(c->p_150);
+  v10 = M8(c->hist_ptr_0);
   v205 = M8(D4A_TBL_45E086 + (v159));
   v11 = G32(D4A_OUT_COUNT);
   M32(D4A_LAST_SEEN + ((v10) * 4)) = G32(D4A_OUT_COUNT);
-  M32(D4A_LAST_SEEN + ((M8(c->p_154)) * 4)) = v11;
-  M32(D4A_LAST_SEEN + ((M8(c->p_158)) * 4)) = v11;
-  M32(D4A_LAST_SEEN + ((M8(c->p_15c)) * 4)) = v11;
+  M32(D4A_LAST_SEEN + ((M8(c->hist_ptr_1)) * 4)) = v11;
+  M32(D4A_LAST_SEEN + ((M8(c->hist_ptr_2)) * 4)) = v11;
+  M32(D4A_LAST_SEEN + ((M8(c->hist_ptr_3)) * 4)) = v11;
   v160 = 0;
   v12 = 32 * G32(D4A_COL_IDX);
   while ( 1 )
   {
-    v158 = v12 + c->p_680;
-    if ( !M8(v12 + c->p_680) )
+    v158 = v12 + c->col_tab;
+    if ( !M8(v12 + c->col_tab) )
     {
       G32(D4A_COL_IDX) += 0x40000;   /* HIWORD += 4 */
       goto LABEL_201;
     }
-    if ( M32(v12 + c->p_680 + 28) == G32(D4A_CTX_COPY) )
+    if ( M32(v12 + c->col_tab + 28) == G32(D4A_CTX_COPY) )
       break;
     G32(D4A_COL_IDX) += 0x8000;
     v12 += 0x100000;
@@ -5559,9 +5559,9 @@ static int d4_41030F(dec4_ctx *c)
   if ( (G32(D4A_TBL_45C6A0)
      || (unsigned int)G32(D4A_BEST_OFF) <= 1
      || G32(D4A_FREQ_A) > (unsigned int)G32(D4A_FREQ_B)
-     || M32(c->p_68c) <= 0x3FEu
+     || M32(c->cost_cnt_b) <= 0x3FEu
      || ((signed int)(v16 - (__CFSHL__((unsigned UHI64)v16 >> 32, 4) + 16 * ((unsigned UHI64)v16 >> 32))) >> 4)
-      * ((unsigned int)M8(v158 + 27) << 6) >= M32(c->p_688))
+      * ((unsigned int)M8(v158 + 27) << 6) >= M32(c->cost_cnt_a))
     && (!M8(v2)
      || !G8(D4A_PHASE) && M8(v2 + 19) < 0x30u
      || (M8(v158 + 25) & 0x38
@@ -5962,12 +5962,12 @@ LABEL_201:
     v204 = 0;
     v65 = !G32(D4A_TBL_45C6AC)
        || !M8(v2 + 17)
-       || (unsigned int)G32(D4A_TBL_45C6B4) < 0xFFFF && M32(c->p_68c) <= 0x3FEu;
+       || (unsigned int)G32(D4A_TBL_45C6B4) < 0xFFFF && M32(c->cost_cnt_b) <= 0x3FEu;
 #ifdef D4V65DBG
     if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "V65 out=%u v65=%d c6ac=%u m2_17=%u c6b4=%u p68c=%u m2_0=%u m2_2=%u m2_9=%u m2_18=%u v2=%u c69c=%u\n",
           G32(D4A_OUT_POS), v65, G32(D4A_TBL_45C6AC), (unsigned)M8(v2 + 17),
-          G32(D4A_TBL_45C6B4), M32(c->p_68c), (unsigned)M8(v2),
+          G32(D4A_TBL_45C6B4), M32(c->cost_cnt_b), (unsigned)M8(v2),
           (unsigned)M8(v2 + 2), (unsigned)M8(v2 + 9), (unsigned)M8(v2 + 18),
           (unsigned)v2, G32(D4A_ROW_CTX));
 #endif
@@ -6308,10 +6308,10 @@ LABEL_336:
           G8(D4A_FLAG_45E399) = v207;
           if ( !v206 )
           {
-            if ( c->p_14c )
+            if ( c->pair_ptr )
             {
-              v155 = M8(c->p_14c);
-              v110 = M8(c->p_14c + 1);
+              v155 = M8(c->pair_ptr);
+              v110 = M8(c->pair_ptr + 1);
             }
             else
             {
@@ -6350,8 +6350,8 @@ LABEL_336:
             {
               if ( G8(D4A_FLAG_45E398) )
               {
-                M32(c->p_68c) >>= 1;
-                M32(c->p_688) >>= 1;
+                M32(c->cost_cnt_b) >>= 1;
+                M32(c->cost_cnt_a) >>= 1;
                 G32(D4A_TBL_45C6B4) = ((unsigned int)G32(D4A_TBL_45C6B4) >> 1) + 255;
               }
               G32(D4A_TRI_HIGH) = v155;
@@ -6365,9 +6365,9 @@ LABEL_336:
               if ( G8(D4A_FLAG_45E398) )
               {
                 v111 = G32(D4A_TBL_45C6B4);
-                M32(c->p_68c) += G32(D4A_TBL_45C6B4);
+                M32(c->cost_cnt_b) += G32(D4A_TBL_45C6B4);
                 G32(D4A_TBL_45C6B4) *= 2;
-                M32(c->p_688) += v111;
+                M32(c->cost_cnt_a) += v111;
                 if ( (unsigned int)G32(D4A_TBL_45C6B4) > 0xFFFF )
                   G32(D4A_TBL_45C6B4) = 0xFFFF;
               }
@@ -6408,8 +6408,8 @@ LABEL_336:
     G8(D4A_FLAG_45E39F) = v207;
     if ( G8(D4A_PHASE) )
     {
-      v218 = M8(c->p_dict + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_OFF))));
-      if ( (unsigned int)G32(D4A_BEST_OFF) > 1 && M32(c->p_68c) )
+      v218 = M8(c->dict_buf + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - G32(D4A_BEST_OFF))));
+      if ( (unsigned int)G32(D4A_BEST_OFF) > 1 && M32(c->cost_cnt_b) )
       {
         v211 = 1;
         v120 = v218 + 256;
@@ -6426,7 +6426,7 @@ LABEL_336:
       else
       {
         v122 = M32(D4A_SEL_LUT + (((unsigned char)(v218
-                                            - M8(c->p_dict
+                                            - M8(c->dict_buf
                                                        + (G32(D4A_DICT_MASK) & (G32(D4A_DICT_POS) - 2 * G32(D4A_BEST_OFF)))))) * 4));
         v202 = 772;
         v201 = v122 + 513;
@@ -6573,10 +6573,10 @@ LABEL_408:
     }
   }
   d4_40F39A(c, v212, 1);
-  v144 = c->p_dict;
+  v144 = c->dict_buf;
   v145 = G32(D4A_DICT_POS);
   v146 = v212;
-  M8(c->p_dict + G32(D4A_DICT_POS)) = v212;
+  M8(c->dict_buf + G32(D4A_DICT_POS)) = v212;
   if ( v145 < 0x100 )
     M8(v144 + G32(D4A_DICT_SIZE) + v145) = v146;
   result = G32(D4A_DICT_MASK);
@@ -6834,9 +6834,9 @@ static unsigned char d4_412257(dec4_ctx *c, int a1)
    * argument (the asm loads dword_45C690, which the caller sets to a2). */
   v63 = a1;
   v70 = (unsigned char)G8(D4A_HIST_LEN);
-  v80 = (c->p_6bc + (v63 << 9));
+  v80 = (c->fenwick1 + (v63 << 9));
   a1 = (a1 & ~0x0000FFFFU) | ((M16(v80)) & 0x0000FFFFU);
-  v67 = M16(c->p_6c8 + 2 * v63);
+  v67 = M16(c->ppm_tot + 2 * v63);
 #ifdef D42257DBG
   if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI) {
     unsigned q2;
@@ -6852,8 +6852,8 @@ static unsigned char d4_412257(dec4_ctx *c, int a1)
   if ( (unsigned short)a1 <= (unsigned int)(M32(D4A_TBL_45BA3C + ((v63) * 4)) * v67) )
   {
     v2 = v70;
-    v80 = ((G32(D4A_PPM_CTX) << 9) + c->p_6bc);
-    v79 = (G32(D4A_PPM_CTX) << 9) + c->p_6c0;
+    v80 = ((G32(D4A_PPM_CTX) << 9) + c->fenwick1);
+    v79 = (G32(D4A_PPM_CTX) << 9) + c->fenwick2;
     a1 = (a1 & ~0x0000FFFFU) | ((M16(v80)) & 0x0000FFFFU);
     while ( v2 )
     {
@@ -6971,7 +6971,7 @@ LABEL_73:
     return v70;
   }
   v4 = 0;
-  v79 = (v63 << 9) + c->p_6c0;
+  v79 = (v63 << 9) + c->fenwick2;
   while ( v4 < v70 )
   {
     v5 = (v79 + 2 * (unsigned char)M8(D4A_HIST_SYMS + (v4++)));
@@ -6986,7 +6986,7 @@ LABEL_73:
     {
       v78 = M16(v79 + 2 * v84);
       v77 = M32(D4A_TBL_42748D + (((unsigned char)M8(D4A_RUN_CNT + (v63))) * 4));
-      v77 = 16 * (v77 + v78) / ((unsigned short)a1 + (unsigned int)M16(c->p_6c8 + 2 * v63) + v77);
+      v77 = 16 * (v77 + v78) / ((unsigned short)a1 + (unsigned int)M16(c->ppm_tot + 2 * v63) + v77);
       if ( v78 <= 0x600 )
       {
         if ( v78 > 0x100 )
@@ -7062,9 +7062,9 @@ LABEL_31:
 LABEL_43:
   if ( !(unsigned short)a1 )
   {
-    v19 = ((G32(D4A_PPM_CTX) << 9) + c->p_6bc);
+    v19 = ((G32(D4A_PPM_CTX) << 9) + c->fenwick1);
     v80 = v19;
-    v79 = (G32(D4A_PPM_CTX) << 9) + c->p_6c0;
+    v79 = (G32(D4A_PPM_CTX) << 9) + c->fenwick2;
     a1 = (a1 & ~0x0000FFFFU) | ((M16(v19)) & 0x0000FFFFU);
     v20 = v70;
     while ( v20 )
@@ -7076,13 +7076,13 @@ LABEL_43:
   }
   if ( v63 >= 0x200 || (unsigned short)a1 >= 0x2000u )
   {
-    G32(D4A_TRI_TOTAL) = M16(c->p_6c8 + 2 * v63) + (unsigned short)a1;
+    G32(D4A_TRI_TOTAL) = M16(c->ppm_tot + 2 * v63) + (unsigned short)a1;
   }
   else
   {
     v1 = (D4A_TBL_453464)
-       + 4 * (unsigned)d4_div(32u * M16(c->p_6c8 + 2 * v63),
-                              (unsigned short)a1 + M16(c->p_6c8 + 2 * v63));
+       + 4 * (unsigned)d4_div(32u * M16(c->ppm_tot + 2 * v63),
+                              (unsigned short)a1 + M16(c->ppm_tot + 2 * v63));
     G32(D4A_TRI_TOTAL) = (unsigned)d4_div((unsigned int)(unsigned short)a1 << 13,
                                      M32(v1)) + 1;
     if ( (unsigned int)G32(D4A_TRI_TOTAL) >= 0x4000 )
@@ -7110,10 +7110,10 @@ LABEL_43:
   G32(D4A_RC_CODE) = (int)l;
   G32(D4A_RC_RANGE) = v23;
   v28 = 0;
-  v71 = c->p_6c0 + (v63 << 9);
-  v76 = (G32(D4A_PPM_CTX) << 9) + c->p_6c0;
-  v29 = (c->p_6c0 + (v63 << 9));
-  v30 = ((G32(D4A_PPM_CTX) << 9) + c->p_6c0);
+  v71 = c->fenwick2 + (v63 << 9);
+  v76 = (G32(D4A_PPM_CTX) << 9) + c->fenwick2;
+  v29 = (c->fenwick2 + (v63 << 9));
+  v30 = ((G32(D4A_PPM_CTX) << 9) + c->fenwick2);
   v31 = 0;
   do
   {
@@ -7126,13 +7126,13 @@ LABEL_43:
   }
   while ( v31 < 0x100 );
   v32 = 256;
-  G32(D4A_TRI_TOTAL) = M16(c->p_6bc + (G32(D4A_PPM_CTX) << 9)) - v28;
+  G32(D4A_TRI_TOTAL) = M16(c->fenwick1 + (G32(D4A_PPM_CTX) << 9)) - v28;
 #ifdef D4ZDIVDBG
   if (G32(D4A_TRI_TOTAL) == 0) {
     unsigned qz;
     fprintf(stderr, "ZDIV out=%u v63=%u c690=%u base=%u v28=%u e39c=%u\n",
         G32(D4A_OUT_POS), v63, G32(D4A_PPM_CTX),
-        (unsigned)M16(c->p_6bc + (G32(D4A_PPM_CTX) << 9)), v28, G8(D4A_HIST_LEN));
+        (unsigned)M16(c->fenwick1 + (G32(D4A_PPM_CTX) << 9)), v28, G8(D4A_HIST_LEN));
     fprintf(stderr, "ZDIVH:");
     for (qz = 0; qz < 16; qz++) fprintf(stderr, " %u", (unsigned)M8(D4A_HIST_SYMS + qz));
     fprintf(stderr, "\n");
@@ -7215,15 +7215,15 @@ static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
 
   v2 = a1;
   v35 = a2;
-  v3 = M16(c->p_6c8 + 2 * a1) * M32(D4A_TBL_45BA3C + (a1) * 4);
+  v3 = M16(c->ppm_tot + 2 * a1) * M32(D4A_TBL_45BA3C + (a1) * 4);
   v32 = 0;
   v4 = (unsigned char)G8(D4A_HIST_LEN);
-  if ( M16((a1 << 9) + c->p_6bc) <= v3 )
+  if ( M16((a1 << 9) + c->fenwick1) <= v3 )
   {
     v2 = G32(D4A_PPM_CTX);
-    v31 = ((G32(D4A_PPM_CTX) << 9) + c->p_6c0);
+    v31 = ((G32(D4A_PPM_CTX) << 9) + c->fenwick2);
 LABEL_50:
-    v19 = M16(c->p_6bc + (v2 << 9));
+    v19 = M16(c->fenwick1 + (v2 << 9));
     if ( v2 >= 0x301 )
     {
       if ( v4 )
@@ -7288,12 +7288,12 @@ LABEL_50:
       }
       if ( v2 >= 0x200 || v19 >= 0x2000u )
       {
-        v21 = (v21 & ~0x0000FFFFU) | ((v19 + M16(c->p_6c8 + 2 * v2)) & 0x0000FFFFU);
+        v21 = (v21 & ~0x0000FFFFU) | ((v19 + M16(c->ppm_tot + 2 * v2)) & 0x0000FFFFU);
       }
       else
       {
         v21 = ((unsigned int)v19 << 13)
-            / (M32(D4A_TBL_453464 + (((32 * M16(c->p_6c8 + 2 * v2) / (v19 + M16(c->p_6c8 + 2 * v2) ? v19 + M16(c->p_6c8 + 2 * v2) : 1)) & 31) * 4)) ? M32(D4A_TBL_453464 + (((32 * M16(c->p_6c8 + 2 * v2) / (v19 + M16(c->p_6c8 + 2 * v2) ? v19 + M16(c->p_6c8 + 2 * v2) : 1)) & 31) * 4)) : 1)
+            / (M32(D4A_TBL_453464 + (((32 * M16(c->ppm_tot + 2 * v2) / (v19 + M16(c->ppm_tot + 2 * v2) ? v19 + M16(c->ppm_tot + 2 * v2) : 1)) & 31) * 4)) ? M32(D4A_TBL_453464 + (((32 * M16(c->ppm_tot + 2 * v2) / (v19 + M16(c->ppm_tot + 2 * v2) ? v19 + M16(c->ppm_tot + 2 * v2) : 1)) & 31) * 4)) : 1)
             + 1;
         if ( v21 >= 0x4000 )
           v21 = (v21 & ~0x0000FFFFU) | ((0x3FFF) & 0x0000FFFFU);
@@ -7304,11 +7304,11 @@ LABEL_50:
     G32(D4A_COST_TMP) += (int)result;
 #ifdef D4C648DBG
     if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
-      fprintf(stderr, "C648 S5 a1=%u a2=%u v2=%u c690=%u v31=%u v19=%u m16=%u m16a=%u idx=%u result=%d e39c=%u h0=%u h1=%u init=%u dec=%u\n", a1, (unsigned)v35, v2, G32(D4A_PPM_CTX), v31, (unsigned)v19, (unsigned)M16(v31 + ((v35) * 2)), (unsigned)(v31 + ((v35) * 2)), ((unsigned)(((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19)), result, G8(D4A_HIST_LEN), (unsigned)M8(D4A_HIST_SYMS), (unsigned)M8(D4A_HIST_SYMS + 1), (unsigned)M16(c->p_6bc + (v2 << 9)), (unsigned)M16(v31 + (((unsigned char)M8(D4A_HIST_SYMS)) << 1)));
+      fprintf(stderr, "C648 S5 a1=%u a2=%u v2=%u c690=%u v31=%u v19=%u m16=%u m16a=%u idx=%u result=%d e39c=%u h0=%u h1=%u init=%u dec=%u\n", a1, (unsigned)v35, v2, G32(D4A_PPM_CTX), v31, (unsigned)v19, (unsigned)M16(v31 + ((v35) * 2)), (unsigned)(v31 + ((v35) * 2)), ((unsigned)(((unsigned int)M16(v31 + ((v35) * 2)) << 14) / v19)), result, G8(D4A_HIST_LEN), (unsigned)M8(D4A_HIST_SYMS), (unsigned)M8(D4A_HIST_SYMS + 1), (unsigned)M16(c->fenwick1 + (v2 << 9)), (unsigned)M16(v31 + (((unsigned char)M8(D4A_HIST_SYMS)) << 1)));
 #endif
   return;
   }
-  v31 = ((a1 << 9) + c->p_6c0);
+  v31 = ((a1 << 9) + c->fenwick2);
   v33 = 0xFFFF;
   if ( a1 >= 512 >> G8(D4A_PHASE) )
     goto LABEL_37;
@@ -7324,7 +7324,7 @@ LABEL_37:
       if ( (unsigned short)v33 == 0xFFFF )   /* asm 0x412c93: cmpw $0xffff */
       {
         v15 = v2 << 9;
-        v15 = (v15 & ~0x0000FFFFU) | ((M16(c->p_6bc + (v2 << 9))) & 0x0000FFFFU);
+        v15 = (v15 & ~0x0000FFFFU) | ((M16(c->fenwick1 + (v2 << 9))) & 0x0000FFFFU);
         v16 = 0;
         v33 = v15;
         while ( v16 < v4 )
@@ -7339,14 +7339,14 @@ LABEL_37:
       {
         if ( v2 >= 0x200 || (unsigned short)v33 >= 0x2000u )
         {
-          v18 = (unsigned short)v33 + M16(c->p_6c8 + 2 * v2);
+          v18 = (unsigned short)v33 + M16(c->ppm_tot + 2 * v2);
         }
         else
         {
           v18 = ((unsigned int)(unsigned short)v33 << 13)
               / M32(D4A_TBL_453464 + ((32
-                           * M16(c->p_6c8 + 2 * v2)
-                           / ((unsigned short)v33 + M16(c->p_6c8 + 2 * v2))) * 4))
+                           * M16(c->ppm_tot + 2 * v2)
+                           / ((unsigned short)v33 + M16(c->ppm_tot + 2 * v2))) * 4))
               + 1;
           if ( v18 >= 0x4000 )
             v18 = 0x3FFF;
@@ -7359,13 +7359,13 @@ LABEL_37:
         v32 = v31;
       }
       v2 = G32(D4A_PPM_CTX);
-      v31 = ((G32(D4A_PPM_CTX) << 9) + c->p_6c0);
+      v31 = ((G32(D4A_PPM_CTX) << 9) + c->fenwick2);
     }
     goto LABEL_50;
   }
   v30 = M16(v31 + ((v34) * 2));
   v6 = a1 << 9;
-  v6 = (v6 & ~0x0000FFFFU) | ((M16(c->p_6bc + (v2 << 9))) & 0x0000FFFFU);
+  v6 = (v6 & ~0x0000FFFFU) | ((M16(c->fenwick1 + (v2 << 9))) & 0x0000FFFFU);
   v33 = v6;
   while ( v5 )
   {
@@ -7375,7 +7375,7 @@ LABEL_37:
     v33 -= (signed int)v7;
   }
   v8 = M32(D4A_TBL_42748D + (((unsigned char)M8(D4A_RUN_CNT + (v2))) * 4));
-  v9 = 16 * (v8 + v30) / ((unsigned short)v33 + (unsigned int)M16(c->p_6c8 + 2 * v2) + v8);
+  v9 = 16 * (v8 + v30) / ((unsigned short)v33 + (unsigned int)M16(c->ppm_tot + 2 * v2) + v8);
   if ( v30 <= 0x600 )
   {
     if ( v30 > 0x100 )
@@ -7640,7 +7640,7 @@ static int d4_412FFA(dec4_ctx *c)
     if ( G32(D4A_TBL_45AE14) < (unsigned int)G32(D4A_TBL_45ADE4) )
     {
       ++G32(D4A_TBL_45AE14);
-      result = c->p_ade8 + 8 * result;
+      result = c->pred_cache + 8 * result;
       v9 = G8(D4A_PRED_FLAG);
       M32(result) = v2;
       M8(result + 4) = v9;
@@ -7650,10 +7650,10 @@ static int d4_412FFA(dec4_ctx *c)
   else
   {
     v10 = 8 * G32(D4A_TBL_45AE14)++;
-    result = c->p_ade8 + v10;
-    v2 = M32(c->p_ade8 + v10);
-    result = (result & ~0x000000FFU) | ((M8(c->p_ade8 + v10 + 5)) & 0x000000FFU);
-    G8(D4A_PRED_FLAG) = M8(c->p_ade8 + v10 + 4);
+    result = c->pred_cache + v10;
+    v2 = M32(c->pred_cache + v10);
+    result = (result & ~0x000000FFU) | ((M8(c->pred_cache + v10 + 5)) & 0x000000FFU);
+    G8(D4A_PRED_FLAG) = M8(c->pred_cache + v10 + 4);
     G8(D4A_FLAG_45E38B) = result;
   }
   G32(D4A_TRI2_TOTAL_NEXT) = v2;
@@ -8171,7 +8171,7 @@ int uharc_dec4_decode(void *ctx,
  * the arena as 32-bit entries (the original was a malloc'ed int[]), with one
  * extra terminator entry = out_len so the walk in d4_40DEB6 can never run
  * past the end. */
-#define A_PROG 0x00500000UL
+#define A_FILE_TABLE 0x00500000UL
 
 int uharc_dec4_decode_b(void *ctx,
                         const unsigned long *cum, unsigned long ncum,
@@ -8201,13 +8201,13 @@ int uharc_dec4_decode_b(void *ctx,
     G32(D4A_NEXT_BLK) = 0xFFFFFFFFU;
     if (cum && ncum) {
         for (i = 0; i < ncum; i++)
-            M32(A_PROG + 4 * i) = (unsigned)cum[i];
-        M32(A_PROG + 4 * ncum) = (unsigned)out_len;
-        G32(D4A_FILE_TAB_PTR) = A_PROG;
-        c->p_prog = A_PROG;
+            M32(A_FILE_TABLE + 4 * i) = (unsigned)cum[i];
+        M32(A_FILE_TABLE + 4 * ncum) = (unsigned)out_len;
+        G32(D4A_FILE_TAB_PTR) = A_FILE_TABLE;
+        c->file_table = A_FILE_TABLE;
     } else {
         G32(D4A_FILE_TAB_PTR) = 0;
-        c->p_prog = 0;
+        c->file_table = 0;
     }
     d4_40F962(c, 0, 0);
     if (G32(D4A_OUTBUF_LEN)) {
