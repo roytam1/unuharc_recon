@@ -2326,7 +2326,7 @@ static unsigned long d4_div(unsigned long a, unsigned long b)
     return a / b;
 }
 
-static int d4_40B093(dec4_ctx *c)
+static int d4_get_byte(dec4_ctx *c) /* input byte (orig d4_40B093) */
 {
     int n;
     if (c->in_pos < c->in_avail) return (int)c->inbuf[c->in_pos++];
@@ -2339,7 +2339,7 @@ static int d4_40B093(dec4_ctx *c)
     return (int)c->inbuf[0];
 }
 
-static int d4_40B178(dec4_ctx *c, char a1)
+static int d4_put_byte(dec4_ctx *c, char a1)
 {
     c->outbuf[G32(D4A_OUTBUF_LEN)] = (unsigned char)a1;
     G32(D4A_OUTBUF_LEN) += 1;
@@ -2373,12 +2373,12 @@ static unsigned char *d4_4079B0(dec4_ctx *c, unsigned n) { (void)c; (void)n; ret
 
 static unsigned int d4_40807F(dec4_ctx *c) { return c->p_prog; }
 
-static void d4_4196E0(dec4_ctx *c, unsigned int dst, int val, unsigned count)
+static void d4_fill8(dec4_ctx *c, unsigned int dst, int val, unsigned count)
 {
     memset(c->mem + dst, (unsigned char)val, count);
 }
 
-static void d4_416D40(dec4_ctx *c, int pat, unsigned int dst, unsigned words)
+static void d4_fill16(dec4_ctx *c, int pat, unsigned int dst, unsigned words)
 {
     unsigned i;
     unsigned char *p;
@@ -2389,16 +2389,16 @@ static void d4_416D40(dec4_ctx *c, int pat, unsigned int dst, unsigned words)
     }
 }
 
-static void d4_419A4D(dec4_ctx *c)
+static void d4_rc_init(dec4_ctx *c) /* range init (orig d4_419A4D) */
 {
     unsigned i;
     G32(D4A_RC_CODE) = 0;
     G32(D4A_RC_RANGE) = 0xFFFFFFFFU;
     for (i = 0; i < 5; i++)
-        G32(D4A_RC_CODE) = (G32(D4A_RC_CODE) << 8) | (unsigned)d4_40B093(c);
+        G32(D4A_RC_CODE) = (G32(D4A_RC_CODE) << 8) | (unsigned)d4_get_byte(c);
 }
 
-static void d4_419AC0(dec4_ctx *c)
+static void d4_cost_fold(dec4_ctx *c) /* fold cost LUT once (orig d4_419AC0) */
 {
     unsigned i;
     if (!G8(D4A_COST_DIRTY)) return;
@@ -2466,8 +2466,8 @@ static void d4_load_tables(dec4_ctx *c)
     CP(D4A_MASK13_SRC, d4_t40CDA1, sizeof d4_t40CDA1);
     CP(D4A_MASK9_SRC, d4_t40CDAD, sizeof d4_t40CDAD);
     G8(D4A_COST_DIRTY) = 1;
-    d4_419AC0(c);
-    d4_419AC0(c);   /* second call no-ops (flag cleared); keeps parity */
+    d4_cost_fold(c);
+    d4_cost_fold(c);   /* second call no-ops (flag cleared); keeps parity */
 #ifdef D4TABDBG
     for (i = 0; i < 16384U; i++) {
       unsigned a = (unsigned)G16(D4A_COST_LUT + 2*i);
@@ -2528,11 +2528,11 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
     memset(c->mem + D4A_LAST_SEEN, 0, 0x400);
     memset(c->mem + c->p_6bc + 266752, 0, 0x1F000);
     memset(c->mem + c->p_6c0 + 266752, 0, 0x1F000);
-    d4_416D40(c, 1, c->p_6c8 + 1042, 248);
-    d4_416D40(c, 32, D4A_TBL_45D768, 769);
-    d4_416D40(c, 16, D4A_TBL_45D166, 769);
-    d4_416D40(c, 10, D4A_TBL_45DD5A, 8);
-    d4_416D40(c, 8, D4A_TBL_45D738, 24);
+    d4_fill16(c, 1, c->p_6c8 + 1042, 248);
+    d4_fill16(c, 32, D4A_TBL_45D768, 769);
+    d4_fill16(c, 16, D4A_TBL_45D166, 769);
+    d4_fill16(c, 10, D4A_TBL_45DD5A, 8);
+    d4_fill16(c, 8, D4A_TBL_45D738, 24);
     G16(D4A_TBL_45D566) = 6;
     /* asm CDD1 0x40D1E0/0x40D1F6: bound is eax<=0xC04, i.e. indices
      * 1..769 (0xC04/4). A <=768 bound misses index 769 = AE38[768],
@@ -2896,11 +2896,11 @@ LABEL_24:
   }
   memcpy(c->mem + (v22), c->mem + (v21), v24 + v23);
   d4_40D604(c);
-  d4_4196E0(c, c->p_684, 0, 0x140000u);
-  d4_4196E0(c, c->p_h1, -1, 0x200000u);
-  d4_4196E0(c, c->p_h2, -1, 0x200000u);
-  d4_4196E0(c, c->p_690, 0, 0x40000u);
-  d4_4196E0(c, c->p_694, 0, 0x40000u);
+  d4_fill8(c, c->p_684, 0, 0x140000u);
+  d4_fill8(c, c->p_h1, -1, 0x200000u);
+  d4_fill8(c, c->p_h2, -1, 0x200000u);
+  d4_fill8(c, c->p_690, 0, 0x40000u);
+  d4_fill8(c, c->p_694, 0, 0x40000u);
   G32(D4A_CTX_W0) = 0;
   G32(D4A_CTX_W1) = 0;
   v29 = v44;
@@ -3228,11 +3228,11 @@ static int d4_40DEB6(dec4_ctx *c)
   while ( v4 < 0x209 );
   if ( G8(D4A_PHASE) )
   {
-    d4_4196E0(c, D4A_TBL_45AD64, 1, 0x80u);
-    d4_4196E0(c, M32(D4A_TBL_42369C), 0, 0x400000u);
+    d4_fill8(c, D4A_TBL_45AD64, 1, 0x80u);
+    d4_fill8(c, M32(D4A_TBL_42369C), 0, 0x400000u);
   }
-  d4_4196E0(c, c->p_6bc, 0, 0x41200u);
-  d4_4196E0(c, c->p_6c0, 0, 0x41200u);
+  d4_fill8(c, c->p_6bc, 0, 0x41200u);
+  d4_fill8(c, c->p_6c0, 0, 0x41200u);
   v5 = 393728;
   do
   {
@@ -3263,8 +3263,8 @@ static int d4_40DEB6(dec4_ctx *c)
     M16(v13 + c->p_6bc + 393726) *= 8;
   }
   while ( v13 != 7168 );
-  d4_416D40(c, 8, c->p_6c0 + 393728, 3584);
-  d4_416D40(c, 1, c->p_6c8, 521);
+  d4_fill16(c, 8, c->p_6c0 + 393728, 3584);
+  d4_fill16(c, 1, c->p_6c8, 521);
   /* Hex-Rays lost the source of v16 in the 656-byte copy below (the
    * original is just memcpy(unk_445DB4, dword_42372C, 656)). */
   memcpy(c->mem + D4A_TBL_445DB4, c->mem + D4A_CLS_TREE_SRC, 656);
@@ -3281,12 +3281,12 @@ static int d4_40DEB6(dec4_ctx *c)
   G32(D4A_TBL_45C6A0) = 0;
   G32(D4A_TBL_45C6B4) = 511;
   c->p_68c = D4A_TBL_45CCD4;
-  d4_4196E0(c, D4A_TBL_45CCD4, 0, 0x424u);
+  d4_fill8(c, D4A_TBL_45CCD4, 0, 0x424u);
   c->p_688 = D4A_TBL_45C6B8;
-  d4_4196E0(c, D4A_TBL_45C6B8, 0, 0x61Cu);
-  d4_4196E0(c, D4A_TBL_444DA4, 0, 0x400u);
-  d4_4196E0(c, D4A_TBL_4455AC, (int)0x80000000u, 0x400u);
-  d4_4196E0(c, D4A_TBL_4445A4, 0, 0x400u);
+  d4_fill8(c, D4A_TBL_45C6B8, 0, 0x61Cu);
+  d4_fill8(c, D4A_TBL_444DA4, 0, 0x400u);
+  d4_fill8(c, D4A_TBL_4455AC, (int)0x80000000u, 0x400u);
+  d4_fill8(c, D4A_TBL_4445A4, 0, 0x400u);
   G32(D4A_TBL_45C66C) = 0;
   G32(D4A_BEST_OFF) = 1;
   G32(D4A_BEST_CNT) = 1;
@@ -3357,8 +3357,8 @@ static int d4_40DEB6(dec4_ctx *c)
       || v30 == 513216 && v31 == 246814
       || v30 != 1029744 && v31 == 1029744 && v32 >= G32(D4A_TBL_45D124) )
     {
-      d4_4196E0(c, c->p_680, 0, 0x100000u);
-      d4_4196E0(c, c->p_684, 0, 0x140000u);
+      d4_fill8(c, c->p_680, 0, 0x100000u);
+      d4_fill8(c, c->p_684, 0, 0x140000u);
       if ( v32 >= G32(D4A_TBL_45D124) )
         G8(D4A_FLAG_45E395) = 10;
     }
@@ -3377,7 +3377,7 @@ static int d4_40DEB6(dec4_ctx *c)
   v40 = G32(D4A_RC_RANGE) * v38;
   i = (unsigned long)(G32(D4A_RC_CODE) - result);
   while (v40 && v40 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v40 = (v40 << 8) & 0xFFFFFFFFU;
   }
   G32(D4A_RC_CODE) = (int)i;
@@ -4014,7 +4014,7 @@ static unsigned int d4_40ECC7(dec4_ctx *c, char a1)
 LABEL_54:
     if ( v15 < 0x38000 )
       M8(v14 + 32 * v15 + 0x100000) = 0;
-    d4_4196E0(c, 32 * v13 + v14, 0, 0x20u);
+    d4_fill8(c, 32 * v13 + v14, 0, 0x20u);
     /* asm 0x40F006: ecx += 32*edi, the freshly cleared bucket entry */
     v1 = 32 * v13 + v14;
     M8(v1) = 1;
@@ -4180,7 +4180,7 @@ static char d4_40F049(dec4_ctx *c, int a1)
   v1 = c->p_684 + 20 * G32(D4A_ROW_CTX);
   if ( !M8(v1) )
   {
-    d4_4196E0(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
+    d4_fill8(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
     /* asm 0x40F186: memset returns the destination (Hex-Rays lost it as v7);
      * the head of the new 20-byte context entry gets 0x0202, +18 = 4 and
      * +9 = the first candidate byte. */
@@ -4391,7 +4391,7 @@ static char d4_40F19A(dec4_ctx *c, int a1)
   }
   else
   {
-    d4_4196E0(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
+    d4_fill8(c, c->p_684 + 20 * G32(D4A_ROW_CTX), 0, 0x14u);
     /* asm 0x40F386: the memset destination (v1) gets 0x0303 at +0, 6 at +18
      * and the decoded byte at +9 (Hex-Rays lost it as the unused v8). */
     M16(v1) = 771;
@@ -4623,7 +4623,7 @@ static int d4_40F962(dec4_ctx *c, void *a1, int a2)
 {
   int result;
 
-  d4_419A4D(c);
+  d4_rc_init(c);
   d4_413A96(c);
   D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(D4A_PHASE), G32(D4A_HDR_SIZE), G32(D4A_NEXT_BLK), G32(D4A_BLK_END), G32(D4A_OUT_TOTAL), c->p_prog);
   do
@@ -4910,7 +4910,7 @@ LABEL_63:
       v23 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v22);
       i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v22);
   while (v23 && v23 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v23 = (v23 << 8) & 0xFFFFFFFFU;
   }
       G32(D4A_RC_CODE) = (int)i;
@@ -5030,20 +5030,20 @@ static int d4_40FFFD(dec4_ctx *c, char a1)
       /* asm 0x410068: movzx edx,dl - the pending byte is a table index
        * (unsigned); a signed char v1 walks backwards into 42711F. */
       v2 = *(&M8(D4A_PENDING_TAB + (11 * ((unsigned char)G8(D4A_FLAG_45E39E) - 166))) + (unsigned char)v1);
-      return d4_40B178(c, v2);
+      return d4_put_byte(c, v2);
     }
     if ( v1 == -2 )
     {
       v2 = -2;
-      return d4_40B178(c, v2);
+      return d4_put_byte(c, v2);
     }
-    d4_40B178(c, 0);
-    d4_40B178(c, 0);
-    d4_40B178(c, 3);
-    d4_40B178(c, 3);
+    d4_put_byte(c, 0);
+    d4_put_byte(c, 0);
+    d4_put_byte(c, 3);
+    d4_put_byte(c, 3);
 LABEL_7:
     v2 = v1;
-    return d4_40B178(c, v2);
+    return d4_put_byte(c, v2);
   }
   result = G32(D4A_OUT_POS);
   if ( G32(D4A_OUT_POS) < (unsigned int)G32(D4A_TBL_45D124) || v1 != -2 )
@@ -5054,7 +5054,7 @@ LABEL_7:
     v4 = M8(D4A_DECODE_MAP + ((unsigned char)v1));
     if ( (unsigned char)v4 >= 0xC8u )
     {
-      result = d4_40B178(c, v1 - G8(D4A_ESCAPE_FLAG));
+      result = d4_put_byte(c, v1 - G8(D4A_ESCAPE_FLAG));
       G8(D4A_ESCAPE_FLAG) = 0;
     }
     else if ( v4 == 100 )
@@ -5074,13 +5074,13 @@ LABEL_7:
       if ( G8(D4A_ESCAPE_FLAG) )
       {
         --v7;
-        d4_40B178(c, ~M8(v6) - 32);
+        d4_put_byte(c, ~M8(v6) - 32);
         ++v6;
         G8(D4A_ESCAPE_FLAG) = 0;
       }
       do
       {
-        result = d4_40B178(c, ~M8(v6));
+        result = d4_put_byte(c, ~M8(v6));
         ++v6;
         --v7;
       }
@@ -5138,7 +5138,7 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
     v3 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v2);
     i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v2);
   while (v3 && v3 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v3 = (v3 << 8) & 0xFFFFFFFFU;
   }
     G32(D4A_RC_CODE) = (int)i;
@@ -5155,7 +5155,7 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
     v11 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v10);
     j = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v10);
   while (v11 && v11 < 0x1000000) {
-    j = ((unsigned long)((unsigned long)j << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    j = ((unsigned long)((unsigned long)j << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v11 = (v11 << 8) & 0xFFFFFFFFU;
   }
     G32(D4A_RC_CODE) = (int)j;
@@ -5783,7 +5783,7 @@ LABEL_175:
             v58 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v57);
             i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v57);
   while (v58 && v58 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v58 = (v58 << 8) & 0xFFFFFFFFU;
   }
             G32(D4A_RC_CODE) = (int)i;
@@ -5915,7 +5915,7 @@ LABEL_87:
       v32 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v31);
       j = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v31);
   while (v32 && v32 < 0x1000000) {
-    j = ((unsigned long)((unsigned long)j << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    j = ((unsigned long)((unsigned long)j << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v32 = (v32 << 8) & 0xFFFFFFFFU;
   }
       G32(D4A_RC_CODE) = (int)j;
@@ -6087,7 +6087,7 @@ LABEL_201:
       v80 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v79);
       k = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v79);
   while (v80 && v80 < 0x1000000) {
-    k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v80 = (v80 << 8) & 0xFFFFFFFFU;
   }
       G32(D4A_RC_CODE) = (int)k;
@@ -6239,7 +6239,7 @@ LABEL_313:
     v102 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v101);
     l = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v101);
   while (v102 && v102 < 0x1000000) {
-    l = ((unsigned long)((unsigned long)l << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    l = ((unsigned long)((unsigned long)l << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v102 = (v102 << 8) & 0xFFFFFFFFU;
   }
     G32(D4A_RC_CODE) = (int)l;
@@ -6396,7 +6396,7 @@ LABEL_336:
             v115 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v114);
             m = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v114);
   while (v115 && v115 < 0x1000000) {
-    m = ((unsigned long)((unsigned long)m << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    m = ((unsigned long)((unsigned long)m << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v115 = (v115 << 8) & 0xFFFFFFFFU;
   }
             G32(D4A_RC_CODE) = (int)m;
@@ -6729,7 +6729,7 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
     v8 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v7);
     i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v7);
   while (v8 && v8 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v8 = (v8 << 8) & 0xFFFFFFFFU;
   }
     G32(D4A_RC_CODE) = (int)i;
@@ -6980,7 +6980,7 @@ LABEL_73:
     v58 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v57);
     i = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v57);
   while (v58 && v58 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v58 = (v58 << 8) & 0xFFFFFFFFU;
   }
     G32(D4A_RC_CODE) = (int)i;
@@ -7067,7 +7067,7 @@ LABEL_31:
       v13 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v12);
       k = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v12);
   while (v13 && v13 < 0x1000000) {
-    k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v13 = (v13 << 8) & 0xFFFFFFFFU;
   }
       G32(D4A_RC_CODE) = (int)k;
@@ -7129,7 +7129,7 @@ LABEL_43:
   v23 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v22);
   l = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v22);
   while (v23 && v23 < 0x1000000) {
-    l = ((unsigned long)((unsigned long)l << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    l = ((unsigned long)((unsigned long)l << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v23 = (v23 << 8) & 0xFFFFFFFFU;
   }
   G32(D4A_RC_CODE) = (int)l;
@@ -7187,7 +7187,7 @@ LABEL_43:
   v37 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v36);
   m = (unsigned long)(G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v36);
   while (v37 && v37 < 0x1000000) {
-    m = ((unsigned long)((unsigned long)m << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    m = ((unsigned long)((unsigned long)m << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v37 = (v37 << 8) & 0xFFFFFFFFU;
   }
   G32(D4A_RC_CODE) = (int)m;
@@ -7525,7 +7525,7 @@ static int d4_412FB0(dec4_ctx *c)
 {
   int result;
 
-  d4_4196E0(c, D4A_TBL_43D72C, 0, 0x1E40u);
+  d4_fill8(c, D4A_TBL_43D72C, 0, 0x1E40u);
   G32(D4A_TBL_43D734) = 2;
   result = 0;
   do
@@ -8115,7 +8115,7 @@ static int d4_413A96(dec4_ctx *c)
   v5 = G32(D4A_RC_RANGE) * v3;
   i = (unsigned long)(G32(D4A_RC_CODE) - result);
   while (v5 && v5 < 0x1000000) {
-    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    i = ((unsigned long)((unsigned long)i << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v5 = (v5 << 8) & 0xFFFFFFFFU;
   }
   G32(D4A_RC_CODE) = (int)i;
@@ -8134,7 +8134,7 @@ static int d4_413A96(dec4_ctx *c)
       v11 = G32(D4A_RC_RANGE) * (M32(D4A_TRI_TOTAL + (2) * 4) - v10);
       j = G32(D4A_RC_CODE) - G32(D4A_RC_RANGE) * v10;
   while (v11 && v11 < 0x1000000) {
-    j = (j << 8) | (unsigned)d4_40B093(c);
+    j = (j << 8) | (unsigned)d4_get_byte(c);
     v11 = (v11 << 8) & 0xFFFFFFFFU;
   }
       G32(D4A_RC_CODE) = j;
@@ -8149,7 +8149,7 @@ static int d4_413A96(dec4_ctx *c)
       v18 = v11 / 2 * (M32(D4A_TRI_TOTAL + (2) * 4) - v17);
       k = (unsigned long)(j - G32(D4A_RC_RANGE) * v17);
   while (v18 && v18 < 0x1000000) {
-    k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_40B093(c));
+    k = ((unsigned long)((unsigned long)k << 8) | (unsigned long)(unsigned char)d4_get_byte(c));
     v18 = (v18 << 8) & 0xFFFFFFFFU;
   }
       G32(D4A_RC_CODE) = (int)k;
