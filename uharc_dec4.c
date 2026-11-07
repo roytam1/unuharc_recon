@@ -13,13 +13,13 @@
  *  - progress callback (sub_40819B) is a no-op
  *  - the container's file-size table (dword_45D128) is not part of the
  *    decoder API; the one block boundary carried in the stream is used
- *    instead (see d4_40DEB6)
+ *    instead (see d4_block_model_init)
  */
 #if defined(__GNUC__)
 /* The arena below is read and written through unsigned char/unsigned
  * short/unsigned int lvalues at overlapping offsets (that is the whole
  * point of the 32-bit address emulation).  GCC's strict aliasing rules
- * do not allow that, and -O2 does miscompile d4_40E4FF (the statistics
+ * do not allow that, and -O2 does miscompile d4_ppm_rescale (the statistics
  * rescale) when they are on, so turn them off for this translation unit. */
 #pragma GCC optimize("no-strict-aliasing")
 #endif
@@ -100,36 +100,36 @@ typedef struct dec4_ctx_s {
 
 /* ---------------- prototypes ---------------- */
 
-static int d4_40D58D(dec4_ctx *c);
-static unsigned int d4_40D604(dec4_ctx *c);
-static int d4_40D6D1(dec4_ctx *c);
-static unsigned int d4_40DBC5(dec4_ctx *c);
-static int d4_40DEB6(dec4_ctx *c);
-static unsigned int d4_40E3EB(dec4_ctx *c, int a1);
-static int d4_40E4FF(dec4_ctx *c, unsigned int a1);
-static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2);
-static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2);
-static unsigned char d4_40E810(dec4_ctx *c, unsigned char a1, unsigned char a2);
-static unsigned int d4_40E885(dec4_ctx *c);
-static int d4_40EBA7(dec4_ctx *c, char a1);
-static unsigned int d4_40ECC7(dec4_ctx *c, char a1);
-static char d4_40F049(dec4_ctx *c, int a1);
-static char d4_40F19A(dec4_ctx *c, int a1);
-static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2);
-static int d4_40F962(dec4_ctx *c, void *a1, int a2);
-static char d4_40F9D0(dec4_ctx *c, int a1);
-static int d4_40FFFD(dec4_ctx *c, char a1);
-static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1);
-static int d4_41030F(dec4_ctx *c);
-static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2);
-static unsigned char d4_412257(dec4_ctx *c, int a1);
-static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2);
-static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3);
-static int d4_412F80(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3);
-static int d4_412FB0(dec4_ctx *c);
-static int d4_412FFA(dec4_ctx *c);
-static int d4_413347(dec4_ctx *c, int a1, unsigned char a2);
-static int d4_413A96(dec4_ctx *c);
+static int d4_row_rescale(dec4_ctx *c);
+static unsigned int d4_col_rescale(dec4_ctx *c);
+static int d4_block_reinit(dec4_ctx *c);
+static unsigned int d4_build_prob_tables(dec4_ctx *c);
+static int d4_block_model_init(dec4_ctx *c);
+static unsigned int d4_fenwick_rebuild(dec4_ctx *c, int a1);
+static int d4_ppm_rescale(dec4_ctx *c, unsigned int a1);
+static unsigned char d4_fenwick_add(dec4_ctx *c, unsigned char a1, int a2);
+static int d4_fenwick_add_run(dec4_ctx *c, unsigned char a1, int a2);
+static unsigned char d4_cls_update(dec4_ctx *c, unsigned char a1, unsigned char a2);
+static unsigned int d4_row_pick_best(dec4_ctx *c);
+static int d4_row_cost_update(dec4_ctx *c, char a1);
+static unsigned int d4_col_update(dec4_ctx *c, char a1);
+static char d4_row_update(dec4_ctx *c, int a1);
+static char d4_row_update_cost(dec4_ctx *c, int a1);
+static int d4_ctx_feed_byte(dec4_ctx *c, unsigned char a1, char a2);
+static int d4_decode_main(dec4_ctx *c, void *a1, int a2);
+static char d4_try_match(dec4_ctx *c, int a1);
+static int d4_emit_byte(dec4_ctx *c, char a1);
+static unsigned char d4_cls_decode(dec4_ctx *c, unsigned char a1);
+static int d4_decode_ppm(dec4_ctx *c);
+static unsigned char d4_ppm_decode_gated(dec4_ctx *c, unsigned int a1, int a2);
+static unsigned char d4_ppm_decode_sym(dec4_ctx *c, int a1);
+static void d4_ppm_eval_cost(dec4_ctx *c, unsigned int a1, unsigned char a2);
+static int d4_trial_record_cost(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3);
+static int d4_cost_accum_update(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3);
+static int d4_pred_cache_reset(dec4_ctx *c);
+static int d4_pred_next(dec4_ctx *c);
+static int d4_pred_learn(dec4_ctx *c, int a1, unsigned char a2);
+static int d4_read_header(dec4_ctx *c);
 
 
 /* ---- static tables, extracted from UNUHARC06.lst DGROUP bytes ---- */
@@ -2365,13 +2365,13 @@ static int d4_put_byte(dec4_ctx *c, char a1)
     return 0;
 }
 
-static int d4_40819B(dec4_ctx *c) { (void)c; return 0; }
+static int d4_progress_tick(dec4_ctx *c) { (void)c; return 0; }
 
-static void *d4_406690(dec4_ctx *c, void *p) { (void)c; (void)p; return 0; }
+static void *d4_stub_free(dec4_ctx *c, void *p) { (void)c; (void)p; return 0; }
 
-static unsigned char *d4_4079B0(dec4_ctx *c, unsigned n) { (void)c; (void)n; return 0; }
+static unsigned char *d4_stub_alloc(dec4_ctx *c, unsigned n) { (void)c; (void)n; return 0; }
 
-static unsigned int d4_40807F(dec4_ctx *c) { return c->file_table; }
+static unsigned int d4_get_file_table(dec4_ctx *c) { return c->file_table; }
 
 static void d4_fill8(dec4_ctx *c, unsigned int dst, int val, unsigned count)
 {
@@ -2493,7 +2493,7 @@ static void d4_load_tables(dec4_ctx *c)
 
 /* ---------------- init (sub_40CDD1) ---------------- */
 
-static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
+static int d4_decoder_init(dec4_ctx *c, int a1, int a2)
 {
     unsigned dict, i;
     if (!(a2 >= 24 && a2 <= 39)) return 1;
@@ -2561,7 +2561,7 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
         G8(D4A_TBL_45E085 + i) = 0xFF;
         G8(D4A_TBL_45DD84 + i) = 0;
     }
-    d4_40DBC5(c);
+    d4_build_prob_tables(c);
     G32(D4A_NEXT_BLK) = 0xFFFFFFFFU;
     G32(D4A_TBL_45D124) = 0xFFFFFFFFU;
     G32(D4A_TBL_45D130) = 0xFFFFFFFFU;
@@ -2613,7 +2613,7 @@ static int d4_40CDD1(dec4_ctx *c, int a1, int a2)
 /* ---------------- translated functions ---------------- */
 
 
-static int d4_40D58D(dec4_ctx *c)
+static int d4_row_rescale(dec4_ctx *c)
 {
   unsigned int v0;
   int v1;
@@ -2664,7 +2664,7 @@ static int d4_40D58D(dec4_ctx *c)
   return result;
 }
 
-static unsigned int d4_40D604(dec4_ctx *c)
+static unsigned int d4_col_rescale(dec4_ctx *c)
 {
   unsigned int result;
   unsigned int v1;
@@ -2731,7 +2731,7 @@ static unsigned int d4_40D604(dec4_ctx *c)
   return result;
 }
 
-static int d4_40D6D1(dec4_ctx *c)
+static int d4_block_reinit(dec4_ctx *c)
 {
   int v0;
   int v1;
@@ -2909,7 +2909,7 @@ LABEL_24:
     v23 = 0;
   }
   memcpy(c->mem + (v22), c->mem + (v21), v24 + v23);
-  d4_40D604(c);
+  d4_col_rescale(c);
   d4_fill8(c, c->row_tab, 0, 0x140000u);
   d4_fill8(c, c->hash1, -1, 0x200000u);
   d4_fill8(c, c->hash2, -1, 0x200000u);
@@ -2981,7 +2981,7 @@ LABEL_39:
         while ( (unsigned char)v38 );
         G32(D4A_TBL_45C678) = v47;
 LABEL_48:
-        d4_40ECC7(c, M8(v29 + c->dict_buf));
+        d4_col_update(c, M8(v29 + c->dict_buf));
       }
       else if ( v30 == -1 )
       {
@@ -2999,7 +2999,7 @@ LABEL_48:
   G32(D4A_FREQ_B) = v45;
   G32(D4A_FREQ_C) = v42;
   G32(D4A_FREQ_A) = v46;
-  d4_40DBC5(c);
+  d4_build_prob_tables(c);
   G32(D4A_NEXT_BLK) = -1;
   result = G32(D4A_OUT_POS);
   G8(D4A_PHASE) = 1;
@@ -3007,7 +3007,7 @@ LABEL_48:
   return result;
 }
 
-static unsigned int d4_40DBC5(dec4_ctx *c)
+static unsigned int d4_build_prob_tables(dec4_ctx *c)
 {
   unsigned int v0;
   int v2;
@@ -3162,7 +3162,7 @@ static unsigned int d4_40DBC5(dec4_ctx *c)
   return result;
 }
 
-static int d4_40DEB6(dec4_ctx *c)
+static int d4_block_model_init(dec4_ctx *c)
 {
   int v0;
   int v1;
@@ -3285,11 +3285,11 @@ static int d4_40DEB6(dec4_ctx *c)
   v24 = 521;
   do
   {
-    d4_40E4FF(c, v24);
+    d4_ppm_rescale(c, v24);
     ++v24;
   }
   while ( v24 < 0x301 );
-  d4_40D58D(c);
+  d4_row_rescale(c);
   G32(D4A_TBL_45C6B0) = 0;
   G32(D4A_TBL_45C6AC) = 0;
   G32(D4A_TBL_45C6A0) = 0;
@@ -3357,15 +3357,15 @@ static int d4_40DEB6(dec4_ctx *c)
       v32 = G32(D4A_OUT_POS);
     if ( v30 == 586960 && v31 == 2988578 )
     {
-      d4_40D604(c);
-      d4_40D604(c);
+      d4_col_rescale(c);
+      d4_col_rescale(c);
     }
     if ( v30 == 481861 && v31 == 426754 )
-      d4_40D604(c);
+      d4_col_rescale(c);
     if ( v30 == 1566200 && v31 == 2934336 || v30 == 2934336 && v31 == 438144 )
     {
-      d4_40D604(c);
-      d4_40D58D(c);
+      d4_col_rescale(c);
+      d4_row_rescale(c);
     }
     if ( v30 == 3706306 && v31 == 1498414
       || v30 == 513216 && v31 == 246814
@@ -3408,12 +3408,12 @@ static int d4_40DEB6(dec4_ctx *c)
     G32(D4A_MOD_CNT) = 0;
     G8(D4A_FLAG_45E38D) = result;
     if ( (unsigned char)G8(D4A_MODEL_ID) > 4u )
-      result = d4_412FB0(c);
+      result = d4_pred_cache_reset(c);
   }
   return result;
 }
 
-static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
+static unsigned int d4_fenwick_rebuild(dec4_ctx *c, int a1)
 {
 #ifdef D4RSDBG
   fprintf(stderr, "RS out=%u a1=%d\n", G32(D4A_OUT_POS), a1);
@@ -3495,7 +3495,7 @@ static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
     {
       /* asm 0x40E4E4: the read is at result - v21 (v21 already doubled);
        * (-v21)<<1 reads 2x too far back and corrupts the rebuilt tree.
-       * Same class as the fixed d4_40E4FF read (see its 0x40E5C0 note). */
+       * Same class as the fixed d4_ppm_rescale read (see its 0x40E5C0 note). */
       M16(result) += M16(result - v21);
       result -= v22;
     }
@@ -3505,7 +3505,7 @@ static unsigned int d4_40E3EB(dec4_ctx *c, int a1)
   return result;
 }
 
-static int d4_40E4FF(dec4_ctx *c, unsigned int a1)
+static int d4_ppm_rescale(dec4_ctx *c, unsigned int a1)
 {
   unsigned int v1;
   short v2;
@@ -3623,7 +3623,7 @@ LABEL_4:
   return result;
 }
 
-static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
+static unsigned char d4_fenwick_add(dec4_ctx *c, unsigned char a1, int a2)
 {
 #ifdef D4E672DBG
   if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
@@ -3656,11 +3656,11 @@ static unsigned char d4_40E672(dec4_ctx *c, unsigned char a1, int a2)
   }
   M16(v3) += v4;
   if ( M16(v3) >= 0x4000u )
-    result = (unsigned int)d4_40E3EB(c, G32(D4A_PPM_CTX));
+    result = (unsigned int)d4_fenwick_rebuild(c, G32(D4A_PPM_CTX));
   return result;
 }
 
-static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
+static int d4_fenwick_add_run(dec4_ctx *c, unsigned char a1, int a2)
 {
   unsigned int v2;
   unsigned int v3;
@@ -3698,12 +3698,12 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
   if ( M16(v3) )
   {
     if ( M16(c->fenwick1 + (a2 << 9)) <= (unsigned int)M16(v12 + c->ppm_tot) * M32(D4A_TBL_45BA3C + (v6) * 4) )
-      d4_40E672(c, v13, a2);
+      d4_fenwick_add(c, v13, a2);
     M32(D4A_TBL_45BA3C + ((v2) * 4)) = (unsigned int)M32(D4A_TBL_45BA3C + ((v2) * 4)) >> 4;
   }
   else
   {
-    d4_40E672(c, v13, a2);
+    d4_fenwick_add(c, v13, a2);
     M16(v12 + c->ppm_tot) += v4;
     M32(D4A_TBL_45BA3C + ((v6) * 4)) += (unsigned char)G8(D4A_PHASE);
   }
@@ -3722,11 +3722,11 @@ static int d4_40E6D5(dec4_ctx *c, unsigned char a1, int a2)
   M16(v7) += v4;
   result = M16(v7) + M16(v10 + 2 * v2);
   if ( result >= 0x4000 || (int)M32(D4A_TBL_45AE38 + ((v2) * 4)) < 0 )
-    result = d4_40E4FF(c, v2);   /* asm 0x40e7f9: cmpl $0,... = signed */
+    result = d4_ppm_rescale(c, v2);   /* asm 0x40e7f9: cmpl $0,... = signed */
   return result;
 }
 
-static unsigned char d4_40E810(dec4_ctx *c, unsigned char a1, unsigned char a2)
+static unsigned char d4_cls_update(dec4_ctx *c, unsigned char a1, unsigned char a2)
 {
   unsigned char v2;
   unsigned int v3;
@@ -3757,7 +3757,7 @@ static unsigned char d4_40E810(dec4_ctx *c, unsigned char a1, unsigned char a2)
   return result;
 }
 
-static unsigned int d4_40E885(dec4_ctx *c)
+static unsigned int d4_row_pick_best(dec4_ctx *c)
 {
   char v0;
   int v1;
@@ -3886,7 +3886,7 @@ static unsigned int d4_40E885(dec4_ctx *c)
   return result;
 }
 
-static int d4_40EBA7(dec4_ctx *c, char a1)
+static int d4_row_cost_update(dec4_ctx *c, char a1)
 {
   unsigned char v1;   /* byte value: compared with M8() (unsigned) */
   unsigned char v2;
@@ -3981,7 +3981,7 @@ static int d4_40EBA7(dec4_ctx *c, char a1)
   return result;
 }
 
-static unsigned int d4_40ECC7(dec4_ctx *c, char a1)
+static unsigned int d4_col_update(dec4_ctx *c, char a1)
 {
   int v1;
   int v2;
@@ -4176,7 +4176,7 @@ LABEL_60:
   return result;
 }
 
-static char d4_40F049(dec4_ctx *c, int a1)
+static char d4_row_update(dec4_ctx *c, int a1)
 {
   int v1;
   unsigned int v2;
@@ -4276,7 +4276,7 @@ LABEL_19:
   return a1;
 }
 
-static char d4_40F19A(dec4_ctx *c, int a1)
+static char d4_row_update_cost(dec4_ctx *c, int a1)
 {
   int v1;
   int v2;
@@ -4412,7 +4412,7 @@ static char d4_40F19A(dec4_ctx *c, int a1)
   return a1;
 }
 
-static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
+static int d4_ctx_feed_byte(dec4_ctx *c, unsigned char a1, char a2)
 {
   unsigned char v2;
   char v3;
@@ -4567,7 +4567,7 @@ static int d4_40F39A(dec4_ctx *c, unsigned char a1, char a2)
       {
         if ( G8(D4A_MODEL_ID) != 4 )
         {
-          d4_413347(c, v2, v12);
+          d4_pred_learn(c, v2, v12);
           goto LABEL_61;
         }
         v14 = v13 + (unsigned char)M8(D4A_DELTA_LUT2 + ((unsigned char)v12)) + 681;
@@ -4618,7 +4618,7 @@ LABEL_61:
     }
     else if ( (unsigned char)G8(D4A_MODEL_ID) >= 5u )
     {
-      d4_412FFA(c);
+      d4_pred_next(c);
     }
   }
   c->hist_ptr_0 = c->byte_hist + (((unsigned int)G32(D4A_CTX_W0) >> 16) & 0xFF00) + ((unsigned int)G32(D4A_CTX_W1) >> 24);
@@ -4630,30 +4630,30 @@ LABEL_61:
   return result;
 }
 
-static int d4_40F962(dec4_ctx *c, void *a1, int a2)
+static int d4_decode_main(dec4_ctx *c, void *a1, int a2)
 {
   int result;
 
   d4_rc_init(c);
-  d4_413A96(c);
+  d4_read_header(c);
   D4TRACE("HDR phase=%u 4228BE=%u 45D13C=%u 45D12C=%u total=%u prog=%u\n", G8(D4A_PHASE), G32(D4A_HDR_SIZE), G32(D4A_NEXT_BLK), G32(D4A_BLK_END), G32(D4A_OUT_TOTAL), c->file_table);
   do
   {
     if ( G32(D4A_OUT_POS) >= (unsigned int)G32(D4A_NEXT_BLK) )
-      d4_40D6D1(c);
+      d4_block_reinit(c);
     if ( G32(D4A_OUT_POS) >= (unsigned int)G32(D4A_BLK_END) )
-      d4_40DEB6(c);
-    if ( !d4_40F9D0(c, a2) )
-      d4_41030F(c);
+      d4_block_model_init(c);
+    if ( !d4_try_match(c, a2) )
+      d4_decode_ppm(c);
     if ( !(G32(D4A_OUT_POS) & 0xF) )
-      d4_40819B(c);
+      d4_progress_tick(c);
     result = G32(D4A_OUT_POS);
   }
   while ( (unsigned int)G32(D4A_OUT_POS) < G32(D4A_OUT_TOTAL) && !G32(D4A_IO_ERR) );
   return result;
 }
 
-static char d4_40F9D0(dec4_ctx *c, int a1)
+static char d4_try_match(dec4_ctx *c, int a1)
 {
   unsigned int v1;
   unsigned int v2;
@@ -4858,10 +4858,10 @@ LABEL_46:
   }
   if ( G32(D4A_TBL_45D11C) && M8(G32(D4A_TBL_45D11C)) == M8(a1 + c->dict_buf) )
   {
-    d4_40E810(c, v42, 2u);
+    d4_cls_update(c, v42, 2u);
     goto LABEL_87;
   }
-  if ( d4_41013C(c, v42) != 1 )
+  if ( d4_cls_decode(c, v42) != 1 )
   {
     ++G32(D4A_TBL_45D134);
 LABEL_87:
@@ -4955,8 +4955,8 @@ LABEL_63:
   do
   {
     v28 = M8(c->dict_buf + a1);
-    d4_40FFFD(c, M8(c->dict_buf + a1));
-    d4_40F39A(c, v28, v45 <= 8u);
+    d4_emit_byte(c, M8(c->dict_buf + a1));
+    d4_ctx_feed_byte(c, v28, v45 <= 8u);
     v30 = c->dict_buf;
     v31 = G32(D4A_DICT_POS);
     /* asm 0x40FF97/0x40FFA7: both writes store the byte just copied (cl),
@@ -4972,7 +4972,7 @@ LABEL_63:
   return 1;
 }
 
-static int d4_40FFFD(dec4_ctx *c, char a1)
+static int d4_emit_byte(dec4_ctx *c, char a1)
 {
   char v1;
   char v2;
@@ -5102,7 +5102,7 @@ LABEL_7:
   return result;
 }
 
-static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
+static unsigned char d4_cls_decode(dec4_ctx *c, unsigned char a1)
 {
   unsigned int v1;
   int v2;
@@ -5176,11 +5176,11 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
       G32(D4A_MOD_CNT) = 0;
       G8(D4A_FLAG_45E38D) = v18;
       if ( (unsigned char)G8(D4A_MODEL_ID) > 4u )
-        d4_412FB0(c);
+        d4_pred_cache_reset(c);
     }
     a1 = v21;
   }
-  d4_40E810(c, v21, v20);
+  d4_cls_update(c, v21, v20);
   return v20;
 }
 
@@ -5188,13 +5188,13 @@ static unsigned char d4_41013C(dec4_ctx *c, unsigned char a1)
  * byte 70, 06_mx random.bin): some Hex-Rays locals are read before they are
  * written on rarely-taken paths, and GCC's -O2 exploits the garbage. Zeroing
  * is proven safe here (06_mx fully exact, full suite green); the alternative
- * would be auditing every local against the asm. Same for d4_411F8B and
- * d4_412257 below. */
+ * would be auditing every local against the asm. Same for d4_ppm_decode_gated and
+ * d4_ppm_decode_sym below. */
 #pragma GCC push_options
 #if defined(__GNUC__) && __GNUC__ >= 12
 #pragma GCC optimize ("-ftrivial-auto-var-init=zero")
 #endif
-static int d4_41030F(dec4_ctx *c)
+static int d4_decode_ppm(dec4_ctx *c)
 {
   signed int v0;
   signed int v1;
@@ -5925,11 +5925,11 @@ LABEL_201:
   if ( !v208 )
   {
     if ( M8(v158 + (unsigned char)G8(D4A_COL_SLOT) + 1) < 7u )
-      d4_40F049(c, v212);
+      d4_row_update(c, v212);
     goto LABEL_408;
   }
   if ( G8(D4A_PHASE) )
-    v63 = d4_40E885(c);
+    v63 = d4_row_pick_best(c);
   else
     v63 = 0;
   v204 = 1;
@@ -6452,7 +6452,7 @@ LABEL_336:
           M8(D4A_HIST_SYMS + (v125)) -= v124;
         }
       }
-      v126 = d4_411F8B(c, v201, v202);
+      v126 = d4_ppm_decode_gated(c, v201, v202);
       if ( v216 )
         v128 = v218 - v126;
       else
@@ -6492,7 +6492,7 @@ LABEL_336:
       v134 = v120;
       goto LABEL_394;
     }
-    v135 = d4_411F8B(c, v120, 769);
+    v135 = d4_ppm_decode_gated(c, v120, 769);
     v212 = v135;
 #ifdef D4V135DBG
     if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
@@ -6526,23 +6526,23 @@ LABEL_336:
       v133 = v202;
       v134 = v201;
 LABEL_394:
-      d4_412ED2(c, v134, v133, v132);
+      d4_trial_record_cost(c, v134, v133, v132);
     }
   }
 LABEL_408:
-  d4_40ECC7(c, v212);
+  d4_col_update(c, v212);
   if ( G8(D4A_FLAG_45E39D) )
-    d4_40F19A(c, v212);   /* asm 0x411E16: eax = edx = the decoded byte (was a
+    d4_row_update_cost(c, v212);   /* asm 0x411E16: eax = edx = the decoded byte (was a
                            * Hex-Rays leftover v139, never assigned) */
   if ( G8(D4A_FLAG_45E393) )
-    d4_40EBA7(c, v212);
+    d4_row_cost_update(c, v212);
   if ( v207 )
   {
     v140 = v212 - G8(D4A_FLAG_45E38B);
     if ( G8(D4A_PRED_FLAG) )
       v140 = -v140;
     G8(D4A_HIST_LEN) = 0;
-    d4_412F80(c, G32(D4A_TRI2_TOTAL_NEXT), (unsigned char)G8(D4A_MODEL_ID) + 772, v140);
+    d4_cost_accum_update(c, G32(D4A_TRI2_TOTAL_NEXT), (unsigned char)G8(D4A_MODEL_ID) + 772, v140);
     if ( G8(D4A_FLAG_45E39F) )
       G32(D4A_COST_SUM) += G32(D4A_TBL_45C668);
     G32(D4A_COST_GATE) = G32(D4A_COST_SUM) + ((unsigned int)(31 * G32(D4A_COST_GATE)) >> 5);
@@ -6552,11 +6552,11 @@ LABEL_408:
     v141 = (unsigned char)G8(D4A_FLAG_45E3A1);
     G32(D4A_PPM_CTX) = M32(D4A_TBL_444584 + ((v141) * 4));
     if ( M32(D4A_TBL_444594 + ((v141) * 4)) == 512 )
-      d4_40E672(c, M8(D4A_TBL_45AE34 + (unsigned char)G8(D4A_FLAG_45E3A1)), M32(D4A_TBL_444594 + ((v141) * 4)));
+      d4_fenwick_add(c, M8(D4A_TBL_45AE34 + (unsigned char)G8(D4A_FLAG_45E3A1)), M32(D4A_TBL_444594 + ((v141) * 4)));
     else
-      d4_40E6D5(c, M8(D4A_TBL_45AE34 + (unsigned char)G8(D4A_FLAG_45E3A1)), M32(D4A_TBL_444594 + ((v141) * 4)));
+      d4_fenwick_add_run(c, M8(D4A_TBL_45AE34 + (unsigned char)G8(D4A_FLAG_45E3A1)), M32(D4A_TBL_444594 + ((v141) * 4)));
   }
-  d4_40FFFD(c, v212);
+  d4_emit_byte(c, v212);
   if ( v211 )
   {
     if ( M8(D4A_TBL_45E086 + (v159)) == v212 )
@@ -6572,7 +6572,7 @@ LABEL_408:
       M8(D4A_TBL_45E086 + (v142)) = v143;
     }
   }
-  d4_40F39A(c, v212, 1);
+  d4_ctx_feed_byte(c, v212, 1);
   v144 = c->dict_buf;
   v145 = G32(D4A_DICT_POS);
   v146 = v212;
@@ -6586,12 +6586,12 @@ LABEL_408:
 
 #pragma GCC pop_options
 
-/* See the note above d4_41030F: same -O2 miscompile workaround. */
+/* See the note above d4_decode_ppm: same -O2 miscompile workaround. */
 #pragma GCC push_options
 #if defined(__GNUC__) && __GNUC__ >= 12
 #pragma GCC optimize ("-ftrivial-auto-var-init=zero")
 #endif
-static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
+static unsigned char d4_ppm_decode_gated(dec4_ctx *c, unsigned int a1, int a2)
 {
 #ifdef D4F8BDBG
   fprintf(stderr, "F8B out=%u a1=%u a2=%d\n", G32(D4A_OUT_POS), a1, a2);
@@ -6645,7 +6645,7 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 #endif
   if ( (unsigned int)G32(D4A_TBL_45C644) < 0x6D4250 || (unsigned int)G32(D4A_TBL_45C644) >= 0xFEFF01 )
   {
-    v26 = d4_412257(c, v2);
+    v26 = d4_ppm_decode_sym(c, v2);
     if ( G8(D4A_FLAG_45E39F) )
       G32(D4A_TBL_45C668) += G32(D4A_COST_TMP);
   }
@@ -6662,7 +6662,7 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
     if ( v14 < M32(D4A_TBL_445DAC + ((v13) * 4)) )
     {
       G32(D4A_PPM_CTX) = v15;
-      v18 = d4_412257(c, 512);
+      v18 = d4_ppm_decode_sym(c, 512);
       v19 = G32(D4A_COST_TMP);
       v26 = v18;
       G32(D4A_PPM_CTX) = v3;
@@ -6672,15 +6672,15 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
             fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
       #endif
       v25 = v19;
-      d4_412A59(c, v2, v18);
+      d4_ppm_eval_cost(c, v2, v18);
       /* asm 0x41211c/0x41219e: this branch also carries the cost collected
-       * by d4_412257 into the common tail's ecx (= v19); Hex-Rays only kept
+       * by d4_ppm_decode_sym into the common tail's ecx (= v19); Hex-Rays only kept
        * the v17 definition in the other branch. */
       v17 = v19;
     }
     else
     {
-      v26 = d4_412257(c, v2);
+      v26 = d4_ppm_decode_sym(c, v2);
       v17 = G32(D4A_COST_TMP);      /* cost saved across the reset */
       G32(D4A_PPM_CTX) = v15;      /* Hex-Rays had an undefined v16 here */
       G32(D4A_COST_TMP) = 0;
@@ -6688,7 +6688,7 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
           if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
             fprintf(stderr, "C648R out=%u\n", G32(D4A_OUT_POS));
       #endif
-      d4_412A59(c, 0x200u, v26);
+      d4_ppm_eval_cost(c, 0x200u, v26);
       v25 = G32(D4A_COST_TMP);
       G32(D4A_COST_TMP) = v17;
     }
@@ -6720,7 +6720,7 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
     G32(D4A_RC_RANGE) = v8;
     if ( G8(D4A_FLAG_45E39F) )
       G32(D4A_TBL_45C668) += 37440;
-    d4_412A59(c, v2, v26);
+    d4_ppm_eval_cost(c, v2, v26);
   }
   v22 = (unsigned char)G8(D4A_FLAG_45E3A1)++;
   M32(D4A_TBL_444584 + ((v22) * 4)) = v3;
@@ -6739,12 +6739,12 @@ static unsigned char d4_411F8B(dec4_ctx *c, unsigned int a1, int a2)
 
 #pragma GCC pop_options
 
-/* See the note above d4_41030F: same -O2 miscompile workaround. */
+/* See the note above d4_decode_ppm: same -O2 miscompile workaround. */
 #pragma GCC push_options
 #if defined(__GNUC__) && __GNUC__ >= 12
 #pragma GCC optimize ("-ftrivial-auto-var-init=zero")
 #endif
-static unsigned char d4_412257(dec4_ctx *c, int a1)
+static unsigned char d4_ppm_decode_sym(dec4_ctx *c, int a1)
 {
   unsigned int v1;
   int v2;
@@ -7171,7 +7171,7 @@ LABEL_43:
 
 #pragma GCC pop_options
 
-static void d4_412A59(dec4_ctx *c, unsigned int a1, unsigned char a2)
+static void d4_ppm_eval_cost(dec4_ctx *c, unsigned int a1, unsigned char a2)
 {
 #ifdef D4C648DBG
   if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
@@ -7439,7 +7439,7 @@ LABEL_28:
   return;
 }
 
-static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
+static int d4_trial_record_cost(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 {
 #ifdef D4ED2DBG
   fprintf(stderr, "ED2 out=%u a1=%u a2=%d a3=%u\n",
@@ -7462,7 +7462,7 @@ static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
     if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "C648SITE D-412ED2 out=%u\n", G32(D4A_OUT_POS));
   #endif
-  d4_412A59(c, a1, a3);
+  d4_ppm_eval_cost(c, a1, a3);
   v4 = (unsigned char)G8(D4A_FLAG_45E3A1)++;
   M32(D4A_TBL_444584 + ((v4) * 4)) = G32(D4A_PPM_CTX);
   M32(D4A_TBL_444594 + ((v4) * 4)) = v3;
@@ -7473,7 +7473,7 @@ static int d4_412ED2(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
   return result;
 }
 
-static int d4_412F80(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
+static int d4_cost_accum_update(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
 {
   int result;
 
@@ -7487,13 +7487,13 @@ static int d4_412F80(dec4_ctx *c, unsigned int a1, int a2, unsigned char a3)
     if (G32(D4A_OUT_POS) >= D4WLO && G32(D4A_OUT_POS) < D4WHI)
       fprintf(stderr, "C648SITE E-412F80 out=%u\n", G32(D4A_OUT_POS));
   #endif
-  d4_412A59(c, a1, a3);
+  d4_ppm_eval_cost(c, a1, a3);
   result = (int)G32(D4A_COST_TMP);
   M32(D4A_COST_ACCUM) = G32(D4A_COST_TMP) + ((31 * M32(D4A_COST_ACCUM)) >> 5);
   return result;
 }
 
-static int d4_412FB0(dec4_ctx *c)
+static int d4_pred_cache_reset(dec4_ctx *c)
 {
   int result;
 
@@ -7511,7 +7511,7 @@ static int d4_412FB0(dec4_ctx *c)
   return result * 4;
 }
 
-static int d4_412FFA(dec4_ctx *c)
+static int d4_pred_next(dec4_ctx *c)
 {
   int v0;
   UHI64 v1;
@@ -7660,7 +7660,7 @@ static int d4_412FFA(dec4_ctx *c)
   return result;
 }
 
-static int d4_413347(dec4_ctx *c, int a1, unsigned char a2)
+static int d4_pred_learn(dec4_ctx *c, int a1, unsigned char a2)
 {
   int result = a1;
   unsigned int v2;
@@ -8047,7 +8047,7 @@ LABEL_80:
   return result;
 }
 
-static int d4_413A96(dec4_ctx *c)
+static int d4_read_header(dec4_ctx *c)
 {
   unsigned int v0;
   unsigned int v1;
@@ -8141,7 +8141,7 @@ int uharc_dec4_init(void **ctx, int method)
     c->mem = calloc(1, (size_t)D4_ARENA);
     if (!c->mem) { free(c); return 2; }
     d4_load_tables(c);
-    if (d4_40CDD1(c, 0, method) != 0) { free(c->mem); free(c); return 2; }
+    if (d4_decoder_init(c, 0, method) != 0) { free(c->mem); free(c); return 2; }
     *ctx = c;
     return 0;
 }
@@ -8169,7 +8169,7 @@ int uharc_dec4_decode(void *ctx,
 
 /* Container cumulative file-end table (dword_45D128).  The table lives in
  * the arena as 32-bit entries (the original was a malloc'ed int[]), with one
- * extra terminator entry = out_len so the walk in d4_40DEB6 can never run
+ * extra terminator entry = out_len so the walk in d4_block_model_init can never run
  * past the end. */
 #define A_FILE_TABLE 0x00500000UL
 
@@ -8209,7 +8209,7 @@ int uharc_dec4_decode_b(void *ctx,
         G32(D4A_FILE_TAB_PTR) = 0;
         c->file_table = 0;
     }
-    d4_40F962(c, 0, 0);
+    d4_decode_main(c, 0, 0);
     if (G32(D4A_OUTBUF_LEN)) {
         unsigned n = G32(D4A_OUTBUF_LEN);
         if (c->wcb(c->wctx, c->outbuf, n) != 0) G32(D4A_IO_ERR) = 4;
