@@ -12,9 +12,9 @@
  *   sub_41680C (fallback decoder)      -> d3u_41680c (draft_f3.c)
  *   sub_4164B8/416640/4177C0          -> d3u_4164b8/16640/177c0 (draft_l3.c)
  *   sub_414290/414818 (top-ups)        -> d3u_414290/14818 (draft_t3.c)
- *   sub_423188/423140 (range coder)    -> d3u_423188/23140 (draft_r3.c)
- *   sub_41E2B0/41E17C (stream input)   -> d3u_41e2b0/1e17c (draft_r3.c)
- *   sub_41E3BC/41E300 (stream output)  -> d3u_41e3bc/1e300 (here)
+ *   sub_423188/423140 (range coder)    -> d3u_rc_decode/rc_update (draft_r3.c)
+ *   sub_41E2B0/41E17C (stream input)   -> d3u_get_byte/refill_input (draft_r3.c)
+ *   sub_41E3BC/41E300 (stream output)  -> d3u_put_byte/flush_out (here)
  *   sub_40D010 (progress callback)     -> d3u_40d010 (no-op stub here)
  *   sub_40C4B3 (bump carve)            -> d3u_carve (draft_a3.c, static)
  *   sub_40C9C0 (memset)                -> d3u_fill (here)
@@ -79,11 +79,11 @@ void d3u_fill(dec3w_ctx *c, unsigned int len, unsigned int dst,
 
 /* ---- worker prototypes (bodies appended below) ---- */
 int d3u_startup(dec3w_ctx *c, unsigned int eax_in, unsigned int edx_in);
-void d3u_421284(dec3w_ctx *c, unsigned int ebx, unsigned int edx,
+void d3u_fill16(dec3w_ctx *c, unsigned int ebx, unsigned int edx,
                 unsigned int eax, unsigned int ecx, unsigned int esi,
                 unsigned int edi);
-void d3u_40cecc(dec3w_ctx *c);
-void d3u_4230f0(dec3w_ctx *c);
+void d3u_load_const(dec3w_ctx *c);
+void d3u_rebuild_cum(dec3w_ctx *c);
 unsigned int d3u_415fd4(dec3w_ctx *c, unsigned int edi_in);
 void d3u_41680c(dec3w_ctx *c, unsigned int edi_in);
 void d3u_4164b8(dec3w_ctx *c, unsigned int sym);
@@ -92,13 +92,13 @@ unsigned int d3u_4177c0(dec3w_ctx *c, unsigned int eax_in);
 void d3u_414290(dec3w_ctx *c);
 void d3u_414818(dec3w_ctx *c);
 void d3u_414d78(dec3w_ctx *c, unsigned int eax_in);
-unsigned int d3u_423188(dec3w_ctx *c, unsigned int total);
-void d3u_423140(dec3w_ctx *c, unsigned int p);
-void d3u_42335c(dec3w_ctx *c);
-void d3u_423388(dec3w_ctx *c);
-unsigned int d3u_41e2b0(dec3w_ctx *c);
-void d3u_41e1c0(dec3w_ctx *c, unsigned int eax_v);
-void d3u_41e17c(dec3w_ctx *c);
+unsigned int d3u_rc_decode(dec3w_ctx *c, unsigned int total);
+void d3u_rc_update(dec3w_ctx *c, unsigned int p);
+void d3u_rc_init(dec3w_ctx *c);
+void d3u_rc_reset(dec3w_ctx *c);
+unsigned int d3u_get_byte(dec3w_ctx *c);
+void d3u_fill_input(dec3w_ctx *c, unsigned int eax_v);
+void d3u_refill_input(dec3w_ctx *c);
 void d3u_414ec0(dec3w_ctx *c, unsigned int eax_v, unsigned int edx_v);
 void d3u_414fd4(dec3w_ctx *c, unsigned int eax_v, unsigned int edx_v);
 void d3u_4153c0(dec3w_ctx *c, unsigned int eax_v);
@@ -132,17 +132,17 @@ unsigned int d3u_41a284(dec3w_ctx *c, unsigned int eax_in);
 void d3u_41b318(dec3w_ctx *c);
 void d3u_41b69c(dec3w_ctx *c, unsigned int al_in, unsigned int dl_in);
 void d3u_415f6c(dec3w_ctx *c);
-void d3u_424147(dec3w_ctx *c, unsigned int dst, unsigned int src,
+void d3u_memmove(dec3w_ctx *c, unsigned int dst, unsigned int src,
                 unsigned int n);
-void d3u_41e300(dec3w_ctx *c);
-void d3u_41e3bc(dec3w_ctx *c, unsigned int b);
+void d3u_flush_out(dec3w_ctx *c);
+void d3u_put_byte(dec3w_ctx *c, unsigned int b);
 void d3u_40d010(dec3w_ctx *c);
-void d3u_41bef8(dec3w_ctx *c);
+void d3u_primer(dec3w_ctx *c);
 
 /* sub_41BEF8: decode primer. Seeds 4441E8/EC/F0, decodes via 423188/
  * 423140, accumulating 428EDC until the coder returns nonzero, then
  * publishes 444254. Loop trips 5x on gmud-03x (totals 2048+16k). */
-void d3u_41bef8(dec3w_ctx *c)
+void d3u_primer(dec3w_ctx *c)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -155,7 +155,7 @@ void d3u_41bef8(dec3w_ctx *c)
     /* 0x0041BEFE mov edx,2 */ edx = 2;
     /* 0x0041BF03 mov eax,edx */ eax = edx;
     /* 0x0041BF05 mov dword_4441E8,edx */ G32(D3U_RC_TOTAL) = edx;
-    /* 0x0041BF0B call sub_423188 */ eax = d3u_423188(c, eax & 0xFFFFUL);
+    /* 0x0041BF0B call sub_423188 */ eax = d3u_rc_decode(c, eax & 0xFFFFUL);
     /* 0x0041BF10 mov edx,eax */ edx = eax;
     /* 0x0041BF12 mov byte_444EA0,al */ M8(D3U_FLAG_444EA0) = (unsigned char)(eax & 0xFFU);
     /* 0x0041BF17 xor eax,eax */ eax = 0;
@@ -166,7 +166,7 @@ void d3u_41bef8(dec3w_ctx *c)
     /* 0x0041BF24 inc eax */ eax = (eax + 1) & U32MASK;
     /* 0x0041BF25 mov dword_4441F0,eax */ G32(D3U_RC_PROB_HI) = eax;
     /* 0x0041BF2A mov eax,offset dword_4441E8 */ eax = D3U_RC_TOTAL;
-    /* 0x0041BF2F call sub_423140 */ d3u_423140(c, eax);
+    /* 0x0041BF2F call sub_423140 */ d3u_rc_update(c, eax);
     /* 0x0041BF34 cmp byte_444EA0,0 */ /* 0x0041BF3B jnz loc_41BFC3 */
     if (M8(D3U_FLAG_444EA0) != 0) goto loc_41BFC3;
     /* 0x0041BF41 mov esi,offset dword_4441E8 */ esi = D3U_RC_TOTAL;
@@ -177,7 +177,7 @@ loc_41BF4D:
     /* 0x0041BF52 xor edx,edx */ edx = 0;
     /* 0x0041BF54 mov eax,ecx */ eax = ecx;
     /* 0x0041BF56 mov dword_4441E8,ecx */ G32(D3U_RC_TOTAL) = ecx;
-    /* 0x0041BF5C call sub_423188 */ eax = d3u_423188(c, eax & 0xFFFFUL);
+    /* 0x0041BF5C call sub_423188 */ eax = d3u_rc_decode(c, eax & 0xFFFFUL);
     /* 0x0041BF61 mov dx,ax */ edx = (edx & ~0xFFFFUL) | (eax & 0xFFFFUL);
     /* 0x0041BF64 mov dword_4441EC,edx */ G32(D3U_RC_PROB_LO) = edx;
     /* 0x0041BF6A lea eax,[edx+1] */ eax = (edx + 1) & U32MASK;
@@ -185,21 +185,21 @@ loc_41BF4D:
     /* 0x0041BF6F mov dword_4441F0,eax */ G32(D3U_RC_PROB_HI) = eax;
     /* 0x0041BF74 mov eax,esi */ eax = esi;
     /* 0x0041BF76 shl edx,cl */ edx = (edx << (ecx & 31U)) & U32MASK;
-    /* 0x0041BF78 call sub_423140 */ d3u_423140(c, eax);
+    /* 0x0041BF78 call sub_423140 */ d3u_rc_update(c, eax);
     /* 0x0041BF7D mov edi,dword_428EDC */ edi = G32(D3U_PRIMER_ACCUMULATOR);
     /* 0x0041BF83 mov dword_4441E8,ebp */ G32(D3U_RC_TOTAL) = ebp;
     /* 0x0041BF89 add edi,edx */ edi = (edi + edx) & U32MASK;
     /* 0x0041BF8B mov eax,ebp */ eax = ebp;
     /* 0x0041BF8D mov dword_428EDC,edi */ G32(D3U_PRIMER_ACCUMULATOR) = edi;
     /* 0x0041BF93 xor edx,edx */ edx = 0;
-    /* 0x0041BF95 call sub_423188 */ eax = d3u_423188(c, eax & 0xFFFFUL);
+    /* 0x0041BF95 call sub_423188 */ eax = d3u_rc_decode(c, eax & 0xFFFFUL);
     /* 0x0041BF9A mov dx,ax */ edx = (edx & ~0xFFFFUL) | (eax & 0xFFFFUL);
     /* 0x0041BF9D mov dword_4441EC,edx */ G32(D3U_RC_PROB_LO) = edx;
     /* 0x0041BFA3 lea eax,[edx+1] */ eax = (edx + 1) & U32MASK;
     /* 0x0041BFA6 mov dword_4441F0,eax */ G32(D3U_RC_PROB_HI) = eax;
     /* 0x0041BFAB mov eax,esi */ eax = esi;
     /* 0x0041BFAD add ebx,0Bh */ ebx = (ebx + 0x0BUL) & U32MASK;
-    /* 0x0041BFB0 call sub_423140 */ d3u_423140(c, eax);
+    /* 0x0041BFB0 call sub_423140 */ d3u_rc_update(c, eax);
     /* 0x0041BFB5 test edx,edx */ /* 0x0041BFB7 jnz loc_41BF4D */
     if (edx != 0) goto loc_41BF4D;
     /* 0x0041BFB9 mov eax,dword_428EDC */ eax = G32(D3U_PRIMER_ACCUMULATOR);
@@ -209,7 +209,7 @@ loc_41BFC3:;
 
 /* sub_424147: memmove(dst=eax, src=edx, n=ebx) with overlap handling.
  * C memmove is exact (backward/forward as needed). */
-void d3u_424147(dec3w_ctx *c, unsigned int dst, unsigned int src,
+void d3u_memmove(dec3w_ctx *c, unsigned int dst, unsigned int src,
                 unsigned int n)
 {
     memmove(c->mem + V3O(dst), c->mem + V3O(src), (size_t)n);
@@ -218,7 +218,7 @@ void d3u_424147(dec3w_ctx *c, unsigned int dst, unsigned int src,
 /* sub_41E300: flush staged output [42C9AC..+444EEC) via the write
  * callback (dword_42CBB4). Snapshots 444EF4->436E40, 444EF8->436E44;
  * short write sets 42C9A0=4; 444EEC=0 either way. */
-void d3u_41e300(dec3w_ctx *c)
+void d3u_flush_out(dec3w_ctx *c)
 {
     unsigned int n;
     int wr;
@@ -233,7 +233,7 @@ void d3u_41e300(dec3w_ctx *c)
 
 /* sub_41E3BC: stage output byte al at [42C9AC+444EEC]; 444EEC++;
  * 444EF8++; flush via 41E300 when 444EEC==444EE0. */
-void d3u_41e3bc(dec3w_ctx *c, unsigned int b)
+void d3u_put_byte(dec3w_ctx *c, unsigned int b)
 {
     unsigned int eec;
     eec = G32(D3U_OUT_STAGED_LEN);
@@ -242,7 +242,7 @@ void d3u_41e3bc(dec3w_ctx *c, unsigned int b)
     G32(D3U_OUT_STAGED_LEN) = eec;
     G32(D3U_OUT_TOTAL_POS) = (G32(D3U_OUT_TOTAL_POS) + 1) & U32MASK;
     if (eec == G32(D3U_OUT_FLUSH_THRESH))
-        d3u_41e300(c);
+        d3u_flush_out(c);
 }
 
 /* sub_40D010: progress/tick callback. Walks the file-boundary table and
@@ -260,8 +260,8 @@ void d3u_40d010(dec3w_ctx *c)
 void d3u_415f6c(dec3w_ctx *c)
 {
     unsigned int eax;
-    d3u_42335c(c);
-    d3u_41bef8(c);
+    d3u_rc_init(c);
+    d3u_primer(c);
     do {
         eax = G32(D3U_OUT_TOTAL_POS);
         if (eax >= G32(D3U_PRIMER_TOTAL))
@@ -362,7 +362,7 @@ int uharc_dec4u_decode_b(void *ctx,
     G32(D3U_OUT_TOTAL_POS) = 0;
     d3u_415f6c(c);
     if (G32(D3U_OUT_STAGED_LEN) != 0)
-        d3u_41e300(c);
+        d3u_flush_out(c);
     if (c->err)
         return c->err;
     if (G32(D3U_STATUS_ERR) != 0)
@@ -397,7 +397,7 @@ static unsigned int d3u_carve(dec3w_ctx *c, unsigned int size)
 /* sub_4230F0 (0x004230F0): rebuild word_42D274 from word_42D272 deltas
  * while byte_435274 set, then clear it. Callee saves ebx/ecx/edx
  * (push/pop); all four regs written-before-read, so zero-init, no params. */
-void d3u_4230f0(dec3w_ctx *c)
+void d3u_rebuild_cum(dec3w_ctx *c)
 {
     unsigned long eax = 0;
     unsigned long ebx = 0;
@@ -429,7 +429,7 @@ void d3u_4230f0(dec3w_ctx *c)
 /* sub_40CECC (0x0040CECC): pure load of dword_428F48 into eax.
  * Contract wants void; the eax live-out is materialized by the caller
  * at 0x413EBC (see d3u_startup). */
-void d3u_40cecc(dec3w_ctx *c)
+void d3u_load_const(dec3w_ctx *c)
 {
     /* 0x0040CECC mov eax,dword_428F48 */ (void)M32(D3U_CONST_428F48);
     /* 0x0040CED1 retn */
@@ -437,7 +437,7 @@ void d3u_40cecc(dec3w_ctx *c)
 /* sub_421284 (0x00421284): word-pattern fill of ebx*2 bytes at edx
  * with low-16 of eax replicated. Callee saves/restores entry ecx/esi
  * (push/pop); edi untouched. Only ebx/edx/eax drive the fill. */
-void d3u_421284(dec3w_ctx *c, unsigned int ebx, unsigned int edx, unsigned int eax, unsigned int ecx, unsigned int esi, unsigned int edi)
+void d3u_fill16(dec3w_ctx *c, unsigned int ebx, unsigned int edx, unsigned int eax, unsigned int ecx, unsigned int esi, unsigned int edi)
 {
     unsigned int sv1 = 0;
     unsigned int sv2 = 0;
@@ -585,7 +585,7 @@ ok:
     /* 0x0041385F sub edx,16h */ edx = (edx - 0x16UL) & U32MASK;
     /* 0x00413862 mov byte_42BC6C,ah */ G8(D3U_TBL_42BC6C) = (unsigned char)((eax >> 8) & 0xFFUL);
     /* 0x00413868 mov byte_444E99,al */ G8(D3U_FLAG_444E99) = (unsigned char)(eax & 0xFFUL);
-    /* 0x0041386D call sub_4230F0 */ d3u_4230f0(c);
+    /* 0x0041386D call sub_4230F0 */ d3u_rebuild_cum(c);
     /* 0x00413872 mov ebx,dword_436E48 */ ebx = (unsigned long)M32(D3U_POOL_CURSOR);
     /* 0x00413878 mov eax,edx */ eax = edx;
     /* 0x0041387A add ebx,16DB2h */ ebx = (ebx + 0x16DB2UL) & U32MASK;
@@ -814,30 +814,30 @@ ok:
     /* 0x00413E20 mov eax,1 */ eax = 1UL;
     /* 0x00413E25 add edx,406h */ edx = (edx + 0x406UL) & U32MASK;
     /* 0x00413E2B call sub_421284 */
-    d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
+    d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
     /* 0x00413E30 mov ebx,2FDh */ ebx = 0x2FDUL;
     /* 0x00413E35 mov edx,offset word_44428A */ edx = D3U_TBL_44428A;
     /* 0x00413E3A mov eax,20h */ eax = 0x20UL;
     /* 0x00413E3F call sub_421284 */
-    d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
+    d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
     /* 0x00413E44 mov ebx,2FDh */ ebx = 0x2FDUL;
     /* 0x00413E49 mov edx,offset word_444884 */ edx = D3U_TBL_444884;
     /* 0x00413E4E mov eax,10h */ eax = 0x10UL;
     /* 0x00413E53 mov esi,6 */ esi = 6UL;
     /* 0x00413E58 call sub_421284 */
-    d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
+    d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
     /* 0x00413E5D mov ebx,8 */ ebx = 8UL;
     /* 0x00413E62 mov edx,offset dword_444870 */ edx = D3U_TBL_444870;
     /* 0x00413E67 mov eax,0Ah */ eax = 0x0AUL;
     /* 0x00413E6C xor ecx,ecx */ ecx = 0UL;
     /* 0x00413E6E call sub_421284 */
-    d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
+    d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
     /* 0x00413E73 mov ebx,18h */ ebx = 0x18UL;
     /* 0x00413E78 mov edx,offset word_444E4A */ edx = D3U_TBL_444E4A;
     /* 0x00413E7D mov eax,8 */ eax = 8UL;
     /* 0x00413E82 xor edi,edi */ edi = 0UL;
     /* 0x00413E84 call sub_421284 */
-    d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
+    d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi);
     /* 0x00413E89 mov edx,0FFFFFFFFh */ edx = 0xFFFFFFFFUL;
     /* 0x00413E8E mov word_444C84,si */ M16(D3U_TBL_444C84) = (unsigned short)(esi & 0xFFFFUL);
     /* 0x00413E95 mov dword_444218,ecx */ M32(D3U_TBL_444218) = (unsigned int)ecx;
@@ -845,7 +845,7 @@ ok:
     /* 0x00413E9D mov dword_444254,edx */ M32(D3U_PRIMER_TOTAL) = (unsigned int)edx;
     /* 0x00413EA3 mov dword_444244,edx */ M32(D3U_TBL_444244) = (unsigned int)edx;
     /* 0x00413EA9 mov dword_444228,edx */ M32(D3U_TBL_444228) = (unsigned int)edx;
-    /* 0x00413EAF call sub_40CECC */ d3u_40cecc(c);
+    /* 0x00413EAF call sub_40CECC */ d3u_load_const(c);
     /* (eax = dword_428F48 live-out of sub_40CECC) */ eax = (unsigned long)M32(D3U_CONST_428F48);
     /* 0x00413EB4 xor bl,cl */ ebx = (ebx & ~0xFFUL) | ((ebx ^ ecx) & 0xFFUL);
     /* 0x00413EB6 mov esi,dword_444228 */ esi = (unsigned long)M32(D3U_TBL_444228);
@@ -1787,7 +1787,7 @@ L_416BF4:;
 eax = (unsigned long)M32(D3U_TBL_444234); /* 0x00416BF4 mov eax,dword_444234 */
 M32(D3U_RC_TOTAL) = (unsigned int)(eax & U32MASK); /* 0x00416BF9 mov dword_4441E8,eax */
 eax &= 0xFFFFUL; /* 0x00416BFE mov ax,word ptr / 0x00416C04 and eax,0FFFFh */
-esi = (esi & 0xFFFF0000UL) | (d3u_423188(c, (unsigned int)(eax & 0xFFFFUL)) & 0xFFFFUL); /* 0x00416C09 call sub_423188 */
+esi = (esi & 0xFFFF0000UL) | (d3u_rc_decode(c, (unsigned int)(eax & 0xFFFFUL)) & 0xFFFFUL); /* 0x00416C09 call sub_423188 */
 edx = (edx & ~0xFFUL) | ((0UL) & 0xFFUL); /* 0x00416C0E xor dl,dl */
 edx = (edx & 0xFFFFFF00UL) | 0UL;
 eax = 0UL; /* 0x00416C12 xor eax,eax */
@@ -1845,7 +1845,7 @@ eax = (unsigned long)M32(D3U_RC_TOTAL); /* 0x00416CB0 mov eax,dword_4441E8 */
 M32(D3U_RC_PROB_HI) = (unsigned int)(eax & U32MASK); /* 0x00416CB5 mov dword_4441F0,eax */
 L_416CBA:;
 eax = D3U_RC_TOTAL; /* 0x00416CBA mov eax,offset dword_4441E8 */
-d3u_423140(c, D3U_RC_TOTAL); /* 0x00416CBF call sub_423140 */
+d3u_rc_update(c, D3U_RC_TOTAL); /* 0x00416CBF call sub_423140 */
 goto L_416CE9; /* 0x00416CC4 jmp */
 L_416CC6:;
 edi = (unsigned long)M32(D3U_TBL_444224); /* 0x00416CC6 mov edi,dword_444224 */
@@ -2057,7 +2057,7 @@ eax = 0UL; /* 0x00416F1C xor eax,eax */
 eax = (eax & ~0xFFUL) | (((var_24 & 0xFFUL)) & 0xFFUL); /* 0x00416F1E mov al,[var_24] */
 eax &= 0xFFUL;
 esi = 0UL; /* 0x00416F22 xor esi,esi */
-ecx = (ecx & 0xFFFF0000UL) | (d3u_423188(c, (unsigned int)(eax & 0xFFFFUL)) & 0xFFFFUL); /* 0x00416F24 call sub_423188 */
+ecx = (ecx & 0xFFFF0000UL) | (d3u_rc_decode(c, (unsigned int)(eax & 0xFFFFUL)) & 0xFFFFUL); /* 0x00416F24 call sub_423188 */
 eax = (eax & ~0xFFUL) | ((0UL) & 0xFFUL); /* 0x00416F2B xor al,al */
 eax = (eax & 0xFFFFFF00UL) | 0UL;
 M32(D3U_RC_PROB_LO) = (unsigned int)(esi & U32MASK); /* 0x00416F2D mov dword_4441EC,esi */
@@ -2115,7 +2115,7 @@ eax = (unsigned long)M32(D3U_RC_TOTAL); /* 0x00416FC6 mov eax,dword_4441E8 */
 M32(D3U_RC_PROB_HI) = (unsigned int)(eax & U32MASK); /* 0x00416FCB mov dword_4441F0,eax */
 L_416FD0:;
 eax = D3U_RC_TOTAL; /* 0x00416FD0 mov eax,offset dword_4441E8 */
-d3u_423140(c, D3U_RC_TOTAL); /* 0x00416FD5 call sub_423140 */
+d3u_rc_update(c, D3U_RC_TOTAL); /* 0x00416FD5 call sub_423140 */
 L_416FDA:;
 ebx = (ebx & ~0xFF00UL) | ((((var_40 & 0xFFUL)) & 0xFFUL) << 8); /* 0x00416FDA mov bh,[var_40] */
 ebx = (ebx & 0xFFFF00FFUL) | ((((ebx >> 8) & 0xFFUL) & 0xFFUL) << 8);
@@ -2175,7 +2175,7 @@ ecx = (ebx + eax) & U32MASK; /* 0x00417098 lea ecx,[ebx+eax] */
 M32(D3U_RC_TOTAL) = (unsigned int)(ecx & U32MASK); /* 0x0041709B mov dword_4441E8,ecx */
 eax = 0UL; /* 0x004170A1 xor eax,eax */
 eax = (M32(D3U_RC_TOTAL) & 0xFFFFUL); /* 0x004170A3 mov ax,word ptr dword_4441E8 */
-eax = d3u_423188(c, (unsigned int)(eax & 0xFFFFUL)); /* 0x004170A9 call sub_423188 */
+eax = d3u_rc_decode(c, (unsigned int)(eax & 0xFFFFUL)); /* 0x004170A9 call sub_423188 */
 eax &= 0xFFFFUL; /* 0x004170AE and eax,0FFFFh */
 if (!((eax & U32MASK) < (ebx & U32MASK))) goto L_417110; /* 0x004170B3 cmp / 0x004170B5 jge (SIGNED >=, treated unsigned here per rule: jge is signed; keep signed) */
 if ((unsigned long)M8(D3U_FLAG_444EA4) == 0UL) goto L_4170EC; /* 0x004170B7 cmp / 0x004170BE jz */
@@ -2232,7 +2232,7 @@ eax = (eax & 0xFFFFFF00UL) | ((eax & 0xFFUL) & 0xFFUL);
 M8(D3U_FLAG_444EAA) = (unsigned char)((eax & 0xFFUL) & 0xFFUL); /* 0x0041715C mov byte_444EAA,al */
 L_417161:;
 eax = D3U_RC_TOTAL; /* 0x00417161 mov eax,offset dword_4441E8 */
-d3u_423140(c, D3U_RC_TOTAL); /* 0x00417166 call sub_423140 */
+d3u_rc_update(c, D3U_RC_TOTAL); /* 0x00417166 call sub_423140 */
 L_41716B:;
 if ((var_4C & 0xFFUL) == 0UL) goto L_41717D; /* 0x0041716B cmp / 0x00417170 jz */
 if ((var_30 & 0xFFUL) != 0UL) goto L_416D69; /* 0x00417172 cmp / 0x00417177 jnz (loop iff !=0) */
@@ -2579,7 +2579,7 @@ void d3u_4164b8(dec3w_ctx *c, unsigned int sym)
     /* 0x004164EB mov eax,0FEh */
     eax = 0xFEUL;
     /* 0x004164F0 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x004164F5 pop esi/edx/ecx/ebx */
     /* 0x004164F9 retn */
     return;
@@ -2587,26 +2587,26 @@ l_4164fa:
     /* 0x004164FA xor eax,eax */
     eax = 0;
     /* 0x004164FC call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416501 xor eax,eax */
     eax = 0;
     /* 0x00416503 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416508 mov eax,3 */
     eax = 3;
     /* 0x0041650D call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416512 mov eax,3 */
     eax = 3;
     /* 0x00416517 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
 l_41651c:
     /* 0x0041651C xor eax,eax */
     eax = 0;
     /* 0x0041651E mov al,dl */
     eax = (eax & ~0xFFUL) | (edx & 0xFFUL);
     /* 0x00416520 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416525 pop esi/edx/ecx/ebx */
     /* 0x00416529 retn */
     return;
@@ -2636,7 +2636,7 @@ l_41652a:
     /* 0x00416553 and eax,0FFh */
     eax &= 0xFFUL;
     /* 0x00416558 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x0041655D pop esi/edx/ecx/ebx */
     /* 0x00416561 retn */
     return;
@@ -2722,7 +2722,7 @@ l_4165d4:
     /* 0x004165F6 and eax,0FFh */
     eax &= 0xFFUL;
     /* 0x004165FB call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416600 xor ch,ch */
     ecx = ecx & ~0xFF00UL;
     /* 0x00416602 dec bl */
@@ -2739,7 +2739,7 @@ l_41660a:
     /* 0x00416613 inc edx */
     edx = (edx + 1UL) & U32MASK;
     /* 0x00416614 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416619 dec bl */
     ebx = (ebx & ~0xFFUL) | (((ebx & 0xFFUL) - 1UL) & 0xFFUL);
     /* 0x0041661B jz loc_41663B */
@@ -2758,7 +2758,7 @@ l_41661f:
     /* 0x0041662E xor bh,bh */
     ebx = ebx & ~0xFF00UL;
     /* 0x00416630 call sub_41E3BC */
-    d3u_41e3bc(c, (unsigned int)(eax & U32MASK));
+    d3u_put_byte(c, (unsigned int)(eax & U32MASK));
     /* 0x00416635 mov byte_444EA7,bh */
     M8(D3U_FLAG_444EA7) = (unsigned char)((ebx >> 8) & 0xFFUL);
 l_41663b:
@@ -2816,7 +2816,7 @@ l_41664c:
     /* 0x00416676 mov bl,3 */
     ebx = (ebx & ~0xFFUL) | 3UL;
     /* 0x00416678 call sub_423188 */
-    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_423188)(c, (unsigned int)(eax & 0xFFFFUL));
+    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_rc_decode)(c, (unsigned int)(eax & 0xFFFFUL));
 l_41667d:
     /* 0x0041667D dec bl */
     ebx = (ebx & ~0xFFUL) | (((ebx & 0xFFUL) - 1UL) & 0xFFUL);
@@ -2846,7 +2846,7 @@ l_41668f:
     /* 0x004166A4 mov eax,ebp */
     eax = ebp;
     /* 0x004166A6 call sub_423140 */
-    d3u_423140(c, (unsigned int)(eax & U32MASK));
+    d3u_rc_update(c, (unsigned int)(eax & U32MASK));
     /* 0x004166AB test bl,bl */
     /* 0x004166AD jnz loc_41675D */
     if ((ebx & 0xFFUL) != 0) goto l_41675d;
@@ -2857,7 +2857,7 @@ l_41668f:
     /* 0x004166BA mov dword_4441E8,edx */
     M32(D3U_RC_TOTAL) = (unsigned int)(edx & U32MASK);
     /* 0x004166C0 call sub_423188 */
-    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_423188)(c, (unsigned int)(eax & 0xFFFFUL));
+    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_rc_decode)(c, (unsigned int)(eax & 0xFFFFUL));
     /* 0x004166C5 mov edx,eax */
     edx = eax;
     /* 0x004166C7 xor eax,eax */
@@ -2877,7 +2877,7 @@ l_41668f:
     /* 0x004166DC mov eax,ebp */
     eax = ebp;
     /* 0x004166DE call sub_423140 */
-    d3u_423140(c, (unsigned int)(eax & U32MASK));
+    d3u_rc_update(c, (unsigned int)(eax & U32MASK));
     /* 0x004166E3 cmp dl,byte_444EA9 */
     /* 0x004166E9 jz loc_41664C */
     if ((edx & 0xFFUL) == ((unsigned long)M8(D3U_FLAG_444EA9) & 0xFFUL)) goto l_41664c;
@@ -3104,7 +3104,7 @@ l_4178b3:
     /* 0x004178C4 mov ax,word ptr dword_4441E8 */
     eax = (eax & ~0xFFFFUL) | ((unsigned long)M16(D3U_RC_TOTAL) & 0xFFFFUL);
     /* 0x004178CA call sub_423188 */
-    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_423188)(c, (unsigned int)(eax & 0xFFFFUL));
+    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_rc_decode)(c, (unsigned int)(eax & 0xFFFFUL));
     /* 0x004178CF mov [var_24],eax */
     v24 = eax;
 l_4178d6:
@@ -3194,7 +3194,7 @@ l_417948:
     /* 0x00417978 mov edi,[var_20] */
     edi = v20;
     /* 0x0041797F call sub_423188 */
-    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_423188)(c, (unsigned int)(eax & 0xFFFFUL));
+    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_rc_decode)(c, (unsigned int)(eax & 0xFFFFUL));
     /* 0x00417984 mov [var_24],eax */
     v24 = eax;
     /* 0x0041798B cmp ax,di */
@@ -3236,7 +3236,7 @@ l_417948:
     /* 0x004179D7 mov dword_4441F4,edi */
     M32(D3U_TBL_4441F4) = (unsigned int)(edi & U32MASK);
     /* 0x004179DD call sub_423140 */
-    d3u_423140(c, (unsigned int)(eax & U32MASK));
+    d3u_rc_update(c, (unsigned int)(eax & U32MASK));
     /* 0x004179E2 mov eax,[var_34] */
     eax = v34;
     /* 0x004179E9 mov edx,dword_4299F4 */
@@ -3344,7 +3344,7 @@ l_417a99:
     /* 0x00417AA9 mov ax,word ptr dword_4441E8 */
     eax = (eax & ~0xFFFFUL) | ((unsigned long)M16(D3U_RC_TOTAL) & 0xFFFFUL);
     /* 0x00417AAF call sub_423188 */
-    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_423188)(c, (unsigned int)(eax & 0xFFFFUL));
+    eax = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3u_rc_decode)(c, (unsigned int)(eax & 0xFFFFUL));
     /* 0x00417AB4 mov edi,eax */
     edi = eax;
     /* 0x00417AB6 mov eax,dword_44421C */
@@ -3486,7 +3486,7 @@ l_417b24:
     /* 0x00417B96 mov dword_4441F4,ebp */
     M32(D3U_TBL_4441F4) = (unsigned int)(ebp & U32MASK);
     /* 0x00417B9C call sub_423140 */
-    d3u_423140(c, (unsigned int)(eax & U32MASK));
+    d3u_rc_update(c, (unsigned int)(eax & U32MASK));
     /* 0x00417BA1 mov al,cl */
     eax = (eax & ~0xFFUL) | (ecx & 0xFFUL);
     /* 0x00417BA3 mov bl,byte_444EAA */
@@ -3751,7 +3751,7 @@ l_417ce0:
     /* 0x00417D54 mov dword_4441F4,esi */
     M32(D3U_TBL_4441F4) = (unsigned int)(esi & U32MASK);
     /* 0x00417D5A call sub_423140 */
-    d3u_423140(c, (unsigned int)(eax & U32MASK));
+    d3u_rc_update(c, (unsigned int)(eax & U32MASK));
     /* 0x00417D5F mov al,bh */
     eax = (eax & ~0xFFUL) | ((ebx >> 8) & 0xFFUL);
     /* 0x00417D61 mov bl,byte_444EAA */
@@ -3765,7 +3765,7 @@ l_417ce0:
 /* ---- range coder + stream + models (from draft_r3.c) ---- */
 /* ---- compressed-input stream (sub_41E17C / sub_41E2B0 / sub_41E1C0) ---- */
 
-void d3u_41e17c(dec3w_ctx *c)
+void d3u_refill_input(dec3w_ctx *c)
 {
     unsigned int eax = 0;
     unsigned int edx = 0;
@@ -3806,7 +3806,7 @@ loc_41E1BD:
     /* 0x0041E1BE retn */
     ;
 }
-unsigned int d3u_41e2b0(dec3w_ctx *c)
+unsigned int d3u_get_byte(dec3w_ctx *c)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -3819,7 +3819,7 @@ unsigned int d3u_41e2b0(dec3w_ctx *c)
     /* 0x0041E2BD jnz loc_41E2C4 */
     if (eax != G32(D3U_IN_AVAIL)) goto loc_41E2C4;
     /* 0x0041E2BF call sub_41E17C */
-    d3u_41e17c(c);
+    d3u_refill_input(c);
 loc_41E2C4:
     /* 0x0041E2C4 mov ebx, dword_444EF4 */
     ebx = G32(D3U_IN_ABS_POS);
@@ -3843,7 +3843,7 @@ loc_41E2C4:
     /* 0x0041E2EA retn */
     return eax & U32MASK;
 }
-void d3u_41e1c0(dec3w_ctx *c, unsigned int eax_v)
+void d3u_fill_input(dec3w_ctx *c, unsigned int eax_v)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -3878,7 +3878,7 @@ void d3u_41e1c0(dec3w_ctx *c, unsigned int eax_v)
     /* 0x0041E1E6 mov edi, 3 */
     edi = 3;
     /* 0x0041E1EB call sub_424147 */
-    d3u_424147(c, eax, edx, ebx);
+    d3u_memmove(c, eax, edx, ebx);
     /* 0x0041E1F0 mov eax, dword_444EF4 */
     eax = G32(D3U_IN_ABS_POS);
     /* 0x0041E1F5 xor ebx, ebx */
@@ -3933,7 +3933,7 @@ loc_41E23B:
 }
 /* ---- range coder (sub_423188 / sub_423140 / sub_42335C / sub_423388) ---- */
 
-unsigned int d3u_423188(dec3w_ctx *c, unsigned int total)
+unsigned int d3u_rc_decode(dec3w_ctx *c, unsigned int total)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -3971,7 +3971,7 @@ loc_4231A3:
     /* 0x004231C0 mov dword_4450F4, ebx */
     G32(D3U_RC_VALUE) = ebx;
     /* 0x004231C6 call sub_41E2B0 */
-    eax = d3u_41e2b0(c);
+    eax = d3u_get_byte(c);
     /* 0x004231CB mov ecx, dword_4450F8 */
     ecx = G32(D3U_RC_RANGE);
     /* 0x004231D1 mov ebx, dword_4450F4 */
@@ -4025,7 +4025,7 @@ loc_423214:
     /* 0x00423225 retn */
     return eax & U32MASK;
 }
-void d3u_423140(dec3w_ctx *c, unsigned int p)
+void d3u_rc_update(dec3w_ctx *c, unsigned int p)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -4073,16 +4073,16 @@ loc_423182:
     /* 0x00423187 retn */
     ;
 }
-void d3u_42335c(dec3w_ctx *c)
+void d3u_rc_init(dec3w_ctx *c)
 {
     unsigned int eax = 0;
     unsigned int edx = 0;
     /* 0x0042335C push edx */
     /* 0x0042335D call sub_41E2B0 */
-    eax = d3u_41e2b0(c);
+    eax = d3u_get_byte(c);
     /* 0x00423362 call sub_41E2B0 */
     /* first byte discarded; only the second byte seeds the coder */
-    eax = d3u_41e2b0(c);
+    eax = d3u_get_byte(c);
     /* 0x00423367 mov byte_4450FC, al */
     G8(D3U_RC_CARRY_BYTE) = (unsigned char)(eax & 0xFFU);
     /* 0x0042336C and eax, 0FFh */
@@ -4098,7 +4098,7 @@ void d3u_42335c(dec3w_ctx *c)
     /* 0x00423383 pop edx */
     /* 0x00423384 retn */
 }
-void d3u_423388(dec3w_ctx *c)
+void d3u_rc_reset(dec3w_ctx *c)
 {
     unsigned int eax = 0;
     unsigned int ebx = 0;
@@ -6955,12 +6955,12 @@ l_414952:
     /* 0x0041498D */ ecx = 0x180UL; /* mov ecx,180h */
     /* 0x00414992 */ edx = (edx + 0x5FA00UL) & U32MASK; /* add edx,5FA00h */
     /* 0x00414998 */ edi = D3U_TBL_443B68; /* mov edi,offset dword_443B68 */
-    /* 0x0041499D */ d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi); /* call sub_421284 (esi stale, callee ignores esi/edi/ecx) */
+    /* 0x0041499D */ d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi); /* call sub_421284 (esi stale, callee ignores esi/edi/ecx) */
     /* 0x004149A2 */ ebx = 0x203UL; /* mov ebx,203h */
     /* 0x004149A7 */ eax = 1; /* mov eax,1 */
     /* 0x004149AC */ edx = (unsigned long)G32(D3U_BLK17_SMALL_B); /* mov edx,dword_4299FC */
     /* 0x004149B2 */ esi = D3U_TBL_429A08; /* mov esi,offset dword_429A08 */
-    /* 0x004149B7 */ d3u_421284(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi); /* call sub_421284 (ecx=180h,edi=443B68h preserved) */
+    /* 0x004149B7 */ d3u_fill16(c, (unsigned int)ebx, (unsigned int)edx, (unsigned int)eax, (unsigned int)ecx, (unsigned int)esi, (unsigned int)edi); /* call sub_421284 (ecx=180h,edi=443B68h preserved) */
     /* 0x004149BC */ ebx = 0x203UL; /* mov ebx,203h */
     /* 0x004149C1 cld */;
     /* 0x004149C2 */ eax = ecx; /* mov eax,ecx (=180h: ecx preserved by callee) */
@@ -7155,7 +7155,7 @@ l_414cb7:
     /* 0x00414CB7 */ esi = 0x0AUL; /* mov esi,0Ah */
     /* 0x00414CBC */ eax = esi; /* mov eax,esi */
     /* 0x00414CBE */ G32(D3U_RC_TOTAL) = (unsigned int)esi; /* mov dword_4441E8,esi (=0Ah) */
-    /* 0x00414CC4 */ eax = (unsigned long)d3u_423188(c, (unsigned int)eax); /* call sub_423188 (eax=0Ah in, al out) */
+    /* 0x00414CC4 */ eax = (unsigned long)d3u_rc_decode(c, (unsigned int)eax); /* call sub_423188 (eax=0Ah in, al out) */
     /* 0x00414CC9 */ edx = eax; /* mov edx,eax */
     /* 0x00414CCB */ eax = 0; /* xor eax,eax */
     /* 0x00414CCD */ ecx = 0; /* xor ecx,ecx */
@@ -7165,7 +7165,7 @@ l_414cb7:
     /* 0x00414CD8 */ eax = (ecx + 1UL) & U32MASK; /* lea eax,[ecx+1] */
     /* 0x00414CDB */ G32(D3U_RC_PROB_HI) = (unsigned int)eax; /* mov dword_4441F0,eax */
     /* 0x00414CE0 */ eax = D3U_RC_TOTAL; /* mov eax,offset dword_4441E8 */
-    /* 0x00414CE5 */ d3u_423140(c, (unsigned int)eax); /* call sub_423140 (pops edx: caller dl preserved) */
+    /* 0x00414CE5 */ d3u_rc_update(c, (unsigned int)eax); /* call sub_423140 (pops edx: caller dl preserved) */
     /* 0x00414CEA cmp dl,byte_444EA9 */ /* 0x00414CF0 jz */ if ((edx & 0xFFUL) == (unsigned long)G8(D3U_FLAG_444EA9)) goto l_414d67;
     /* 0x00414CF6 */ ebp = (unsigned long)G32(D3U_TBL_44426C); /* mov ebp,dword_44426C */
     /* 0x00414CFC */ G8(D3U_FLAG_444EA9) = (unsigned char)(edx & 0xFFUL); /* mov byte_444EA9,dl */
@@ -7244,7 +7244,7 @@ L_419F81:
     if (eax >= G32(D3U_TBL_444228)) goto L_41A17B; /* 0x00419FA0 cmp / 0x00419FA6 jnb unsigned */
     if (ebp <= 0x100UL) goto L_419FBF; /* 0x00419FAC cmp / 0x00419FB2 jbe unsigned */
     eax = (ebp - 0x100UL) & U32MASK; /* 0x00419FB4 lea eax,[ebp-100h] */
-    d3u_41e1c0(c, eax); /* 0x00419FBA call sub_41E1C0 */
+    d3u_fill_input(c, eax); /* 0x00419FBA call sub_41E1C0 */
 L_419FBF:
     ecx = 0x14UL; /* 0x00419FBF mov ecx,14h */
     edi = D3U_TBL_444188; /* 0x00419FC4 mov edi,offset dword_444188 */
@@ -7454,7 +7454,7 @@ unsigned int edx_ = 0;
 /* 0x00416789 mov ax, word ptr dword_4441E8 */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)M16(D3U_RC_TOTAL);
 /* 0x0041678F and eax, 0FFFFh */ eax_ &= 0xFFFFu;
 /* 0x00416794 xor ebx, ebx */ ebx_ = 0u;
-/* 0x00416796 call sub_423188 */ eax_ = d3u_423188(c, eax_);
+/* 0x00416796 call sub_423188 */ eax_ = d3u_rc_decode(c, eax_);
 /* 0x0041679B mov bl, [edx] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
 /* 0x0041679D and eax, 0FFFFh */ eax_ &= 0xFFFFu;
 /* 0x004167A2 cmp eax, ebx */ /* flags for setl */
@@ -7828,7 +7828,7 @@ unsigned int stk_b = 0;
 /* 0x00417574 xor eax, eax */ eax_ = 0u;
 /* 0x00417576 mov dword_4441E8, esi */ M32(D3U_RC_TOTAL) = esi_;
 /* 0x0041757C mov ax, word ptr dword_4441E8 */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)M16(D3U_RC_TOTAL);
-/* 0x00417582 call sub_423188 */ eax_ = d3u_423188(c, eax_);
+/* 0x00417582 call sub_423188 */ eax_ = d3u_rc_decode(c, eax_);
 /* 0x00417587 mov edx, eax */ edx_ = eax_;
 /* 0x00417589 mov bl, al */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
 /* 0x0041758B xor eax, eax */ eax_ = 0u;
@@ -7839,7 +7839,7 @@ unsigned int stk_b = 0;
 /* 0x00417598 inc eax */ eax_ = (eax_ + 1u) & U32MASK;
 /* 0x00417599 mov dword_4441F0, eax */ M32(D3U_RC_PROB_HI) = eax_;
 /* 0x0041759E mov eax, offset dword_4441E8 */ eax_ = D3U_RC_TOTAL;
-/* 0x004175A3 call sub_423140 */ d3u_423140(c, eax_);
+/* 0x004175A3 call sub_423140 */ d3u_rc_update(c, eax_);
 /* 0x004175A8 cmp byte_444EAE, 0 */
 /* 0x004175AF jz short loc_4175BB */ if (M8(D3U_FLAG_444EAE) == 0u) goto l_4175bb;
 /* 0x004175B1 add dword_44420C, 9240h */ M32(D3U_TBL_44420C) = (M32(D3U_TBL_44420C) + 0x9240u) & U32MASK;
@@ -8145,14 +8145,14 @@ l_42324c:
 /* 0x00423258 xor eax, eax */ eax_ = 0u;
 /* 0x0042325A mov al, byte_4450FC */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)M8(D3U_RC_CARRY_BYTE);
 /* 0x0042325F mov dword_4450F0, ebx */ M32(D3U_RC_SCALE) = ebx_;
-/* 0x00423265 call sub_41E3BC */ d3u_41e3bc(c, eax_);
+/* 0x00423265 call sub_41E3BC */ d3u_put_byte(c, eax_);
 /* 0x0042326A mov ebx, dword_4450F0 */ ebx_ = M32(D3U_RC_SCALE);
 /* 0x00423270 test ebx, ebx */
 /* 0x00423272 jz short loc_42328A */ if (ebx_ == 0u) goto l_42328a;
 l_423274:
 /* 0x00423274 mov eax, esi */ eax_ = esi_;
 /* 0x00423276 mov dword_4450F0, ebx */ M32(D3U_RC_SCALE) = ebx_;
-/* 0x0042327C call sub_41E3BC */ d3u_41e3bc(c, eax_);
+/* 0x0042327C call sub_41E3BC */ d3u_put_byte(c, eax_);
 /* 0x00423281 mov ebx, dword_4450F0 */ ebx_ = M32(D3U_RC_SCALE);
 /* 0x00423287 dec ebx */ ebx_ = (ebx_ - 1u) & U32MASK;
 /* 0x00423288 jnz short loc_423274 */ if (ebx_ != 0u) goto l_423274;
@@ -8168,7 +8168,7 @@ l_423299:
 /* 0x004232A7 inc al */ eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) + 1u) & 0xFFu);
 /* 0x004232A9 and eax, 0FFh */ eax_ &= 0xFFu;
 /* 0x004232AE mov dword_4450F0, ebx */ M32(D3U_RC_SCALE) = ebx_;
-/* 0x004232B4 call sub_41E3BC */ d3u_41e3bc(c, eax_);
+/* 0x004232B4 call sub_41E3BC */ d3u_put_byte(c, eax_);
 /* 0x004232B9 mov ebx, dword_4450F0 */ ebx_ = M32(D3U_RC_SCALE);
 /* 0x004232BF test ebx, ebx */
 /* 0x004232C1 jz short loc_4232DB */ if (ebx_ == 0u) goto l_4232db;
@@ -8176,7 +8176,7 @@ l_423299:
 l_4232c5:
 /* 0x004232C5 mov eax, edx */ eax_ = edx_;
 /* 0x004232C7 mov dword_4450F0, ebx */ M32(D3U_RC_SCALE) = ebx_;
-/* 0x004232CD call sub_41E3BC */ d3u_41e3bc(c, eax_);
+/* 0x004232CD call sub_41E3BC */ d3u_put_byte(c, eax_);
 /* 0x004232D2 mov ebx, dword_4450F0 */ ebx_ = M32(D3U_RC_SCALE);
 /* 0x004232D8 dec ebx */ ebx_ = (ebx_ - 1u) & U32MASK;
 /* 0x004232D9 jnz short loc_4232C5 */ if (ebx_ != 0u) goto l_4232c5;
