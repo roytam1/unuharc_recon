@@ -2,6 +2,7 @@
  * See uharc_dec4_clean.h for status. Port of uharc-rs ppm.rs.
  */
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "uharc_dec4_clean.h"
 #include "dec4c_rom.h"
@@ -2347,8 +2348,58 @@ static void dec4c_o4_update(dec4c_ctx *c, unsigned char sym)
     unsigned long k;
     int halve = 0;
     unsigned ah;
-    if (c->g45c694 >= 0x40000UL)
+    if (c->g45c694 >= 0x40000UL) {
+        /* New bucket: pick the least-used slot of the probe chain. */
+        unsigned long h = c->g45c694 & 0x7FFFUL;
+        unsigned long base = h;
+        unsigned long edi = 0, edx = 0;
+        c->g45c694 = h;
+        for (;;) {
+            unsigned char *e;
+            unsigned long slot = base + edx;
+            unsigned long sb = ((slot & 0x7FFFUL) << 3) | ((slot >> 15) & 7UL);
+            e = c->o4 + sb * 32UL;
+            if (e[0] == 0) {
+                edi = edx;
+                break;
+            }
+            {
+                unsigned long cslot = base + edi;
+                unsigned long scbi = ((cslot & 0x7FFFUL) << 3) | ((cslot >> 15) & 7UL);
+                unsigned char *cur = c->o4 + scbi * 32UL;
+                long bb = (long)e[1] + 1L;
+                long tt = ((long)cur[1] > bb ? 1L : 0L) + (long)(cur[0x19] & 0x3FUL);
+                if ((long)(e[0x19] & 0x3FUL) < tt)
+                    edi = edx;
+            }
+            edx += 0x8000UL;
+            if (edx >= 0x40000UL)
+                break;
+        }
+        if (edx < 0x38000UL) {
+            unsigned long slot = base + edx + 0x8000UL;
+            unsigned long sb = ((slot & 0x7FFFUL) << 3) | ((slot >> 15) & 7UL);
+            c->o4[sb * 32UL] = (unsigned char)(c->o4[sb * 32UL] & 0U);
+        }
+        {
+            unsigned long sbi = (((base + edi) & 0x7FFFUL) << 3) | (((base + edi) >> 15) & 7UL);
+            unsigned char *nb = c->o4 + sbi * 32UL;
+            memset(nb, 0, 32);
+            nb[0] = 1;
+            nb[0x1A] = 0x20U;
+            nb[1] = (unsigned char)(c->g_e3a4 + 1U);
+            nb[0x0DUL] = sym;
+            nb[28] = (unsigned char)(c->g45c6a4 & 0xFFUL);
+            nb[29] = (unsigned char)((c->g45c6a4 >> 8) & 0xFFUL);
+            nb[30] = (unsigned char)((c->g45c6a4 >> 16) & 0xFFUL);
+            nb[31] = (unsigned char)((c->g45c6a4 >> 24) & 0xFFUL);
+        }
+        if (c->mchk_p != 0xFFFFFFFFUL)
+            c->mchk[c->mchk_p & 0x3FFFFUL] = 0x20U;
+        else
+            c->bad = 1;
         return;
+    }
     bi = ((c->g45c694 & 0x7FFFUL) << 3) | ((c->g45c694 >> 15) & 7UL);
     b = c->o4 + bi * 32UL;
     k = c->g_e3a3;
@@ -2455,6 +2506,10 @@ static void dec4c_o4_update(dec4c_ctx *c, unsigned char sym)
         c->g45d120 >>= 1;
         c->g45d104 >>= 1;
     }
+    if (c->mchk_p != 0xFFFFFFFFUL)
+        c->mchk[c->mchk_p & 0x3FFFFUL] = b[0x1A];
+    else
+        c->bad = 1;
 }
 
 /* Part of 0x40d6d1: locate the order-4 bucket of C0 for the rebuild. */
@@ -3358,6 +3413,16 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
                 c->g_e39d = (unsigned char)v;
                 if (v && rec[0] != 0)
                     dec4c_order2(c, o2i, l50, l3c, l10c, c6a4, lfc, l104, l100, l52, l4e, bm, &esc, &sym);
+#ifdef DEC4C_DEBUG
+                {
+                    static unsigned long dbg_o2 = 0;
+                    unsigned char rbuf[20];
+                    dec4c_o2r(c, o2i, rbuf);
+                    dbg_o2++;
+                    if (dbg_o2 <= 8)
+                        fprintf(stderr, "  O2 %lu esc=%d sym=%02x r0=%u tot=%u g_e3a5=%u\n", dbg_o2, esc, sym, rbuf[0], rbuf[0x12], (unsigned)c->g_e3a5);
+                }
+#endif
             }
             if (l2c)
                 break;
@@ -3398,11 +3463,18 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
                                 arr1 = e[1];
                             }
                             arr1 = (arr1 + dec4c_rom32(0x4274cdUL + 4UL * ((e[3] >> 3) & 0x0FUL))) & 0xFFFFFFFFUL;
+                            /* Rust: arr[(e2==l28)] += l108 etc. (add to arr[1] if match, else arr[0]) */
                             if (e2 == l28)
+                                arr1 = (arr1 + l108) & 0xFFFFFFFFUL;
+                            else
                                 arr0 = (arr0 + l108) & 0xFFFFFFFFUL;
                             if (e2 == l3c)
+                                arr1 = (arr1 + l104) & 0xFFFFFFFFUL;
+                            else
                                 arr0 = (arr0 + l104) & 0xFFFFFFFFUL;
                             if (e2 == l50)
+                                arr1 = (arr1 + l100) & 0xFFFFFFFFUL;
+                            else
                                 arr0 = (arr0 + l100) & 0xFFFFFFFFUL;
                             t = (arr0 + arr1) & 0xFFFFFFFFUL;
                             v = dec4c_rc_div(c, t) & 0xFFFFUL;
@@ -3529,6 +3601,14 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
     }
     dec4c_after_symbol(c, sym, 1);
     dec4c_push_hist(c, sym);
+#ifdef DEC4C_DEBUG
+    {
+        static unsigned long dbg_n = 0;
+        dbg_n++;
+        if (dbg_n <= 6)
+            fprintf(stderr, "DSYM %lu sym=%02x esc=%d l10c=%lu c0=%08lx a4=%08lx l108=%08lx l28=%02x\n", dbg_n, sym, esc, l10c, c->c0, a4 & 0xFFFFFFFFUL, l108 & 0xFFFFFFFFUL, l28);
+    }
+#endif
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
