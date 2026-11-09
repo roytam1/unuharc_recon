@@ -70,6 +70,7 @@ typedef struct dec4c_ctx_s {
     unsigned long mmper;       /* 0x45ae24 */
     unsigned long ch;          /* 0x45ae2c channel */
     unsigned char g_e38c;      /* 0x45e38c */
+    unsigned char g_e38b;       /* 0x45e38b predicted byte */
     unsigned char g_e38e;      /* 0x45e38e */
     unsigned char g_e38d;      /* 0x45e38d (type==5||6) */
     /* Mm predictor state (0x412fb0, types 5..9) */
@@ -108,6 +109,11 @@ typedef struct dec4c_ctx_s {
     unsigned long pend, mchk_p, pair_p; /* 0x45d11c/148/14c, 0xFFFFFFFF=none */
     unsigned long *mh1, *mh2;           /* 0x423688/8c hashes, 0x80000 each */
     unsigned char *mlen, *mchk, *x698; /* 0x423690/94/98, 0x40000 each */
+    unsigned long x698p[4];             /* 0x45d150.. */
+    unsigned char dd6a[2], dd6c[2];     /* 0x45dd6a/c */
+    unsigned char ty3[8], cnt3[8];      /* 0x45d160/0x44316c */
+    unsigned char g_e389, g_e38a, g_e38f;
+    unsigned long g45ae18;
     unsigned char g_e3a0, g_e3a2;       /* 0x45e3a0/a2 */
     unsigned long g45d114;              /* 0x45d114 match continuation */
     unsigned char bad;
@@ -884,6 +890,195 @@ static void dec4c_output(dec4c_ctx *c, unsigned char al)
         bl = (bl - 1UL) & 0xFFUL;
         if (bl == 0)
             break;
+    }
+}
+
+/* mm_predict / mm_update stubs (0x412ffa/0x413347) for types 5..9.
+ * Correct for generic types 0..4; multimedia will be wired when the
+ * predictor records are ported. */
+static void dec4c_mm_predict(dec4c_ctx *c) { (void)c; }
+static void dec4c_mm_update(dec4c_ctx *c, unsigned char s, unsigned char d) { (void)c; (void)s; (void)d; }
+
+/* 0x40f39a: per-symbol context/period/predictor bookkeeping. */
+static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
+{
+    int i;
+    unsigned cl, o;
+    for (i = 0; i < 4; i++)
+        c->x698[c->x698p[i] & 0x3FFFFUL] = sym;
+    if (dl) {
+        cl = (unsigned)(c->nbytes & 1UL);
+        o = cl ^ 1UL;
+        c->dd6a[cl] = (unsigned char)((c->dd6a[cl] + c->dd6a[cl]) & 0x0FUL);
+        c->dd6c[cl] = (unsigned char)((c->dd6c[cl] + c->dd6c[cl]) & 0x0FUL);
+        c->g_e3a0 = 0;
+        if (sym >= 0x80U) {
+            if (sym == 0xFFU) {
+                c->dd6c[cl] = (unsigned char)(c->dd6c[cl] + 1U);
+                if (c->dd6a[o] == 0x0FU && c->dd6c[cl] == 0x0FU)
+                    c->g_e3a0 = 2;
+            } else if (sym <= 0xDFU || (sym >= 0xF2U && sym <= 0xF6U)) {
+                c->dd6a[cl] = (unsigned char)(c->dd6a[cl] + 1U);
+                if (c->dd6c[o] == 0x0FU && c->dd6a[cl] == 0x0FU)
+                    c->g_e3a0 = 1;
+            }
+        }
+    }
+    if (sym != 0 && sym != 0xFFU) {
+        unsigned long pos = c->pos;
+        unsigned long eax = (pos - c->lastpos[sym]) & c->dictmask;
+        if (eax >= 0x100UL) {
+            eax = (pos - c->lastpos[sym - 1U]) & c->dictmask;
+            if (eax >= 0x100UL)
+                eax = (pos - c->lastpos[sym + 1U]) & c->dictmask;
+        }
+        if (eax != 0 && eax < 0x100UL) {
+            c->per[eax] = (c->per[eax] + 1UL) & 0xFFFFFFFFUL;
+            if (eax != c->g45c674) {
+                unsigned long pd = c->g45c674;
+                if (sym == dec4c_tb(c, pd))
+                    c->per[pd & 0xFFUL] = (c->per[pd & 0xFFUL] + 1UL) & 0xFFFFFFFFUL;
+                else
+                    c->g45c66c = (c->g45c66c + 2UL) & 0xFFFFFFFFUL;
+                if (eax == c->g45c670) {
+                    unsigned long edx = c->g45c674;
+                    if (c->per[eax] >= c->per[edx & 0xFFUL]) {
+                        c->g45c670 = edx;
+                        c->g45c674 = eax;
+                        if (eax > 1UL)
+                            c->g45c64c = eax;
+                    }
+                } else {
+                    c->g45c670 = eax;
+                }
+            }
+        }
+        c->g45c66c = (c->g45c66c + 1UL) & 0xFFFFFFFFUL;
+        if (c->g45c66c >= 0x28UL) {
+            unsigned e;
+            for (i = 0; i < 256; i++)
+                c->per[i] >>= 1;
+            e = c->g45c674;
+            c->g45c66c = 0;
+            c->per[e & 0xFFUL] = (c->per[e & 0xFFUL] + 1UL) & 0xFFFFFFFFUL;
+            if (e == 1UL && c->per[1] < 4UL)
+                c->per[1] = (c->per[1] + e) & 0xFFFFFFFFUL;
+        }
+        c->lastpos[sym] = pos;
+    }
+    if (c->binmode != 0)
+        c->recent[sym] = (c->pos + 0x40UL) & 0xFFFFFFFFUL;
+    {
+        unsigned ty = c->mmtype;
+        if (ty != 0) {
+            unsigned al = (unsigned)(sym - c->g_e38b) & 0xFFUL;
+            if (c->g_e38e != 0)
+                al = (-(long)al) & 0xFFUL;
+            if (al >= 0x80UL)
+                c->g_e38e = (c->g_e38e == 0) ? 1 : 0;
+            if (ty == 1) {
+                unsigned e = (c->mmctx - 0x209UL) & 0x0FUL;
+                c->mmctx = ((dec4c_rom8(0x424b2cUL + e) << 4) + dec4c_rom8(0x424b3cUL + al) + 0x209UL) & 0xFFFFFFFFUL;
+            } else {
+                unsigned edx = (c->ch << 4) & 0xFFFFFFFFUL;
+                if (ty == 2) {
+                    c->mmctx = (dec4c_rom8(0x424b3cUL + al) + edx + 0x229UL) & 0xFFFFFFFFUL;
+                } else if (ty == 3) {
+                    unsigned ecx;
+                    if (c->g_e389 != 0) {
+                        unsigned d = (sym - (c->c0 >> 16)) & 0xFFFFFFFFUL;
+                        al = d & 0xFFUL;
+                        {
+                            unsigned ah = c->g_e38f;
+                            c->g_e38e = (unsigned char)ah;
+                            if (ah != 0)
+                                al = (-(long)al) & 0xFFUL;
+                            if (al >= 0x80UL)
+                                c->g_e38e = (c->g_e38e == 0) ? 1 : 0;
+                        }
+                    }
+                    ecx = c->g_e38a & 7UL;
+                    if (sym == c->ty3[ecx])
+                        c->cnt3[ecx] = (c->cnt3[ecx] + 1UL) & 0xFFFFFFFFUL;
+                    else
+                        c->cnt3[ecx] >>= 1;
+                    {
+                        unsigned d = dec4c_rom8(0x424c3cUL + al);
+                        c->mmctx = (((c->ch << 5) & 0xFFFFFFFFUL) + d + 0x249UL) & 0xFFFFFFFFUL;
+                    }
+                } else if (ty == 4) {
+                    c->mmctx = (dec4c_rom8(0x424b3cUL + al) + edx + 0x2a9UL) & 0xFFFFFFFFUL;
+                } else {
+                    dec4c_mm_update(c, sym, (unsigned char)al);
+                }
+            }
+        }
+    }
+    c->nbytes = (c->nbytes + 1UL) & 0xFFFFFFFFUL;
+    c->g45c6b0 = (c->g45c6b0 + 1UL) & 0xFFFFFFFFUL;
+    {
+        unsigned long c0 = c->c0, c1 = c->c1, c2 = c->c2;
+        if (c->binmode == 0 && sym >= 4U && sym <= 6U) {
+            if ((c0 & 0xFFUL) != 0xDFUL) {
+                c->c2 = ((c2 << 8) + (c1 >> 24)) & 0xFFFFFFFFUL;
+                c->c1 = ((c1 << 8) + (c0 >> 24)) & 0xFFFFFFFFUL;
+                c->c0 = ((c0 << 8) + 0xDFUL) & 0xFFFFFFFFUL;
+            }
+        } else {
+            c->c2 = ((c2 << 8) + (c1 >> 24)) & 0xFFFFFFFFUL;
+            c->c1 = ((c1 << 8) + (c0 >> 24)) & 0xFFFFFFFFUL;
+            c->c0 = ((c0 << 8) + (unsigned)sym) & 0xFFFFFFFFUL;
+        }
+    }
+    if (c->mmtype != 0) {
+        unsigned long n = c->nbytes;
+        unsigned long d = c->mmper;
+        unsigned long rem;
+        if (d == 0) {
+            c->bad = 1;
+            rem = 0;
+        } else {
+            rem = n % d;
+        }
+        {
+            unsigned cl = c->g_e38c;
+            unsigned long esi = c->ch;
+            c->ch = rem;
+            c->g_e38b = (unsigned char)((c->c0 >> cl) & 0xFFUL);
+            if (c->mmtype == 3) {
+                unsigned dl = (unsigned)(n % 6UL);
+                unsigned long c0 = c->c0;
+                unsigned ecx, big;
+                c->g_e38a = (unsigned char)dl;
+                ecx = ((c0 & 0xFFUL) ^ (c0 >> 24) ^ c->g_e38b) & 0xFFFFFFFFUL;
+                big = (c->cnt3[dl] > 8UL) ? 1U : 0U;
+                c->ty3[dl] = (unsigned char)ecx;
+                {
+                    unsigned al = (big && c->g45ae18 < 5UL) ? 1U : 0U;
+                    c->g_e389 = (unsigned char)al;
+                    if (al) {
+                        c->g_e38f = c->g_e38e;
+                        c->mmctx = ((esi << 5) + 0x259UL) & 0xFFFFFFFFUL;
+                        c->g_e38e = 0;
+                        c->g_e38b = c->ty3[dl];
+                    }
+                }
+                if (big)
+                    c->g45ae18 = (c->g45ae18 + 1UL) & 0xFFFFFFFFUL;
+                else
+                    c->g45ae18 = 0;
+            } else if (c->mmtype >= 5U) {
+                dec4c_mm_predict(c);
+            }
+        }
+    }
+    {
+        unsigned long c0 = c->c0, c1 = c->c1;
+        unsigned long edx = c0 >> 8;
+        c->x698p[0] = (((c0 >> 16) & 0xFF00UL) + (c1 >> 24)) & 0xFFFFFFFFUL;
+        c->x698p[1] = ((edx & 0xFFFFUL) + 0x10000UL) & 0xFFFFFFFFUL;
+        c->x698p[2] = ((edx & 0xFF00UL) + 0x20000UL + (c0 & 0xFFUL)) & 0xFFFFFFFFUL;
+        c->x698p[3] = (((c0 << 8) & 0xFF00UL) + 0x30000UL + (c1 & 0xFFUL)) & 0xFFFFFFFFUL;
     }
 }
 
