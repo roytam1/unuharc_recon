@@ -1390,6 +1390,104 @@ static void dec4c_decode_symbol_pre(dec4c_ctx *c, unsigned long *out_l10c,
         c->see[D4C_MARKS + c->x698[c->x698p[i] & 0x3FFFFUL]] = c->nbytes;
 }
 
+/* Order-4 probe scan (0x41030f head): walk the 8-way chain for bucket
+ * o4s(g45c694); on hit copy the 32-byte bucket to b[32] and run the
+ * skip tests. Returns 1 if the order should decode (b filled), 0 to
+ * fall through to order-2. rec is the order-2 record (o2i). */
+static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char rec[20],
+                         unsigned char b[32])
+{
+    unsigned long bm = (c->binmode != 0) ? 1UL : 0UL;
+    unsigned long l50_dummy = 0;
+    /* l52/l4e/g68c need lit state; for scan we evaluate skip tests that
+     * only need b/rec/g45/g6b8. l52/l4e paths return "skip" conservatively. */
+    for (;;) {
+        unsigned long bucket = ((c->g45c694 & 0x7FFFUL) << 3) | ((c->g45c694 >> 15) & 7UL);
+        unsigned char *bp = c->o4 + bucket * 32UL;
+        unsigned long ctx32;
+        unsigned f0 = 0x0CU, ec = 0x0CU;
+        unsigned k = 0, fk, sum;
+        unsigned long b1a, b19;
+        if (bp[0] == 0) {
+            c->g45c694 = (c->g45c694 + 0x40000UL) & 0xFFFFFFFFUL;
+            return 0;
+        }
+        ctx32 = ((unsigned long)bp[28]) | ((unsigned long)bp[29] << 8) |
+                ((unsigned long)bp[30] << 16) | ((unsigned long)bp[31] << 24);
+        if (ctx32 != c6a4) {
+            c->g45c694 = (c->g45c694 + 0x8000UL) & 0xFFFFFFFFUL;
+            if (c->g45c694 >= 0x40000UL)
+                return 0;
+            continue;
+        }
+        memcpy(b, bp, 32UL);
+        (void)l50_dummy;
+        c->g_e3a3 = 0xFFU;
+        sum = b[0];
+        fk = b[1];
+        k = 0;
+        for (;;) {
+            unsigned s = b[0x0DUL + k];
+            if (s == 0) { /* l50/l3c handled by caller via f0/ec; keep scan */ }
+            sum = (sum + fk) & 0xFFFFFFFFUL;
+            k += 1UL;
+            if (k >= 0x0CUL) break;
+            fk = b[k + 1UL];
+            if (fk == 0) break;
+        }
+        (void)f0; (void)ec;
+        b1a = b[0x1A];
+        c->g45c678 = sum;
+        /* Skip: g45c6a0/g45c674/g68c threshold */
+        if (c->g45c6a0 == 0 && c->g45c674 > 1UL &&
+            c->g45d104 <= c->g45d138 && dec4c_g68c(c) > 0x3FEUL) {
+            unsigned long q = b1a >> 4;
+            unsigned long e = ((unsigned long)b[0x1B] << 6) * q & 0xFFFFFFFFUL;
+            if (e < c->g6b8[c->g45c688 & 0x3FFUL])
+                return 0;
+        }
+        /* Skip: order-2 vs order-4 cost comparison */
+        if (rec[0] != 0 && (bm != 0 || rec[0x13] >= 0x30UL)) {
+            b19 = b[0x19];
+            if ((b19 & 0x38UL) == 0UL) {
+                unsigned long e = (unsigned long)rec[0x12] * ((b19 & 4UL) + b[1] + (b[0x1A] >> 4)) & 0xFFFFFFFFUL;
+                unsigned long a = ((unsigned long)rec[1] + ((unsigned long)rec[0x13] >> 4)) * c->g45c678 & 0xFFFFFFFFUL;
+                if (e < a)
+                    return 0;
+            }
+            if (rec[0x13] >= 0x60UL && ((unsigned long)rec[0x13] >> 2) > (unsigned long)b[0x1A])
+                return 0;
+        }
+        /* Allowed-symbol mask + escape check */
+        {
+            unsigned long c678 = c->g45c678;
+            unsigned long c698 = c678;
+            unsigned mask[16];
+            unsigned j;
+            int mi;
+            for (mi = 0; mi < 16; mi++) mask[mi] = (mi < 12) ? 1UL : 0UL;
+            if (c->nex != 0) {
+                unsigned x = c->excl[0];
+                j = 0;
+                for (;;) {
+                    if (x == b[j + 0x0DUL]) {
+                        c698 = (c698 - b[j + 1UL]) & 0xFFFFFFFFUL;
+                        mask[j] = 0;
+                        break;
+                    }
+                    j += 1UL;
+                    if (b[j + 1UL] == 0 || j >= 0x0CUL) break;
+                }
+            }
+            (void)mask;
+            c->g45c698 = c698;
+            if ((unsigned long)b[0] >= c698)
+                return 0;
+        }
+        return 1;
+    }
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
