@@ -971,7 +971,7 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
             c->per[eax] = (c->per[eax] + 1UL) & 0xFFFFFFFFUL;
             if (eax != c->g45c674) {
                 unsigned long pd = c->g45c674;
-                if (sym == dec4c_tb(c, pd))
+                if (sym == dec4c_hist(c, pd))
                     c->per[pd & 0xFFUL] = (c->per[pd & 0xFFUL] + 1UL) & 0xFFFFFFFFUL;
                 else
                     c->g45c66c = (c->g45c66c + 2UL) & 0xFFFFFFFFUL;
