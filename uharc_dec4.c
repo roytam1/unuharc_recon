@@ -97,6 +97,15 @@ typedef struct dec4_ctx_s {
     unsigned int p_6AC, p_6B0, p_6B4, p_6B8;
 } dec4_ctx;
 
+/* Header flags2 bit6: kennedy.xls special case (1029744-byte file).
+ * Set by the container before a 0.6 PPM decode. */
+static unsigned char g_dec4_flags2;
+
+void uharc_dec4_set_flags2(unsigned char flags2)
+{
+    g_dec4_flags2 = flags2;
+}
+
 
 /* ---------------- prototypes ---------------- */
 
@@ -8205,6 +8214,20 @@ int uharc_dec4_decode_b(void *ctx,
         M32(A_FILE_TABLE + 4 * ncum) = (unsigned)out_len;
         G32(D4A_FILE_TAB_PTR) = A_FILE_TABLE;
         c->file_table = A_FILE_TABLE;
+        /* asm 0x40D410..0x40D451 (sub_40CDD1 tail): when flags2
+         * bit6 (byte_4228BD) is set, scan the file-end table for a
+         * 0xFB670 (1029744) file; the predecessor end becomes
+         * dword_45D124 and byte_45E395 = (prev == 0) ? 10 : 0. */
+        if (g_dec4_flags2 & 0x40) {
+            unsigned prev = 0;
+            for (i = 0; i < ncum; i++) {
+                unsigned e = (unsigned)cum[i];
+                if (e - prev == 0xFB670U) break;
+                prev = e;
+            }
+            G32(D4A_TBL_45D124) = prev;
+            G8(D4A_FLAG_45E395) = (prev == 0) ? 10 : 0;
+        }
     } else {
         G32(D4A_FILE_TAB_PTR) = 0;
         c->file_table = 0;

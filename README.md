@@ -90,7 +90,10 @@ every per-file CRC matches.
   `gmud-04x` (44 files, 33 MB) and `gmud-04z` (44 files, 33 MB).
 * **0.6** — `06_m0/m1/m2/m3/mz`, `BIG.uha` and generated multi-file solids
   (including model-reset boundaries), `gmud-06m3` and `gmud-06z`
-  (44 files, 33 MB), plus `D3X.UHA` listing (45 files).
+  (44 files, 33 MB), plus `D3X.UHA` listing (45 files). Also all 103
+  `uharc-rs/testdata/arc/*.uha` (STORE/RLE/LZW/LZP/PPM/ALZ, `-md1`…
+  `-md32m`, `-mm±`, `-pwsecret`/`-ph`, EXE/fax/media filters, kennedy.xls);
+  `x` output compared byte-identical to `uharc-rs/testdata/src`.
 
 The three `gmud-*m3` / `gmud-*z` sets extract to the same 44 files
 (33,705,622 bytes), which cross-checks the 0.3, 0.4 and 0.6 ports against
@@ -293,9 +296,10 @@ method ID across 2–7.
    (method 35, `gmud-03x.uha` 44/44). The port is `uha03_dec4.c` plus the
    DGROUP slice `uha03_dec4_dg.c`.
 4. **Multimedia filter** — wired into 0.3/0.4/0.6 extraction (header +9
-   bit1; decode order EXE then multimedia). Verified with 0.6 `-mz` /
-   `-mw -mm+` archives containing `BUNTITE.BMP` and `B261024.WAV`
-   (extracted byte-identical; without the filter the CRC fails).
+   bit1, size ≥ 0x400; decode order EXE then multimedia). Verified with
+   0.6 `-mz` / `-mw -mm+` archives (`BUNTITE.BMP`, `B261024.WAV`) and
+   all 103 `uharc-rs/testdata/arc` archives (incl. EXE/fax/media filters
+   and the kennedy.xls PPM special case, header +9 bit6/bit7).
 5. **Password-protected archives** — 0.3/0.4/0.6 `-pw` archives open with
    `-pwpassword` (tables and packed stream use the password cipher; a
    missing password fails fast, a wrong one fails the table CRC). 0.2

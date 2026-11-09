@@ -52,6 +52,10 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
 /* version-aware core selector (-1 = unknown method) */
 int uharc_dec_core_v(int method, int ver);
 
+/* 0.6 PPM (core 4) honours flags2 bit6 (kennedy.xls special case).
+ * The container must call this before decoding a 0.6 PPM stream. */
+void uharc_dec4_set_flags2(unsigned char flags2);
+
 /* core selectors (for tests) */
 int uharc_dec_core(int method);
 

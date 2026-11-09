@@ -12,4 +12,9 @@
  * executable header (the original also accepts ELF and "FBOV"). */
 void uharc_filter_exe(unsigned char *buf, unsigned long len, int ver, int f6);
 
+/* In-place inverse fax transpose for a 513216-byte file (1728x2376,
+ * 1 bpp).  Flags2 bit7 selects it and disables EXE/media.  No-op
+ * unless len == 513216. */
+void uharc_filter_fax(unsigned char *buf, unsigned long len);
+
 #endif

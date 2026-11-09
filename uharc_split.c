@@ -85,11 +85,10 @@ static int open_cur(split_ctx *s)
     s->crc = 0xFFFFFFFFUL;
     s->factive = 0;
     s->fpos = 0;
-    /* Mirror the original 0.3/0.4 filter setup: files of at least
-     * 16 bytes get the whole-file filter pass (the EXE filter itself
-     * then requires 0x400 bytes and checks MZ/ZM; the multimedia
-     * filter checks BMP/WAV/VOC). */
-    if (s->unfilter && (e->size & 0xFFFFFFFFUL) > 15UL) {
+    /* Mirror the original 0.3/0.4/0.6 filter setup (UNUHARC06
+     * 0x4055B1: both EXE and media are gated on size >= 0x400).
+     * The fax transpose (size == 0x7D4C0) also needs buffering. */
+    if (s->unfilter && (e->size & 0xFFFFFFFFUL) >= 0x400UL) {
         unsigned long need = e->size & 0xFFFFFFFFUL;
         if (s->fcap < need) {
             unsigned char *nb = (unsigned char *)realloc(s->fbuf,

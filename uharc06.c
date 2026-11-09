@@ -687,11 +687,14 @@ static unsigned g_sp_curpath_cap;
 static int g_sp_crc_err;
 /* 0.6 post-filters are applied per file, after decode and before
  * CRC/write (the original buffers to the file length).  Gate is
- * header flags2: bit0 is the EXE post-filter (sub_40481E, file
- * >= 0x400) and bit1 is the multimedia filter (sub_404665, file
- * > 15).  Decode order is EXE then multimedia. */
+ * header flags2 (UNUHARC06 0x4055B1/0x405589): bit0 is the EXE
+ * post-filter (sub_40481E, size >= 0x400), bit1 is the multimedia
+ * filter (sub_404665, size >= 0x400), bit7 selects the fax transpose
+ * for size == 0x7D4C0 (513216) and disables the other two.  Decode
+ * order is fax, else EXE then multimedia. */
 static int g_sp_filt;
 static int g_sp_mm;
+static int g_sp_fax;
 static int g_sp_fuse;
 static unsigned char *g_sp_fbuf;
 static unsigned long g_sp_fcap;
@@ -747,7 +750,7 @@ static int g_sp_open_cur(void)
     *g_sp_pcrc = 0xFFFFFFFFUL;
     g_sp_fuse = 0;
     g_sp_ffill = 0;
-    if ((g_sp_filt || g_sp_mm) && fsz > 15UL) {
+    if ((g_sp_filt || g_sp_mm || g_sp_fax) && fsz >= 0x400UL) {
         if (fsz > g_sp_fcap) {
             unsigned char *nb = (unsigned char *)realloc(g_sp_fbuf,
                                                          (size_t)fsz);
@@ -804,26 +807,32 @@ static int uharc06_split_write(void *ctx, const unsigned char *buf, unsigned len
             ci = *g_sp_pidx;
             if (g_sp_fuse) {
                 /* whole file is buffered: apply the 0.6 inverse
-                 * filters before CRC and write, EXE then multimedia
-                 * (sub_409688 order).  f6 = native byte_433E36, set
-                 * once per archive from byte_42251F[ARCHIVE
-                 * method]==4 (asm 0x405C16; the table holds 4 exactly
-                 * at 24..39). It is NOT per-file: gmud-06m3 (archive
-                 * method 87) and gmud-06z (23) must not get the
-                 * pre-transform even for 24..39-method members. */
+                 * filters before CRC and write.  Fax (bit7, size
+                 * 0x7D4C0) disables EXE/media; otherwise EXE then
+                 * multimedia (sub_409688 order).  f6 = native
+                 * byte_433E36, set once per archive from
+                 * byte_42251F[ARCHIVE method]==4 (asm 0x405C16; the
+                 * table holds 4 exactly at 24..39). It is NOT
+                 * per-file: gmud-06m3 (archive method 87) and
+                 * gmud-06z (23) must not get the pre-transform even
+                 * for 24..39-method members. */
 #ifdef SPLITDBG
                 if (g_sp_ffill > 0) {
                     FILE *df = fopen("C:/Users/Roy/AppData/Local/Temp/opencode/fileX_raw.bin", "wb");
                     if (df) { fwrite(g_sp_fbuf, 1, (size_t)g_sp_ffill, df); fclose(df); }
                 }
 #endif
-                if (g_sp_filt) {
-                    uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6,
-                        (h->hdr.method >= 24 &&
-                         h->hdr.method <= 39) ? 1 : 0);
-                }
-                if (g_sp_mm) {
-                    uha02_mm_unfilter(g_sp_fbuf, g_sp_ffill);
+                if (g_sp_fax && g_sp_ffill == 513216UL) {
+                    uharc_filter_fax(g_sp_fbuf, g_sp_ffill);
+                } else {
+                    if (g_sp_filt) {
+                        uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6,
+                            (h->hdr.method >= 24 &&
+                             h->hdr.method <= 39) ? 1 : 0);
+                    }
+                    if (g_sp_mm) {
+                        uha02_mm_unfilter(g_sp_fbuf, g_sp_ffill);
+                    }
                 }
 #ifdef SPLITDBG
                 if (g_sp_ffill > 0) {
@@ -919,6 +928,7 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     g_sp_crc_err = 0;
     g_sp_filt = (h->hdr.flags2 & 1) ? 1 : 0;
     g_sp_mm = (h->hdr.flags2 & 2) ? 1 : 0;
+    g_sp_fax = (h->hdr.flags2 & 0x80) ? 1 : 0;
     g_sp_fuse = 0;
     g_sp_ffill = 0;
 
@@ -995,6 +1005,7 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     mr.buf = packed;
     mr.len = packed_len;
     mr.pos = 0;
+    uharc_dec4_set_flags2((unsigned char)h->hdr.flags2);
     drc = uharc_dec_decode_b((int)h->hdr.method, 0, 6, cum, h->nfiles,
                              mr_read, &mr, uharc06_split_write, 0,
                              h->hdr.total_size);

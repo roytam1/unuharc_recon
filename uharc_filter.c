@@ -253,3 +253,32 @@ void uharc_filter_exe(unsigned char *buf, unsigned long len, int ver, int f6)
         }
     }
 }
+
+/* Fax transpose (UNUHARC06 sub_405054, flags2 bit7): 1728x2376 1bpp.
+ * Stored data is 297 groups of 1728 bytes; byte c of group g holds
+ * column c of rows 8g..8g+8 (row 8g in MSB).  Rebuilds row-major.
+ * See uharc-rs/src/filter/fax.rs. */
+void uharc_filter_fax(unsigned char *buf, unsigned long len)
+{
+    unsigned long r, base, o;
+    unsigned char *tmp;
+    unsigned x, i;
+    if (!buf || len != 513216UL) return;
+    tmp = (unsigned char *)malloc(513216UL);
+    if (!tmp) return;
+    o = 0;
+    for (r = 0; r < 2376UL; r++) {
+        unsigned mask = 1UL << (7UL - (r & 7UL));
+        base = (r >> 3) * 1728UL;
+        for (x = 0; x < 1728U; x += 8U) {
+            unsigned b = 0;
+            for (i = 0; i < 8U; i++) {
+                if (buf[base + x + i] & mask)
+                    b |= 0x80U >> i;
+            }
+            tmp[o++] = (unsigned char)b;
+        }
+    }
+    memcpy(buf, tmp, 513216UL);
+    free(tmp);
+}

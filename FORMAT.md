@@ -106,7 +106,7 @@ Standard FAT format:
 | +4 | u16 | time | DOS time |
 | +6 | u16 | date | DOS date |
 | +8 | u8 | flags1 | bit 2: tables encrypted with `-pw` password, bit 1: packed stream encrypted (see 6.6); other bits unknown |
-| +9 | u8 | flags2 | bit 0: EXE filter, bit 1: multimedia filter, bit 7: "big" filter |
+| +9 | u8 | flags2 | bit 0: EXE filter, bit 1: multimedia filter, bit 6: kennedy.xls PPM special case, bit 7: fax transpose (size 513216) |
 | +10 | u8 | method | solid-stream method, 0–87 |
 | +11 | u16 | ndirs | number of directory strings |
 | +13 | u32 | total_unpacked | total decoded bytes |
@@ -181,13 +181,16 @@ check (~crc & 0xFFFF) == tab2_crc
 The stream is decoded with the header method and split by the cumulative
 sizes. After each file is complete:
 
-1. If `flags2 & 1` and the file is at least `0x400` bytes, apply the EXE
-   post-filter over the whole file.
-2. Check `CRC32(file)` against `tab0[i]`.
-3. Write the file (skip in test mode).
+1. If `flags2 & 0x80` and the file is 513216 bytes, apply the fax
+   transpose (1728×2376 bit-plane); it disables the other filters.
+2. Else if `flags2 & 1` and the file is at least `0x400` bytes, apply
+   the EXE post-filter over the whole file; then if `flags2 & 2` and
+   the file is at least `0x400`, apply the multimedia filter
+   (BMP/WAV/VOC).
+3. Check `CRC32(file)` against `tab0[i]`.
+4. Write the file (skip in test mode).
 
-`flags2 & 2` selects the multimedia filter (BMP/WAV/VOC), which is not wired
-in yet. Entries with `method == 0xFF` and size 0 are empty-file markers.
+Entries with `method == 0xFF` and size 0 are empty-file markers.
 
 ### 2.5 Codecs
 
@@ -597,8 +600,12 @@ There is no `mix` index. 0.2's cipher is **not** byte-identical to 0.4/0.6.
 ### 6.5 Multimedia filter
 
 `uha02_mm.c` implements the BMP/WAV/VOC predictor for 0.3/0.4/0.6 and is
-wired into extraction (header +9 bit1; decode order EXE then multimedia).
-0.2 needs no such pass.
+wired into extraction (header +9 bit1, size ≥ 0x400; decode order EXE
+then multimedia). The 0.6 fax transpose (`uharc_filter_fax`, 513216
+bytes, header +9 bit7) is wired in `uharc06.c` and disables EXE/media
+for that file. 0.6 PPM also honours header +9 bit6 (kennedy.xls,
+1029744-byte file: `dword_45D124`/`byte_45E395` initialisation in
+`uharc_dec4.c`). 0.2 needs no such pass.
 
 ### 6.6 Password-protected archives (`-pw`)
 
