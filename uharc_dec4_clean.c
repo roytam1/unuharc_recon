@@ -3397,9 +3397,12 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
             sym = 0;
         }
     }
-    /* 'done: order-4 success -> light update */
+    /* 'done: order-4 success -> light update; Rust reads the persistent
+     * bucket: o4_bytes(&self.o4[bucket])[(g_e3a3+1)&0x1f]. The local b[]
+     * has been SEE-mutated by o4_multi, so it must not gate this. */
     if (!esc) {
-        unsigned f = b[(c->g_e3a3 + 1UL) & 0x1FUL];
+        unsigned long bk = ((c->g45c694 & 0x7FFFUL) << 3) | ((c->g45c694 >> 15) & 7UL);
+        unsigned f = c->o4[bk * 32UL + ((c->g_e3a3 + 1UL) & 0x1FUL)];
         if (f < 7U)
             dec4c_o2_update_light(c, sym);
     } else {
