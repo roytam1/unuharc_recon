@@ -5,6 +5,7 @@
 #include <string.h>
 #include "uharc_dec4_clean.h"
 #include "dec4c_rom.h"
+#include "dec4c_rom2.h"
 
 #define D4_DICT_MAX (32UL << 20) /* 32 MB max for method 39 */
 
@@ -102,7 +103,7 @@ typedef struct dec4c_ctx_s {
     unsigned long ring[256], avg_a[2], avg_b[2];
     unsigned long g45c6b0, g45c6ac, g45c6a0, g45c6b4, g45c68c, g45c688;
     unsigned long g45c66c, g45c674, g45c64c, g45c670;
-    unsigned long g45c650, g45c644, g45c640, g45c654;
+    unsigned long g45c650, g45c644, g45c640, g45c654, g45c648, g45c690;
     unsigned long seg_end, text_end, file_idx;
     unsigned long g45d104, g45d120, g45d124, g45d130, g45d134, g45d138;
     unsigned long nbytes, c0, c1, c2;  /* 0x45d0f8/fc/100 last symbols */
@@ -2037,6 +2038,176 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
         dec4c_see_bump(c, see, *esc == 0);
     if (*esc == 0)
         dec4c_o2_update_light(c, *sym);
+}
+
+/* Cost table (0x429ed4 prefix sum, 0x419ac0) for add_cost. */
+static unsigned dec4c_cost(dec4c_ctx *c, unsigned idx)
+{
+    static unsigned short cost[0x8000];
+    static int cost_init = 0;
+    unsigned acc = 0;
+    unsigned k;
+    (void)c;
+    if (!cost_init) {
+        for (k = 0; k < 0x4000U; k++) {
+            unsigned raw = (unsigned)DEC4C_DG_429ED2[2 + 2 * k] |
+                           ((unsigned)DEC4C_DG_429ED2[3 + 2 * k] << 8);
+            acc = (k == 0) ? raw : ((acc + raw) & 0xFFFFU);
+            cost[k] = (unsigned short)acc;
+        }
+        cost[0x4000] = (unsigned short)(((unsigned)DEC4C_DG_429ED2[0x8003] << 8) & 0xFFFFU);
+        cost_init = 1;
+    }
+    return cost[idx & 0x7FFFUL];
+}
+
+static unsigned dec4c_cx(unsigned long c_)
+{
+    return (c_ >= 0x310UL) ? 0x30FUL : (unsigned)c_;
+}
+
+static unsigned dec4c_excl_total(dec4c_ctx *c, unsigned frq, unsigned n)
+{
+    unsigned si = c->o1t[frq][0][0];
+    unsigned i;
+    for (i = 0; i < n; i++)
+        si = (si - c->o1t[frq][1][c->excl[i]]) & 0xFFFFU;
+    return si;
+}
+
+static unsigned long dec4c_mru_see(dec4c_ctx *c, unsigned long ctx, unsigned char s,
+                                   unsigned long f, unsigned si, unsigned long escc)
+{
+    unsigned long t = dec4c_rom32(0x42748dUL + 4UL * (c->mru_n[dec4c_cx(ctx)] & 0x0FUL));
+    unsigned long x = dec4c_dv((f + t) << 4, (t + escc + si) & 0xFFFFFFFFUL);
+    unsigned s_ = s;
+    if (f <= 0x600UL) {
+        if (f > 0x100UL) x |= 0x30UL;
+        else if (f > 0x40UL) x |= 0x20UL;
+        else x |= 0x10UL;
+    }
+    if ((ctx & 0xC0UL) == 0xC0UL) x |= 0x40UL;
+    if ((s_ & 0xC0UL) == 0xC0UL) x |= (0x80UL << ((s_ == 0xFFUL) ? 1UL : 0UL));
+    {
+        unsigned long ecx = x | 0x200UL;
+        if (c->binmode != 0) {
+            if (((c->pos - c->lastpos[s_]) & c->dictmask) <= 0x40UL)
+                x = ecx;
+        } else if (dec4c_rom8(0x42738dUL + s_) != 0) {
+            x = ecx;
+        }
+        if (c->see[D4C_MARKS + s_] == c->nbytes)
+            x |= 0x400UL;
+    }
+    return x;
+}
+
+static unsigned long dec4c_see_total(dec4c_ctx *c, unsigned long si, unsigned long escc, unsigned long *out_a)
+{
+    long q = (si + escc) ? (long)((escc << 5) / (si + escc)) : 0;
+    unsigned long a = D4C_S_O1TOT + (unsigned long)q;
+    unsigned long t = (dec4c_dv(si << 13, c->see[a & (DEC4C_SEE_LEN - 1UL)]) + 1UL) & 0xFFFFFFFFUL;
+    if (t >= 0x4000UL) t = 0x3FFFUL;
+    *out_a = a;
+    return t;
+}
+
+/* 0x412257: order-1 symbol (falling back to g45c690 context). */
+static unsigned char dec4c_o1_symbol(dec4c_ctx *c, unsigned long ctx)
+{
+    unsigned n = c->nex;
+    unsigned cc = dec4c_cx(ctx);
+    unsigned tree = cc;
+    unsigned si = c->o1t[cc][0][0];
+    unsigned escc = c->esc[cc];
+    unsigned lim = (escc * c->ba3c[cc]) & 0xFFFFFFFFUL;
+    unsigned frq, v;
+    /* Fallback to secondary context when total is small */
+    if (si <= lim) {
+        unsigned f = dec4c_cx(c->g45c690);
+        tree = f;
+        frq = f;
+        si = dec4c_excl_total(c, f, n);
+    } else {
+        frq = cc;
+        si = dec4c_excl_total(c, cc, n);
+        if (ctx < (0x200UL >> (unsigned)c->binmode)) {
+            unsigned s = c->mru_s[cc];
+            int excluded = 0;
+            unsigned i;
+            for (i = 0; i < n; i++)
+                if (c->excl[i] == s) { excluded = 1; break; }
+            if (!excluded) {
+                unsigned long f = c->o1t[cc][1][s];
+                unsigned long x = dec4c_mru_see(c, ctx, (unsigned char)s, f, si, escc);
+                unsigned long pa = D4C_S_O1MRU + x;
+                unsigned long p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
+                unsigned long vv = dec4c_rc_div(c, 0x2000UL) & 0xFFFFUL;
+                int hit = (vv < p) ? 1 : 0;
+                unsigned long lo = hit ? 0UL : p;
+                unsigned long hi = hit ? p : 0x2000UL;
+                unsigned long cst = dec4c_cost(c, 2UL * (hi - lo));
+                c->g45c648 = (c->g45c648 + cst) & 0xFFFFFFFFUL;
+                dec4c_rc_dec(c, lo, hi);
+                if (hit) {
+                    c->see[pa & (DEC4C_SEE_LEN - 1UL)] = (p + ((0x2000UL - p) >> 6)) & 0xFFFFFFFFUL;
+                    return (unsigned char)s;
+                } else {
+                    c->excl[n++] = (unsigned char)s;
+                    si = (si - (unsigned short)f) & 0xFFFFU;
+                    c->nex = (unsigned char)n;
+                    c->see[pa & (DEC4C_SEE_LEN - 1UL)] = (p - (p >> 6)) & 0xFFFFFFFFUL;
+                }
+            }
+        }
+        if (si == 0) {
+            unsigned f = dec4c_cx(c->g45c690);
+            tree = f;
+            frq = f;
+            si = dec4c_excl_total(c, f, n);
+        }
+    }
+    /* Decode via Fenwick tree with SEE escape */
+    {
+        unsigned long tot;
+        unsigned long a;
+        unsigned long est = dec4c_see_total(c, si, escc, &a);
+        v = dec4c_rc_div(c, tot = (si + est) & 0xFFFFFFFFUL);
+        if (v < si) {
+            /* Symbol search in tree (Fenwick find) */
+            unsigned idx = 0;
+            unsigned bit;
+            unsigned long want = v;
+            /* Binary lifting on Fenwick CUM */
+            for (bit = 0x8000UL; bit != 0; bit >>= 1) {
+                unsigned t_ = idx + bit;
+                if (t_ <= 256UL && c->o1t[tree][0][t_] <= want) {
+                    want = (want - c->o1t[tree][0][t_]) & 0xFFFFFFFFUL;
+                    idx = t_;
+                }
+            }
+            {
+                unsigned char sym = (unsigned char)(idx & 0xFFUL);
+                /* Update SEE escape entry */
+                if (v < si) {
+                    c->see[a & (DEC4C_SEE_LEN - 1UL)] =
+                        (c->see[a & (DEC4C_SEE_LEN - 1UL)] + ((0x2000UL - c->see[a & (DEC4C_SEE_LEN - 1UL)]) >> 6)) & 0xFFFFFFFFUL;
+                } else {
+                    c->see[a & (DEC4C_SEE_LEN - 1UL)] =
+                        (c->see[a & (DEC4C_SEE_LEN - 1UL)] - (c->see[a & (DEC4C_SEE_LEN - 1UL)] >> 6)) & 0xFFFFFFFFUL;
+                }
+                dec4c_rc_dec(c, v, v + 1UL);
+                (void)frq;
+                return sym;
+            }
+        } else {
+            /* Escape: fall through to flat (caller handles via order-0) */
+            dec4c_rc_dec(c, si, si + est);
+            c->see[a & (DEC4C_SEE_LEN - 1UL)] =
+                (c->see[a & (DEC4C_SEE_LEN - 1UL)] - (c->see[a & (DEC4C_SEE_LEN - 1UL)] >> 6)) & 0xFFFFFFFFUL;
+            return 0xFFU; /* escape sentinel; driver falls back */
+        }
+    }
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
