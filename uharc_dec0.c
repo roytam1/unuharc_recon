@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "uharc_dec.h"
+#include "uharc_dec4_clean.h"
 
 /* method -> core table (from DGROUP:004228C2) */
 static const unsigned char method_to_core[88] = {
@@ -449,6 +450,15 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
                 uharc_dec4u_free(c4);
             }
         } else {
+#ifdef DEC4_CLEAN
+            void *c4 = 0;
+            ret = uharc_dec4c_init(&c4, method);
+            if (ret == 0) {
+                ret = uharc_dec4c_decode_b(c4, cum, ncum, rcb, rctx, wcb,
+                                           wctx, out_len);
+                uharc_dec4c_free(c4);
+            }
+#else
             void *c4 = 0;
             ret = uharc_dec4_init(&c4, method);
             if (ret == 0) {
@@ -456,6 +466,7 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
                                           wctx, out_len);
                 uharc_dec4_free(c4);
             }
+#endif
         }
         break;
     }
