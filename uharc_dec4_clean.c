@@ -1861,6 +1861,87 @@ static void dec4c_o2_update_light(dec4c_ctx *c, unsigned char sym)
     dec4c_o2_put(c, ri, r);
 }
 
+/* 0x40f19a: full order-2 update (after order-4 escape). */
+static void dec4c_o2_update(dec4c_ctx *c, unsigned char sym)
+{
+    unsigned long ri = c->g45c69c & 0x1FFFFUL;
+    unsigned char r[20];
+    unsigned k;
+    dec4c_o2r(c, ri, r);
+    if (r[0] == 0) {
+        memset(r, 0, sizeof(r));
+        r[0] = 3;
+        r[1] = 3;
+        r[0x12] = 6;
+        r[9] = sym;
+        dec4c_o2_put(c, ri, r);
+        return;
+    }
+    k = c->g_e3a5;
+    if (k == 0xFFU) {
+        k = 0;
+        while (r[k + 9UL] != sym) {
+            k += 1UL;
+            if (k >= 8UL) break;
+        }
+    }
+    if (c->g_e39a != 0) {
+        unsigned long x;
+        if (k < 8UL) {
+            c->g_e399 = 0;
+            c->g_e39f = 0;
+            x = r[k + 1UL];
+        } else {
+            x = r[0];
+        }
+        {
+            unsigned long q = dec4c_dv((x << 14) & 0xFFFFFFFFUL, c->g45c6a8);
+            c->g45c658 = (c->g45c658 + dec4c_cost(c, q)) & 0xFFFFFFFFUL;
+        }
+    }
+    dec4c_o2_halve_if(r);
+    r[0x12] = (unsigned char)((r[0x12] + 4U) & 0xFFUL);
+    if (k < 8UL) {
+        c->g45c6ac = ((c->g45c6ac * 3UL) >> 2) & 0xFFFFFFFFUL;
+        r[0x11] >>= 1;
+        r[k + 1UL] = (unsigned char)(r[k + 1UL] + 4U);
+        if ((r[0x13] & 0x0FUL) == k) {
+            if (r[0x13] < 0xF0U)
+                r[0x13] = (unsigned char)(r[0x13] + 0x10U);
+        } else {
+            r[0x13] = (unsigned char)k;
+        }
+        c->g45d120 = (c->g45d120 + 5UL) & 0xFFFFFFFFUL;
+    } else {
+        unsigned d;
+        k = 1;
+        r[0x11] = (unsigned char)(r[0x11] + 1U);
+        c->g45c6ac = (c->g45c6ac + 1UL) & 0xFFFFFFFFUL;
+        r[0] = (unsigned char)(r[0] + 4U);
+        while (r[k + 1UL] != 0) {
+            k += 1UL;
+            if (k == 7UL) break;
+        }
+        if (r[k + 1UL] >= 0x0CU) {
+            k = 0;
+        } else {
+            d = (unsigned char)(4U - r[k + 1UL]);
+            r[0x12] = (unsigned char)(r[0x12] + d);
+            r[k + 1UL] = 4;
+            r[k + 9UL] = sym;
+            r[0x13] = (unsigned char)k;
+        }
+    }
+    c->g_e3a5 = (unsigned char)dec4c_o2_sort(r, k);
+    dec4c_o2_put(c, ri, r);
+    c->g45d138 = (c->g45d138 + 2UL) & 0xFFFFFFFFUL;
+    if (c->g45d138 > 0x800UL) {
+        c->g45d138 >>= 1;
+        c->g45d120 >>= 1;
+        c->g45d104 >>= 1;
+    }
+}
+
 static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
                          unsigned l50, unsigned l3c, unsigned long l10c,
                          unsigned long c6a4, unsigned long lfc,
