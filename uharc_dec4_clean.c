@@ -116,6 +116,12 @@ typedef struct dec4c_ctx_s {
     unsigned long g45ae18;
     unsigned char g_e3a0, g_e3a2;       /* 0x45e3a0/a2 */
     unsigned long g45d114;              /* 0x45d114 match continuation */
+    /* decode_symbol locals (0x41030f) */
+    unsigned long g45c6a4, g45c694, g45c69c, g45c678, g45c698;
+    unsigned char g_e394, g_e397, g_e398, g_e39d, g_e39a, g_e399, g_e39f, g_e393;
+    unsigned long g45c658, g45c668;
+    unsigned char g_e3a1, g_e3a4;
+    unsigned char g_e3a3;
     unsigned char bad;
     unsigned char g_e39b, g_e39e;      /* 0x45e39b/e9e text states */
     unsigned char *outbuf;              /* decoded bytes (out_len) */
@@ -1319,6 +1325,69 @@ static void dec4c_see_bump(dec4c_ctx *c, unsigned i, int up)
 static unsigned long dec4c_g68c(dec4c_ctx *c)
 {
     return c->g6b8[c->g45c68c & 0x3FFUL];
+}
+
+/* decode_symbol preamble (0x41030f up to order-4 probe): context
+ * setup + order-2 record load. Returns L10c in *out and l50 in *out50. */
+static void dec4c_decode_symbol_pre(dec4c_ctx *c, unsigned long *out_l10c,
+                                    unsigned char *out_l50, unsigned char rec[20])
+{
+    unsigned bm = (c->binmode != 0) ? 1UL : 0UL;
+    unsigned long c0 = c->c0;
+    unsigned long c6a4, lfc, add, c69c, o2i;
+    unsigned long l10c;
+    int i;
+    c6a4 = (c->g_e3a0 == 2) ?
+        (((c0 >> 8) & 0xFFUL) + ((c0 >> 16) & 0xFF00UL) + ((c->c1 << 8) & 0xFF0000UL) + (c->c1 & 0xFF000000UL)) & 0xFFFFFFFFUL :
+        c0;
+    c->g45c6a4 = c6a4;
+    lfc = ((c6a4 & 0xC0UL) == 0xC0UL) ? 0x10UL : 0UL;
+    (void)lfc;
+    c->g45c694 = ((c6a4 >> 13) ^ c6a4) & 0x7FFFUL;
+    add = (!bm && dec4c_rom8(0x42738dUL + ((c6a4 >> 16) & 0xFFUL)) != 0) ? 0x10000UL : 0UL;
+    c69c = (c6a4 & 0xFFFFUL) + add;
+    c->g45c69c = c69c;
+    c->g_e394 = 0;
+    c->g_e397 = 0;
+    c->g_e39a = 0;
+    c->g_e399 = 0;
+    c->g_e39f = 0;
+    c->g_e39d = 0;
+    c->g_e393 = 0;
+    c->g_e398 = 0;
+    c->nex = 0;
+    c->g45c658 = 0;
+    c->g45c668 = 0;
+    c->g_e3a1 = 0;
+    c->g_e3a4 = 0;
+    o2i = c69c & 0x1FFFFUL;
+    if (c->pend != 0xFFFFFFFFUL) {
+        c->nex = 1;
+        c->excl[0] = dec4c_tb(c, c->pend);
+    }
+    /* per-phase threshold slots (per_d4/per_e8 tables not yet typed;
+     * G_CCD4 base only, matching new_segment). */
+    {
+        unsigned long c64c = c->g45c64c;
+        if (c->g45c674 > 1UL || ((unsigned char)(c64c - 2UL) <= 2U)) {
+            unsigned long edi = c64c, ecx = c64c;
+            if (c64c <= 4UL)
+                edi = dec4c_rom32(0x4236d4UL + 4UL * c64c) + (c64c ? (c->nbytes % c64c) : 0);
+            if (c64c <= 0x10UL)
+                ecx = dec4c_rom32(0x4236e8UL + 4UL * c64c) + (c64c ? (c->nbytes % c64c) : 0);
+            c->g45c68c = 0x187UL + edi;
+            c->g45c688 = ecx;
+        }
+    }
+    l10c = c6a4 & 0xFFUL;
+    if (!bm && dec4c_rom8(0x42738dUL + ((c6a4 >> 8) & 0xFFUL)) != 0)
+        l10c += 0x100UL;
+    dec4c_o2r(c, o2i, rec);
+    *out_l10c = l10c;
+    *out_l50 = c->mru_s[l10c & 0x3FFUL];
+    /* MARKS update for the four order-2 contexts */
+    for (i = 0; i < 4; i++)
+        c->see[D4C_MARKS + c->x698[c->x698p[i] & 0x3FFFFUL]] = c->nbytes;
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
