@@ -1082,6 +1082,209 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
     }
 }
 
+static unsigned long dec4c_dv(unsigned long a, unsigned long b)
+{
+    if (b == 0) return 0;
+    return a / b;
+}
+
+/* 0x40f9d0: match model; returns true when bytes were copied. */
+static int dec4c_match_model(dec4c_ctx *c)
+{
+    unsigned long c0 = c->c0, c1 = c->c1, c2 = c->c2;
+    unsigned long mask = c->dictmask;
+    unsigned long pos = c->pos;
+    unsigned long h0 = ((c0 >> 13) ^ c0) & 0x3FFFFUL;
+    unsigned long p1 = 2UL * h0;
+    unsigned long h2 = ((((c1 >> 15) ^ c1) << 6) ^ (((c0 >> 15) ^ c0) << 4) ^ ((c2 >> 15) ^ c2)) & 0x3FFFFUL;
+    unsigned ctx = 0;
+    int flag = 0;
+    unsigned best = 0;
+    unsigned chk = c->mchk[h0];
+    unsigned long edi = 0;
+    unsigned long cur = (pos < 0x40UL) ? pos + c->dictsize : pos;
+    int goto_fca4;
+    {
+        static const unsigned slots[2] = {1UL, 0UL};
+        int slot;
+        for (slot = 0; slot < 2; slot++) {
+            unsigned long raw = c->mh2[2UL * h2 + slots[slot]];
+            unsigned long ebx = raw;
+            if (ebx != 0xFFFFFFFFUL && ((ebx - pos) & mask) >= 0x140UL) {
+                if (ebx < 0x40UL)
+                    ebx = (ebx + c->dictsize) & 0xFFFFFFFFUL;
+                if (dec4c_tb(c, (cur - 0xCUL) & 0xFFFFFFFFUL) == dec4c_tb(c, (ebx - 0xCUL) & 0xFFFFFFFFUL)) {
+                    unsigned len = dec4c_match_len(c, (cur - 1UL) & 0xFFFFFFFFUL, (ebx - 1UL) & 0xFFFFFFFFUL);
+                    if (len >= best) {
+                        best = len;
+                        edi = raw;
+                    }
+                }
+            }
+        }
+    }
+    c->mh2[2UL * h2 + 1UL] = c->mh2[2UL * h2];
+    c->mh2[2UL * h2] = pos;
+    c->mchk_p = h0;
+    if (c->g45d114 != 0UL) {
+        edi = (pos - c->g45d130) & mask;
+        ctx = 0x50U + ((c->g45d114 > 2UL) ? 1U : 0U);
+        flag = 1;
+        goto_fca4 = 1;
+    } else {
+        unsigned thr = (c->g45d134 < 0x10UL) ? 0x30U : 0x0CU;
+        if ((long)best >= (long)thr) {
+            ctx = 0x15U;
+            goto_fca4 = 1;
+        } else {
+            goto_fca4 = 0;
+        }
+    }
+    if (!goto_fca4) {
+        int skip = 0;
+        if (ctx == 0) {
+            edi = (pos - c->g45d130) & mask;
+            if (((edi - pos) & mask) >= 0x104UL) {
+                unsigned long a = (edi - 4UL) & mask;
+                unsigned long v = (unsigned long)dec4c_tb(c, (a + 3UL) & 0xFFFFFFFFUL) |
+                    ((unsigned long)dec4c_tb(c, (a + 2UL) & 0xFFFFFFFFUL) << 8) |
+                    ((unsigned long)dec4c_tb(c, (a + 1UL) & 0xFFFFFFFFUL) << 16) |
+                    ((unsigned long)dec4c_tb(c, a) << 24);
+                if ((v & 0xFFFFUL) == (c0 & 0xFFFFUL) ||
+                    (v & 0xFFFF00FFUL) == (c0 & 0xFFFF00FFUL) ||
+                    (v & 0xFFFFFF00UL) == (c0 & 0xFFFFFF00UL)) {
+                    ctx = 0x0BU;
+                    flag = 1;
+                    skip = 1;
+                }
+            }
+        }
+        if (!skip && ctx == 0) {
+            int go = 1;
+            if (chk >= 0x40U && c->mlen[h0] == 0)
+                go = 0;
+            if (go) {
+                if (c->mh1[p1 + 1UL] == c0) {
+                    edi = c->mh1[p1];
+                    ctx = (edi != 0xFFFFFFFFUL) ? 1U : 0U;
+                } else if (edi != 0xFFFFFFFFUL) {
+                    ctx = 0x1FU;
+                }
+            }
+        }
+    }
+    c->mh1[p1] = pos;
+    c->mh1[p1 + 1UL] = c0;
+    if (ctx == 0 || ((edi - pos) & mask) < 0x100UL) {
+        c->g45d114 = 0;
+        return 0;
+    }
+    {
+        unsigned long mlen_a = h0;
+        unsigned long dist, d138, node, tab, lb, sel;
+        unsigned len;
+        unsigned long rem;
+        if (c->g45d114 == 0UL) {
+            unsigned long add = (c->mlen[mlen_a] != 0) ? 0xFFFFFFFFUL : 0x27UL;
+            unsigned long e = ((unsigned long)c->g_e3a2 + add) & 0xFFFFFFFFUL;
+            ctx = ((unsigned)ctx + (unsigned)e) & 0xFFU;
+        }
+        if (c->pend != 0xFFFFFFFFUL) {
+            if (dec4c_tb(c, c->pend) == dec4c_tb(c, edi)) {
+                dec4c_match_flag_update(c, ctx, 2);
+                c->mlen[mlen_a] = 0;
+                c->g45d114 = 0;
+                return 0;
+            }
+        }
+        if (dec4c_match_flag(c, ctx) != 1U) {
+            c->g45d134 = (c->g45d134 + 1UL) & 0xFFFFFFFFUL;
+            c->mlen[mlen_a] = 0;
+            c->g45d114 = 0;
+            return 0;
+        }
+        node = 0x0EUL;
+        dist = (pos - edi) & mask;
+        d138 = c->g45d138;
+        if (d138 == 0UL) {
+            c->bad = 1;
+            return 0;
+        }
+        if (flag) {
+            unsigned long q = dec4c_dv((c->g45d120 << 2) & 0xFFFFFFFFUL, d138);
+            lb = dec4c_rom8(0x424280UL + q);
+        } else if (c->g45d104 > d138) {
+            unsigned long q = dec4c_dv((c->g45d104 << 2) & 0xFFFFFFFFUL, d138);
+            lb = dec4c_rom8(0x424270UL + q);
+        } else {
+            unsigned long q = dec4c_dv((c->g45d120 << 2) & 0xFFFFFFFFUL, d138);
+            unsigned long v = (dec4c_rom8(0x424290UL + q) - c->binmode) & 0xFFUL;
+            if (c->g_e3a0 != 0)
+                v = (v << 1) & 0xFFUL;
+            lb = v;
+        }
+        if (flag) {
+            unsigned long a = c->g45d114;
+            sel = ((a > 0UL) ? 1UL : 0UL) + 3UL + ((a > 2UL) ? 1UL : 0UL);
+        } else {
+            unsigned long b = c->mlen[mlen_a];
+            sel = ((b > 0x0EUL) ? 1UL : 0UL) + ((b > 0x3EUL) ? 1UL : 0UL);
+        }
+        tab = D4C_ML + (sel << 8);
+        for (;;) {
+            unsigned long pa, p;
+            len = ((unsigned char)node + 1U) & 0xFFU;
+            if (lb < len) {
+                unsigned long v = dec4c_rc_div(c, 0x1000UL) & 0xFFFFUL;
+                pa = (tab + node) & (DEC4C_SEE_LEN - 1UL);
+                p = c->see[pa];
+                if (v < p) {
+                    unsigned long lo = 0, hi = p;
+                    len = (unsigned char)node;
+                    c->see[pa] = (p + ((0x1000UL - p) >> 4)) & 0xFFFFFFFFUL;
+                    dec4c_rc_dec(c, lo, hi);
+                } else {
+                    unsigned long lo = p, hi = 0x1000UL;
+                    c->see[pa] = (p - (p >> 4)) & 0xFFFFFFFFUL;
+                    dec4c_rc_dec(c, lo, hi);
+                }
+            }
+            {
+                unsigned right = (len > node) ? 1UL : 0UL;
+                node = dec4c_rom8(0x4242a0UL + ((2UL * node + right) & 0x1FFUL));
+                if (node == 0)
+                    break;
+            }
+        }
+        if (dist == c->g45d130) {
+            c->g45d134 >>= 1;
+        } else {
+            c->g45d130 = dist;
+            c->g45d134 = (c->g45d134 + len) & 0xFFFFFFFFUL;
+        }
+        c->mlen[mlen_a] = (unsigned char)len;
+        if (len != 0xFFU) {
+            c->g45d114 = 0;
+            c->pend = ((unsigned long)len + edi) & mask;
+        } else {
+            c->pend = 0xFFFFFFFFUL;
+            c->g45d114 = (c->g45d114 + 1UL) & 0xFFFFFFFFUL;
+        }
+        rem = len;
+        for (;;) {
+            unsigned char b = dec4c_tb(c, edi);
+            dec4c_output(c, b);
+            dec4c_after_symbol(c, b, (rem <= 8UL) ? 1 : 0);
+            dec4c_push_hist(c, b);
+            edi = (edi + 1UL) & mask;
+            rem = (rem - 1UL) & 0xFFFFFFFFUL;
+            if (rem == 0)
+                break;
+        }
+        return 1;
+    }
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
