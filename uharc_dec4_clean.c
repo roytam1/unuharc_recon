@@ -119,8 +119,9 @@ typedef struct dec4c_ctx_s {
     unsigned long g45d114;              /* 0x45d114 match continuation */
     /* decode_symbol locals (0x41030f) */
     unsigned long g45c6a4, g45c694, g45c69c, g45c678, g45c698, g45c6a8;
-    unsigned char g_e394, g_e397, g_e398, g_e39d, g_e39a, g_e399, g_e39f, g_e393;
+    unsigned char g_e394, g_e397, g_e398, g_e39d, g_e39a, g_e399, g_e39f, g_e393, g_e396;
     unsigned long g45c658, g45c668;
+    unsigned long didx[8];              /* 0x446044 delta indices */
     unsigned char g_e3a1, g_e3a4, g_e3a5;
     unsigned char g_e3a3;
     unsigned char bad;
@@ -1939,6 +1940,92 @@ static void dec4c_o2_update(dec4c_ctx *c, unsigned char sym)
         c->g45d138 >>= 1;
         c->g45d120 >>= 1;
         c->g45d104 >>= 1;
+    }
+}
+
+/* Delta helpers (0x423684+0x140000, binary mode). */
+static unsigned long dec4c_delta_entry(dec4c_ctx *c, unsigned k)
+{
+    static const unsigned long base[8] = {0U, 0x10000UL, 0x30000UL, 0x50000UL, 0x60000UL, 0x70000UL, 0x80000UL, 0xF0000UL};
+    return (base[k & 7UL] + c->didx[k & 7UL]) & 0xFFFFFUL;
+}
+
+static void dec4c_de(dec4c_ctx *c, unsigned long i, unsigned char e[4])
+{
+    unsigned long idx = i & 0xFFFFFUL;
+    e[0] = c->delta[idx][0];
+    e[1] = c->delta[idx][1];
+    e[2] = c->delta[idx][2];
+    e[3] = c->delta[idx][3];
+}
+
+static void dec4c_delta_step(dec4c_ctx *c, unsigned char e[4], unsigned char sym)
+{
+    unsigned e0 = e[0], e1 = e[1], e2 = e[2], e3 = e[3] & 0x7FUL;
+    unsigned h0, h1, h3, m0, m1, m2, m3;
+    unsigned hv = (e1 >= 0xFEUL) ? 1UL : 0UL;
+    unsigned mv = (e0 >= 0xFEUL) ? 1UL : 0UL;
+    unsigned low = (e3 < 2UL) ? 1UL : 0UL;
+    h0 = hv ? (((e0 + 1UL) >> 1) & 0xFFUL) : e0;
+    h1 = (hv ? (((e1 + 1UL) >> 1) & 0xFFUL) : e1) + 1UL;
+    h3 = (e3 < 0x7FUL) ? e3 + 1UL : e3;
+    m0 = (mv ? (((e0 + 1UL) >> 1) & 0xFFUL) : e0) + 1UL;
+    m1 = mv ? (((e1 + 1UL) >> 1) & 0xFFUL) : e1;
+    m2 = low ? (unsigned)sym : e2;
+    m3 = low ? 0UL : ((e3 >> 1) + 0x80UL);
+    if (sym == e2) {
+        e[0] = (unsigned char)h0;
+        e[1] = (unsigned char)h1;
+        /* e[2] unchanged */
+        e[3] = (unsigned char)h3;
+    } else {
+        e[0] = (unsigned char)m0;
+        e[1] = (unsigned char)m1;
+        e[2] = (unsigned char)m2;
+        e[3] = (unsigned char)m3;
+    }
+    (void)c;
+}
+
+/* 0x40eba7: update delta predictor entries. */
+static void dec4c_delta_update(dec4c_ctx *c, unsigned char sym)
+{
+    unsigned bh;
+    for (bh = 0; bh < 8U; bh++) {
+        unsigned long ei = dec4c_delta_entry(c, bh);
+        unsigned char e[4];
+        dec4c_de(c, ei, e);
+        if (e[0] != 0 && bh == c->g_e396) {
+            if (c->g_e399 != 0) {
+                unsigned long x = (sym == e[2]) ? (unsigned)e[1] : (unsigned)e[0];
+                unsigned long q = dec4c_dv((x << 14) & 0xFFFFFFFFUL, ((unsigned)e[0] + (unsigned)e[1]) & 0xFFFFFFFFUL);
+                unsigned cst = dec4c_cost(c, q);
+                if (sym == e[2])
+                    c->g_e39f = 0;
+                c->g45c658 = (c->g45c658 + cst) & 0xFFFFFFFFUL;
+            }
+            if (c->pair_p != 0xFFFFFFFFUL) {
+                unsigned long p = c->pair_p & 0x7EUL;
+                unsigned i = (sym == e[2]) ? 1UL : 0UL;
+                c->pair[p + i] = (unsigned char)(c->pair[p + i] + 1U);
+                if (c->pair[p + 1UL] >= 0xFEU || c->pair[p] >= 0xFEU) {
+                    c->pair[p] = (unsigned char)(((unsigned)c->pair[p] + 1U) >> 1);
+                    c->pair[p + 1UL] = (unsigned char)(((unsigned)c->pair[p + 1UL] + 1U) >> 1);
+                }
+            }
+        }
+        if (e[0] == 0) {
+            c->delta[ei][0] = 2;
+            c->delta[ei][1] = 2;
+            c->delta[ei][2] = sym;
+            c->delta[ei][3] = 0;
+        } else {
+            dec4c_delta_step(c, e, sym);
+            c->delta[ei][0] = e[0];
+            c->delta[ei][1] = e[1];
+            c->delta[ei][2] = e[2];
+            c->delta[ei][3] = e[3];
+        }
     }
 }
 
