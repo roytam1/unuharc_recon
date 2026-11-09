@@ -1597,6 +1597,178 @@ static unsigned long dec4c_o4_escape(dec4c_ctx *c, const unsigned char b[32],
     return t;
 }
 
+/* Order-4 multi-symbol decode (b[2]!=0 path): SEE corrections + loop.
+ * b is the local bucket copy (mutated); rec is the order-2 record.
+ * On esc==false sym is set. */
+static void dec4c_o4_multi(dec4c_ctx *c, unsigned char b[32],
+                           const unsigned char rec[20],
+                           unsigned long c6a4, unsigned long l10c,
+                           unsigned l3c, unsigned l50, int bm,
+                           unsigned long c698, unsigned long lfc,
+                           int *esc, unsigned char *sym, unsigned long *see_esc)
+{
+    unsigned long ecx = (c698 - (unsigned long)b[0]) & 0xFFFFFFFFUL;
+    unsigned long p42 = 0, p3a = 0, p2e = 0, pedi = 0;
+    unsigned long k2a, t;
+    unsigned long l104, l100, l108, l28, f0, ec;
+    unsigned mask[16];
+    unsigned long see_esc_local = 0;
+    int mi;
+    for (mi = 0; mi < 16; mi++) mask[mi] = (mi < 12) ? 1UL : 0UL;
+    if (c->nex != 0) {
+        unsigned x = c->excl[0];
+        unsigned j;
+        for (j = 0; j < 16UL; j++) {
+            if (x == b[j + 0x0DUL]) {
+                c698 = (c698 - (unsigned long)b[j + 1UL]) & 0xFFFFFFFFUL;
+                mask[j] = 0;
+                break;
+            }
+            if (b[j + 1UL] == 0 || j >= 0x0CUL) break;
+        }
+    }
+    /* Recompute f0/ec/l108/l28 from b (scan locals) */
+    f0 = 0x0CU; ec = 0x0CU;
+    {
+        unsigned k = 0;
+        unsigned fk;
+        sum: ;
+        /* sum not needed here; compute f0/ec directly */
+        k = 0;
+        fk = b[1];
+        {
+            unsigned long s = b[0];
+            unsigned long sum2 = s;
+            unsigned kk = 0;
+            unsigned fkk = fk;
+            for (;;) {
+                unsigned bs = b[0x0DUL + kk];
+                if ((unsigned)bs == l50) f0 = kk;
+                if ((unsigned)bs == l3c) ec = kk;
+                sum2 = (sum2 + fkk) & 0xFFFFFFFFUL;
+                (void)sum2;
+                kk += 1UL;
+                if (kk >= 0x0CUL) break;
+                fkk = b[kk + 1UL];
+                if (fkk == 0) break;
+                (void)k;
+            }
+            (void)fk; (void)k;
+        }
+    }
+    l108 = dec4c_rom32(0x42754dUL + 4UL * ((b[0x1A] >> 4) & 0x0FUL));
+    l28 = b[0x0DUL + (b[0x1A] & 0x0FUL)];
+    l104 = dec4c_rom32(0x42750dUL + ((rec[0x13] >> 4) & 0x0FUL));
+    l100 = dec4c_rom32(0x4274cdUL + (c->mru_n[l10c & 0x3FFUL] & 0x0FUL));
+    k2a = (c->g45d104 < c->g45d138) ? (b[0x1A] & 0x0FUL) : 0x0CUL;
+    t = dec4c_o4_escape(c, b, rec, c6a4, c698, bm, &see_esc_local);
+    *see_esc = see_esc_local;
+    (void)p42; (void)p3a; (void)p2e; (void)pedi;
+    /* SEE corrections (S_O4MPS/MRU/O2/FST) */
+    if (mask[k2a & 0x0FUL]) {
+        unsigned long cc = b[(k2a & 0x0FUL) + 1UL];
+        unsigned long bc = (c698 - cc) & 0xFFFFFFFFUL;
+        unsigned long b8 = 0, e, x, q;
+        e = (b[0x1B] >> 4) + ((cc - (cc == 2UL ? 1UL : 0UL)) & 0xFFFFFFFFUL) + l108;
+        e &= 0xFFFFFFFFUL;
+        if (l28 == l3c) { b8 = 0x40UL; e = (e + l104) & 0xFFFFFFFFUL; }
+        if (l28 == l50) { b8 |= 0x80UL; e = (e + l100) & 0xFFFFFFFFUL; }
+        x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (bc + e) & 0xFFFFFFFFUL);
+        if (k2a != 0) x |= 0x100UL;
+        if ((l28 & 0xC0UL) == 0xC0UL) x |= 0x20UL;
+        if (dec4c_recent(c, (unsigned char)l28)) x |= 0x200UL;
+        if (dec4c_marked(c, (unsigned char)l28)) x |= 0x400UL;
+        p2e = D4C_S_O4MPS + ((lfc | x | b8) & 0xFFFFFFFFUL);
+        if (dec4c_see_freq(c, p2e, bc, cc, &q)) {
+            t = (t + (q - cc)) & 0xFFFFFFFFUL;
+            b[(k2a & 0x0FUL) + 1UL] = (unsigned char)q;
+        }
+    }
+    if (mask[f0 & 0x0FUL] && k2a != f0) {
+        unsigned long d8 = b[(f0 & 0x0FUL) + 1UL];
+        unsigned long b4 = (c698 - d8) & 0xFFFFFFFFUL;
+        unsigned long e = (d8 + l100) & 0xFFFFFFFFUL;
+        unsigned long x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (b4 + e) & 0xFFFFFFFFUL);
+        unsigned long q;
+        if ((l50 & 0xC0UL) == 0xC0UL) x |= 0x20UL;
+        if ((unsigned)l50 == l3c) x |= 0x40UL;
+        if (dec4c_recent(c, (unsigned char)l50)) x |= 0x80UL;
+        if (dec4c_marked(c, (unsigned char)l50)) x |= 0x100UL;
+        x |= lfc;
+        p3a = D4C_S_O4MRU + x;
+        if (dec4c_see_freq(c, p3a, b4, d8, &q)) {
+            t = (t + (q - d8)) & 0xFFFFFFFFUL;
+            b[(f0 & 0x0FUL) + 1UL] = (unsigned char)q;
+        }
+    }
+    if (mask[ec & 0x0FUL] && k2a != ec && f0 != ec) {
+        unsigned long d0 = b[(ec & 0x0FUL) + 1UL];
+        unsigned long b0 = (c698 - d0) & 0xFFFFFFFFUL;
+        unsigned long e = (d0 + l104) & 0xFFFFFFFFUL;
+        unsigned long x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (b0 + e) & 0xFFFFFFFFUL);
+        unsigned long q;
+        if ((l3c & 0xC0UL) == 0xC0UL) x |= 0x20UL;
+        if (dec4c_recent(c, (unsigned char)l3c)) x |= 0x40UL;
+        if (dec4c_marked(c, (unsigned char)l3c)) x |= 0x80UL;
+        x |= lfc;
+        pedi = D4C_S_O4O2 + x;
+        if (dec4c_see_freq(c, pedi, b0, d0, &q)) {
+            t = (t + (q - d0)) & 0xFFFFFFFFUL;
+            b[(ec & 0x0FUL) + 1UL] = (unsigned char)q;
+        }
+    }
+    if (mask[0] && k2a != 0 && f0 != 0 && ec != 0) {
+        unsigned long e0 = b[1];
+        unsigned long x = dec4c_dv((e0 << 4) & 0xFFFFFFFFUL, c698);
+        unsigned s0 = b[0x0D];
+        unsigned long q;
+        if ((s0 & 0xC0UL) == 0xC0UL) x |= 0x20UL;
+        if (dec4c_recent(c, (unsigned char)s0)) x |= 0x80UL;
+        if (dec4c_marked(c, (unsigned char)s0)) x |= 0x100UL;
+        x |= lfc;
+        p42 = D4C_S_O4FST + x;
+        q = ((c698 * c->see[p42 & (DEC4C_SEE_LEN - 1UL)]) >> 13) + 1UL;
+        if (q >= 0x100UL) q = 0xFFUL;
+        t = (t + (q - e0)) & 0xFFFFFFFFUL;
+        b[1] = (unsigned char)q;
+    }
+    /* Multi-symbol decode loop */
+    {
+        unsigned long v = dec4c_rc_div(c, t) & 0xFFFFUL;
+        unsigned long cum = 0, e4 = 0;
+        unsigned k = 0;
+        while (k < 0x0CU) {
+            if (mask[k]) {
+                unsigned long f = b[k + 1UL];
+                if (f == 0) { k = 0x0CU; break; }
+                e4 = (cum + f) & 0xFFFFFFFFUL;
+                if (v < e4) {
+                    *esc = 0;
+                    *sym = b[k + 0x0DUL];
+                    break;
+                }
+                dec4c_excl_push(c, b[k + 0x0DUL]);
+                cum = e4;
+            }
+            k += 1UL;
+        }
+        c->g_e3a3 = (unsigned char)k;
+        {
+            unsigned long hi = (k == 0x0CU) ? c->rc_t : e4;
+            dec4c_rc_dec(c, cum, hi);
+        }
+        {
+            unsigned long got = k;
+            if (p42 != 0) dec4c_see_bump(c, p42, got == 0);
+            if (p3a != 0) dec4c_see_bump(c, p3a, got == f0);
+            if (pedi != 0) dec4c_see_bump(c, pedi, got == ec);
+            if (p2e != 0) dec4c_see_bump(c, p2e, got == k2a);
+        }
+        if (*see_esc != 0)
+            dec4c_see_bump(c, *see_esc, *esc == 0);
+    }
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
