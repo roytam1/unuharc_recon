@@ -92,6 +92,24 @@ typedef struct dec4c_ctx_s {
     unsigned char mru_n[0x400];  /* 0x45dd85 */
     /* SEE tables (0x40dbc5): one array, indexed by SI() */
     unsigned long see[DEC4C_SEE_LEN];
+    /* Segment state (0x40deb6) */
+    unsigned short o1t[0x310][2][256]; /* CUM=0, FRQ=1 per context */
+    unsigned short mflag[0x400];       /* 0x445db4 */
+    unsigned char pair[0x80];          /* 0x45ad64 delta pairs */
+    unsigned char (*delta)[4];         /* 0x423684+0x140000, binary only */
+    unsigned long g6b8[0x400];         /* 0x45c6b8/0x45ccd4 */
+    unsigned long recent[256], lastpos[256], per[256];
+    unsigned long ring[256], avg_a[2], avg_b[2];
+    unsigned long g45c6b0, g45c6ac, g45c6a0, g45c6b4, g45c68c, g45c688;
+    unsigned long g45c66c, g45c674, g45c64c, g45c670;
+    unsigned long g45c650, g45c644, g45c640, g45c654;
+    unsigned long seg_end, text_end, file_idx;
+    unsigned long g45d104, g45d120, g45d124, g45d130, g45d134, g45d138;
+    unsigned long nbytes;
+    unsigned char bad;
+    unsigned long *fe;                 /* file ends */
+    unsigned long fe_n, fe_idx;
+    unsigned char fe_on;
 } dec4c_ctx;
 
 static unsigned char g_c_flags2;
@@ -300,6 +318,203 @@ static void dec4c_set_mmtype(dec4c_ctx *c, unsigned char bl)
     c->g_e38d = (bl == 5 || bl == 6) ? 1 : 0;
     if (bl > 4)
         dec4c_mm_new(c);
+}
+
+static unsigned long dec4c_fe_get(dec4c_ctx *c, unsigned long i)
+{
+    if (i < c->fe_n)
+        return c->fe[i];
+    c->bad = 1;
+    return 0;
+}
+
+/* Fenwick rebuild (o1.rs fenwick_build). */
+static void dec4c_fenwick_build(unsigned short *t)
+{
+    unsigned s = 1, i;
+    while (s < 0x80U) {
+        i = 256U - 2U * s;
+        for (;;) {
+            t[i] = (unsigned short)(t[i] + t[i - s]);
+            i -= 2U * s;
+            if (i == 0) break;
+        }
+        s *= 2U;
+    }
+}
+
+/* 0x40e4ff: rescale context c. */
+static void dec4c_o1_rescale(dec4c_ctx *c, unsigned long ctx)
+{
+    unsigned idx = (ctx >= 0x310UL) ? 0x30F : (unsigned)ctx;
+    unsigned bm = c->binmode;
+    unsigned long sum = 0;
+    int k;
+    for (k = 0; k < 256; k++) {
+        unsigned nw;
+        if (bm == 0) nw = (c->o1t[idx][1][k] + 1U) >> 1;
+        else if (c->o1t[idx][1][k] > 0x10U) nw = c->o1t[idx][1][k] >> 1;
+        else nw = 0;
+        c->o1t[idx][1][k] = (unsigned short)nw;
+        sum += nw;
+    }
+    for (k = 0; k < 255; k++)
+        c->o1t[idx][0][k + 1] = c->o1t[idx][1][k];
+    c->o1t[idx][0][0] = (unsigned short)sum;
+    dec4c_fenwick_build(c->o1t[idx][0]);
+    if (c->o1t[idx][0][0] != 0) {
+        unsigned e = (c->esc[idx] + 1U) >> 1;
+        unsigned long v;
+        c->esc[idx] = (unsigned short)e;
+        v = (unsigned long)e + (unsigned long)c->o1t[idx][0][0];
+        if (ctx < (0x200U >> bm))
+            v = (v * 0x60UL) & 0xFFFFFFFFUL;
+        else
+            v <<= 8;
+        if (c->mmtype == 3 && (long)c->o1t[idx][0][0] > ((long)e << 3))
+            v <<= 4;
+        c->ae38[idx] = v;
+    }
+}
+
+/* Stubs for the two rescalers called from new_segment file-size tweaks.
+ * Correct for the zero-model first segment; full ports pending. */
+static void dec4c_rescale_o2(dec4c_ctx *c) { (void)c; }
+static void dec4c_rescale_o4(dec4c_ctx *c) { (void)c; }
+
+/* 0x40deb6: segment start. */
+static void dec4c_new_segment(dec4c_ctx *c)
+{
+    unsigned bm = c->binmode;
+    unsigned c_ctr;
+    unsigned long next;
+    c_ctr = 0;
+    for (c_ctr = 0; c_ctr < 0x209UL; c_ctr++) {
+        c->ba3c[c_ctr] = bm;
+        c->ae38[c_ctr] = 0x4000UL;
+    }
+    for (c_ctr = 0; c_ctr < 0x208UL; c_ctr++) {
+        c->mru_s[c_ctr] = 0xFFU;
+        c->mru_n[c_ctr] = 0;
+    }
+    if (bm != 0) {
+        unsigned i;
+        for (i = 0; i < 0x80UL; i++) c->pair[i] = 1;
+        if (!c->delta)
+            c->delta = (unsigned char (*)[4])calloc(0x100000UL, sizeof(*c->delta));
+        if (c->delta) memset(c->delta, 0, 0x100000UL * sizeof(*c->delta));
+    }
+    /* order-1 tables: 0..0x208 zeroed, static fallbacks loaded */
+    {
+        unsigned k;
+        unsigned short o0[256];
+        for (k = 0; k < 256; k++)
+            o0[k] = (unsigned short)dec4c_rom8(0x422ba0UL + 2UL * k) |
+                    ((unsigned short)dec4c_rom8(0x422ba0UL + 2UL * k + 1UL) << 8);
+        for (c_ctr = 0; c_ctr < 0x209UL; c_ctr++) {
+            memset(c->o1t[c_ctr][0], 0, sizeof(c->o1t[c_ctr][0]));
+            memset(c->o1t[c_ctr][1], 0, sizeof(c->o1t[c_ctr][1]));
+        }
+        for (c_ctr = 0x301UL; c_ctr < 0x30FUL; c_ctr++) {
+            unsigned n, x;
+            for (x = 0; x < 256; x++)
+                c->o1t[c_ctr][0][x] = o0[x];
+            n = (c_ctr == 0x30EUL) ? 255UL : 256UL;
+            for (x = 0; x < n; x++)
+                c->o1t[c_ctr][0][x] = (unsigned short)(c->o1t[c_ctr][0][x] << 3);
+            for (x = 0; x < 256; x++)
+                c->o1t[c_ctr][1][x] = 8U;
+        }
+    }
+    for (c_ctr = 0; c_ctr < 0x209UL; c_ctr++)
+        c->esc[c_ctr] = 1;
+    for (c_ctr = 0; c_ctr < 0x148UL; c_ctr++)
+        c->mflag[c_ctr] = (unsigned short)dec4c_rom8(0x42372cUL + 2UL * c_ctr) |
+                          ((unsigned short)dec4c_rom8(0x42372cUL + 2UL * c_ctr + 1UL) << 8);
+    for (c_ctr = 0x209UL; c_ctr < 0x301UL; c_ctr++)
+        dec4c_o1_rescale(c, c_ctr);
+    dec4c_rescale_o2(c);
+    c->g45c6b0 = 0;
+    c->g45c6ac = 0;
+    c->g45c6a0 = 0;
+    c->g45c6b4 = 0x1ffUL;
+    c->g45c68c = 0x187UL; /* (0x45ccd4-0x45c6b8)/4 */
+    c->g45c688 = 0;
+    memset(c->g6b8, 0, 0x290UL * sizeof(c->g6b8[0]));
+    memset(c->recent, 0, sizeof(c->recent));
+    memset(c->lastpos, 0, sizeof(c->lastpos));
+    memset(c->per, 0, sizeof(c->per));
+    c->g45c66c = 0;
+    c->g45c674 = 1;
+    c->g45c64c = 1;
+    c->g45c670 = 0;
+    for (c_ctr = 0; c_ctr < 256UL; c_ctr++) c->ring[c_ctr] = 0x9240UL;
+    c->g45c650 = 0xffUL;
+    c->g45c644 = 0x91adc0UL;
+    c->avg_a[0] = c->avg_a[1] = 0;
+    c->avg_b[0] = c->avg_b[1] = 0;
+    c->g45c640 = 0;
+    c->g45c654 = 0;
+    /* Advance segment end (255 KB text / 16 KB binary) + file walk. */
+    if (c->fe_on) {
+        unsigned long step = 0x40000UL >> (2UL * bm);
+        unsigned long end = c->seg_end + step;
+        unsigned edx;
+        if (end > c->out_len) end = c->out_len;
+        c->seg_end = end;
+        edx = (unsigned)c->file_idx;
+        for (;;) {
+            unsigned long e = dec4c_fe_get(c, edx);
+            if (e >= c->seg_end) break;
+            edx = (edx + 1UL) & 0xFFFFFFFFUL;
+            {
+                unsigned long e2 = dec4c_fe_get(c, edx);
+                c->file_idx = (c->file_idx + 1UL) & 0xFFFFFFFFUL;
+                if (e2 >= c->text_end || e2 >= c->g45d124 || c->bad) break;
+            }
+        }
+        next = dec4c_fe_get(c, (unsigned)c->file_idx);
+    } else {
+        next = c->out_len;
+    }
+    c->seg_end = next;
+    {
+        unsigned long fi = c->file_idx;
+        if (fi != 0) {
+            unsigned long prev = dec4c_fe_get(c, (unsigned)(fi - 1UL));
+            unsigned long ecx = (next - prev) & 0xFFFFFFFFUL;
+            unsigned long edx = prev;
+            unsigned long esi;
+            if (fi > 1UL)
+                edx = (prev - dec4c_fe_get(c, (unsigned)(fi - 2UL))) & 0xFFFFFFFFUL;
+            esi = c->out_pos;
+            if (edx == 0x8f4d0UL && ecx == 0x2d9a22UL) {
+                dec4c_rescale_o4(c);
+                dec4c_rescale_o4(c);
+            }
+            if (edx == 0x75a45UL && ecx == 0x68302UL)
+                dec4c_rescale_o4(c);
+            if ((edx == 0x17e5f8UL && ecx == 0x2cc640UL) ||
+                (edx == 0x2cc640UL && ecx == 0x6af80UL)) {
+                dec4c_rescale_o4(c);
+                dec4c_rescale_o2(c);
+            }
+            if ((edx == 0x388dc2UL && ecx == 0x16dd2eUL) ||
+                (edx == 0x7d4c0UL && ecx == 0x3c41eUL) ||
+                (edx != 0xfb670UL && ecx == 0xfb670UL && esi >= c->g45d124)) {
+                /* First 1 MB of order-4 / 1.25 MB of order-2 cleared
+                 * (full o4/o2 tables deferred to the wiring stage). */
+                if (esi >= c->g45d124)
+                    c->g_e395 = 0x0AU;
+            }
+        }
+    }
+    {
+        unsigned long v = dec4c_rc_div(c, 10UL);
+        unsigned long t = v & 0xFFUL;
+        dec4c_rc_dec(c, t, t + 1UL);
+        dec4c_set_mmtype(c, (unsigned char)v);
+    }
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
