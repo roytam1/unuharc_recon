@@ -119,6 +119,8 @@ typedef struct dec4c_ctx_s {
     unsigned char bad;
     unsigned char g_e39b, g_e39e;      /* 0x45e39b/e9e text states */
     unsigned char *outbuf;              /* decoded bytes (out_len) */
+    unsigned char excl[256];            /* 0x45dd6e excluded symbols */
+    unsigned char nex;                  /* 0x45e39c */
     unsigned long *fe;                 /* file ends */
     unsigned long fe_n, fe_idx;
     unsigned char fe_on;
@@ -1283,6 +1285,40 @@ static int dec4c_match_model(dec4c_ctx *c)
         }
         return 1;
     }
+}
+
+/* Order-4 helpers (lit.rs): exclusion list, SEE bumps, recent/marked. */
+static void dec4c_excl_push(dec4c_ctx *c, unsigned char s)
+{
+    unsigned n = c->nex;
+    if (n < 256U) {
+        c->excl[n] = s;
+        c->nex = (unsigned char)(n + 1U);
+    }
+}
+
+static int dec4c_recent(dec4c_ctx *c, unsigned char s)
+{
+    return (c->pos <= c->recent[s]) ? 1 : 0;
+}
+
+static int dec4c_marked(dec4c_ctx *c, unsigned char s)
+{
+    return (c->see[D4C_MARKS + s] == c->nbytes) ? 1 : 0;
+}
+
+static void dec4c_see_bump(dec4c_ctx *c, unsigned i, int up)
+{
+    unsigned long *p = &c->see[i & (DEC4C_SEE_LEN - 1UL)];
+    if (up)
+        *p = (*p + ((0x2000UL - *p) >> 6)) & 0xFFFFFFFFUL;
+    else
+        *p = (*p - (*p >> 6)) & 0xFFFFFFFFUL;
+}
+
+static unsigned long dec4c_g68c(dec4c_ctx *c)
+{
+    return c->g6b8[c->g45c68c & 0x3FFUL];
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
