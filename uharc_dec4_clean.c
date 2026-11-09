@@ -2264,20 +2264,19 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
             unsigned long cc = r[(k7c & 0x0FUL) + 1UL];
             unsigned long bc = (g6a8 - cc) & 0xFFFFFFFFUL;
             unsigned long b8 = 0, e, x, q;
-            e = (cc - ((cc == 2UL) ? 1UL : 0UL) + l104) & 0xFFFFFFFFUL;
+            e = (cc + l104) & 0xFFFFFFFFUL;
             if ((unsigned)l3c == l50) { b8 = 0x80UL; e = (e + l100) & 0xFFFFFFFFUL; }
             x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (bc + e) & 0xFFFFFFFFUL);
             if (k7c != 0) x |= 0x100UL;
             if ((l3c & 0xC0UL) == 0xC0UL) x |= 0x20UL;
             if (dec4c_recent(c, (unsigned char)l3c)) x |= 0x200UL;
             if (dec4c_marked(c, (unsigned char)l3c)) x |= 0x400UL;
-            x |= lfc;
+            x |= b8 | lfc;
             pedi = D4C_S_O2O2 + x;
             if (dec4c_see_freq(c, pedi, bc, cc, &q)) {
                 t = (t + (q - cc)) & 0xFFFFFFFFUL;
                 r[(k7c & 0x0FUL) + 1UL] = (unsigned char)q;
             }
-            (void)b8;
         }
         if (mask[f8 & 0x0FUL] && k7c != f8) {
             unsigned long d8 = r[(f8 & 0x0FUL) + 1UL];
@@ -2286,8 +2285,8 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
             unsigned long x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (b4 + e) & 0xFFFFFFFFUL);
             unsigned long q;
             if ((l50 & 0xC0UL) == 0xC0UL) x |= 0x20UL;
-            if (dec4c_recent(c, (unsigned char)l50)) x |= 0x80UL;
-            if (dec4c_marked(c, (unsigned char)l50)) x |= 0x100UL;
+            if (dec4c_recent(c, (unsigned char)l50)) x |= 0x40UL;
+            if (dec4c_marked(c, (unsigned char)l50)) x |= 0x80UL;
             x |= lfc;
             p16 = D4C_S_O2MRU + x;
             if (dec4c_see_freq(c, p16, b4, d8, &q)) {
@@ -2329,11 +2328,21 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
                 }
                 kk += 1UL;
             }
-            (void)l80; (void)l88; (void)l90;
             c->g_e3a5 = (unsigned char)kk;
             {
                 unsigned long hi = (kk == 8UL) ? c->rc_t : e2;
                 dec4c_rc_dec(c, cum, hi);
+            }
+            {
+                unsigned long got = kk;
+                if (pe != 0)
+                    dec4c_see_bump(c, pe, got == 0);
+                if (p16 != 0)
+                    dec4c_see_bump(c, p16, got == f8);
+                if (pedi != 0)
+                    dec4c_see_bump(c, pedi, got == k7c);
+                if (!*esc && ((unsigned)r[(got + 1UL) & 0x0FUL] << 2) >= g6a8)
+                    c->g_e3a4 = (g6a8 > 0x10UL) ? 2U : 1U;
             }
         }
     }
