@@ -3339,7 +3339,7 @@ static void dec4c_o1_update(dec4c_ctx *c, unsigned char sym, unsigned long ctx)
     c->esc[cc] = (unsigned short)esc;
     {
         unsigned tot = dec4c_fen_add(c, cc, sym, di);
-        if ((long)esc + (long)tot >= 0x4000L || (long)ae < 0)
+        if ((long)esc + (long)tot >= 0x4000L || (long)(int)ae < 0)
             dec4c_o1_rescale(c, ctx);
     }
 }
