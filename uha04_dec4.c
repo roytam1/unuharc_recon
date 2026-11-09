@@ -111,6 +111,15 @@ void d4v_prices(dec4v_ctx *c)
 
 int d4v_init_file(dec4v_ctx *c, int method, unsigned int al_in);
 
+/* Header +9 bit6 selects the kennedy.xls PPM special case.
+ * Set by the container before a 0.4 PPM decode. */
+static unsigned char g_dec4v_flags2;
+
+void uharc_dec4v_set_flags2(unsigned char flags2)
+{
+    g_dec4v_flags2 = flags2;
+}
+
 int uharc_dec4v_init(void **pctx, int method)
 {
     dec4v_ctx *c;
@@ -575,6 +584,21 @@ int uharc_dec4v_decode_b(void *ctx, const unsigned long *cum,
             for (ti = 0; ti < ncum; ti++)
                 M32(tab + ti * 4UL) = (unsigned int)(cum[ti] & 0xFFFFFFFFUL);
             G32(D4V_FILETAB_PTR) = (unsigned int)tab;
+        }
+        /* asm 0x415919..0x41596E (sub_415130 tail): when byte_431209
+         * (header +9 bit6) is set, scan the file-end table for a
+         * 0xFB670 file; byte_45C681 = (prev == 0) ? 10 : 0 and
+         * dword_45BA44 = prev. Init runs before the table is known,
+         * so the scan is replayed here in decode_b. */
+        if (g_dec4v_flags2 & 0x40) {
+            unsigned prev = 0;
+            for (ti = 0; ti < ncum; ti++) {
+                unsigned e = (unsigned)cum[ti];
+                if (e - prev == 0xFB670U) break;
+                prev = e;
+            }
+            M32(D4V_TBL_45BA44) = prev;
+            M8(D4V_CTX_B_45C681) = (unsigned char)((prev == 0) ? 10 : 0);
         }
     }
     d4v_decode_block(c);

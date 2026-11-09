@@ -281,8 +281,7 @@ int uharc_dec4u_init(void **pctx, int method)
 {
     dec3w_ctx *c;
     (void)method;
-    c = (dec3w_ctx *)calloc(1, sizeof(*c));
-    if (!c)
+    c = (dec3w_ctx *)calloc(1, sizeof(*c));    if (!c)
         return 2;
     c->mem = (unsigned char *)calloc(1, (size_t)V3_ARENA);
     if (!c->mem) {
@@ -308,6 +307,14 @@ int uharc_dec4u_init(void **pctx, int method)
     c->method = method;
     *pctx = c;
     return 0;
+}
+
+/* Header +9 bit6 selects the kennedy.xls PPM special case. */
+static unsigned char g_dec4u_flags2;
+
+void uharc_dec4u_set_flags2(unsigned char flags2)
+{
+    g_dec4u_flags2 = flags2;
 }
 
 int uharc_dec4u_decode_b(void *ctx,
@@ -347,6 +354,18 @@ int uharc_dec4u_decode_b(void *ctx,
             M32(base + 4UL * i) = (unsigned int)cum[i];
         M32(base + 4UL * ncum) = 0U;
         M32(D3U_CUM_TABLE_PTR) = (unsigned int)base;
+        /* asm 0x414025..0x414062 (sub_413838 tail): when byte_428ED9
+         * (header +9 bit6) is set, scan for a 0xFB670 file. */
+        if (g_dec4u_flags2 & 0x40) {
+            unsigned prev = 0;
+            for (i = 0; i < ncum; i++) {
+                unsigned e = (unsigned)cum[i];
+                if (e - prev == 0xFB670U) break;
+                prev = e;
+            }
+            M32(D3U_TBL_444228) = prev;
+            G8(D3U_FLAG_444EA2) = (unsigned char)((prev == 0) ? 10 : 0);
+        }
     } else {
         M32(D3U_CUM_TABLE_PTR) = 0U;
     }

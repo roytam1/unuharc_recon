@@ -576,15 +576,18 @@ static int u4_read(void *ctx, unsigned char *buf, unsigned want)
     return (int)want;
 }
 
-/* header +9 flags_filt: bit0 is the EXE filter switch (original:
- * byte_430ED2), bit1 is the multimedia filter switch.  Decode order
- * is EXE then multimedia.  The splitter buffers every entry of at
- * least 16 bytes; each filter re-checks its own gate. */
+/* header +9 flags_filt: bit0 EXE, bit1 multimedia, bit7 fax
+ * (size 0x7D4C0).  Decode order fax, else EXE then multimedia. */
 static int g_uha04_exe;
 static int g_uha04_mm;
+static int g_uha04_fax;
 
 static void uha04_unfilter(unsigned char *buf, unsigned long len)
 {
+    if (g_uha04_fax && len == 513216UL) {
+        uharc_filter_fax(buf, len);
+        return;
+    }
     if (g_uha04_exe)
         uharc_filter_exe(buf, len, 4, 0);
     if (g_uha04_mm)
@@ -642,9 +645,11 @@ int uha04_extract(uha04_t *h, const char *outdir,
     mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
     g_uha04_exe = (h->hdr.flags_filt & 1) ? 1 : 0;
     g_uha04_mm = (h->hdr.flags_filt & 2) ? 1 : 0;
+    g_uha04_fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
+    uharc_dec4v_set_flags2((unsigned char)h->hdr.flags_filt);
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 4,
-                         (g_uha04_exe || g_uha04_mm) ? uha04_unfilter : 0,
+                         (g_uha04_exe || g_uha04_mm || g_uha04_fax) ? uha04_unfilter : 0,
                          u4_read, &mr, total);
     free(packed);
     free(se);
