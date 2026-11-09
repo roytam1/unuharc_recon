@@ -2210,6 +2210,90 @@ static unsigned char dec4c_o1_symbol(dec4c_ctx *c, unsigned long ctx)
     }
 }
 
+/* Fenwick add (o1.rs fen_add). */
+static unsigned dec4c_fen_add(dec4c_ctx *c, unsigned ctx, unsigned char sym, unsigned inc)
+{
+    unsigned short *f = c->o1t[ctx][1];
+    unsigned short *t = c->o1t[ctx][0];
+    unsigned b;
+    int k;
+    f[sym] = (unsigned short)(f[sym] + inc);
+    b = (unsigned)(sym + 1U) & 0xFFU;
+    for (k = 0; k < 8; k++) {
+        unsigned d = (b != 0) ? inc : 0U;
+        t[b] = (unsigned short)(t[b] + d);
+        b = (b + (b & (~b + 1U))) & 0xFFU;
+    }
+    t[0] = (unsigned short)(t[0] + inc);
+    return t[0];
+}
+
+/* 0x40e3eb: halve frequencies (pair-wise). */
+static void dec4c_o1_halve(dec4c_ctx *c, unsigned long ctx_)
+{
+    unsigned cidx = dec4c_cx(ctx_);
+    unsigned long sum = 0;
+    int k;
+    for (k = 0; k < 0x80; k++) {
+        unsigned long w = (unsigned)c->o1t[cidx][1][2 * k] |
+                          ((unsigned long)c->o1t[cidx][1][2 * k + 1] << 16);
+        unsigned long v = ((w + 0x10001UL) & 0xFFFEFFFEUL) >> 1;
+        c->o1t[cidx][1][2 * k] = (unsigned short)(v & 0xFFFFUL);
+        c->o1t[cidx][1][2 * k + 1] = (unsigned short)((v >> 16) & 0xFFFFUL);
+        sum = (sum + v) & 0xFFFFFFFFUL;
+    }
+    for (k = 0; k < 255; k++)
+        c->o1t[cidx][0][k + 1] = c->o1t[cidx][1][k];
+    c->o1t[cidx][0][0] = (unsigned short)(((sum & 0xFFFFUL) + (sum >> 16)) & 0xFFFFUL);
+    dec4c_fenwick_build(c->o1t[cidx][0]);
+}
+
+/* 0x40e672: bump symbol in fallback context. */
+static void dec4c_o1_bump(dec4c_ctx *c, unsigned char sym, unsigned long idx)
+{
+    unsigned cc = dec4c_cx(c->g45c690);
+    unsigned inc = c->inc_b[dec4c_cx(idx)];
+    if (dec4c_fen_add(c, cc, sym, inc) >= 0x4000U)
+        dec4c_o1_halve(c, cc);
+}
+
+/* 0x40e6d5: update context ctx with symbol sym. */
+static void dec4c_o1_update(dec4c_ctx *c, unsigned char sym, unsigned long ctx)
+{
+    unsigned cc = dec4c_cx(ctx);
+    unsigned di = c->inc_u[cc];
+    unsigned f = c->o1t[cc][1][sym];
+    unsigned esc = c->esc[cc];
+    unsigned long eax = ((unsigned long)esc + f) & 0xFFFFFFFFUL;
+    unsigned long ae;
+    if (c->mru_s[cc] == sym) {
+        eax = (eax << 5) & 0xFFFFFFFFUL;
+        if (c->mru_n[cc] < 0x0FU)
+            c->mru_n[cc] = (unsigned char)(c->mru_n[cc] + 1U);
+    } else {
+        c->mru_n[cc] = 0;
+        c->mru_s[cc] = sym;
+    }
+    ae = (c->ae38[cc] - eax) & 0xFFFFFFFFUL;
+    c->ae38[cc] = ae;
+    if (f == 0) {
+        dec4c_o1_bump(c, sym, ctx);
+        c->ba3c[cc] = (c->ba3c[cc] + c->binmode) & 0xFFFFFFFFUL;
+        esc = (esc + di) & 0xFFFFU;
+    } else {
+        unsigned k = c->ba3c[cc];
+        if ((unsigned)c->o1t[cc][0][0] <= (k * (unsigned long)esc & 0xFFFFFFFFUL))
+            dec4c_o1_bump(c, sym, ctx);
+        c->ba3c[cc] = k >> 4;
+    }
+    c->esc[cc] = (unsigned short)esc;
+    {
+        unsigned tot = dec4c_fen_add(c, cc, sym, di);
+        if ((long)esc + (long)tot >= 0x4000L || (long)ae < 0)
+            dec4c_o1_rescale(c, ctx);
+    }
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
