@@ -837,7 +837,15 @@ static void dec4c_new_segment(dec4c_ctx *c)
                 (edx == 0x7d4c0UL && ecx == 0x3c41eUL) ||
                 (edx != 0xfb670UL && ecx == 0xfb670UL && esi >= c->g45d124)) {
                 /* First 1 MB of order-4 / 1.25 MB of order-2 cleared
-                 * (full o4/o2 tables deferred to the wiring stage). */
+                 * (0x40deb6 block). */
+                {
+                    unsigned long h;
+                    for (h = 0; h < 0x8000UL; h++) {
+                        unsigned long sbi = (((h & 0x7FFFUL) << 3) | ((h >> 15) & 7UL));
+                        memset(c->o4 + sbi * 32UL, 0, 32UL);
+                    }
+                }
+                memset(c->o2, 0, 0x50000UL * sizeof(unsigned long));
                 if (esi >= c->g45d124)
                     c->g_e395 = 0x0AU;
             }
@@ -2008,7 +2016,7 @@ static void dec4c_delta_step(dec4c_ctx *c, unsigned char e[4], unsigned char sym
     m0 = (mv ? (((e0 + 1UL) >> 1) & 0xFFUL) : e0) + 1UL;
     m1 = mv ? (((e1 + 1UL) >> 1) & 0xFFUL) : e1;
     m2 = low ? (unsigned)sym : e2;
-    m3 = low ? 0UL : ((e3 >> 1) + 0x80UL);
+    m3 = ((low ? 0UL : (e3 >> 1)) + 0x80UL) & 0xFFFFFFFFUL;
     if (sym == e2) {
         e[0] = (unsigned char)h0;
         e[1] = (unsigned char)h1;
