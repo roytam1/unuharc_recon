@@ -1473,8 +1473,9 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
             c->g45d104 <= c->g45d138 && dec4c_g68c(c) > 0x3FEUL) {
             unsigned long q = b1a >> 4;
             unsigned long e = ((unsigned long)b[0x1B] << 6) * q & 0xFFFFFFFFUL;
-            if (e < c->g6b8[c->g45c688 & 0x3FFUL])
+            if (e < c->g6b8[c->g45c688 & 0x3FFUL]) {
                 return 0;
+            }
         }
         /* Skip: order-2 vs order-4 cost comparison */
         if (rec[0] != 0 && (bm != 0 || rec[0x13] >= 0x30UL)) {
@@ -1482,11 +1483,13 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
             if ((b19 & 0x38UL) == 0UL) {
                 unsigned long e = (unsigned long)rec[0x12] * ((b19 & 4UL) + b[1] + (b[0x1A] >> 4)) & 0xFFFFFFFFUL;
                 unsigned long a = ((unsigned long)rec[1] + ((unsigned long)rec[0x13] >> 4)) * c->g45c678 & 0xFFFFFFFFUL;
-                if (e < a)
+                if (e < a) {
                     return 0;
+                }
             }
-            if (rec[0x13] >= 0x60UL && ((unsigned long)rec[0x13] >> 2) > (unsigned long)b[0x1A])
+            if (rec[0x13] >= 0x60UL && ((unsigned long)rec[0x13] >> 2) > (unsigned long)b[0x1A]) {
                 return 0;
+            }
         }
         /* Allowed-symbol mask + escape check */
         {
@@ -1511,8 +1514,9 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
             }
             (void)mask;
             c->g45c698 = c698;
-            if ((unsigned long)b[0] >= c698)
+            if ((unsigned long)b[0] >= c698) {
                 return 0;
+            }
         }
         return 1;
     }
@@ -1619,9 +1623,11 @@ static unsigned long dec4c_o4_escape(dec4c_ctx *c, const unsigned char b[32],
             eax = ((c6a4 & 0xFFUL) == 0xDFUL) ? 1UL : 0UL;
         }
         idx = eax + edx + ((rec[7] != 0) ? 8UL : 0UL) + ((c->g45c6b0 >= 6UL) ? 16UL : 0UL);
-        pa = D4C_S_O4ESC +
-             ((dec4c_rom32(0x4239f0UL + 4UL * (unsigned)b[0]) << 8) +
-              (dec4c_rom32(0x4239f0UL + 4UL * (ecx & 0xFFUL)) << 5) + idx);
+        {
+            unsigned long lb0 = dec4c_rom32(0x4239f0UL + 4UL * (unsigned)b[0]);
+            unsigned long lcx = dec4c_rom32(0x4239f0UL + 4UL * (ecx & 0xFFUL));
+            pa = D4C_S_O4ESC + ((lb0 << 8) + (lcx << 5) + idx);
+        }
         t = (dec4c_dv((ecx << 13) & 0xFFFFFFFFUL, c->see[pa & (DEC4C_SEE_LEN - 1UL)]) + 1UL) & 0xFFFFFFFFUL;
         *see_esc_out = pa;
     } else {
@@ -1649,11 +1655,12 @@ static void dec4c_o4_multi(dec4c_ctx *c, unsigned char b[32],
     int mi;
     for (mi = 0; mi < 16; mi++) mask[mi] = (mi < 12) ? 1UL : 0UL;
     if (c->nex != 0) {
+        /* c698 arrives already exclusion-adjusted from the scan
+         * (Rust computes it once); only rebuild the mask here. */
         unsigned x = c->excl[0];
         unsigned j;
         for (j = 0; j < 16UL; j++) {
             if (x == b[j + 0x0DUL]) {
-                c698 = (c698 - (unsigned long)b[j + 1UL]) & 0xFFFFFFFFUL;
                 mask[j] = 0;
                 break;
             }
@@ -1797,8 +1804,8 @@ static void dec4c_o4_multi(dec4c_ctx *c, unsigned char b[32],
             if (pedi != 0) dec4c_see_bump(c, pedi, got == ec);
             if (p2e != 0) dec4c_see_bump(c, p2e, got == k2a);
         }
-        if (*see_esc != 0)
-            dec4c_see_bump(c, *see_esc, *esc == 0);
+        /* see_esc is bumped once in decode_symbol (Rust 0x4110e5 shared
+         * by single/multi); do not bump here too. */
     }
 }
 
