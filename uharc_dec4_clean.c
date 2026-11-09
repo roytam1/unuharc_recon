@@ -1488,6 +1488,67 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
     }
 }
 
+/* Order-4 single-symbol binary decision (b[2]==0 path of 0x41030f).
+ * On esc==false sym is set; on esc==true s0 is excluded. */
+static void dec4c_o4_single(dec4c_ctx *c, const unsigned char b[32],
+                            const unsigned char rec[20],
+                            unsigned long c6a4, unsigned long l10c,
+                            unsigned l3c, unsigned l50, int bm,
+                            int *esc, unsigned char *sym, unsigned long *see_esc)
+{
+    unsigned char s0 = b[0x0D];
+    unsigned long edx = b[1];
+    unsigned long eax = 0;
+    unsigned long pa, v, p;
+    if ((unsigned)s0 == l3c) {
+        edx = (edx + ((unsigned)rec[0x13] >> 4)) & 0xFFFFFFFFUL;
+        eax = 1;
+    }
+    if ((unsigned)s0 == l50) {
+        eax |= 1UL;
+        edx = (edx + c->mru_n[l10c & 0x3FFUL]) & 0xFFFFFFFFUL;
+    }
+    if (rec[7] != 0 && c->g45c6b0 < 6UL)
+        eax |= 0x10UL;
+    if (bm) {
+        if (dec4c_recent(c, s0))
+            eax |= 0x100UL;
+        if ((unsigned)s0 == (c6a4 & 0xFFUL))
+            eax |= 2UL;
+    } else if (dec4c_rom8(0x42738dUL + s0) != 0) {
+        eax |= 2UL;
+    }
+    if (edx < 0x1EUL) {
+        unsigned long esi_ = c6a4 & 0xE0UL;
+        eax |= esi_;
+        if (bm) {
+            if (esi_ == ((c6a4 >> 8) & 0xE0UL))
+                eax |= 8UL;
+            if (esi_ == ((unsigned)s0 & 0xE0UL))
+                eax |= 4UL;
+        } else {
+            eax |= ((unsigned long)dec4c_rom8(0x42738dUL + ((c6a4 >> 8) & 0xFFUL)) << 2) +
+                   ((unsigned long)dec4c_rom8(0x42738dUL + (c6a4 & 0xFFUL)) << 3);
+        }
+    }
+    if (dec4c_marked(c, s0))
+        eax |= 0x200UL;
+    pa = D4C_S_O4BIN + ((dec4c_rom32(0x423df0UL + 4UL * (edx & 0x1FFUL)) << 10) + eax);
+    v = dec4c_rc_div(c, 0x2000UL) & 0xFFFFUL;
+    p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
+    if (v < p) {
+        *esc = 0;
+        c->g_e3a3 = 0;
+        *sym = s0;
+        dec4c_rc_dec(c, 0, p);
+    } else {
+        c->g_e3a3 = 0x0CU;
+        dec4c_excl_push(c, s0);
+        dec4c_rc_dec(c, p, 0x2000UL);
+    }
+    *see_esc = pa;
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
