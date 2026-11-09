@@ -96,7 +96,6 @@ typedef struct dec4c_ctx_s {
     unsigned short o1t[0x310][2][256]; /* CUM=0, FRQ=1 per context */
     unsigned short mflag[0x400];       /* 0x445db4 */
     unsigned char pair[0x80];          /* 0x45ad64 delta pairs */
-    unsigned char (*delta)[4];         /* 0x423684+0x140000, binary only */
     unsigned long g6b8[0x400];         /* 0x45c6b8/0x45ccd4 */
     unsigned long recent[256], lastpos[256], per[256];
     unsigned long ring[256], avg_a[2], avg_b[2];
@@ -115,6 +114,12 @@ typedef struct dec4c_ctx_s {
     unsigned long *fe;                 /* file ends */
     unsigned long fe_n, fe_idx;
     unsigned char fe_on;
+    /* Order-2 records (0x423684, 20 B each) + delta (binary mode).
+     * o2 covers 0..0x10000, delta covers 0x10000.. via o2r/o2_put
+     * (each 4-byte word of a 20-byte record is one delta entry). */
+    unsigned long *o2;                   /* 0x10000 * 5 u32 */
+    unsigned char (*delta)[4];            /* 0x100000 * 4 bytes */
+    unsigned char *o4;                   /* 0x40000 * 32 bytes */
 } dec4c_ctx;
 
 static unsigned char g_c_flags2;
@@ -141,9 +146,14 @@ int uharc_dec4c_init(void **ctx, int method)
     c->mlen = (unsigned char *)calloc(0x40000UL, 1);
     c->mchk = (unsigned char *)calloc(0x40000UL, 1);
     c->x698 = (unsigned char *)calloc(0x40000UL, 1);
-    if (!c->dict || !c->mh1 || !c->mh2 || !c->mlen || !c->mchk || !c->x698) {
+    c->o2 = (unsigned long *)calloc(0x10000UL * 5UL, sizeof(unsigned long));
+    c->delta = (unsigned char *)calloc(0x100000UL, 4U);
+    c->o4 = (unsigned char *)calloc(0x40000UL, 32U);
+    if (!c->dict || !c->mh1 || !c->mh2 || !c->mlen || !c->mchk || !c->x698 ||
+        !c->o2 || !c->delta || !c->o4) {
         free(c->dict); free(c->mh1); free(c->mh2);
         free(c->mlen); free(c->mchk); free(c->x698);
+        free(c->o2); free(c->delta); free(c->o4);
         free(c); return 2;
     }
     /* hashes init to 0xFFFFFFFF (calloc gives 0, so fill) */
@@ -163,7 +173,7 @@ void uharc_dec4c_free(void *ctx)
     free(c->dict);
     free(c->mh1); free(c->mh2);
     free(c->mlen); free(c->mchk); free(c->x698);
-    free(c->delta);
+    free(c->o2); free(c->delta); free(c->o4);
     free(c->fe);
     free(c->inbuf);
     free(c);
@@ -483,8 +493,82 @@ static void dec4c_o1_rescale(dec4c_ctx *c, unsigned long ctx)
 
 /* Stubs for the two rescalers called from new_segment file-size tweaks.
  * Correct for the zero-model first segment; full ports pending. */
-static void dec4c_rescale_o2(dec4c_ctx *c) { (void)c; }
+static void dec4c_rescale_o2(dec4c_ctx *c);
 static void dec4c_rescale_o4(dec4c_ctx *c) { (void)c; }
+
+/* Order-2 record access (0x423684, 20 bytes = 5 u32 LE). */
+#define DEC4C_O2_LOW 0x10000UL
+static void dec4c_o2r(dec4c_ctx *c, unsigned long i, unsigned char r[20])
+{
+    unsigned k;
+    if (i < DEC4C_O2_LOW) {
+        for (k = 0; k < 5; k++) {
+            unsigned long v = c->o2[i * 5UL + k];
+            r[k * 4UL + 0] = (unsigned char)(v & 0xFFUL);
+            r[k * 4UL + 1] = (unsigned char)((v >> 8) & 0xFFUL);
+            r[k * 4UL + 2] = (unsigned char)((v >> 16) & 0xFFUL);
+            r[k * 4UL + 3] = (unsigned char)((v >> 24) & 0xFFUL);
+        }
+    } else {
+        unsigned long d = ((i - DEC4C_O2_LOW) * 5UL) & 0x7FFFFUL;
+        for (k = 0; k < 5; k++) {
+            r[k * 4UL + 0] = c->delta[d + k][0];
+            r[k * 4UL + 1] = c->delta[d + k][1];
+            r[k * 4UL + 2] = c->delta[d + k][2];
+            r[k * 4UL + 3] = c->delta[d + k][3];
+        }
+    }
+}
+
+static void dec4c_o2_put(dec4c_ctx *c, unsigned long i, const unsigned char r[20])
+{
+    unsigned k;
+    if (i < DEC4C_O2_LOW) {
+        for (k = 0; k < 5; k++)
+            c->o2[i * 5UL + k] = ((unsigned long)r[k * 4UL]) |
+                ((unsigned long)r[k * 4UL + 1] << 8) |
+                ((unsigned long)r[k * 4UL + 2] << 16) |
+                ((unsigned long)r[k * 4UL + 3] << 24);
+    } else {
+        unsigned long d = ((i - DEC4C_O2_LOW) * 5UL) & 0x7FFFFUL;
+        for (k = 0; k < 5; k++) {
+            c->delta[d + k][0] = r[k * 4UL + 0];
+            c->delta[d + k][1] = r[k * 4UL + 1];
+            c->delta[d + k][2] = r[k * 4UL + 2];
+            c->delta[d + k][3] = r[k * 4UL + 3];
+        }
+    }
+}
+
+/* 0x40d58d: halve (>>2) order-2 statistics. */
+static void dec4c_rescale_o2(dec4c_ctx *c)
+{
+    unsigned long n = 0x20000UL >> (unsigned)c->binmode;
+    unsigned long i;
+    for (i = 0; i < n; i++) {
+        unsigned char r[20];
+        unsigned bh = 0;
+        unsigned d, v;
+        int k;
+        dec4c_o2r(c, i, r);
+        if (r[0] == 0)
+            continue;
+        for (k = 7; k >= 0; k--) {
+            v = (unsigned)(r[1 + k] >> 2);
+            r[1 + k] = (unsigned char)v;
+            bh = (bh + v) & 0xFFUL;
+        }
+        d = (bh != 0) ? ((((unsigned)r[0] >> 2) + 1U) & 0xFFUL) : 0;
+        r[0] = (unsigned char)d;
+        r[0x11] >>= 1;
+        v = r[0x13] & 0x0FUL;
+        r[0x13] = (unsigned char)v;
+        r[0x12] = (unsigned char)((bh + d) & 0xFFUL);
+        if (r[1 + v] == 0)
+            r[0x13] = 0;
+        dec4c_o2_put(c, i, r);
+    }
+}
 
 /* 0x40deb6: segment start. */
 static void dec4c_new_segment(dec4c_ctx *c)
