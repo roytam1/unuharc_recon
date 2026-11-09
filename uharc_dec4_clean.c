@@ -64,6 +64,24 @@ typedef struct dec4c_ctx_s {
     unsigned char g_e395;      /* 0x45e395 equivalent (0 or 10) */
     unsigned long out_pos;
     unsigned long out_len;
+    /* Segment/multimedia type (0x40deb6/0x41013c) */
+    unsigned char mmtype;      /* 0x45e390 */
+    unsigned long mmctx;       /* 0x45ae20 */
+    unsigned long mmper;       /* 0x45ae24 */
+    unsigned long ch;          /* 0x45ae2c channel */
+    unsigned char g_e38c;      /* 0x45e38c */
+    unsigned char g_e38e;      /* 0x45e38e */
+    unsigned char g_e38d;      /* 0x45e38d (type==5||6) */
+    /* Mm predictor state (0x412fb0, types 5..9) */
+    struct {
+        unsigned long sel, d730, d734, d738, d73c, d740, d744;
+        unsigned long acc[0x80];
+        unsigned long hist[0x80];
+        unsigned long pred[8];
+        unsigned long errs[6][0x101];
+        unsigned long rec[4][31];
+        unsigned char sgn[4];
+    } mm;
     /* Order-1 tables (0x40cdd1): 0x301 contexts */
     unsigned short esc[0x400];   /* 0x4236c8 escape counts */
     unsigned short inc_u[0x400]; /* 0x45d768 */
@@ -251,6 +269,37 @@ static void dec4c_init_model(dec4c_ctx *c)
     for (i = 0; i <= 0x300U; i++)
         c->mru_s[i] = 0xFFU;
     dec4c_init_see(c);
+}
+
+/* Mm reset (0x412fb0) for types 5..9. */
+static void dec4c_mm_new(dec4c_ctx *c)
+{
+    int r;
+    memset(&c->mm, 0, sizeof(c->mm));
+    c->mm.d734 = 2UL;
+    for (r = 0; r < 4; r++) {
+        c->mm.rec[r][28] = 0xFFFFFFFFUL;
+        c->mm.rec[r][29] = 0xFFFFFFFFUL;
+        c->mm.rec[r][30] = 0xFFFFFFFFUL;
+    }
+}
+
+/* Data-type switch (shared tail of 0x40deb6/0x41013c). */
+static void dec4c_set_mmtype(dec4c_ctx *c, unsigned char bl)
+{
+    unsigned long i;
+    if (bl == c->mmtype)
+        return;
+    c->mmtype = bl;
+    i = (unsigned long)bl;
+    c->mmctx = dec4c_rom32(0x4246c8UL + 4UL * i);
+    c->mmper = dec4c_rom32(0x4246a0UL + 4UL * i);
+    c->g_e38c = (unsigned char)dec4c_rom8(0x424718UL + i);
+    c->g_e38e = 0;
+    c->ch = 0;
+    c->g_e38d = (bl == 5 || bl == 6) ? 1 : 0;
+    if (bl > 4)
+        dec4c_mm_new(c);
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
