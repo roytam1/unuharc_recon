@@ -1323,6 +1323,8 @@ static void dec4c_see_bump(dec4c_ctx *c, unsigned i, int up)
         *p = (*p - (*p >> 6)) & 0xFFFFFFFFUL;
 }
 
+static unsigned dec4c_cost(dec4c_ctx *c, unsigned idx);
+
 static unsigned long dec4c_g68c(dec4c_ctx *c)
 {
     return c->g6b8[c->g45c68c & 0x3FFUL];
@@ -2038,6 +2040,124 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
         dec4c_see_bump(c, see, *esc == 0);
     if (*esc == 0)
         dec4c_o2_update_light(c, *sym);
+}
+
+/* 0x40e672 part: order-4 update (update.rs o4_update). */
+static void dec4c_o4_update(dec4c_ctx *c, unsigned char sym)
+{
+    unsigned long bi;
+    unsigned char *b;
+    unsigned long k;
+    int halve = 0;
+    unsigned ah;
+    if (c->g45c694 >= 0x40000UL)
+        return;
+    bi = ((c->g45c694 & 0x7FFFUL) << 3) | ((c->g45c694 >> 15) & 7UL);
+    b = c->o4 + bi * 32UL;
+    k = c->g_e3a3;
+    if (k == 0xFFUL) {
+        k = 0;
+        while (b[k + 0x0DUL] != sym) {
+            k += 1UL;
+            if (k >= 0x0CUL) break;
+        }
+    }
+    if (c->g_e394 != 0 && k < 0x0CUL) {
+        long f = (long)b[k + 1UL] >> 6;
+        if (f > (long)b[0])
+            c->g45d104 = (c->g45d104 + 4UL) & 0xFFFFFFFFUL;
+    }
+    if (c->g_e397 != 0) {
+        unsigned long x, q;
+        if (k < 0x0CUL) {
+            c->g_e39a = 0;
+            c->g_e399 = 0;
+            c->g_e39f = 0;
+            x = b[k + 1UL];
+        } else {
+            x = b[0];
+        }
+        q = dec4c_dv((x << 14) & 0xFFFFFFFFUL, c->g45c698);
+        c->g45c658 = (c->g45c658 + dec4c_cost(c, q)) & 0xFFFFFFFFUL;
+    }
+    ah = (dec4c_rom8(0x4244a0UL + b[0]) < c->g45c678) ? 1U : 0U;
+    if (k < 0x0CUL) {
+        unsigned al = b[0x19] & 0xC0UL;
+        long fk = (long)b[k + 1UL] + 1L;
+        long half = (long)b[1] >> 1;
+        if (fk < half) {
+            al = (al + 0x40UL) & 0xFFUL;
+            if (al == 0)
+                ah = 1;
+        } else {
+            al = (unsigned char)(((long)al >> 1) & 0xC0L);
+        }
+        b[0x19] = (unsigned char)((b[0x19] & 0x3FUL) | al);
+        if (k != 0) {
+            long hi = (long)b[0x1A] >> 4;
+            if (hi >= 4L && (b[0x1A] & 0x0FUL) == k)
+                halve = 1;
+        }
+    }
+    if (halve || ah != 0) {
+        int x;
+        for (x = 0; x <= 12; x++)
+            b[x] = (unsigned char)(((unsigned)b[x] + 1U) >> 1);
+    }
+    if (k < 0x0CUL) {
+        b[k + 1UL] = (unsigned char)(b[k + 1UL] + 2U);
+        if ((b[0x19] & 0x3FUL) < 0x3FUL)
+            b[0x19] = (unsigned char)(b[0x19] + 1U);
+        if ((b[0x1A] & 0x0FUL) == k) {
+            if (b[0x1A] < 0xF0U)
+                b[0x1A] = (unsigned char)(b[0x1A] + 0x10U);
+            if (b[0x1B] < 0xF8U)
+                b[0x1B] = (unsigned char)(b[0x1B] + 8U);
+        } else {
+            b[0x1B] >>= 1;
+            b[0x1A] = (unsigned char)k;
+        }
+        c->g45d120 = (c->g45d120 + 5UL) & 0xFFFFFFFFUL;
+    } else {
+        b[0] = (unsigned char)(b[0] + 2U);
+        k = 1;
+        b[0x1B] >>= 1;
+        while (b[k + 1UL] != 0) {
+            k += 1UL;
+            if (k == 0x0BUL) break;
+        }
+        if (b[k + 1UL] >= 6U) {
+            k = 0;
+        } else {
+            b[k + 1UL] = (unsigned char)(c->g_e3a4 + 2U);
+            b[k + 0x0DUL] = sym;
+            b[0x1A] = (unsigned char)k;
+        }
+        {
+            long f = ((long)(b[0x19] & 0x3FUL) >> 1);
+            b[0x19] = (unsigned char)((b[0x19] & 0xC0UL) + f);
+        }
+    }
+    while (k != 0) {
+        unsigned dl = b[k + 1UL];
+        unsigned dh;
+        if (dl < b[k])
+            break;
+        dh = b[k + 0x0CUL];
+        b[k + 1UL] = b[k];
+        b[k] = (unsigned char)dl;
+        b[k + 0x0CUL] = b[k + 0x0DUL];
+        b[k + 0x0DUL] = (unsigned char)dh;
+        k -= 1UL;
+        b[0x1A] = (unsigned char)(b[0x1A] - 1U);
+    }
+    c->g_e3a3 = (unsigned char)k;
+    c->g45d138 = (c->g45d138 + 2UL) & 0xFFFFFFFFUL;
+    if (c->g45d138 > 0x800UL) {
+        c->g45d138 >>= 1;
+        c->g45d120 >>= 1;
+        c->g45d104 >>= 1;
+    }
 }
 
 /* Cost table (0x429ed4 prefix sum, 0x419ac0) for add_cost. */
