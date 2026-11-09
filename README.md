@@ -116,7 +116,7 @@ or compile the CLI directly:
 ```bat
 gcc -std=c89 -Wall -Wextra -O2 -o uharc06_unpack.exe ^
   uharc06_main.c uharc06.c uha04.c uha03.c uha02.c ^
-  uhcrypt06.c uhcrypt04.c uharc_split.c uharc_filter.c ^
+  uhcrypt06.c uhcrypt04.c uharc_split.c uharc_filter.c uha02_mm.c ^
   uharc_dec0.c uharc_dec2.c uharc_dec2_lsb.c uharc_dec3.c ^
   uha02_dec3.c uha03_dec3.c uha04_dec3.c ^
   uharc_dec4.c uharc_dec5.c uha03_dec5.c uha04_dec5.c
@@ -219,7 +219,7 @@ uharc06_main.c                 CLI: version detect + dispatch
 | `uhcrypt04.[ch]` | 0.4/0.3 table cipher (same algorithm) |
 | `uharc_dec.h` | decoder API: `decode`, `decode_v`, `decode_b` |
 | `uharc_dec0.c` | method/core tables per version, core 0 STORE and core 1 RLE |
-| `uha02_mm.c` | 0.3/0.4/0.6 multimedia filter, verified by round-trip, **not wired in** |
+| `uha02_mm.[ch]` | 0.3/0.4/0.6 multimedia filter, wired in (header +9 bit1) |
 | `hdrtest*.c` | per-version header/crypto tests |
 | `test_tab.c`, `test_dec3.c` | 0.6 directory/table tests |
 | `MAKE02.BAT` | builds the 0.2 corpus and archives on a DOS machine |
@@ -292,8 +292,10 @@ method ID across 2–7.
 3. **0.3 core 4** — done and byte-exact on the sample present
    (method 35, `gmud-03x.uha` 44/44). The port is `uha03_dec4.c` plus the
    DGROUP slice `uha03_dec4_dg.c`.
-4. **Multimedia filter** — `uha02_mm.c` is implemented and round-trip tested
-   but not wired into 0.3/0.4/0.6 extraction.
+4. **Multimedia filter** — wired into 0.3/0.4/0.6 extraction (header +9
+   bit1; decode order EXE then multimedia). Verified with 0.6 `-mz` /
+   `-mw -mm+` archives containing `BUNTITE.BMP` and `B261024.WAV`
+   (extracted byte-identical; without the filter the CRC fails).
 5. **Password-protected archives** — 0.3/0.4/0.6 `-pw` archives open with
    `-pwpassword` (tables and packed stream use the password cipher; a
    missing password fails fast, a wrong one fails the table CRC). 0.2

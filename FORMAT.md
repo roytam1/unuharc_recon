@@ -597,7 +597,7 @@ There is no `mix` index. 0.2's cipher is **not** byte-identical to 0.4/0.6.
 ### 6.5 Multimedia filter
 
 `uha02_mm.c` implements the BMP/WAV/VOC predictor for 0.3/0.4/0.6 and is
-verified by encoder-inverse round-trip. It is not yet wired into extraction.
+wired into extraction (header +9 bit1; decode order EXE then multimedia).
 0.2 needs no such pass.
 
 ### 6.6 Password-protected archives (`-pw`)

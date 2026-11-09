@@ -6,6 +6,7 @@
 #include "uharc_dec.h"
 #include "uharc_split.h"
 #include "uharc_filter.h"
+#include "uha02_mm.h"
 #include "uhcrypt04.h"
 
 static unsigned long crc_tab[256];
@@ -575,12 +576,19 @@ static int u4_read(void *ctx, unsigned char *buf, unsigned want)
     return (int)want;
 }
 
-/* header +9 flags_filt bit0 is the EXE filter switch (original:
- * byte_430ED2); the splitter additionally requires each file to be at
- * least 0x400 bytes, and the filter checks MZ/ZM. */
+/* header +9 flags_filt: bit0 is the EXE filter switch (original:
+ * byte_430ED2), bit1 is the multimedia filter switch.  Decode order
+ * is EXE then multimedia.  The splitter buffers every entry of at
+ * least 16 bytes; each filter re-checks its own gate. */
+static int g_uha04_exe;
+static int g_uha04_mm;
+
 static void uha04_unfilter(unsigned char *buf, unsigned long len)
 {
-    uharc_filter_exe(buf, len, 4, 0);
+    if (g_uha04_exe)
+        uharc_filter_exe(buf, len, 4, 0);
+    if (g_uha04_mm)
+        uha02_mm_unfilter(buf, len);
 }
 
 int uha04_extract(uha04_t *h, const char *outdir,
@@ -632,9 +640,11 @@ int uha04_extract(uha04_t *h, const char *outdir,
         total += se[i].size;
     }
     mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
+    g_uha04_exe = (h->hdr.flags_filt & 1) ? 1 : 0;
+    g_uha04_mm = (h->hdr.flags_filt & 2) ? 1 : 0;
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 4,
-                         (h->hdr.flags_filt & 1) ? uha04_unfilter : 0,
+                         (g_uha04_exe || g_uha04_mm) ? uha04_unfilter : 0,
                          u4_read, &mr, total);
     free(packed);
     free(se);

@@ -11,6 +11,7 @@
 #include "uharc06.h"
 #include "uharc_dec.h"
 #include "uharc_filter.h"
+#include "uha02_mm.h"
 #include "uhcrypt06.h"
 
 /* ---------- CRC32 (IEEE, matches dword_421EB3) ---------- */
@@ -684,11 +685,13 @@ static unsigned long *g_sp_pcrc;
 static char *g_sp_curpath;
 static unsigned g_sp_curpath_cap;
 static int g_sp_crc_err;
-/* 0.6 EXE post-filter (sub_40481E) is applied per file, after decode and
- * before CRC/write (the original buffers to the file length).  Gate is
- * header flags2 bit0 and file size >= 0x400 (sub_4055B1).  Bit1 (the
- * multimedia filter sub_404665) is not implemented yet. */
+/* 0.6 post-filters are applied per file, after decode and before
+ * CRC/write (the original buffers to the file length).  Gate is
+ * header flags2: bit0 is the EXE post-filter (sub_40481E, file
+ * >= 0x400) and bit1 is the multimedia filter (sub_404665, file
+ * > 15).  Decode order is EXE then multimedia. */
 static int g_sp_filt;
+static int g_sp_mm;
 static int g_sp_fuse;
 static unsigned char *g_sp_fbuf;
 static unsigned long g_sp_fcap;
@@ -744,7 +747,7 @@ static int g_sp_open_cur(void)
     *g_sp_pcrc = 0xFFFFFFFFUL;
     g_sp_fuse = 0;
     g_sp_ffill = 0;
-    if (g_sp_filt && fsz >= 0x400UL) {
+    if ((g_sp_filt || g_sp_mm) && fsz > 15UL) {
         if (fsz > g_sp_fcap) {
             unsigned char *nb = (unsigned char *)realloc(g_sp_fbuf,
                                                          (size_t)fsz);
@@ -800,21 +803,28 @@ static int uharc06_split_write(void *ctx, const unsigned char *buf, unsigned len
         if (*g_sp_prem == 0) {
             ci = *g_sp_pidx;
             if (g_sp_fuse) {
-                /* whole file is buffered: apply the 0.6 inverse EXE filter
-                 * before CRC and write. f6 = native byte_433E36, set once per
-                 * archive from byte_42251F[ARCHIVE method]==4 (asm 0x405C16;
-                 * the table holds 4 exactly at 24..39). It is NOT per-file:
-                 * gmud-06m3 (archive method 87) and gmud-06z (23) must not
-                 * get the pre-transform even for 24..39-method members. */
+                /* whole file is buffered: apply the 0.6 inverse
+                 * filters before CRC and write, EXE then multimedia
+                 * (sub_409688 order).  f6 = native byte_433E36, set
+                 * once per archive from byte_42251F[ARCHIVE
+                 * method]==4 (asm 0x405C16; the table holds 4 exactly
+                 * at 24..39). It is NOT per-file: gmud-06m3 (archive
+                 * method 87) and gmud-06z (23) must not get the
+                 * pre-transform even for 24..39-method members. */
 #ifdef SPLITDBG
                 if (g_sp_ffill > 0) {
                     FILE *df = fopen("C:/Users/Roy/AppData/Local/Temp/opencode/fileX_raw.bin", "wb");
                     if (df) { fwrite(g_sp_fbuf, 1, (size_t)g_sp_ffill, df); fclose(df); }
                 }
 #endif
-                uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6,
-                    (h->hdr.method >= 24 &&
-                     h->hdr.method <= 39) ? 1 : 0);
+                if (g_sp_filt) {
+                    uharc_filter_exe(g_sp_fbuf, g_sp_ffill, 6,
+                        (h->hdr.method >= 24 &&
+                         h->hdr.method <= 39) ? 1 : 0);
+                }
+                if (g_sp_mm) {
+                    uha02_mm_unfilter(g_sp_fbuf, g_sp_ffill);
+                }
 #ifdef SPLITDBG
                 if (g_sp_ffill > 0) {
                     FILE *df = fopen("C:/Users/Roy/AppData/Local/Temp/opencode/fileX_out.bin", "wb");
@@ -908,6 +918,7 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     g_sp_curpath_cap = (unsigned)sizeof(curpath);
     g_sp_crc_err = 0;
     g_sp_filt = (h->hdr.flags2 & 1) ? 1 : 0;
+    g_sp_mm = (h->hdr.flags2 & 2) ? 1 : 0;
     g_sp_fuse = 0;
     g_sp_ffill = 0;
 

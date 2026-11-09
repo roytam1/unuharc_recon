@@ -20,9 +20,10 @@ typedef struct uharc_split_entry_s {
     unsigned long crc;     /* expected CRC32 (full 32 bits) */
 } uharc_split_entry;
 
-/* unfilter: optional whole-file post-filter (e.g. uharc_filter_exe).  When
- * non-NULL, every entry of at least 0x400 bytes is buffered, filtered before
- * the CRC check and before it is written.  Pass NULL to disable.
+/* unfilter: optional whole-file post-filter (e.g. uharc_filter_exe
+ * plus uha02_mm_unfilter).  When non-NULL, every entry of at least
+ * 16 bytes is buffered, filtered before the CRC check and before it
+ * is written.  Pass NULL to disable.
  *
  * out_expected: total unpacked size (sum of entries[i].size)
  * returns 0 ok, UHARC06-style error code otherwise */
