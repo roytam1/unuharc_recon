@@ -494,7 +494,66 @@ static void dec4c_o1_rescale(dec4c_ctx *c, unsigned long ctx)
 /* Stubs for the two rescalers called from new_segment file-size tweaks.
  * Correct for the zero-model first segment; full ports pending. */
 static void dec4c_rescale_o2(dec4c_ctx *c);
-static void dec4c_rescale_o4(dec4c_ctx *c) { (void)c; }
+static void dec4c_rescale_o4(dec4c_ctx *c);
+
+#define DEC4C_O4_N 0x40000UL
+static unsigned long dec4c_o4s(unsigned long i)
+{
+    return ((i & 0x7FFFUL) << 3) | ((i >> 15) & 7UL);
+}
+
+static void dec4c_rescale_o4(dec4c_ctx *c)
+{
+    unsigned long eax = 0;
+    for (;;) {
+        unsigned long edi = dec4c_o4s(eax);
+        unsigned char *b = c->o4 + edi * 32UL;
+        unsigned bh = 0;
+        int k;
+        if (b[0] == 0) {
+            eax = (eax & 0x7FFFUL) + 1UL;
+            if (eax >= 0x8000UL)
+                return;
+            continue;
+        }
+        for (k = 11; k >= 0; k--) {
+            unsigned v = (unsigned)(b[1 + k] >> 2);
+            b[1 + k] = (unsigned char)v;
+            bh = (bh + v) & 0xFFUL;
+        }
+        if (bh == 0) {
+            unsigned long dst = edi, ebx = eax;
+            for (;;) {
+                unsigned long src;
+                ebx += 0x8000UL;
+                if (ebx >= DEC4C_O4_N)
+                    break;
+                src = dec4c_o4s(ebx);
+                if (c->o4[src * 32UL] == 0)
+                    break;
+                memcpy(c->o4 + dst * 32UL, c->o4 + src * 32UL, 32UL);
+                dst = src;
+            }
+            c->o4[dst * 32UL] = (unsigned char)(c->o4[dst * 32UL] & 0x00U);
+            continue;
+        }
+        b[0] = (unsigned char)(((unsigned)b[0] >> 2) + 1U);
+        b[0x19] = (unsigned char)(((unsigned)b[0x19] & 0x3FUL) >> 1);
+        {
+            unsigned v = b[0x1A] & 0x0FUL;
+            b[0x1A] = (unsigned char)v;
+            b[0x1B] = 0;
+            if (b[1 + v] == 0)
+                b[0x1A] = 0;
+        }
+        eax += 0x8000UL;
+        if (eax >= DEC4C_O4_N) {
+            eax = (eax & 0x7FFFUL) + 1UL;
+            if (eax >= 0x8000UL)
+                return;
+        }
+    }
+}
 
 /* Order-2 record access (0x423684, 20 bytes = 5 u32 LE). */
 #define DEC4C_O2_LOW 0x10000UL
