@@ -137,10 +137,10 @@ int uharc_dec4c_init(void **ctx, int method)
     if (method < 24 || method > 39) return 1;
     c = (dec4c_ctx *)calloc(1, sizeof(*c));
     if (!c) return 2;
-    /* dict = 1 << (((m-24) % 16) + 10), as in 0.6 dec4 */
+    /* dict = 1 << (((m-24) % 16) + 10), as in 0.6 dec4; +0x100 mirror */
     c->dictsize = 1UL << (unsigned)(((method - 24) % 16) + 10);
     c->dictmask = c->dictsize - 1UL;
-    c->dict = (unsigned char *)calloc(1, (size_t)c->dictsize);
+    c->dict = (unsigned char *)calloc(1, (size_t)(c->dictsize + 0x100UL));
     c->mh1 = (unsigned long *)calloc(0x80000UL, sizeof(unsigned long));
     c->mh2 = (unsigned long *)calloc(0x80000UL, sizeof(unsigned long));
     c->mlen = (unsigned char *)calloc(0x40000UL, 1);
@@ -220,11 +220,18 @@ static void dec4c_rc_dec(dec4c_ctx *c, unsigned long lo, unsigned long hi)
 
 static unsigned char dec4c_tb(dec4c_ctx *c, unsigned long i)
 {
-    if (i < c->dictsize)
-        return c->dict[i];
     if (i < c->dictsize + 0x100UL && c->dict)
-        return 0; /* mirrored half handled by push_hist; tb uses mask */
+        return c->dict[i];
     return 0;
+}
+
+static void dec4c_push_hist(dec4c_ctx *c, unsigned char b)
+{
+    unsigned long pos = c->pos;
+    c->dict[pos] = b;
+    if (pos < 0x100UL)
+        c->dict[pos + c->dictsize] = b;
+    c->pos = (pos + 1UL) & c->dictmask;
 }
 
 /* Equal-byte count backwards from a and b (max 64). */
@@ -235,6 +242,42 @@ static unsigned dec4c_match_len(dec4c_ctx *c, unsigned long a, unsigned long b)
            dec4c_tb(c, (a - n) & 0xFFFFFFFFUL) == dec4c_tb(c, (b - n) & 0xFFFFFFFFUL))
         n++;
     return n;
+}
+
+/* Candidate search part of 0x40f9d0 (order-12 + last-distance pre-check).
+ * Returns best length and sets *out_edi (candidate position). */
+static unsigned dec4c_match_candidates(dec4c_ctx *c, unsigned long *out_edi)
+{
+    unsigned long c0 = c->c0, c1 = c->c1, c2 = c->c2;
+    unsigned long mask = c->dictmask;
+    unsigned long pos = c->pos;
+    unsigned long h2;
+    unsigned best = 0, edi = 0;
+    int slot;
+    unsigned long cur = (pos < 0x40UL) ? pos + c->dictsize : pos;
+    h2 = ((((c1 >> 15) ^ c1) << 6) ^ (((c0 >> 15) ^ c0) << 4) ^ ((c2 >> 15) ^ c2)) & 0x3FFFFUL;
+    {
+        static const unsigned slots[2] = {1U, 0U};
+        for (slot = 0; slot < 2; slot++) {
+            unsigned long raw = c->mh2[2UL * h2 + slots[slot]];
+            unsigned long ebx = raw;
+            if (ebx != 0xFFFFFFFFUL && ((ebx - pos) & mask) >= 0x140UL) {
+                if (ebx < 0x40UL)
+                    ebx = (ebx + c->dictsize) & 0xFFFFFFFFUL;
+                if (dec4c_tb(c, (cur - 0xCUL) & 0xFFFFFFFFUL) == dec4c_tb(c, (ebx - 0xCUL) & 0xFFFFFFFFUL)) {
+                    unsigned len = dec4c_match_len(c, (cur - 1UL) & 0xFFFFFFFFUL, (ebx - 1UL) & 0xFFFFFFFFUL);
+                    if (len >= best) {
+                        best = len;
+                        edi = raw;
+                    }
+                }
+            }
+        }
+    }
+    c->mh2[2UL * h2 + 1UL] = c->mh2[2UL * h2];
+    c->mh2[2UL * h2] = pos;
+    *out_edi = edi;
+    return best;
 }
 
 /* 0x40e810: update match-flag model. */
