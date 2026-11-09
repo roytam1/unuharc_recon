@@ -694,9 +694,11 @@ static int g_sp_open_cur(void)
     g_sp_factive = 0;
     g_sp_fpos = 0;
     /* 0.2 stores no filter flag: the original applies the E8/E9 pass
-     * unconditionally, gated only by an MZ/ZM header and len >= 0x400
-     * (uha02_unfilter is a no-op otherwise). Buffer such files whole. */
-    if ((e->size & 0xFFFFFFFFUL) >= 0x400UL) {
+     * unconditionally for compressed methods, gated only by an MZ/ZM
+     * header and len >= 0x400 (uha02_unfilter is a no-op otherwise),
+     * but STORE (method 0) bypasses the filter entirely (stored bytes
+     * are verbatim). Buffer such files whole. */
+    if (h->hdr.method != 0 && (e->size & 0xFFFFFFFFUL) >= 0x400UL) {
         if (g_sp_fcap < e->size) {
             unsigned char *nb = (unsigned char *)realloc(g_sp_fbuf, (size_t)e->size);
             if (!nb) return 1;
