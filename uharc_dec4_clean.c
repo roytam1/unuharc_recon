@@ -180,6 +180,17 @@ int uharc_dec4c_init(void **ctx, int method)
     c->method = method;
     c->kennedy_end = 0xFFFFFFFFUL;
     c->pend = c->mchk_p = c->pair_p = 0xFFFFFFFFUL;
+    /* Rust Ppm::new scalar inits (0x40cdd1 globals). */
+    c->g45d104 = 1UL;
+    c->g45d120 = 1UL;
+    c->g45d138 = 1UL;
+    c->g45d124 = 0xFFFFFFFFUL;
+    c->g45d130 = 0xFFFFFFFFUL;
+    c->text_end = 0xFFFFFFFFUL;
+    c->x698p[0] = 0UL;
+    c->x698p[1] = 0x10000UL;
+    c->x698p[2] = 0x20000UL;
+    c->x698p[3] = 0x30000UL;
     *ctx = c;
     return 0;
 }
@@ -365,23 +376,28 @@ static unsigned dec4c_match_flag(dec4c_ctx *c, unsigned ctx)
 /* First symbol (0x413a96): 1 bit binary mode, else switch position. */
 static void dec4c_read_switch_pos(dec4c_ctx *c)
 {
-    unsigned long bit, v;
+    unsigned long bit, v, more;
     unsigned shift;
     bit = dec4c_rc_div(c, 2);
-    dec4c_rc_dec(c, bit & 0xFFUL, (bit & 0xFFUL) + 1UL);
     c->binmode = (unsigned char)(bit & 0xFFUL);
-    if (c->binmode != 0)
+    dec4c_rc_dec(c, bit & 0xFFUL, (bit & 0xFFUL) + 1UL);
+    if (c->binmode != 0) {
+        c->text_end = 0xFFFFFFFFUL;
         return;
+    }
     c->sw_pos = 0;
     shift = 0;
     for (;;) {
         v = dec4c_rc_div(c, 0x800UL) & 0xFFFFUL;
         dec4c_rc_dec(c, v, v + 1UL);
-        c->sw_pos += v << shift;
-        if (v == 0x7FFUL)
-            break;
+        c->sw_pos = (c->sw_pos + (v << shift)) & 0xFFFFFFFFUL;
+        more = dec4c_rc_div(c, 2) & 0xFFFFUL;
+        dec4c_rc_dec(c, more & 0xFFUL, (more & 0xFFUL) + 1UL);
         shift += 11;
+        if (more == 0)
+            break;
     }
+    c->text_end = c->sw_pos;
 }
 
 /* SEE init (0x40dbc5). */
