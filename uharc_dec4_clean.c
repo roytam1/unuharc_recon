@@ -2712,13 +2712,49 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
     c->in_pos = 0;
     c->outbuf = (unsigned char *)malloc((size_t)(out_len ? out_len : 1));
     if (!c->outbuf) return 2;
+    /* File-end table for new_segment (padded with zeros like orig). */
+    if (cum && ncum) {
+        unsigned long capn = ((4UL * ncum + 16UL + 0xFFFUL) & ~0xFFFUL) / 4UL;
+        c->fe = (unsigned long *)calloc((size_t)capn, sizeof(unsigned long));
+        if (!c->fe) return 2;
+        for (i = 0; i < ncum; i++)
+            c->fe[i] = (unsigned long)cum[i];
+        c->fe_n = capn;
+        c->fe_idx = 0;
+        c->fe_on = 1;
+    }
+    c->g45d124 = c->kennedy_end;
+    c->text_end = c->sw_pos;
+    if (c->binmode != 0)
+        c->text_end = 0xFFFFFFFFUL; /* never switches */
+    c->seg_end = 0;
     dec4c_init_model(c);
     dec4c_rc_init(c);
     dec4c_read_switch_pos(c);
-    /* TODO: main loop 0x40f962 (segments, match, order-4/2/1/0,
-     * updates, text transform). Until ported, report data error so
-     * the dispatcher can fall back to the arena decoder. */
+    /* Driver 0x40f962 */
+    while (c->out_pos < c->out_len && !c->bad) {
+        if (c->out_pos >= c->text_end && c->binmode == 0) {
+            /* to_binary_mode stub: switch flags; full hash rebuild TODO */
+            c->binmode = 1;
+            c->text_end = 0xFFFFFFFFUL;
+            c->seg_end = 0;
+        }
+        if (c->out_pos >= c->seg_end)
+            dec4c_new_segment(c);
+        if (!dec4c_match_model(c))
+            dec4c_decode_symbol(c);
+        if (c->bad)
+            break;
+    }
+    if (c->out_pos >= c->out_len) {
+        unsigned n = (unsigned)c->out_len;
+        if (n > 0 && wcb(wctx, c->outbuf, n) != 0)
+            return 4;
+        free(c->outbuf);
+        c->outbuf = 0;
+        return 0;
+    }
     free(c->outbuf);
     c->outbuf = 0;
-    return 3;
+    return c->bad ? 3 : 3;
 }
