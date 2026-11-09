@@ -1490,6 +1490,22 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
 
 /* Order-4 single-symbol binary decision (b[2]==0 path of 0x41030f).
  * On esc==false sym is set; on esc==true s0 is excluded. */
+static int dec4c_see_freq(dec4c_ctx *c, unsigned long i, unsigned long rest,
+                            unsigned long f, unsigned long *out_q)
+{
+    unsigned long p = c->see[i & (DEC4C_SEE_LEN - 1UL)];
+    unsigned long d = (0x2000UL - p) & 0xFFFFFFFFUL;
+    unsigned long q;
+    if (d == 0)
+        return 0;
+    q = (dec4c_dv((rest * p) & 0xFFFFFFFFUL, d) + 1UL) & 0xFFFFFFFFUL;
+    if (q > f) {
+        *out_q = (q > 0xFFUL) ? 0xFFUL : q;
+        return 1;
+    }
+    return 0;
+}
+
 static void dec4c_o4_single(dec4c_ctx *c, const unsigned char b[32],
                             const unsigned char rec[20],
                             unsigned long c6a4, unsigned long l10c,
@@ -1547,6 +1563,38 @@ static void dec4c_o4_single(dec4c_ctx *c, const unsigned char b[32],
         dec4c_rc_dec(c, p, 0x2000UL);
     }
     *see_esc = pa;
+}
+
+/* Order-4 escape total estimate (b[2]!=0 path, S_O4ESC part).
+ * Returns t = dv(ecx<<13, see[pa])+1 (or c698 if ecx >= 0x80). */
+static unsigned long dec4c_o4_escape(dec4c_ctx *c, const unsigned char b[32],
+                                     const unsigned char rec[20],
+                                     unsigned long c6a4, unsigned long c698,
+                                     int bm, unsigned long *see_esc_out)
+{
+    unsigned long ecx = (c698 - (unsigned long)b[0]) & 0xFFFFFFFFUL;
+    unsigned long t = c698;
+    if (ecx < 0x80UL) {
+        unsigned long edx, eax, idx, pa;
+        if (bm) {
+            unsigned long l2a = (c6a4 >> 8) & 0xE0UL;
+            edx = (((c6a4 & 0xE0UL) == l2a) ? 1UL : 0UL);
+            eax = (c6a4 & 0xC0UL) >> 5;
+        } else {
+            unsigned long l2a = (unsigned long)dec4c_rom8(0x42738dUL + ((c6a4 >> 8) & 0xFFUL)) * 2UL;
+            edx = (unsigned long)dec4c_rom8(0x42738dUL + (c6a4 & 0xFFUL)) * 4UL + l2a;
+            eax = ((c6a4 & 0xFFUL) == 0xDFUL) ? 1UL : 0UL;
+        }
+        idx = eax + edx + ((rec[7] != 0) ? 8UL : 0UL) + ((c->g45c6b0 >= 6UL) ? 16UL : 0UL);
+        pa = D4C_S_O4ESC +
+             ((dec4c_rom32(0x4239f0UL + 4UL * (unsigned)b[0]) << 8) +
+              (dec4c_rom32(0x4239f0UL + 4UL * (ecx & 0xFFUL)) << 5) + idx);
+        t = (dec4c_dv((ecx << 13) & 0xFFFFFFFFUL, c->see[pa & (DEC4C_SEE_LEN - 1UL)]) + 1UL) & 0xFFFFFFFFUL;
+        *see_esc_out = pa;
+    } else {
+        *see_esc_out = 0;
+    }
+    return t;
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
