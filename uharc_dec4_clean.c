@@ -2,7 +2,6 @@
  * See uharc_dec4_clean.h for status. Port of uharc-rs ppm.rs.
  */
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "uharc_dec4_clean.h"
 #include "dec4c_rom.h"
@@ -1394,6 +1393,7 @@ static void dec4c_decode_symbol_pre(dec4c_ctx *c, unsigned long *out_l10c,
     if (c->pend != 0xFFFFFFFFUL) {
         c->nex = 1;
         c->excl[0] = dec4c_tb(c, c->pend);
+        c->pend = 0xFFFFFFFFUL; /* take, like Rust Option::take() */
     }
     /* per-phase threshold slots (per_d4/per_e8 tables not yet typed;
      * G_CCD4 base only, matching new_segment). */
@@ -1579,7 +1579,10 @@ static void dec4c_o4_single(dec4c_ctx *c, const unsigned char b[32],
     }
     if (dec4c_marked(c, s0))
         eax |= 0x200UL;
-    pa = D4C_S_O4BIN + ((dec4c_rom32(0x423df0UL + 4UL * (edx & 0x1FFUL)) << 10) + eax);
+    {
+        unsigned lvl = (edx & 0x1FFUL) < 288UL ? dec4c_rom32(0x423df0UL + 4UL * (edx & 0x1FFUL)) : 0UL;
+        pa = D4C_S_O4BIN + ((lvl << 10) + eax);
+    }
     v = dec4c_rc_div(c, 0x2000UL) & 0xFFFFUL;
     p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
     if (v < p) {
@@ -2228,7 +2231,7 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
             ecx |= 8UL;
         if (dec4c_marked(c, (unsigned char)s9))
             ecx |= 0x10UL;
-        pa = D4C_S_O2BIN + ((dec4c_rom32(0x423df0UL + 4UL * (eax & 0x1FFUL)) << 5) + ecx);
+        pa = D4C_S_O2BIN + ((((eax & 0x1FFUL) < 288UL ? dec4c_rom32(0x423df0UL + 4UL * (eax & 0x1FFUL)) : 0UL) << 5) + ecx);
         v = dec4c_rc_div(c, 0x2000UL) & 0xFFFFUL;
         p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
         if (v < p) {
@@ -3413,16 +3416,6 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
                 c->g_e39d = (unsigned char)v;
                 if (v && rec[0] != 0)
                     dec4c_order2(c, o2i, l50, l3c, l10c, c6a4, lfc, l104, l100, l52, l4e, bm, &esc, &sym);
-#ifdef DEC4C_DEBUG
-                {
-                    static unsigned long dbg_o2 = 0;
-                    unsigned char rbuf[20];
-                    dec4c_o2r(c, o2i, rbuf);
-                    dbg_o2++;
-                    if (dbg_o2 <= 8)
-                        fprintf(stderr, "  O2 %lu esc=%d sym=%02x r0=%u tot=%u g_e3a5=%u\n", dbg_o2, esc, sym, rbuf[0], rbuf[0x12], (unsigned)c->g_e3a5);
-                }
-#endif
             }
             if (l2c)
                 break;
@@ -3601,14 +3594,6 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
     }
     dec4c_after_symbol(c, sym, 1);
     dec4c_push_hist(c, sym);
-#ifdef DEC4C_DEBUG
-    {
-        static unsigned long dbg_n = 0;
-        dbg_n++;
-        if (dbg_n <= 6)
-            fprintf(stderr, "DSYM %lu sym=%02x esc=%d l10c=%lu c0=%08lx a4=%08lx l108=%08lx l28=%02x\n", dbg_n, sym, esc, l10c, c->c0, a4 & 0xFFFFFFFFUL, l108 & 0xFFFFFFFFUL, l28);
-    }
-#endif
 }
 
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
