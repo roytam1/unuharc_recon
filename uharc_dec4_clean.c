@@ -111,6 +111,8 @@ typedef struct dec4c_ctx_s {
     unsigned char g_e3a0, g_e3a2;       /* 0x45e3a0/a2 */
     unsigned long g45d114;              /* 0x45d114 match continuation */
     unsigned char bad;
+    unsigned char g_e39b, g_e39e;      /* 0x45e39b/e9e text states */
+    unsigned char *outbuf;              /* decoded bytes (out_len) */
     unsigned long *fe;                 /* file ends */
     unsigned long fe_n, fe_idx;
     unsigned char fe_on;
@@ -175,6 +177,7 @@ void uharc_dec4c_free(void *ctx)
     free(c->mlen); free(c->mchk); free(c->x698);
     free(c->o2); free(c->delta); free(c->o4);
     free(c->fe);
+    free(c->outbuf);
     free(c->inbuf);
     free(c);
 }
@@ -807,6 +810,83 @@ static void dec4c_new_segment(dec4c_ctx *c)
     }
 }
 
+static void dec4c_put_byte(dec4c_ctx *c, unsigned char b)
+{
+    if (c->outbuf && c->out_pos < c->out_len)
+        c->outbuf[c->out_pos] = b;
+    c->out_pos = (c->out_pos + 1UL) & 0xFFFFFFFFUL;
+}
+
+/* 0x40fffd: text transform (symbols are complemented bytes). */
+static void dec4c_output(dec4c_ctx *c, unsigned char al)
+{
+    unsigned dl = (unsigned char)(~al);
+    unsigned dh;
+    unsigned long src;
+    unsigned bl;
+    if (c->g_e39b == 1) {
+        c->g_e39b = 0;
+        if (c->out_pos >= c->g45d124) {
+            if (dl == 0xFEUL) {
+                dec4c_put_byte(c, 0xFEU);
+                return;
+            }
+            dec4c_put_byte(c, 0);
+            dec4c_put_byte(c, 0);
+            dec4c_put_byte(c, 3);
+            dec4c_put_byte(c, 3);
+            dec4c_put_byte(c, (unsigned char)dl);
+            return;
+        }
+        {
+            unsigned long i = (unsigned long)((unsigned char)(c->g_e39e - 0xA6U) * 0x0BUL);
+            dec4c_put_byte(c, dec4c_rom8(0x427179UL + i + dl));
+            return;
+        }
+    }
+    if (c->out_pos >= c->g45d124 && dl == 0xFEUL) {
+        c->g_e39b = 1;
+        return;
+    }
+    if (c->out_pos >= c->sw_pos || (dl < 0x80UL && c->g_e39b == 0)) {
+        dec4c_put_byte(c, (unsigned char)dl);
+        return;
+    }
+    dh = dec4c_rom8(0x42711fUL + dl);
+    if (dh >= 0xC8UL) {
+        dec4c_put_byte(c, (unsigned char)(dl - c->g_e39b));
+        c->g_e39b = 0;
+        return;
+    }
+    if (dh == 0x64UL) {
+        c->g_e39b = 1;
+        c->g_e39e = (unsigned char)dl;
+        return;
+    }
+    if (dh == 0x63UL) {
+        c->g_e39b = 0x20U;
+        return;
+    }
+    src = dec4c_rom32(0x426ac3UL + 4UL * dh);
+    bl = dec4c_rom8(0x426c53UL + dh);
+    if (c->g_e39b != 0) {
+        unsigned a = (unsigned char)(~dec4c_rom8(src));
+        a = (a - 0x20UL) & 0xFFUL;
+        bl = (bl - 1UL) & 0xFFUL;
+        src = (src + 1UL) & 0xFFFFFFFFUL;
+        dec4c_put_byte(c, (unsigned char)a);
+        c->g_e39b = 0;
+    }
+    for (;;) {
+        unsigned a = (unsigned char)(~dec4c_rom8(src));
+        src = (src + 1UL) & 0xFFFFFFFFUL;
+        dec4c_put_byte(c, (unsigned char)a);
+        bl = (bl - 1UL) & 0xFFUL;
+        if (bl == 0)
+            break;
+    }
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
@@ -859,11 +939,15 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
     }
     c->in_len = len;
     c->in_pos = 0;
+    c->outbuf = (unsigned char *)malloc((size_t)(out_len ? out_len : 1));
+    if (!c->outbuf) return 2;
     dec4c_init_model(c);
     dec4c_rc_init(c);
     dec4c_read_switch_pos(c);
     /* TODO: main loop 0x40f962 (segments, match, order-4/2/1/0,
      * updates, text transform). Until ported, report data error so
      * the dispatcher can fall back to the arena decoder. */
+    free(c->outbuf);
+    c->outbuf = 0;
     return 3;
 }
