@@ -2582,6 +2582,82 @@ static void dec4c_o1_update(dec4c_ctx *c, unsigned char sym, unsigned long ctx)
     }
 }
 
+/* 0x41030f: decode one symbol (order-4 -> order-2 -> order-1).
+ * Simplified for text generic (a4=None, delta not yet wired). */
+static void dec4c_decode_symbol(dec4c_ctx *c)
+{
+    unsigned long l10c, c6a4, o2i, lfc;
+    unsigned char l50, rec[20], b[32], sym;
+    int esc = 1;
+    unsigned l3c, l52, l4e;
+    unsigned long l104, l100;
+    int bm = (c->binmode != 0) ? 1 : 0;
+    /* Preamble */
+    dec4c_decode_symbol_pre(c, &l10c, &l50, rec);
+    c6a4 = c->g45c6a4;
+    lfc = ((c6a4 & 0xC0UL) == 0xC0UL) ? 0x10UL : 0UL;
+    l3c = rec[9UL + (rec[0x13] & 0x0FUL)];
+    /* l104/l100 as in scan: w50d/w4cd */
+    l104 = dec4c_rom32(0x42750dUL + 4UL * ((rec[0x13] >> 4) & 0x0FUL));
+    l100 = dec4c_rom32(0x4274cdUL + (c->mru_n[l10c & 0x3FFUL] & 0x0FUL));
+    /* l40/l76/l52/l4e */
+    {
+        int l40 = bm;
+        int l76 = (c->mmtype != 0 && !(c->g45c674 > 4UL && dec4c_g68c(c) > 0x3FEUL)) ? 1 : 0;
+        if (l40) {
+            unsigned long a = c->avg_b[0], bb = c->avg_b[1];
+            if (c->g_e38d != 0)
+                l40 = (a * 0x1FUL < (bb << 5) & 0xFFFFFFFFUL) ? 1 : 0;
+            else
+                l40 = (a < bb) ? 1 : 0;
+        }
+        l52 = (l40 && l76) ? 1U : 0U;
+        l4e = (l52 && c->g45c640 < c->g45c654) ? 1U : 0U;
+    }
+    /* Order-4 */
+    esc = 1;
+    sym = 0;
+    if (dec4c_o4_scan(c, c6a4, rec, b)) {
+        unsigned long see_esc = 0;
+        if (b[2] == 0) {
+            int e2 = 1;
+            unsigned char s2 = 0;
+            dec4c_o4_single(c, b, rec, c6a4, l10c, l3c, l50, bm, &e2, &s2, &see_esc);
+            esc = e2;
+            sym = s2;
+            if (see_esc != 0)
+                dec4c_see_bump(c, see_esc, esc == 0);
+        } else {
+            unsigned long c698 = c->g45c698;
+            dec4c_o4_multi(c, b, rec, c6a4, l10c, l3c, l50, bm, c698, lfc, &esc, &sym, &see_esc);
+        }
+        if (!esc) {
+            dec4c_o4_update(c, sym);
+            dec4c_output(c, sym);
+            dec4c_after_symbol(c, sym, 1);
+            dec4c_push_hist(c, sym);
+            return;
+        }
+    }
+    /* Order-2 */
+    esc = 1;
+    sym = 0;
+    dec4c_order2(c, c6a4 & 0x1FFFFUL, l50, l3c, l10c, c6a4, lfc, l104, l100, (int)l52, (int)l4e, bm, &esc, &sym);
+    if (!esc) {
+        dec4c_o2_update(c, sym);
+        dec4c_output(c, sym);
+        dec4c_after_symbol(c, sym, 1);
+        dec4c_push_hist(c, sym);
+        return;
+    }
+    /* Order-1 fallback (text generic path) */
+    sym = dec4c_o1_symbol(c, l10c);
+    dec4c_o1_update(c, sym, l10c);
+    dec4c_output(c, sym);
+    dec4c_after_symbol(c, sym, 1);
+    dec4c_push_hist(c, sym);
+}
+
 int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum,
                          uharc_dec_read_cb rcb, void *rctx,
                          uharc_dec_write_cb wcb, void *wctx,
