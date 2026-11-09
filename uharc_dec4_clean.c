@@ -105,7 +105,12 @@ typedef struct dec4c_ctx_s {
     unsigned long g45c650, g45c644, g45c640, g45c654;
     unsigned long seg_end, text_end, file_idx;
     unsigned long g45d104, g45d120, g45d124, g45d130, g45d134, g45d138;
-    unsigned long nbytes;
+    unsigned long nbytes, c0, c1, c2;  /* 0x45d0f8/fc/100 last symbols */
+    unsigned long pend, mchk_p, pair_p; /* 0x45d11c/148/14c, 0xFFFFFFFF=none */
+    unsigned long *mh1, *mh2;           /* 0x423688/8c hashes, 0x80000 each */
+    unsigned char *mlen, *mchk, *x698; /* 0x423690/94/98, 0x40000 each */
+    unsigned char g_e3a0, g_e3a2;       /* 0x45e3a0/a2 */
+    unsigned long g45d114;              /* 0x45d114 match continuation */
     unsigned char bad;
     unsigned long *fe;                 /* file ends */
     unsigned long fe_n, fe_idx;
@@ -131,9 +136,22 @@ int uharc_dec4c_init(void **ctx, int method)
     c->dictsize = 1UL << (unsigned)(((method - 24) % 16) + 10);
     c->dictmask = c->dictsize - 1UL;
     c->dict = (unsigned char *)calloc(1, (size_t)c->dictsize);
-    if (!c->dict) { free(c); return 2; }
+    c->mh1 = (unsigned long *)calloc(0x80000UL, sizeof(unsigned long));
+    c->mh2 = (unsigned long *)calloc(0x80000UL, sizeof(unsigned long));
+    c->mlen = (unsigned char *)calloc(0x40000UL, 1);
+    c->mchk = (unsigned char *)calloc(0x40000UL, 1);
+    c->x698 = (unsigned char *)calloc(0x40000UL, 1);
+    if (!c->dict || !c->mh1 || !c->mh2 || !c->mlen || !c->mchk || !c->x698) {
+        free(c->dict); free(c->mh1); free(c->mh2);
+        free(c->mlen); free(c->mchk); free(c->x698);
+        free(c); return 2;
+    }
+    /* hashes init to 0xFFFFFFFF (calloc gives 0, so fill) */
+    memset(c->mh1, 0xFF, 0x80000UL * sizeof(unsigned long));
+    memset(c->mh2, 0xFF, 0x80000UL * sizeof(unsigned long));
     c->method = method;
     c->kennedy_end = 0xFFFFFFFFUL;
+    c->pend = c->mchk_p = c->pair_p = 0xFFFFFFFFUL;
     *ctx = c;
     return 0;
 }
@@ -143,6 +161,10 @@ void uharc_dec4c_free(void *ctx)
     dec4c_ctx *c = (dec4c_ctx *)ctx;
     if (!c) return;
     free(c->dict);
+    free(c->mh1); free(c->mh2);
+    free(c->mlen); free(c->mchk); free(c->x698);
+    free(c->delta);
+    free(c->fe);
     free(c->inbuf);
     free(c);
 }
@@ -183,6 +205,88 @@ static void dec4c_rc_dec(dec4c_ctx *c, unsigned long lo, unsigned long hi)
     while (c->range < (1UL << 24)) {
         c->code = (c->code << 8) | dec4c_get_byte(c);
         c->range <<= 8;
+    }
+}
+
+static unsigned char dec4c_tb(dec4c_ctx *c, unsigned long i)
+{
+    if (i < c->dictsize)
+        return c->dict[i];
+    if (i < c->dictsize + 0x100UL && c->dict)
+        return 0; /* mirrored half handled by push_hist; tb uses mask */
+    return 0;
+}
+
+/* Equal-byte count backwards from a and b (max 64). */
+static unsigned dec4c_match_len(dec4c_ctx *c, unsigned long a, unsigned long b)
+{
+    unsigned n = 0;
+    while (n < 0x40U &&
+           dec4c_tb(c, (a - n) & 0xFFFFFFFFUL) == dec4c_tb(c, (b - n) & 0xFFFFFFFFUL))
+        n++;
+    return n;
+}
+
+/* 0x40e810: update match-flag model. */
+static void dec4c_match_flag_update(dec4c_ctx *c, unsigned ctx, unsigned k)
+{
+    unsigned base = 4U * ctx;
+    if (k == 1)
+        c->mflag[base + 2] = (unsigned short)(c->mflag[base + 2] + 0x20U);
+    c->mflag[base + 3] = (unsigned short)(c->mflag[base + 3] + 0x20U);
+    if (c->mflag[base + 3] >= 0x4000U) {
+        unsigned long edx = c->mflag[base + 2];
+        unsigned long ecx = c->mflag[base + 1];
+        unsigned long cc = (edx - ecx + 1U) >> 1;
+        unsigned long ss = ((c->mflag[base + 3] - edx + 1U) >> 1) & 0xFFFFFFFFUL;
+        cc = (cc + ecx) & 0xFFFFUL;
+        ss = (ss + cc) & 0xFFFFUL;
+        c->mflag[base + 2] = (unsigned short)cc;
+        c->mflag[base + 3] = (unsigned short)ss;
+    }
+    {
+        unsigned i = (unsigned)(c->g_e3a2) * 2U + k;
+        c->g_e3a2 = dec4c_rom8(0x4239bbUL + (i & 0x1FU));
+    }
+}
+
+/* Forward: defined after init_see. */
+static void dec4c_set_mmtype(dec4c_ctx *c, unsigned char bl);
+
+/* 0x41013c: 3-way match flag (0=change type, 1=use, 2=reject). */
+static unsigned dec4c_match_flag(dec4c_ctx *c, unsigned ctx)
+{
+    for (;;) {
+        unsigned base = 4U * ctx;
+        unsigned long tot;
+        unsigned v;
+        unsigned k = 3U;
+        unsigned ebx;
+        unsigned long lo, hi;
+        tot = c->mflag[base + 3];
+        v = (unsigned)dec4c_rc_div(c, tot);
+        ebx = base + 3;
+        for (;;) {
+            ebx -= 1U;
+            k -= 1U;
+            if (v >= c->mflag[ebx] || k == 0)
+                break;
+        }
+        lo = c->mflag[ebx];
+        hi = c->mflag[ebx + 1];
+        dec4c_rc_dec(c, lo, hi);
+        if (k != 0) {
+            dec4c_match_flag_update(c, ctx, k);
+            return k;
+        }
+        if (c->bad)
+            return 2;
+        {
+            unsigned long vv = dec4c_rc_div(c, 10UL);
+            unsigned long t = vv & 0xFFUL;
+            dec4c_rc_dec(c, t, t + 1UL);
+            dec4c_set_mmtype(c, (unsigned char)vv);
+        }
     }
 }
 
