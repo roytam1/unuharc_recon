@@ -105,7 +105,7 @@ typedef struct dec4c_ctx_s {
     unsigned long g45c66c, g45c674, g45c64c, g45c670;
     unsigned long g45c650, g45c644, g45c640, g45c654, g45c648, g45c690;
     unsigned long seg_end, text_end, file_idx;
-    unsigned long g45d104, g45d120, g45d124, g45d130, g45d134, g45d138;
+    unsigned long g45d104, g45d120, g45d124, g45d130, g45d134, g45d138, g45d140;
     unsigned long nbytes, c0, c1, c2;  /* 0x45d0f8/fc/100 last symbols */
     unsigned long pend, mchk_p, pair_p; /* 0x45d11c/148/14c, 0xFFFFFFFF=none */
     unsigned long *mh1, *mh2;           /* 0x423688/8c hashes, 0x80000 each */
@@ -2328,6 +2328,191 @@ static void dec4c_o4_update(dec4c_ctx *c, unsigned char sym)
     }
 }
 
+/* Part of 0x40d6d1: locate the order-4 bucket of C0 for the rebuild. */
+static void dec4c_o4_find_for_update(dec4c_ctx *c)
+{
+    unsigned long c0 = c->c0;
+    c->g45c6a4 = c0;
+    c->g45c694 = ((c0 >> 13) ^ c0) & 0x7FFFUL;
+    for (;;) {
+        unsigned long bi = ((c->g45c694 & 0x7FFFUL) << 3) | ((c->g45c694 >> 15) & 7UL);
+        unsigned char *b = c->o4 + bi * 32UL;
+        unsigned long ctx = ((unsigned long)b[28]) | ((unsigned long)b[29] << 8) |
+                            ((unsigned long)b[30] << 16) | ((unsigned long)b[31] << 24);
+        if (b[0] == 0) {
+            unsigned hi = (unsigned)(((c->g45c694 >> 16) & 0xFFFFUL) + 4U);
+            c->g45c694 = (c->g45c694 & 0xFFFFUL) | ((unsigned long)(hi & 0xFFFFUL) << 16);
+            return;
+        }
+        if (ctx == c->g45c6a4) {
+            unsigned long sum = b[0];
+            unsigned long bl = b[1];
+            unsigned long p = 0;
+            c->g_e3a3 = 0xFFU;
+            for (;;) {
+                p += 1UL;
+                sum = (sum + bl) & 0xFFFFFFFFUL;
+                if (p >= 0x0CUL) break;
+                bl = b[p + 1UL];
+                if (bl == 0) break;
+            }
+            c->g45c678 = sum;
+            return;
+        }
+        c->g45c694 = (c->g45c694 + 0x8000UL) & 0xFFFFFFFFUL;
+        if (c->g45c694 >= 0x40000UL)
+            return;
+    }
+}
+
+/* 0x40d6d1: switch from text mode to binary mode. */
+static void dec4c_to_binary_mode(dec4c_ctx *c)
+{
+    unsigned long sv138 = c->g45d138;
+    unsigned long sv120 = c->g45d120;
+    unsigned long sv104 = c->g45d104;
+    unsigned long mask = c->dictmask;
+    unsigned char save[256];
+    unsigned long edx, eax, ecx, start;
+    int i;
+    edx = c->pos;
+    for (i = 0; i < 256; i++) {
+        save[i] = dec4c_tb(c, edx);
+        edx = (edx + 1UL) & mask;
+    }
+    ecx = (c->dictsize - 0x140UL) >> 1;
+    start = (c->pos + 0x140UL) & mask;
+    edx = (start + ecx) & mask;
+    if (ecx > c->nbytes)
+        edx = 0;
+    c->g_e39b = 0;
+    eax = start;
+    while (edx != c->pos) {
+        unsigned bl = (unsigned char)(~dec4c_tb(c, edx));
+        unsigned long esi = (eax + 1UL) & mask;
+        unsigned st = c->g_e39b;
+        if (st == 1) {
+            unsigned long ii = (unsigned long)(((unsigned char)(c->g_e39e - 0xA6U) * 0x0BUL) & 0xFFFFFFFFUL);
+            c->g_e39b = 0;
+            c->dict[eax] = (unsigned char)(~dec4c_rom8(0x427179UL + ii + bl));
+            eax = esi;
+        } else if (bl < 0x80UL && st == 0) {
+            c->dict[eax] = (unsigned char)(~bl);
+            eax = esi;
+        } else {
+            unsigned long edi = (eax + 1UL) & mask;
+            unsigned bh = dec4c_rom8(0x42711fUL + bl);
+            if (bh >= 0xC8UL) {
+                bl = (bl - c->g_e39b) & 0xFFUL;
+                c->g_e39b = 0;
+                c->dict[eax] = (unsigned char)(~bl);
+                eax = edi;
+            } else if (bh == 0x64UL) {
+                c->g_e39b = 1;
+                c->g_e39e = (unsigned char)bl;
+            } else if (bh == 0x63UL) {
+                c->g_e39b = 0x20U;
+            } else {
+                unsigned long src = dec4c_rom32(0x426ac3UL + 4UL * bh);
+                unsigned cnt = dec4c_rom8(0x426c53UL + bh);
+                if (c->g_e39b != 0) {
+                    c->g_e39b = 0;
+                    c->dict[eax] = (unsigned char)(dec4c_rom8(src) + 0x20UL);
+                    eax = edi;
+                    src = (src + 1UL) & 0xFFFFFFFFUL;
+                    cnt = (cnt - 1UL) & 0xFFUL;
+                }
+                for (;;) {
+                    c->dict[eax] = dec4c_rom8(src);
+                    eax = (eax + 1UL) & mask;
+                    src = (src + 1UL) & 0xFFFFFFFFUL;
+                    if (edx == eax) break;
+                    cnt = (cnt - 1UL) & 0xFFUL;
+                    if (cnt == 0) break;
+                }
+            }
+        }
+        if (edx == eax) break;
+        edx = (edx + 1UL) & mask;
+    }
+    c->g45d140 = (c->g45d140 + eax - c->pos) & mask;
+    c->g_e39b = 0;
+    c->pos = eax;
+    {
+        unsigned long e = eax;
+        for (i = 0; i < 256; i++) {
+            c->dict[e] = save[i];
+            e = (e + 1UL) & mask;
+        }
+    }
+    {
+        unsigned long e = start;
+        for (i = 0; i < 0x40; i++) {
+            e = (e - 1UL) & mask;
+            c->dict[e] = 0;
+        }
+    }
+    if (c->dictsize >= 0x100UL)
+        memcpy(c->dict + c->dictsize, c->dict, 0x100UL);
+    dec4c_rescale_o4(c);
+    memset(c->o2, 0, 0x10000UL * 5UL * sizeof(unsigned long));
+    memset(c->mh1, 0xFF, 0x80000UL * sizeof(unsigned long));
+    memset(c->mh2, 0xFF, 0x80000UL * sizeof(unsigned long));
+    memset(c->mlen, 0, 0x40000UL);
+    memset(c->mchk, 0, 0x40000UL);
+    c->c0 = c->c1 = c->c2 = 0;
+    c->g_e394 = 0;
+    c->g_e397 = 0;
+    {
+        unsigned long pos = c->pos;
+        unsigned long esi;
+        unsigned long edx2 = start;
+        if (((pos + c->dictsize - start) & mask) > 0x8000UL)
+            esi = (pos + 0xFFFF8000UL) & mask;
+        else
+            esi = 0xFFFFFFFFUL;
+        while (edx2 != c->pos) {
+            unsigned long c0 = c->c0, c1 = c->c1, c2 = c->c2;
+            unsigned long h1 = ((c0 >> 13) ^ c0) & 0x3FFFFUL;
+            unsigned long h2 = ((((c1 >> 15) ^ c1) << 6) ^ (((c0 >> 15) ^ c0) << 4) ^ ((c2 >> 15) ^ c2)) & 0x3FFFFUL;
+            c->mh2[2UL * h2 + 1UL] = c->mh2[2UL * h2];
+            c->mh2[2UL * h2] = edx2;
+            c->mh1[2UL * h1] = edx2;
+            c->mh1[2UL * h1 + 1UL] = c0;
+            {
+                int learn = 0;
+                if (edx2 == esi) {
+                    esi = 0xFFFFFFFFUL;
+                    learn = 1;
+                } else if (esi == 0xFFFFFFFFUL) {
+                    learn = 1;
+                }
+                if (learn) {
+                    unsigned char b;
+                    dec4c_o4_find_for_update(c);
+                    b = dec4c_tb(c, edx2);
+                    dec4c_o4_update(c, b);
+                }
+            }
+            {
+                unsigned long b = dec4c_tb(c, edx2);
+                c->c2 = ((c2 << 8) + (c1 >> 24)) & 0xFFFFFFFFUL;
+                c->c1 = ((c1 << 8) + (c0 >> 24)) & 0xFFFFFFFFUL;
+                edx2 = (edx2 + 1UL) & mask;
+                c->c0 = ((c0 << 8) + b) & 0xFFFFFFFFUL;
+            }
+            (void)pos;
+        }
+    }
+    c->g45d138 = sv138;
+    c->g45d120 = sv120;
+    c->g45d104 = sv104;
+    dec4c_init_see(c);
+    c->text_end = 0xFFFFFFFFUL;
+    c->binmode = 1;
+    c->seg_end = c->out_pos;
+}
+
 /* Cost table (0x429ed4 prefix sum, 0x419ac0) for add_cost. */
 static unsigned dec4c_cost(dec4c_ctx *c, unsigned idx)
 {
@@ -2733,12 +2918,8 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
     dec4c_read_switch_pos(c);
     /* Driver 0x40f962 */
     while (c->out_pos < c->out_len && !c->bad) {
-        if (c->out_pos >= c->text_end && c->binmode == 0) {
-            /* to_binary_mode stub: switch flags; full hash rebuild TODO */
-            c->binmode = 1;
-            c->text_end = 0xFFFFFFFFUL;
-            c->seg_end = 0;
-        }
+        if (c->out_pos >= c->text_end && c->binmode == 0)
+            dec4c_to_binary_mode(c);
         if (c->out_pos >= c->seg_end)
             dec4c_new_segment(c);
         if (!dec4c_match_model(c))
