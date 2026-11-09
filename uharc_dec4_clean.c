@@ -101,6 +101,8 @@ typedef struct dec4c_ctx_s {
     unsigned long g6b8[0x400];         /* 0x45c6b8/0x45ccd4 */
     unsigned long recent[256], lastpos[256], per[256];
     unsigned long ring[256], avg_a[2], avg_b[2];
+    unsigned long qfb[4], qctx[4];      /* 0x444584/94 queued contexts */
+    unsigned char qsym[4];             /* 0x45ae34 queued symbols */
     unsigned long g45c6b0, g45c6ac, g45c6a0, g45c6b4, g45c68c, g45c688;
     unsigned long g45c66c, g45c674, g45c64c, g45c670;
     unsigned long g45c650, g45c644, g45c640, g45c654, g45c648, g45c690;
@@ -230,8 +232,10 @@ static void dec4c_rc_init(dec4c_ctx *c)
 static unsigned long dec4c_rc_div(dec4c_ctx *c, unsigned long total)
 {
     unsigned long range, code, v;
-    if (total == 0) return 0;
+    c->rc_t = total & 0xFFFFFFFFUL;
+    if (total == 0) { c->bad = 1; return 0; }
     range = c->range / total;
+    if (range == 0) { c->bad = 1; return 0; }
     v = code = c->code / range;
     c->range = range;
     return v;
@@ -253,6 +257,11 @@ static unsigned char dec4c_tb(dec4c_ctx *c, unsigned long i)
     if (i < c->dictsize + 0x100UL && c->dict)
         return c->dict[i];
     return 0;
+}
+
+static unsigned char dec4c_hist(dec4c_ctx *c, unsigned long back)
+{
+    return dec4c_tb(c, (c->pos - back) & c->dictmask);
 }
 
 static void dec4c_push_hist(dec4c_ctx *c, unsigned char b)
@@ -1076,7 +1085,7 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
                 unsigned long c0 = c->c0;
                 unsigned ecx, big;
                 c->g_e38a = (unsigned char)dl;
-                ecx = ((c0 & 0xFFUL) ^ (c0 >> 24) ^ c->g_e38b) & 0xFFFFFFFFUL;
+                ecx = ((c0 & 0xFFUL) - (c0 >> 24) + (unsigned long)c->g_e38b) & 0xFFFFFFFFUL;
                 big = (c->cnt3[dl] > 8UL) ? 1U : 0U;
                 c->ty3[dl] = (unsigned char)ecx;
                 {
@@ -1678,8 +1687,8 @@ static void dec4c_o4_multi(dec4c_ctx *c, unsigned char b[32],
     }
     l108 = dec4c_rom32(0x42754dUL + 4UL * ((b[0x1A] >> 4) & 0x0FUL));
     l28 = b[0x0DUL + (b[0x1A] & 0x0FUL)];
-    l104 = dec4c_rom32(0x42750dUL + ((rec[0x13] >> 4) & 0x0FUL));
-    l100 = dec4c_rom32(0x4274cdUL + (c->mru_n[l10c & 0x3FFUL] & 0x0FUL));
+    l104 = dec4c_rom32(0x42750dUL + 4UL * ((rec[0x13] >> 4) & 0x0FUL));
+    l100 = dec4c_rom32(0x4274cdUL + 4UL * (c->mru_n[l10c & 0x3FFUL] & 0x0FUL));
     k2a = (c->g45d104 < c->g45d138) ? (b[0x1A] & 0x0FUL) : 0x0CUL;
     t = dec4c_o4_escape(c, b, rec, c6a4, c698, bm, &see_esc_local);
     *see_esc = see_esc_local;
@@ -2003,6 +2012,110 @@ static void dec4c_delta_step(dec4c_ctx *c, unsigned char e[4], unsigned char sym
     (void)c;
 }
 
+/* 0x40e885: binary-mode delta predictor lookup. Returns entry index or
+ * 0xFFFFFFFF for none. */
+static unsigned long dec4c_delta_lookup(dec4c_ctx *c)
+{
+    unsigned long best = 0;
+    unsigned bl = 8U;
+    unsigned long c0 = c->c0;
+    unsigned long c1 = c->c1;
+    unsigned long edx = c0 >> 8;
+    unsigned long esi = c0 >> 16;
+    unsigned bh = 0;
+    unsigned long eax;
+    unsigned long ecx = esi & 0xFF00UL;
+    unsigned long b0 = c0 & 0xFFUL;
+    unsigned long c64c, cl, b4, ph, v, t7;
+    unsigned long check;
+    c->pair_p = 0xFFFFFFFFUL;
+    if ((c0 & 0xFFFF0000UL) == 0xFFFF0000UL)
+        check = 0x10000UL;
+    else if ((c0 & 0xFFFFUL) == 0xFFFFUL)
+        check = 0x20000UL;
+    else if ((c0 & 0xFF000000UL) == 0xFF000000UL)
+        check = 0x30000UL;
+    else if ((c0 & 0x00FF0000UL) == 0x00FF0000UL)
+        check = 0x40000UL;
+    else if ((c0 & 0xFF00UL) == 0xFF00UL)
+        check = 0x50000UL;
+    else if ((c0 & 0xFFUL) == 0xFFUL)
+        check = 0x60000UL;
+    else
+        check = 0;
+    eax = check;
+    c->didx[0] = ((c1 >> 24) + ecx) & 0xFFFFFFFFUL;
+    c->didx[1] = edx & 0xFFFFUL;
+    c->didx[2] = esi & 0xFFFFUL;
+    c->didx[3] = ((edx & 0xFF00UL) + b0) & 0xFFFFFFFFUL;
+    c->didx[4] = ecx + (edx & 0xFFUL);
+    c->didx[5] = ecx + b0;
+    c->didx[6] = ((c1 & 0xFFFFUL) + eax) & 0xFFFFFFFFUL;
+    if (b0 == 0xFFUL) {
+        unsigned d;
+        for (d = 1; d < 3U; d++) {
+            unsigned long hi = (((c->didx[d] >> 16) & 0xFFFFUL) + 1UL) & 0xFFFFUL;
+            c->didx[d] = (c->didx[d] & 0xFFFFUL) | (hi << 16);
+        }
+    }
+    c64c = c->g45c64c;
+    cl = dec4c_hist(c, c64c);
+    b4 = dec4c_hist(c, (c64c * 2UL) & 0xFFFFFFFFUL);
+    if (c->g_e395 == c64c) {
+        if ((c0 & 0xFFUL) == 1UL)
+            bh = 8;
+        ph = ((c0 >> 16) == 0xF6FFUL) ? 1UL : 0UL;
+    } else if (c64c == 0) {
+        c->bad = 1;
+        ph = 0;
+    } else {
+        ph = c->nbytes % c64c;
+    }
+    v = ((ph << 8) + ((unsigned char)(cl - b4))) & 0xFFFFFFFFUL;
+    c->didx[7] = v;
+    {
+        static const unsigned long base7[1] = {0xF0000UL};
+        t7 = (base7[0] + v) & 0xFFFFFUL;
+    }
+    c->delta[t7][2] = (unsigned char)(((cl + cl) - b4) & 0xFFUL);
+    while (bh < 8U) {
+        unsigned long ei = dec4c_delta_entry(c, bh);
+        unsigned char e[4];
+        dec4c_de(c, ei, e);
+        if (e[0] != 0 && e[3] < 0x80UL) {
+            unsigned long num = ((unsigned long)e[1] << 8) * (unsigned long)e[3];
+            unsigned long d = e[0];
+            if (num >= (best + 1UL) * d) {
+                best = num / d;
+                bl = bh;
+            }
+        }
+        bh += 1U;
+    }
+    if (bl < 8U) {
+        unsigned long ei = dec4c_delta_entry(c, bl);
+        unsigned char e[4];
+        dec4c_de(c, ei, e);
+        if (e[1] > e[0] || (e[3] & 0x7FUL) > 1UL) {
+            if (c64c > 1UL)
+                c->g_e398 = (bl == 7U) ? 1U : 0U;
+            if (e[0] == 2U && (unsigned)((e[1] - 3U) & 0xFFUL) < 4U) {
+                unsigned long i = (((unsigned long)e[1] << 3) - 0x18UL + bl) & 0xFFFFFFFFUL;
+                c->pair_p = (i * 2UL) & 0xFFFFFFFFUL;
+            }
+            if (e[0] == 3U && (unsigned)((e[1] - 4U) & 0xFFUL) < 4U) {
+                unsigned long i = (((unsigned long)e[1] << 3) - 0x20UL + bl) & 0xFFFFFFFFUL;
+                c->pair_p = (i * 2UL + 0x40UL) & 0xFFFFFFFFUL;
+            }
+            c->g_e396 = (unsigned char)bl;
+            return ei;
+        }
+    }
+    if (c->g45c674 > 1UL)
+        c->g6b8[c->g45c68c & 0x3FFUL] >>= 1;
+    return 0xFFFFFFFFUL;
+}
+
 /* 0x40eba7: update delta predictor entries. */
 static void dec4c_delta_update(dec4c_ctx *c, unsigned char sym)
 {
@@ -2222,8 +2335,8 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
     }
     if (see != 0)
         dec4c_see_bump(c, see, *esc == 0);
-    if (*esc == 0)
-        dec4c_o2_update_light(c, *sym);
+    /* Rust order2 does not do the light update here; decode_symbol does
+     * it for order-4 hits (f<7) and the full o2_update in the tail. */
 }
 
 /* 0x40e672 part: order-4 update (update.rs o4_update). */
@@ -2555,9 +2668,58 @@ static unsigned dec4c_cx(unsigned long c_)
     return (c_ >= 0x310UL) ? 0x30FUL : (unsigned)c_;
 }
 
-static unsigned dec4c_excl_total(dec4c_ctx *c, unsigned frq, unsigned n)
+/* order-1 helpers (o1.rs) */
+static void dec4c_see_up(dec4c_ctx *c, unsigned long a)
 {
-    unsigned si = c->o1t[frq][0][0];
+    unsigned long *p = &c->see[a & (DEC4C_SEE_LEN - 1UL)];
+    *p = (*p + ((0x2000UL - *p) >> 6)) & 0xFFFFFFFFUL;
+}
+
+static void dec4c_see_down(dec4c_ctx *c, unsigned long a)
+{
+    unsigned long *p = &c->see[a & (DEC4C_SEE_LEN - 1UL)];
+    *p = (*p - (*p >> 6)) & 0xFFFFFFFFUL;
+}
+
+static void dec4c_add_cost(dec4c_ctx *c, unsigned long lo, unsigned long hi)
+{
+    unsigned long t = c->rc_t;
+    unsigned long q = dec4c_dv(((hi - lo) << 14) & 0xFFFFFFFFUL, t);
+    c->g45c648 = (c->g45c648 + dec4c_cost(c, (unsigned)q)) & 0xFFFFFFFFUL;
+}
+
+/* sum over f[k] where seen[k]!=0 or bm[k] (masked_sum, o1.rs) */
+static unsigned dec4c_masked_sum(dec4c_ctx *c, unsigned fo, unsigned seen, const unsigned char bm[256])
+{
+    unsigned s = 0;
+    int k;
+    (void)c;
+    for (k = 0; k < 256; k++) {
+        if (c->o1t[seen][1][k] != 0 || bm[k])
+            s = (s + (unsigned)c->o1t[fo][1][k]) & 0xFFFFU;
+    }
+    return s;
+}
+
+/* map the exclusion list to/from delta space around base (excl_map). */
+static void dec4c_excl_map(dec4c_ctx *c, unsigned n, unsigned char base, int neg, int back)
+{
+    unsigned i;
+    for (i = 0; i < n; i++) {
+        unsigned char x = c->excl[i];
+        if (neg)
+            x = (unsigned char)(base - x);
+        else if (back)
+            x = (unsigned char)(x + base);
+        else
+            x = (unsigned char)(x - base);
+        c->excl[i] = x;
+    }
+}
+
+static unsigned dec4c_excl_total(dec4c_ctx *c, unsigned tree, unsigned frq, unsigned n)
+{
+    unsigned si = c->o1t[tree][0][0];
     unsigned i;
     for (i = 0; i < n; i++)
         si = (si - c->o1t[frq][1][c->excl[i]]) & 0xFFFFU;
@@ -2610,93 +2772,410 @@ static unsigned char dec4c_o1_symbol(dec4c_ctx *c, unsigned long ctx)
     unsigned si = c->o1t[cc][0][0];
     unsigned escc = c->esc[cc];
     unsigned lim = (escc * c->ba3c[cc]) & 0xFFFFFFFFUL;
-    unsigned frq, v;
-    /* Fallback to secondary context when total is small */
+    unsigned frq = cc;
+    unsigned edi = 0;
+    unsigned long v = 0;
+    /* 'search */
     if (si <= lim) {
         unsigned f = dec4c_cx(c->g45c690);
         tree = f;
         frq = f;
-        si = dec4c_excl_total(c, f, n);
+        si = dec4c_excl_total(c, f, f, n);
+        v = dec4c_rc_div(c, si);
+        goto descent;
+    }
+    frq = cc;
+    si = dec4c_excl_total(c, cc, cc, n);
+    if (ctx < (0x200UL >> (unsigned)c->binmode)) {
+        unsigned char s = c->mru_s[cc];
+        int excluded = 0;
+        unsigned i;
+        for (i = 0; i < n; i++)
+            if (c->excl[i] == s) { excluded = 1; break; }
+        if (!excluded) {
+            unsigned long f = c->o1t[cc][1][s];
+            unsigned long x = dec4c_mru_see(c, ctx, s, f, si, escc);
+            unsigned long pa = D4C_S_O1MRU + x;
+            unsigned long p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
+            unsigned long vv = dec4c_rc_div(c, 0x2000UL) & 0xFFFFUL;
+            int hit = (vv < p) ? 1 : 0;
+            unsigned long lo = hit ? 0UL : p;
+            unsigned long hi = hit ? p : 0x2000UL;
+            unsigned long cst = dec4c_cost(c, 2UL * (hi - lo));
+            if (!hit) {
+                c->excl[n] = s;
+                si = (si - (unsigned short)f) & 0xFFFFU;
+                n += 1U;
+            }
+            c->g45c648 = (c->g45c648 + cst) & 0xFFFFFFFFUL;
+            dec4c_rc_dec(c, lo, hi);
+            if (hit) {
+                dec4c_see_up(c, pa);
+                return s;
+            }
+            dec4c_see_down(c, pa);
+        }
+    }
+    if (si == 0) {
+        unsigned f = dec4c_cx(c->g45c690);
+        tree = f;
+        frq = f;
+        si = dec4c_excl_total(c, f, f, n);
+        v = dec4c_rc_div(c, si);
+        goto descent;
+    }
+    {
+        unsigned long t;
+        if (ctx < 0x200UL && si < 0x2000UL) {
+            unsigned long a;
+            t = dec4c_see_total(c, si, escc, &a);
+            edi = (unsigned)a;
+        } else {
+            t = (si + escc) & 0xFFFFFFFFUL;
+        }
+        {
+            unsigned long vv = dec4c_rc_div(c, t);
+            if ((unsigned short)vv < si) {
+                v = vv;
+                goto descent;
+            }
+            /* escape to the fallback context */
+            {
+                unsigned char bm[256];
+                unsigned i;
+                unsigned long lo = si;
+                unsigned long hi = c->rc_t;
+                unsigned fo_i = dec4c_cx(c->g45c690);
+                unsigned s16;
+                unsigned long t2;
+                unsigned long v2;
+                unsigned k;
+                int fail = 0;
+                memset(bm, 0, sizeof(bm));
+                for (i = 0; i < n; i++)
+                    bm[c->excl[i]] = 1;
+                dec4c_add_cost(c, lo, hi);
+                dec4c_rc_dec(c, lo, hi);
+                s16 = (unsigned)dec4c_masked_sum(c, fo_i, cc, bm);
+                t2 = ((unsigned long)c->o1t[fo_i][0][0] - s16) & 0xFFFFFFFFUL;
+                v2 = dec4c_rc_div(c, t2) & 0xFFFFUL;
+                s16 = 0;
+                k = 0x100U;
+                for (;;) {
+                    k -= 1U;
+                    if (c->o1t[cc][1][k] == 0 && !bm[k])
+                        s16 = (s16 + (unsigned)c->o1t[fo_i][1][k]) & 0xFFFFU;
+                    if (s16 > v2)
+                        break;
+                    if (k == 0) {
+                        fail = 1;
+                        break;
+                    }
+                }
+                hi = s16;
+                lo = (hi - (unsigned)c->o1t[fo_i][1][k]) & 0xFFFFFFFFUL;
+                if (fail)
+                    c->bad = 1;
+                dec4c_add_cost(c, lo, hi);
+                dec4c_rc_dec(c, lo, hi);
+                if (edi != 0)
+                    dec4c_see_down(c, edi);
+                return (unsigned char)k;
+            }
+        }
+    }
+descent:
+    {
+        unsigned rem = (si - (unsigned short)v) & 0xFFFFU;
+        unsigned cur = 0;
+        unsigned char sym;
+        unsigned long hi, lo;
+        if (n != 0) {
+            unsigned ptrs[32];
+            unsigned fr[32];
+            unsigned len = (n < 32U) ? n : 32U;
+            unsigned i;
+            unsigned step = 0x80U;
+            for (i = 0; i < len; i++) {
+                ptrs[i] = c->excl[i];
+                fr[i] = c->o1t[frq][1][ptrs[i]];
+            }
+            while (step != 0) {
+                unsigned node = cur + step;
+                unsigned long sum = 0;
+                unsigned tn;
+                for (i = 0; i < len; i++)
+                    if (node > ptrs[i])
+                        sum = (sum + fr[i]) & 0xFFFFFFFFUL;
+                tn = c->o1t[tree][0][node & 0xFFUL];
+                if ((long)tn < (long)rem + (long)(unsigned short)sum) {
+                    i = 0;
+                    while (i < len) {
+                        if (node > ptrs[i]) {
+                            len -= 1U;
+                            ptrs[i] = ptrs[len];
+                            fr[i] = fr[len];
+                            continue;
+                        }
+                        i += 1U;
+                    }
+                    cur = node;
+                    rem = (rem - ((tn - (unsigned short)sum) & 0xFFFFU)) & 0xFFFFU;
+                }
+                step >>= 1;
+            }
+        } else {
+            unsigned dl = 0x80U;
+            while (dl != 0) {
+                unsigned node = cur + dl;
+                unsigned tn = c->o1t[tree][0][node & 0xFFUL];
+                if (rem > tn) {
+                    cur = node;
+                    rem = (rem - tn) & 0xFFFFU;
+                }
+                dl >>= 1;
+            }
+        }
+        sym = (unsigned char)(cur & 0xFFUL);
+        hi = ((rem + (unsigned short)v) & 0xFFFFU);
+        lo = (hi - (unsigned)c->o1t[frq][1][sym]) & 0xFFFFFFFFUL;
+        dec4c_add_cost(c, lo, hi);
+        dec4c_rc_dec(c, lo, hi);
+        if (edi != 0)
+            dec4c_see_up(c, edi);
+        return sym;
+    }
+}
+
+/* 0x412a59: code length of sym in ctx (encoder-side simulation). */
+static void dec4c_o1_cost(dec4c_ctx *c, unsigned long ctx, unsigned char sym)
+{
+    unsigned cc = dec4c_cx(ctx);
+    unsigned escc = c->esc[cc];
+    unsigned lim = (c->ba3c[cc] * escc) & 0xFFFFFFFFUL;
+    int has_esc_from = 0;
+    unsigned esc_from = 0;
+    unsigned tot = c->o1t[cc][0][0];
+    unsigned n = c->nex;
+    unsigned ebx = (unsigned)ctx;
+    unsigned f14 = cc;
+    unsigned s0c = 0xFFFFU;
+    /* 'tail */
+    if (tot <= lim) {
+        ebx = (unsigned)c->g45c690;
+        f14 = dec4c_cx(ebx);
     } else {
-        frq = cc;
-        si = dec4c_excl_total(c, cc, n);
+        int done = 0;
+        f14 = cc;
         if (ctx < (0x200UL >> (unsigned)c->binmode)) {
-            unsigned s = c->mru_s[cc];
+            unsigned char s = c->mru_s[cc];
             int excluded = 0;
             unsigned i;
             for (i = 0; i < n; i++)
                 if (c->excl[i] == s) { excluded = 1; break; }
             if (!excluded) {
                 unsigned long f = c->o1t[cc][1][s];
-                unsigned long x = dec4c_mru_see(c, ctx, (unsigned char)s, f, si, escc);
-                unsigned long pa = D4C_S_O1MRU + x;
-                unsigned long p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
-                unsigned long vv = dec4c_rc_div(c, 0x2000UL) & 0xFFFFUL;
-                int hit = (vv < p) ? 1 : 0;
-                unsigned long lo = hit ? 0UL : p;
-                unsigned long hi = hit ? p : 0x2000UL;
-                unsigned long cst = dec4c_cost(c, 2UL * (hi - lo));
-                c->g45c648 = (c->g45c648 + cst) & 0xFFFFFFFFUL;
-                dec4c_rc_dec(c, lo, hi);
+                unsigned long x;
+                unsigned long pa, p;
+                int hit;
+                unsigned ecx;
+                unsigned long cst;
+                s0c = dec4c_excl_total(c, cc, cc, n);
+                x = dec4c_mru_see(c, ctx, s, f, s0c, escc);
+                pa = D4C_S_O1MRU + x;
+                p = c->see[pa & (DEC4C_SEE_LEN - 1UL)];
+                hit = (s == sym) ? 1 : 0;
                 if (hit) {
-                    c->see[pa & (DEC4C_SEE_LEN - 1UL)] = (p + ((0x2000UL - p) >> 6)) & 0xFFFFFFFFUL;
-                    return (unsigned char)s;
+                    ecx = (unsigned)p;
                 } else {
-                    c->excl[n++] = (unsigned char)s;
-                    si = (si - (unsigned short)f) & 0xFFFFU;
-                    c->nex = (unsigned char)n;
-                    c->see[pa & (DEC4C_SEE_LEN - 1UL)] = (p - (p >> 6)) & 0xFFFFFFFFUL;
+                    ecx = (unsigned)((0x2000UL - p) & 0xFFFFFFFFUL);
+                    c->excl[n] = s;
+                    n += 1U;
+                    s0c = (s0c - (unsigned short)f) & 0xFFFFU;
                 }
+                cst = dec4c_cost(c, 2UL * ecx);
+                c->g45c648 = (c->g45c648 + cst) & 0xFFFFFFFFUL;
+                if (hit) {
+                    dec4c_see_up(c, pa);
+                    return;
+                }
+                dec4c_see_down(c, pa);
             }
         }
-        if (si == 0) {
-            unsigned f = dec4c_cx(c->g45c690);
-            tree = f;
-            frq = f;
-            si = dec4c_excl_total(c, f, n);
+        if (c->o1t[cc][1][sym] != 0) {
+            done = 1;
+        } else {
+            if (s0c == 0xFFFFU)
+                s0c = dec4c_excl_total(c, cc, cc, n);
+            if (s0c != 0) {
+                unsigned si = s0c;
+                unsigned long t;
+                if (ctx < 0x200UL && s0c < 0x2000UL) {
+                    unsigned long a;
+                    t = dec4c_see_total(c, si, escc, &a);
+                } else {
+                    t = (escc + si) & 0xFFFFFFFFUL;
+                }
+                {
+                    unsigned long q = dec4c_dv(((t - si) << 14) & 0xFFFFFFFFUL, t);
+                    c->g45c648 = (c->g45c648 + dec4c_cost(c, (unsigned)q)) & 0xFFFFFFFFUL;
+                }
+                has_esc_from = 1;
+                esc_from = f14;
+            }
+            ebx = (unsigned)c->g45c690;
+            f14 = dec4c_cx(ebx);
+        }
+        if (done) {
+            /* fall through to 0x412d69 with ebx=ctx, f14=cc */
         }
     }
-    /* Decode via Fenwick tree with SEE escape */
+    /* 0x412d69 */
     {
-        unsigned long tot;
-        unsigned long a;
-        unsigned long est = dec4c_see_total(c, si, escc, &a);
-        v = dec4c_rc_div(c, tot = (si + est) & 0xFFFFFFFFUL);
-        if (v < si) {
-            /* Symbol search in tree (Fenwick find) */
-            unsigned idx = 0;
-            unsigned bit;
-            unsigned long want = v;
-            /* Binary lifting on Fenwick CUM */
-            for (bit = 0x8000UL; bit != 0; bit >>= 1) {
-                unsigned t_ = idx + bit;
-                if (t_ <= 256UL && c->o1t[tree][0][t_] <= want) {
-                    want = (want - c->o1t[tree][0][t_]) & 0xFFFFFFFFUL;
-                    idx = t_;
-                }
-            }
-            {
-                unsigned char sym = (unsigned char)(idx & 0xFFUL);
-                /* Update SEE escape entry */
-                if (v < si) {
-                    c->see[a & (DEC4C_SEE_LEN - 1UL)] =
-                        (c->see[a & (DEC4C_SEE_LEN - 1UL)] + ((0x2000UL - c->see[a & (DEC4C_SEE_LEN - 1UL)]) >> 6)) & 0xFFFFFFFFUL;
-                } else {
-                    c->see[a & (DEC4C_SEE_LEN - 1UL)] =
-                        (c->see[a & (DEC4C_SEE_LEN - 1UL)] - (c->see[a & (DEC4C_SEE_LEN - 1UL)] >> 6)) & 0xFFFFFFFFUL;
-                }
-                dec4c_rc_dec(c, v, v + 1UL);
-                (void)frq;
-                return sym;
+        unsigned long t;
+        if (ebx < 0x301UL) {
+            unsigned cx16 = dec4c_excl_total(c, dec4c_cx(ebx), f14, n);
+            unsigned e = c->esc[dec4c_cx(ebx)];
+            if (ebx < 0x200UL && cx16 < 0x2000UL) {
+                unsigned long a;
+                t = dec4c_see_total(c, cx16, e, &a);
+            } else {
+                t = (e + cx16) & 0xFFFFFFFFUL;
             }
         } else {
-            /* Escape: fall through to flat (caller handles via order-0) */
-            dec4c_rc_dec(c, si, si + est);
-            c->see[a & (DEC4C_SEE_LEN - 1UL)] =
-                (c->see[a & (DEC4C_SEE_LEN - 1UL)] - (c->see[a & (DEC4C_SEE_LEN - 1UL)] >> 6)) & 0xFFFFFFFFUL;
-            return 0xFFU; /* escape sentinel; driver falls back */
+            unsigned s = c->o1t[dec4c_cx(ebx)][0][0];
+            if (has_esc_from) {
+                unsigned char bm[256];
+                unsigned i;
+                memset(bm, 0, sizeof(bm));
+                for (i = 0; i < n; i++)
+                    bm[c->excl[i]] = 1;
+                s = (s - dec4c_masked_sum(c, f14, esc_from, bm)) & 0xFFFFU;
+            } else {
+                unsigned i;
+                for (i = 0; i < n; i++)
+                    s = (s - (unsigned)c->o1t[f14][1][c->excl[i]]) & 0xFFFFU;
+            }
+            t = s;
+        }
+        t &= 0xFFFFUL;
+        {
+            unsigned f = c->o1t[f14][1][sym];
+            if (t == 0) { c->bad = 1; return; }
+            {
+                unsigned long q = ((unsigned long)f << 14) / t;
+                c->g45c648 = (c->g45c648 + dec4c_cost(c, (unsigned)q)) & 0xFFFFFFFFUL;
+            }
         }
     }
+}
+
+/* 0x411f8b: order-1 stage. */
+static unsigned char dec4c_o1_decode(dec4c_ctx *c, unsigned long ctx, unsigned long fb)
+{
+    int single = 1;
+    unsigned flag = (fb == 0x301UL) ? 1U : 0U;
+    unsigned ring = (unsigned)((c->g45c650 + 1UL) & 0xFFUL);
+    unsigned char sym;
+    c->g45c648 = 0;
+    c->g45c650 = ring;
+    {
+        unsigned old = (unsigned)c->ring[ring];
+        unsigned long s = (c->g45c644 - old) & 0xFFFFFFFFUL;
+        c->g45c690 = fb;
+        c->g45c644 = s;
+        if (!(s >= 0x6D4250UL && s < 0xFEFF01UL)) {
+            sym = dec4c_o1_symbol(c, ctx);
+            if (c->g_e39f != 0)
+                c->g45c668 = (c->g45c668 + c->g45c648) & 0xFFFFFFFFUL;
+        } else if (s >= 0x91ADC0UL) {
+            unsigned long v = dec4c_rc_div(c, 0x100UL);
+            sym = (unsigned char)v;
+            dec4c_rc_dec(c, v & 0xFFUL, (v & 0xFFUL) + 1UL);
+            if (c->g_e39f != 0)
+                c->g45c668 = (c->g45c668 + 0x9240UL) & 0xFFFFFFFFUL;
+            dec4c_o1_cost(c, ctx, sym);
+        } else {
+            unsigned o0 = 0x302UL + flag;
+            unsigned long ecx;
+            unsigned long c10;
+            if (c->avg_a[flag] >= c->avg_b[flag]) {
+                sym = dec4c_o1_symbol(c, ctx);
+                ecx = c->g45c648;
+                c->g45c690 = o0;
+                c->g45c648 = 0;
+                dec4c_o1_cost(c, 0x200UL, sym);
+                c10 = c->g45c648;
+                c->g45c648 = ecx;
+            } else {
+                c->g45c690 = o0;
+                sym = dec4c_o1_symbol(c, 0x200UL);
+                ecx = c->g45c648;
+                c->g45c690 = fb;
+                c->g45c648 = 0;
+                c10 = ecx;
+                dec4c_o1_cost(c, ctx, sym);
+            }
+            if (c->g_e39f != 0)
+                c->g45c668 = (c->g45c668 + ecx) & 0xFFFFFFFFUL;
+            {
+                unsigned i = c->g_e3a1 & 3U;
+                c->qsym[i] = sym;
+                c->ring[c->g45c650 & 0xFFUL] = ecx;
+                c->qctx[i] = 0x200UL;
+                c->qfb[i] = o0;
+                c->avg_a[flag] = ((c->avg_a[flag] * 0x1FUL) >> 5) + c10;
+                single = 0;
+                c->g45c644 = (c->g45c644 + ecx) & 0xFFFFFFFFUL;
+                c->g_e3a1 = (unsigned char)(c->g_e3a1 + 1U);
+            }
+        }
+    }
+    {
+        unsigned i = c->g_e3a1 & 3U;
+        unsigned long cc;
+        c->g_e3a1 = (unsigned char)(c->g_e3a1 + 1U);
+        c->qfb[i] = fb;
+        c->qctx[i] = ctx;
+        c->qsym[i] = sym;
+        cc = c->g45c648;
+        if (single) {
+            c->ring[c->g45c650 & 0xFFUL] = cc;
+            c->g45c644 = (c->g45c644 + cc) & 0xFFFFFFFFUL;
+            c->avg_a[flag] = ((c->avg_a[flag] * 0x1FUL) >> 5) + cc;
+        }
+        c->avg_b[flag] = ((c->avg_b[flag] * 0x1FUL) >> 5) + cc;
+    }
+    return sym;
+}
+
+/* 0x412ed2: queue the update for sym in ctx. */
+static void dec4c_o1_account(dec4c_ctx *c, unsigned long ctx, unsigned long fb, unsigned char sym)
+{
+    unsigned i;
+    unsigned f;
+    unsigned long cc;
+    c->g45c690 = fb;
+    c->g45c648 = 0;
+    dec4c_o1_cost(c, ctx, sym);
+    i = c->g_e3a1 & 3U;
+    c->g_e3a1 = (unsigned char)(c->g_e3a1 + 1U);
+    c->qfb[i] = c->g45c690;
+    c->qctx[i] = ctx;
+    c->qsym[i] = sym;
+    f = (fb == 0x301UL) ? 1U : 0U;
+    cc = c->g45c648;
+    c->avg_a[f] = cc + ((c->avg_a[f] * 0x1FUL) >> 5);
+    c->avg_b[f] = cc + ((c->avg_b[f] * 0x1FUL) >> 5);
+}
+
+/* 0x412f80: cost into the average 0x45c640. */
+static void dec4c_o1_cost_avg(dec4c_ctx *c, unsigned long ctx, unsigned long fb, unsigned char sym)
+{
+    c->g45c690 = fb;
+    c->g45c648 = 0;
+    dec4c_o1_cost(c, ctx, sym);
+    c->g45c640 = ((c->g45c640 * 0x1FUL) >> 5) + c->g45c648;
 }
 
 /* Fenwick add (o1.rs fen_add). */
@@ -2783,78 +3262,271 @@ static void dec4c_o1_update(dec4c_ctx *c, unsigned char sym, unsigned long ctx)
     }
 }
 
-/* 0x41030f: decode one symbol (order-4 -> order-2 -> order-1).
- * Simplified for text generic (a4=None, delta not yet wired). */
+/* 0x41030f: decode one symbol (order-4 -> order-2/delta -> order-1).
+ * Orchestration matches Rust lit.rs decode_symbol. */
 static void dec4c_decode_symbol(dec4c_ctx *c)
 {
     unsigned long l10c, c6a4, o2i, lfc;
-    unsigned char l50, rec[20], b[32], sym;
+    unsigned char l50, rec[20], b[32], sym = 0;
     int esc = 1;
-    unsigned l3c, l52, l4e;
-    unsigned long l104, l100;
+    unsigned l3c;
+    int l52, l4e, l40, l76;
+    unsigned long l104, l100, l108 = 0, l28 = 0;
     int bm = (c->binmode != 0) ? 1 : 0;
+    int mru_upd = 1;
+    unsigned long a4 = 0xFFFFFFFFUL; /* delta entry or none */
+    int l54 = 1, l2c = 0;
     /* Preamble */
     dec4c_decode_symbol_pre(c, &l10c, &l50, rec);
     c6a4 = c->g45c6a4;
+    o2i = c->g45c69c & 0x1FFFFUL;
     lfc = ((c6a4 & 0xC0UL) == 0xC0UL) ? 0x10UL : 0UL;
     l3c = rec[9UL + (rec[0x13] & 0x0FUL)];
-    /* l104/l100 as in scan: w50d/w4cd */
     l104 = dec4c_rom32(0x42750dUL + 4UL * ((rec[0x13] >> 4) & 0x0FUL));
-    l100 = dec4c_rom32(0x4274cdUL + (c->mru_n[l10c & 0x3FFUL] & 0x0FUL));
-    /* l40/l76/l52/l4e */
-    {
-        int l40 = bm;
-        int l76 = (c->mmtype != 0 && !(c->g45c674 > 4UL && dec4c_g68c(c) > 0x3FEUL)) ? 1 : 0;
-        if (l40) {
-            unsigned long a = c->avg_b[0], bb = c->avg_b[1];
-            if (c->g_e38d != 0)
-                l40 = (a * 0x1FUL < (bb << 5) & 0xFFFFFFFFUL) ? 1 : 0;
-            else
-                l40 = (a < bb) ? 1 : 0;
-        }
-        l52 = (l40 && l76) ? 1U : 0U;
-        l4e = (l52 && c->g45c640 < c->g45c654) ? 1U : 0U;
+    l100 = dec4c_rom32(0x4274cdUL + 4UL * (c->mru_n[l10c & 0x3FFUL] & 0x0FUL));
+    l40 = bm;
+    l76 = (c->mmtype != 0 && !(c->g45c674 > 4UL && dec4c_g68c(c) > 0x3FEUL)) ? 1 : 0;
+    if (l40) {
+        unsigned long a = c->avg_b[0], bb = c->avg_b[1];
+        if (c->g_e38d != 0)
+            l40 = ((a * 0x1FUL) < ((bb << 5) & 0xFFFFFFFFUL)) ? 1 : 0;
+        else
+            l40 = (a < bb) ? 1 : 0;
     }
-    /* Order-4 */
-    esc = 1;
-    sym = 0;
+    l52 = (l40 && l76) ? 1 : 0;
+    l4e = (l52 && c->g45c640 < c->g45c654) ? 1 : 0;
+    /* Order-4 probe */
     if (dec4c_o4_scan(c, c6a4, rec, b)) {
         unsigned long see_esc = 0;
-        if (b[2] == 0) {
-            int e2 = 1;
-            unsigned char s2 = 0;
-            dec4c_o4_single(c, b, rec, c6a4, l10c, l3c, l50, bm, &e2, &s2, &see_esc);
+        int e2 = 1;
+        unsigned char s2 = 0;
+        c->g_e394 = 1;
+        c->g45c6b0 = (c->g45c6b0 + 1UL) & 0xFFFFFFFFUL;
+        /* l108/l28 for the delta stage (Rust locals) */
+        l108 = dec4c_rom32(0x42754dUL + 4UL * ((b[0x1A] >> 4) & 0x0FUL));
+        l28 = b[0x0DUL + (b[0x1A] & 0x0FUL)];
+        c->g_e397 = (unsigned char)l52;
+        c->g_e394 = (unsigned char)(l4e ? 0 : 1);
+        if (!l4e) {
+            if (b[2] == 0) {
+                dec4c_o4_single(c, b, rec, c6a4, l10c, l3c, l50, bm, &e2, &s2, &see_esc);
+            } else {
+                unsigned long c698 = c->g45c698;
+                dec4c_o4_multi(c, b, rec, c6a4, l10c, l3c, l50, bm, c698, lfc, &e2, &s2, &see_esc);
+            }
             esc = e2;
             sym = s2;
             if (see_esc != 0)
                 dec4c_see_bump(c, see_esc, esc == 0);
         } else {
-            unsigned long c698 = c->g45c698;
-            dec4c_o4_multi(c, b, rec, c6a4, l10c, l3c, l50, bm, c698, lfc, &esc, &sym, &see_esc);
-        }
-        if (!esc) {
-            dec4c_o4_update(c, sym);
-            dec4c_output(c, sym);
-            dec4c_after_symbol(c, sym, 1);
-            dec4c_push_hist(c, sym);
-            return;
+            esc = 1;
+            sym = 0;
         }
     }
-    /* Order-2 */
-    esc = 1;
-    sym = 0;
-    dec4c_order2(c, c6a4 & 0x1FFFFUL, l50, l3c, l10c, c6a4, lfc, l104, l100, (int)l52, (int)l4e, bm, &esc, &sym);
+    /* 'done: order-4 success -> light update */
     if (!esc) {
-        dec4c_o2_update(c, sym);
-        dec4c_output(c, sym);
-        dec4c_after_symbol(c, sym, 1);
-        dec4c_push_hist(c, sym);
-        return;
+        unsigned f = b[(c->g_e3a3 + 1UL) & 0x1FUL];
+        if (f < 7U)
+            dec4c_o2_update_light(c, sym);
+    } else {
+        /* Order-2 / delta stage */
+        if (bm)
+            a4 = dec4c_delta_lookup(c);
+        c->g45c6b0 >>= 3;
+        if (a4 != 0xFFFFFFFFUL) {
+            unsigned char e[4];
+            dec4c_de(c, a4, e);
+            c->g45c6a0 = (c->g45c6a0 + 2UL) & 0xFFFFFFFFUL;
+            {
+                unsigned e0 = e[0], e1 = e[1], e3 = e[3] & 0x7FUL;
+                int v = (rec[0x13] >= 0x90UL || (e0 * 5UL > e1 * 3UL && e3 <= 2UL)) ? 1 : 0;
+                c->g_e39d = (unsigned char)v;
+            }
+        } else {
+            c->g_e39d = 1;
+        }
+        l54 = 1;
+        l2c = 0;
+        for (;;) {
+            if (c->g_e39d != 0 || l2c) {
+                unsigned char r11;
+                int v;
+                l54 = 0;
+                dec4c_o2r(c, o2i, rec);
+                r11 = rec[0x11];
+                v = (c->g45c6ac == 0 || r11 == 0 || (c->g45c6b4 < 0xFFFFUL && dec4c_g68c(c) <= 0x3FEUL)) ? 1 : 0;
+                c->g_e39d = (unsigned char)v;
+                if (v && rec[0] != 0)
+                    dec4c_order2(c, o2i, l50, l3c, l10c, c6a4, lfc, l104, l100, l52, l4e, bm, &esc, &sym);
+            }
+            if (l2c)
+                break;
+            c->g_e393 = (unsigned char)esc;
+            if (esc) {
+                int cl = 1;
+                l2c = 1;
+                if (!bm)
+                    c->g_e393 = 0;
+                if (a4 != 0xFFFFFFFFUL) {
+                    unsigned char e[4];
+                    unsigned char e2;
+                    dec4c_de(c, a4, e);
+                    c->g45c6a0 >>= 2;
+                    e2 = e[2];
+                    /* excl_contains(e2) */
+                    {
+                        unsigned i;
+                        int contains = 0;
+                        for (i = 0; i < c->nex; i++)
+                            if (c->excl[i] == e2) { contains = 1; break; }
+                        if (contains) {
+                            cl = 0;
+                            if (e[0] > 3U || ((e[1] >> 6) > e[0]))
+                                c->g_e393 = 0;
+                        }
+                    }
+                    if (cl) {
+                        c->g_e399 = (unsigned char)l52;
+                        if (!l4e) {
+                            unsigned long arr0, arr1, t, v;
+                            if (c->pair_p != 0xFFFFFFFFUL) {
+                                unsigned long p = c->pair_p & 0x7EUL;
+                                arr0 = c->pair[p];
+                                arr1 = c->pair[p + 1UL];
+                            } else {
+                                arr0 = e[0];
+                                arr1 = e[1];
+                            }
+                            arr1 = (arr1 + dec4c_rom32(0x4274cdUL + 4UL * ((e[3] >> 3) & 0x0FUL))) & 0xFFFFFFFFUL;
+                            if (e2 == l28)
+                                arr0 = (arr0 + l108) & 0xFFFFFFFFUL;
+                            if (e2 == l3c)
+                                arr0 = (arr0 + l104) & 0xFFFFFFFFUL;
+                            if (e2 == l50)
+                                arr0 = (arr0 + l100) & 0xFFFFFFFFUL;
+                            t = (arr0 + arr1) & 0xFFFFFFFFUL;
+                            v = dec4c_rc_div(c, t) & 0xFFFFUL;
+                            if (v < arr0) {
+                                if (c->g_e398 != 0) {
+                                    unsigned ga = c->g45c68c & 0x3FFUL;
+                                    unsigned gb = c->g45c688 & 0x3FFUL;
+                                    c->g6b8[ga] >>= 1;
+                                    c->g6b8[gb] >>= 1;
+                                    c->g45c6b4 = (c->g45c6b4 >> 1) + 0xFFUL;
+                                }
+                                dec4c_excl_push(c, e2);
+                                dec4c_rc_dec(c, 0, arr0);
+                            } else {
+                                if (c->g_e398 != 0) {
+                                    unsigned ga = c->g45c68c & 0x3FFUL;
+                                    unsigned gb = c->g45c688 & 0x3FFUL;
+                                    unsigned long old = c->g45c6b4;
+                                    c->g6b8[ga] = (c->g6b8[ga] + old) & 0xFFFFFFFFUL;
+                                    c->g45c6b4 = (old << 1) & 0xFFFFFFFFUL;
+                                    c->g6b8[gb] = (c->g6b8[gb] + old) & 0xFFFFFFFFUL;
+                                    if (c->g45c6b4 > 0xFFFFUL)
+                                        c->g45c6b4 = 0xFFFFUL;
+                                }
+                                esc = 0;
+                                sym = e2;
+                                dec4c_rc_dec(c, arr0, t);
+                            }
+                        }
+                    }
+                }
+            }
+            if (!esc || !l54)
+                break;
+        }
+        /* Order-1 */
+        if (esc) {
+            unsigned long ecx = l10c;
+            unsigned char l1c = 0;
+            unsigned long l60 = 0, l5c = 0;
+            unsigned nex = c->nex;
+            mru_upd = 0;
+            c->g_e39f = (unsigned char)l52;
+            if (bm) {
+                l1c = dec4c_hist(c, c->g45c674);
+                if (c->g45c674 > 1UL && dec4c_g68c(c) != 0) {
+                    ecx = (unsigned long)l1c + 0x100UL;
+                    mru_upd = 1;
+                }
+                if (l76) {
+                    l76 = c->g_e38e;
+                    l1c = c->g_e38b;
+                    l60 = c->mmctx;
+                    l5c = (unsigned long)c->mmtype + 0x304UL;
+                } else {
+                    unsigned char h = dec4c_hist(c, (c->g45c674 * 2UL) & 0xFFFFFFFFUL);
+                    l60 = dec4c_rom32(0x42472cUL + 4UL * ((unsigned char)(l1c - h))) + 0x201UL;
+                    l5c = 0x304UL;
+                }
+            }
+            if (l40) {
+                unsigned char s;
+                dec4c_excl_map(c, nex, l1c, l76, 0);
+                s = dec4c_o1_decode(c, l60, l5c);
+                sym = l76 ? (unsigned char)(l1c - s) : (unsigned char)(l1c + s);
+                dec4c_excl_map(c, nex, l1c, l76, 1);
+                dec4c_o1_account(c, ecx, 0x301UL, sym);
+            } else {
+                unsigned char s = dec4c_o1_decode(c, ecx, 0x301UL);
+                sym = s;
+                if (bm) {
+                    unsigned char d = l76 ? (unsigned char)(l1c - s) : (unsigned char)(s - l1c);
+                    dec4c_excl_map(c, nex, l1c, l76, 0);
+                    dec4c_o1_account(c, l60, l5c, d);
+                }
+            }
+        }
     }
-    /* Order-1 fallback (text generic path) */
-    sym = dec4c_o1_symbol(c, l10c);
-    dec4c_o1_update(c, sym, l10c);
+    /* Updates (0x411e02) */
+    dec4c_o4_update(c, sym);
+    if (c->g_e39d != 0)
+        dec4c_o2_update(c, sym);
+    if (c->g_e393 != 0)
+        dec4c_delta_update(c, sym);
+    if (l52) {
+        unsigned char al = (unsigned char)(sym - c->g_e38b);
+        unsigned long edx, eax;
+        if (c->g_e38e != 0)
+            al = (unsigned char)(0U - al);
+        edx = (unsigned long)c->mmtype + 0x304UL;
+        eax = c->mmctx;
+        c->nex = 0;
+        dec4c_o1_cost_avg(c, eax, edx, al);
+        if (c->g_e39f != 0)
+            c->g45c658 = (c->g45c658 + c->g45c668) & 0xFFFFFFFFUL;
+        c->g45c654 = (((c->g45c654 * 0x1FUL) >> 5) + c->g45c658) & 0xFFFFFFFFUL;
+    }
+    for (;;) {
+        unsigned long i = (c->g_e3a1 - 1U) & 0xFFUL;
+        c->g_e3a1 = (unsigned char)i;
+        if (i == 0xFFUL)
+            break;
+        i &= 3UL;
+        c->g45c690 = c->qfb[i];
+        {
+            unsigned long ctx = c->qctx[i];
+            unsigned char s = c->qsym[i];
+            if (ctx == 0x200UL)
+                dec4c_o1_bump(c, s, ctx);
+            else
+                dec4c_o1_update(c, s, ctx);
+        }
+    }
     dec4c_output(c, sym);
+    if (mru_upd) {
+        unsigned cc = dec4c_cx(l10c);
+        if (c->mru_s[cc] == sym) {
+            if (c->mru_n[cc] < 0x0FUL)
+                c->mru_n[cc] = (unsigned char)(c->mru_n[cc] + 1U);
+        } else {
+            c->mru_n[cc] = 0;
+            c->mru_s[cc] = sym;
+        }
+    }
     dec4c_after_symbol(c, sym, 1);
     dec4c_push_hist(c, sym);
 }
