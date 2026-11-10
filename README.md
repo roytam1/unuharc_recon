@@ -363,6 +363,17 @@ method ID across 2–7.
     (`d5v_update` / `d5v_fenadd` / `d5v_rescale`), the same class of
     defect as the two 0.6 core-4 bugs.
 
+    Checked against `UHARC04.lst` and found faithful: the count update
+    (`sub_40EFE0`, including the escape path), the context rescale
+    (`sub_40EE90` - the per-lane halving, the tree rebuild and the
+    escape decay), the increment table `word_44D0F4` (33, with 10 for
+    contexts 1009..1016 and 44 for 1017..1026) and the escape weight
+    table `word_44C8EE` (15, with 8 for contexts 993..1016 and 6 for
+    context 768). So the fault is further upstream: the symbol decode
+    (`sub_410440`), the price/cost accounting (`sub_410990`) or the
+    decision between models (`sub_40FDB0`).
+
+
 ### Naming conventions
 
 The ports are written from the original disassemblies, so the audit in
