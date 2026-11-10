@@ -450,21 +450,25 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
                 uharc_dec4u_free(c4);
             }
         } else {
-#ifdef DEC4_CLEAN
-            void *c4 = 0;
-            ret = uharc_dec4c_init(&c4, method);
-            if (ret == 0) {
-                ret = uharc_dec4c_decode_b(c4, cum, ncum, rcb, rctx, wcb,
-                                           wctx, out_len);
-                uharc_dec4c_free(c4);
-            }
-#else
+#if defined(DEC4_ARENA)
+            /* The arena decoder (uharc_dec4.c) is the reference port and stays
+             * available for differential testing: build with -DDEC4_ARENA. */
             void *c4 = 0;
             ret = uharc_dec4_init(&c4, method);
             if (ret == 0) {
                 ret = uharc_dec4_decode_b(c4, cum, ncum, rcb, rctx, wcb,
                                           wctx, out_len);
                 uharc_dec4_free(c4);
+            }
+#else
+            /* 0.6 core 4: the clean typed port (uharc_dec4_clean.c) is the
+             * production decoder; it passes the full 0.6 corpus. */
+            void *c4 = 0;
+            ret = uharc_dec4c_init(&c4, method);
+            if (ret == 0) {
+                ret = uharc_dec4c_decode_b(c4, cum, ncum, rcb, rctx, wcb,
+                                           wctx, out_len);
+                uharc_dec4c_free(c4);
             }
 #endif
         }
