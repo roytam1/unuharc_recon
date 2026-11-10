@@ -67,6 +67,10 @@ Done:
    two failures are core 5). The dispatcher selects them by default and
    the arena ports with `-DDEC4_ARENA`.
 
+Checked with `tools/diff_fuzz.py`: the typed ports and their arena
+references agree byte for byte on mutated archives as well (103 trials
+per version, bit flips, bursts and truncations, 0 differences).
+
 Left:
 
 3. **Const tables.** The cells inside the loaded image and the model
