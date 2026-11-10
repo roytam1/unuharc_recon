@@ -117,6 +117,9 @@ typedef struct dec4c_ctx_s {
     unsigned char ty3[8], cnt3[8];      /* 0x45d160/0x44316c */
     unsigned char g_e389, g_e38a, g_e38f;
     unsigned long g45ae18;
+    unsigned char g_e391;               /* 0x45e391 (mm replay gate) */
+    unsigned long g45ae14;              /* 0x45ae14 */
+    unsigned long imgq_n;               /* 0x45ade4 (never set by decoder) */
     unsigned char g_e3a0, g_e3a2;       /* 0x45e3a0/a2 */
     unsigned long g45d114;              /* 0x45d114 match continuation */
     /* decode_symbol locals (0x41030f) */
@@ -936,11 +939,683 @@ static void dec4c_output(dec4c_ctx *c, unsigned char al)
     }
 }
 
-/* mm_predict / mm_update stubs (0x412ffa/0x413347) for types 5..9.
- * Correct for generic types 0..4; multimedia will be wired when the
- * predictor records are ported. */
-static void dec4c_mm_predict(dec4c_ctx *c) { (void)c; }
-static void dec4c_mm_update(dec4c_ctx *c, unsigned char s, unsigned char d) { (void)c; (void)s; (void)d; }
+
+/* ROM tables for mm predictors (0x424d3c,54,5554,5954,5d54,6154,6554) */
+static const unsigned long dec4c_t424D3C[6] = {
+
+    127, 127, 127, 127, 7, 3,
+
+};
+static const unsigned long dec4c_t424D54[512] = {
+
+    0, 1, 2, 2, 2, 3, 3, 3,
+
+    3, 3, 4, 4, 4, 4, 4, 4,
+
+    4, 5, 5, 5, 5, 5, 5, 5,
+
+    5, 5, 6, 6, 6, 6, 6, 6,
+
+    6, 6, 6, 6, 6, 7, 7, 7,
+
+    7, 7, 7, 7, 7, 7, 7, 7,
+
+    7, 7, 8, 8, 8, 8, 8, 8,
+
+    8, 8, 8, 8, 8, 8, 8, 8,
+
+    8, 9, 9, 9, 9, 9, 9, 9,
+
+    9, 9, 9, 9, 9, 9, 9, 9,
+
+    9, 9, 10, 10, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 13, 13, 13, 13, 13, 13, 13,
+
+    13, 13, 13, 13, 13, 13, 13, 13,
+
+    13, 13, 13, 13, 13, 13, 13, 13,
+
+    13, 13, 14, 14, 14, 14, 14, 14,
+
+    14, 14, 14, 14, 14, 14, 14, 14,
+
+    14, 14, 14, 14, 14, 14, 14, 14,
+
+    14, 14, 14, 14, 14, 15, 15, 15,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 15, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 16,
+
+    16, 16, 16, 16, 16, 16, 16, 15,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 15, 15, 15, 14, 14, 14, 14,
+
+    14, 14, 14, 14, 14, 14, 14, 14,
+
+    14, 14, 14, 14, 14, 14, 14, 14,
+
+    14, 14, 14, 14, 14, 14, 14, 13,
+
+    13, 13, 13, 13, 13, 13, 13, 13,
+
+    13, 13, 13, 13, 13, 13, 13, 13,
+
+    13, 13, 13, 13, 13, 13, 13, 13,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 10, 10, 9,
+
+    9, 9, 9, 9, 9, 9, 9, 9,
+
+    9, 9, 9, 9, 9, 9, 9, 9,
+
+    8, 8, 8, 8, 8, 8, 8, 8,
+
+    8, 8, 8, 8, 8, 8, 8, 7,
+
+    7, 7, 7, 7, 7, 7, 7, 7,
+
+    7, 7, 7, 7, 6, 6, 6, 6,
+
+    6, 6, 6, 6, 6, 6, 6, 5,
+
+    5, 5, 5, 5, 5, 5, 5, 5,
+
+    4, 4, 4, 4, 4, 4, 4, 3,
+
+    3, 3, 3, 3, 2, 2, 2, 1,
+
+};
+static const unsigned long dec4c_t425554[256] = {
+
+    0, 0, 0, 0, 1, 1, 1, 1,
+
+    2, 2, 2, 2, 3, 3, 3, 3,
+
+    4, 4, 4, 4, 5, 5, 5, 5,
+
+    6, 6, 6, 6, 7, 7, 7, 7,
+
+    8, 8, 8, 8, 9, 9, 9, 9,
+
+    10, 10, 10, 10, 11, 11, 11, 11,
+
+    12, 12, 12, 12, 13, 13, 13, 13,
+
+    14, 14, 14, 14, 15, 15, 15, 15,
+
+    16, 16, 16, 16, 17, 17, 17, 17,
+
+    18, 18, 18, 18, 19, 19, 19, 19,
+
+    20, 20, 20, 20, 21, 21, 21, 21,
+
+    22, 22, 22, 22, 23, 23, 23, 23,
+
+    24, 24, 24, 24, 25, 25, 25, 25,
+
+    26, 26, 26, 26, 27, 27, 27, 27,
+
+    28, 28, 28, 28, 29, 29, 29, 29,
+
+    30, 30, 30, 30, 31, 31, 31, 31,
+
+    32, 31, 31, 31, 31, 30, 30, 30,
+
+    30, 29, 29, 29, 29, 28, 28, 28,
+
+    28, 27, 27, 27, 27, 26, 26, 26,
+
+    26, 25, 25, 25, 25, 24, 24, 24,
+
+    24, 23, 23, 23, 23, 22, 22, 22,
+
+    22, 21, 21, 21, 21, 20, 20, 20,
+
+    20, 19, 19, 19, 19, 18, 18, 18,
+
+    18, 17, 17, 17, 17, 16, 16, 16,
+
+    16, 15, 15, 15, 15, 14, 14, 14,
+
+    14, 13, 13, 13, 13, 12, 12, 12,
+
+    12, 11, 11, 11, 11, 10, 10, 10,
+
+    10, 9, 9, 9, 9, 8, 8, 8,
+
+    8, 7, 7, 7, 7, 6, 6, 6,
+
+    6, 5, 5, 5, 5, 4, 4, 4,
+
+    4, 3, 3, 3, 3, 2, 2, 2,
+
+    2, 1, 1, 1, 1, 0, 0, 0,
+
+};
+static const unsigned long dec4c_t425D54[256] = {
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    2, 2, 2, 2, 2, 2, 2, 2,
+
+    2, 2, 2, 2, 2, 2, 2, 2,
+
+    3, 3, 3, 3, 3, 3, 3, 3,
+
+    3, 3, 3, 3, 3, 3, 3, 3,
+
+    4, 4, 4, 4, 4, 4, 4, 4,
+
+    4, 4, 4, 4, 4, 4, 4, 4,
+
+    5, 5, 5, 5, 5, 5, 5, 5,
+
+    5, 5, 5, 5, 5, 5, 5, 5,
+
+    6, 6, 6, 6, 6, 6, 6, 6,
+
+    6, 6, 6, 6, 6, 6, 6, 6,
+
+    7, 7, 7, 7, 7, 7, 7, 7,
+
+    7, 7, 7, 7, 7, 7, 7, 7,
+
+    8, 7, 7, 7, 7, 7, 7, 7,
+
+    7, 7, 7, 7, 7, 7, 7, 7,
+
+    7, 6, 6, 6, 6, 6, 6, 6,
+
+    6, 6, 6, 6, 6, 6, 6, 6,
+
+    6, 5, 5, 5, 5, 5, 5, 5,
+
+    5, 5, 5, 5, 5, 5, 5, 5,
+
+    5, 4, 4, 4, 4, 4, 4, 4,
+
+    4, 4, 4, 4, 4, 4, 4, 4,
+
+    4, 3, 3, 3, 3, 3, 3, 3,
+
+    3, 3, 3, 3, 3, 3, 3, 3,
+
+    3, 2, 2, 2, 2, 2, 2, 2,
+
+    2, 2, 2, 2, 2, 2, 2, 2,
+
+    2, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+};
+static const unsigned long dec4c_t426554[256] = {
+
+    0, 1, 2, 3, 4, 5, 5, 6,
+
+    6, 6, 7, 7, 7, 7, 7, 8,
+
+    8, 8, 8, 8, 8, 8, 8, 9,
+
+    9, 9, 9, 9, 9, 9, 9, 9,
+
+    9, 9, 9, 9, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 12, 12, 12, 12, 12, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 10, 10, 10, 10, 9, 9, 9,
+
+    9, 9, 9, 9, 9, 9, 9, 9,
+
+    9, 9, 8, 8, 8, 8, 8, 8,
+
+    8, 8, 7, 7, 7, 7, 7, 6,
+
+    6, 6, 5, 5, 4, 3, 2, 1,
+
+};
+static const unsigned long dec4c_t425954[256] = {
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    2, 2, 2, 2, 2, 2, 2, 2,
+
+    3, 3, 3, 3, 3, 3, 3, 3,
+
+    4, 4, 4, 4, 4, 4, 4, 4,
+
+    5, 5, 5, 5, 5, 5, 5, 5,
+
+    6, 6, 6, 6, 6, 6, 6, 6,
+
+    7, 7, 7, 7, 7, 7, 7, 7,
+
+    8, 8, 8, 8, 8, 8, 8, 8,
+
+    9, 9, 9, 9, 9, 9, 9, 9,
+
+    10, 10, 10, 10, 10, 10, 10, 10,
+
+    11, 11, 11, 11, 11, 11, 11, 11,
+
+    12, 12, 12, 12, 12, 12, 12, 12,
+
+    13, 13, 13, 13, 13, 13, 13, 13,
+
+    14, 14, 14, 14, 14, 14, 14, 14,
+
+    15, 15, 15, 15, 15, 15, 15, 15,
+
+    16, 15, 15, 15, 15, 15, 15, 15,
+
+    15, 14, 14, 14, 14, 14, 14, 14,
+
+    14, 13, 13, 13, 13, 13, 13, 13,
+
+    13, 12, 12, 12, 12, 12, 12, 12,
+
+    12, 11, 11, 11, 11, 11, 11, 11,
+
+    11, 10, 10, 10, 10, 10, 10, 10,
+
+    10, 9, 9, 9, 9, 9, 9, 9,
+
+    9, 8, 8, 8, 8, 8, 8, 8,
+
+    8, 7, 7, 7, 7, 7, 7, 7,
+
+    7, 6, 6, 6, 6, 6, 6, 6,
+
+    6, 5, 5, 5, 5, 5, 5, 5,
+
+    5, 4, 4, 4, 4, 4, 4, 4,
+
+    4, 3, 3, 3, 3, 3, 3, 3,
+
+    3, 2, 2, 2, 2, 2, 2, 2,
+
+    2, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 0, 0, 0, 0, 0, 0, 0,
+
+};
+static const unsigned long dec4c_t426154[256] = {
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    2, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 1, 1, 1, 1, 1, 1, 1,
+
+    1, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+    0, 0, 0, 0, 0, 0, 0, 0,
+
+};
+
+static unsigned long dec4c_abs12(unsigned long x)
+{
+    long v = (long)(x & 0xFFFUL);
+    if (v & 0x800L) v |= ~0xFFFL;
+    return (unsigned long)(v < 0 ? -v : v);
+}
+static unsigned long dec4c_sdiv16(unsigned long s)
+{
+    return (unsigned long)(((long)s) / 16L);
+}
+static void dec4c_mm_update_errs(unsigned long r[31], unsigned long eax, unsigned long last)
+{
+    unsigned long hs[5];
+    int i;
+    r[12] += dec4c_abs12(eax);
+    hs[0]=r[0]; hs[1]=r[1]; hs[2]=r[2]; hs[3]=r[3]; hs[4]=last;
+    for (i=0;i<5;i++) {
+        r[13+2*i] += dec4c_abs12(eax - hs[i]);
+        r[14+2*i] += dec4c_abs12(hs[i] + eax);
+    }
+}
+static void dec4c_mm_adapt_weights(unsigned long r[31])
+{
+    unsigned long best = r[12];
+    unsigned sel = 0;
+    unsigned k, wk;
+    long d = 0;
+    r[12] = 0;
+    for (k=1;k<=10;k++) {
+        unsigned long v = r[12+k];
+        if (v < best) { best = v; sel = k; }
+        r[12+k] = 0;
+    }
+    #define D4W(i) (5+(i))
+    if (sel==1 && (long)r[D4W(0)] > -0x20) { wk=0; d=-1; }
+    else if (sel==2 && (long)r[D4W(0)] < 0x20) { wk=0; d=1; }
+    else if (sel==3 && (long)r[D4W(1)] > -0x20) { wk=1; d=-1; }
+    else if (sel==4 && (long)r[D4W(1)] < 0x20) { wk=1; d=1; }
+    else if (sel==5 && (long)r[D4W(2)] > -0x20) { wk=2; d=-1; }
+    else if (sel==6 && (long)r[D4W(2)] < 0x20) { wk=2; d=1; }
+    else if (sel==7 && (long)r[D4W(3)] > -0x20) { wk=3; d=-1; }
+    else if (sel==8 && (long)r[D4W(3)] < 0x20) { wk=3; d=1; }
+    else if (sel==9 && (long)r[D4W(3)] > -0x20) { wk=4; d=-1; } /* original tests w3, changes w4 */
+    else if (sel==10 && (long)r[D4W(3)] < 0x20) { wk=4; d=1; }
+    else return;
+    r[D4W(wk)] = (unsigned long)((long)r[D4W(wk)] + d);
+    #undef D4W
+}
+/* 0x412ffa */
+static void dec4c_mm_predict(dec4c_ctx *c)
+{
+    unsigned long n = c->nbytes;
+    unsigned ty = c->mmtype;
+    unsigned long ebx;
+    if (ty < 7) {
+        unsigned e1 = (unsigned)((n - c->mm.d730) & 0x7FUL);
+        unsigned long *r = c->mm.rec[0];
+        unsigned long eaxv = c->mm.d738;
+        unsigned long s;
+        unsigned char al;
+        unsigned sel;
+        c->mm.pred[0] = 0;
+        c->mm.pred[1] = eaxv;
+        c->mm.pred[2] = eaxv + eaxv - c->mm.d73c;
+        r[4] = c->mm.hist[e1];
+        r[3] = r[2]; r[2] = r[1]; r[1] = r[11] - r[0]; r[0] = r[11];
+        s = r[5]*r[0] + (r[10]<<4) + r[6]*r[1] + r[7]*r[2] + r[8]*r[3] + r[9]*r[4];
+        c->mm.pred[3] = dec4c_sdiv16(s);
+        c->mm.pred[4] = c->mm.hist[e1];
+        c->mm.pred[5] = c->mm.hist[(unsigned)((n - c->mm.d734) & 0x7FUL)];
+        sel = (unsigned)c->mm.sel;
+        al = (unsigned char)(c->mm.pred[sel < 6 ? sel : 0] & 0xFFUL);
+        if (sel >= 4) al = (unsigned char)(al + (unsigned char)c->mm.d738);
+        c->g_e38b = al;
+        ebx = (ty == 5) ? 0x2E9UL : 0x2EDUL;
+        if (ty == 5) c->g_e38b = (unsigned char)(c->g_e38b + 0x80U);
+        if (r[28] == 0) ebx += 1;
+        else if (r[29] == 0) ebx += 2;
+        else if (r[30] == 0) ebx += 3;
+    } else {
+        unsigned ch = c->ch & 3U;
+        unsigned long *r = c->mm.rec[ch];
+        unsigned long s;
+        unsigned char al;
+        r[3]=r[2]; r[2]=r[1]; r[1]=r[11]-r[0]; r[0]=r[11];
+        s = r[5]*r[0] + (r[10]<<4) + r[6]*r[1] + r[7]*r[2] + r[8]*r[3] + r[9]*c->mm.d740;
+        c->mm.pred[0] = dec4c_sdiv16(s);
+        al = (r[23] > r[24]) ? (unsigned char)r[10] : (unsigned char)c->mm.pred[0];
+        c->g_e38b = al;
+        if (ty == 7) {
+            ebx = (unsigned long)ch + 0x2F1UL;
+            c->g_e38b = (unsigned char)(c->g_e38b + 0x80U);
+            if (r[28]==0) ebx += 2; else if (r[29]==0) ebx += 4; else if (r[30]==0) ebx += 6;
+        } else if (ty == 8) {
+            ebx = (r[28]!=0) ? (unsigned long)ch : 2UL;
+            ebx += 0x2F9UL;
+        } else {
+            ebx = (r[28]!=0) ? (unsigned long)ch : 4UL;
+            ebx += 0x2FCUL;
+        }
+        c->g_e38e = c->mm.sgn[ch];
+    }
+    c->mmctx = ebx;
+}
+/* 0x413347 */
+static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta)
+{
+    unsigned long n = c->nbytes;
+    unsigned ty = c->mmtype;
+    if (c->g_e391 == 0 && c->g45ae14 < c->imgq_n)
+        return;
+    if (ty < 7) {
+        unsigned long ecx = (ty == 6) ? (unsigned long)(long)(signed char)sym : ((unsigned long)sym - 0x80UL);
+        unsigned long e14 = ecx - c->mm.d738;
+        unsigned long eaxv = (unsigned long)(((long)((signed char)((unsigned char)c->mm.pred[3] - (unsigned char)ecx))) << 4);
+        unsigned long *r = c->mm.rec[0];
+        unsigned long last = r[4];
+        unsigned char al;
+        unsigned sel, ni;
+        int k;
+        dec4c_mm_update_errs(r, eaxv, last);
+        al = (unsigned char)ecx - (unsigned char)r[10];
+        r[27] += 1;
+        r[10] = ecx;
+        r[11] = (unsigned long)(long)(signed char)al;
+        if ((r[27] & 0xFUL) == 0) dec4c_mm_adapt_weights(r);
+        c->mm.hist[n & 0x7FUL] = e14;
+        sel = (unsigned)c->mm.sel;
+        if ((dec4c_t424D3C[sel & 7U] & n) == 0) {
+            unsigned long best = 0xFFFFUL;
+            unsigned long ebxv;
+            c->mm.d730 = 2; c->mm.d734 = 2;
+            for (ebxv = 2; ebxv < 0x7CUL; ebxv++) {
+                unsigned long d1 = c->mm.hist[(n-1UL)&0x7FUL] - c->mm.hist[(n-1UL-ebxv)&0x7FUL];
+                unsigned long d0 = c->mm.hist[n&0x7FUL] - c->mm.hist[(n-ebxv)&0x7FUL];
+                unsigned long sv = dec4c_abs12(d0) + dec4c_abs12(d1);
+                unsigned long d2 = c->mm.hist[(n-2UL)&0x7FUL] - c->mm.hist[(n-2UL-ebxv)&0x7FUL];
+                unsigned long accv;
+                sv += dec4c_abs12(d2);
+                accv = ((c->mm.acc[ebxv & 0x7FUL] * 13UL) >> 4) + sv;
+                c->mm.acc[ebxv & 0x7FUL] = accv;
+                if (accv < c->mm.acc[c->mm.d730 & 0x7FUL]) c->mm.d730 = ebxv;
+                if (sv < best) { best = sv; c->mm.d734 = ebxv; }
+            }
+        }
+        {
+            unsigned long errs[6];
+            errs[0]=ecx-c->mm.pred[0]; errs[1]=ecx-c->mm.pred[1]; errs[2]=ecx-c->mm.pred[2];
+            errs[3]=ecx-c->mm.pred[3]; errs[4]=e14-c->mm.pred[4]; errs[5]=e14-c->mm.pred[5];
+            c->mm.sel = 0;
+            ni = (unsigned)(n & 0xFFUL);
+            for (k=0;k<6;k++) {
+                unsigned long old = c->mm.errs[k][ni];
+                unsigned long vv = dec4c_t424D54[errs[k] & 0x1FFUL];
+                c->mm.errs[k][0x100] = c->mm.errs[k][0x100] - old + vv;
+                c->mm.errs[k][ni] = vv;
+                if ((long)c->mm.errs[k][0x100] < (long)c->mm.errs[c->mm.sel][0x100])
+                    c->mm.sel = (unsigned long)k;
+            }
+        }
+        c->mm.d73c = c->mm.d738;
+        c->mm.d738 = ecx;
+        r = c->mm.rec[0];
+        r[28] = (r[28]<<8) + (unsigned long)delta;
+        r[29] = (r[29]<<8) + dec4c_t425554[delta];
+        r[30] = (r[30]<<8) + dec4c_t425D54[delta];
+    } else {
+        unsigned ch = c->ch & 3U;
+        unsigned long *r = c->mm.rec[ch];
+        unsigned long ecx = (ty >= 8) ? (unsigned long)(long)(signed char)sym : ((unsigned long)sym - 0x80UL);
+        unsigned char p = (unsigned char)c->mm.pred[0];
+        unsigned long eaxv = (unsigned long)(((long)((signed char)(p - (unsigned char)ecx))) << 4);
+        unsigned long l = c->mm.d740;
+        unsigned char a;
+        c->mm.sgn[ch] = c->g_e38e;
+        dec4c_mm_update_errs(r, eaxv, l);
+        a = p - (unsigned char)ecx;
+        r[23] += dec4c_t426554[a];
+        a = (unsigned char)r[10] - (unsigned char)ecx;
+        r[24] += dec4c_t426554[a];
+        r[11] = (unsigned long)(long)(signed char)((unsigned char)ecx - (unsigned char)r[10]);
+        c->mm.d740 = r[11];
+        r[10] = ecx;
+        r[27] += 1;
+        if ((r[27] & 0xFUL) == 0) {
+            dec4c_mm_adapt_weights(r);
+            if ((r[27] & 0xFFUL) == 0) {
+                r[23] -= r[25]; r[25] = r[23];
+                r[24] -= r[26]; r[26] = r[24];
+            }
+        }
+        if (ty == 9) {
+            unsigned long tmp = c->mm.d740; c->mm.d740 = c->mm.d744; c->mm.d744 = tmp;
+        }
+        r = c->mm.rec[ch];
+        r[28] = (r[28]<<8) + (unsigned long)delta;
+        if (ty == 7) {
+            r[29] = (r[29]<<8) + dec4c_t425954[delta];
+            r[30] = (r[30]<<8) + dec4c_t426154[delta];
+        }
+    }
+}
+
 
 /* 0x40f39a: per-symbol context/period/predictor bookkeeping. */
 static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
