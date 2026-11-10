@@ -104,17 +104,22 @@ def main():
         if name in raws:
             base = "(s)->%s_raw" % name.lower()
             lines.append("#define %s_8(s, a)  ((unsigned char *)%s)[(a)]" % (name, base))
-            lines.append("#define %s_16(s, a) (*(unsigned short *)(void *)((unsigned char *)%s + ((a) & ~1)))"
+            lines.append("#define %s_16(s, a) (*(unsigned short *)(void *)((unsigned char *)%s + (a)))"
                          % (name, base))
-            lines.append("#define %s_32(s, a) (*(unsigned int *)(void *)((unsigned char *)%s + ((a) & ~3)))"
+            lines.append("#define %s_32(s, a) (*(unsigned int *)(void *)((unsigned char *)%s + (a)))"
                          % (name, base))
         else:
             w = sorted(set(w for (_k, w) in widths[name]))[0]
             ctype = {8: "unsigned char", 16: "unsigned short",
                      32: "unsigned int"}[w]
-            lines.append("#define %s_8(s)  ((unsigned char)(s)->%s)" % (name, name.lower()))
-            lines.append("#define %s_16(s) ((unsigned short)(s)->%s)" % (name, name.lower()))
-            lines.append("#define %s_32(s) ((unsigned int)(s)->%s)" % (name, name.lower()))
+            # the field keeps the dominant width; the narrower views are
+            # read-only narrowings (the original never writes them).
+            lines.append("#define %s_%d(s) ((s)->%s)" % (name, w, name.lower()))
+            for w2 in (8, 16, 32):
+                if w2 == w:
+                    continue
+                lines.append("#define %s_%d(s) ((%s)(s)->%s)"
+                             % (name, w2, ctype, name.lower()))
     lines.append("")
     lines.append("#endif")
     lines.append("")
