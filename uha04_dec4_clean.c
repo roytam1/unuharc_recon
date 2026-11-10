@@ -6653,7 +6653,7 @@ l_41706B:
     /* 0x0041706B cmp ds:dword_45AF98,1 */;
     /* 0x00417072 jbe */ if ((unsigned long)D4V_TBL_45AF98_32(&c->st) <= 1UL) goto l_41707B; /* unsigned */
     /* 0x00417074 */ eax = (unsigned long)D4V_TBL_45AFA0_32(&c->st); /* mov eax,ds:dword_45AFA0 */
-    /* 0x00417079 */ (*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(eax) - c->blk00_base))) = (*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(eax) - c->blk00_base))) >> 1; /* shr dword ptr [eax],1 */
+    /* 0x00417079 */ (*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)eax)) = (*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)eax)) >> 1; /* shr dword ptr [eax],1 */
 l_41707B:
     /* 0x0041707B */ eax = 0; /* xor eax,eax */
     /* epilogue 0x0041707D add esp,0Ch; 0x00417080 pop ebp;
