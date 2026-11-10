@@ -1745,18 +1745,18 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
             rem = n % d;
         }
         {
-            unsigned cl = c->g_e38c;
+            unsigned shift = c->g_e38c;
             unsigned long esi = c->ch;
             c->ch = rem;
-            c->g_e38b = (unsigned char)((c->c0 >> cl) & 0xFFUL);
+            c->g_e38b = (unsigned char)((c->c0 >> shift) & 0xFFUL);
             if (c->mmtype == 3) {
-                unsigned dl = (unsigned)(n % 6UL);
+                unsigned dl3 = (unsigned)(n % 6UL);
                 unsigned long c0 = c->c0;
                 unsigned ecx, big;
-                c->g_e38a = (unsigned char)dl;
+                c->g_e38a = (unsigned char)dl3;
                 ecx = ((c0 & 0xFFUL) - (c0 >> 24) + (unsigned long)c->g_e38b) & 0xFFFFFFFFUL;
-                big = (c->cnt3[dl] > 8UL) ? 1U : 0U;
-                c->ty3[dl] = (unsigned char)ecx;
+                big = (c->cnt3[dl3] > 8UL) ? 1U : 0U;
+                c->ty3[dl3] = (unsigned char)ecx;
                 {
                     unsigned al = (big && c->g45ae18 < 5UL) ? 1U : 0U;
                     c->g_e389 = (unsigned char)al;
@@ -1764,7 +1764,7 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
                         c->g_e38f = c->g_e38e;
                         c->mmctx = ((esi << 5) + 0x259UL) & 0xFFFFFFFFUL;
                         c->g_e38e = 0;
-                        c->g_e38b = c->ty3[dl];
+                        c->g_e38b = c->ty3[dl3];
                     }
                 }
                 if (big)
@@ -2980,9 +2980,9 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
             unsigned long d8 = r[(f8 & 0x0FUL) + 1UL];
             unsigned long b4 = (g6a8 - d8) & 0xFFFFFFFFUL;
             unsigned long e = (d8 + l100) & 0xFFFFFFFFUL;
+            unsigned long x, q;
             l88 = d8;
-            unsigned long x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (b4 + e) & 0xFFFFFFFFUL);
-            unsigned long q;
+            x = dec4c_dv((e << 4) & 0xFFFFFFFFUL, (b4 + e) & 0xFFFFFFFFUL);
             if ((l50 & 0xC0UL) == 0xC0UL) x |= 0x20UL;
             if (dec4c_recent(c, (unsigned char)l50)) x |= 0x40UL;
             if (dec4c_marked(c, (unsigned char)l50)) x |= 0x80UL;
@@ -2996,9 +2996,10 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
         if (mask[0] && k7c != 0 && f8 != 0) {
             unsigned long e0 = r[1];
             unsigned long x = dec4c_dv((e0 << 4) & 0xFFFFFFFFUL, g6a8);
-            l90 = e0;
-            unsigned s9 = r[9];
             unsigned long q;
+            unsigned s9;
+            l90 = e0;
+            s9 = r[9];
             if ((s9 & 0xC0UL) == 0xC0UL) x |= 0x20UL;
             if (has_a4e2 && a4e2 == (unsigned char)s9) x |= 0x40UL;
             if (dec4c_recent(c, (unsigned char)s9)) x |= 0x80UL;
