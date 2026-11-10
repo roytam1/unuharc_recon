@@ -317,6 +317,12 @@ method ID across 2–7.
    rejected rather than skipped.
 8. **CLI and test automation** — no switches, no recursive output, no
    scripted regression runner yet.
+9. **Damaged archives** — the clean 0.6 core-4 decoder and the arena
+   reference diverge on corrupt input (they walk different model paths),
+   so they do not necessarily stop at the same byte. On one fuzz sample
+   the arena reports a data error after 296 KB while the clean decoder
+   keeps going and, because the decoded bytes turn into long matches,
+   spends tens of milliseconds per symbol; valid archives are unaffected.
 
 ### Core 4 implementation notes
 
