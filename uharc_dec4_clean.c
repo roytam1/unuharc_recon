@@ -1582,10 +1582,7 @@ static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta
         r[29] = (r[29]<<8) + dec4c_t425554[delta];
         r[30] = (r[30]<<8) + dec4c_t425D54[delta];
     } else {
-        /* The original indexes the multimedia record by the *current* slot
-         * (nbytes % mmper - the same slot the predictor uses), not by the
-         * previous one. */
-        unsigned ch = (unsigned)(n % (c->mmper ? c->mmper : 1UL)) & 3U;
+        unsigned ch = c->ch & 3U;
         unsigned long *r = c->mm.rec[ch];
         unsigned long ecx = (ty >= 8) ? (unsigned long)(long)(signed char)sym : ((unsigned long)sym - 0x80UL);
         unsigned char p = (unsigned char)c->mm.pred[0];
