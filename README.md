@@ -373,6 +373,16 @@ method ID across 2–7.
     (`sub_410440`), the price/cost accounting (`sub_410990`) or the
     decision between models (`sub_40FDB0`).
 
+    The symbol decode (`sub_410440`) and its price (`sub_410990`) were
+    checked too and match: the `s913` adjustment subtracts
+    `counts[ctx][s914]`, the escape price is
+    `LUT[(ext << 14) / (ext + total)]`, the symbol price is
+    `LUT[(count << 14) / (total + ext - counts[ctx][s914])]`, and
+    `ext` is only added for contexts below 0x403. So the fault is in
+    the decision (`sub_40FDB0`), the later distance stages or the group
+    context updates (`sub_40F240`, `sub_40F500`).
+
+
 
 ### Naming conventions
 
