@@ -521,6 +521,13 @@ static void dec4c_set_mmtype(dec4c_ctx *c, unsigned char bl)
     c->g_e38c = (unsigned char)dec4c_rom8(0x424718UL + i);
     c->g_e38e = 0;
     c->ch = 0;
+    /* 0x40deb6/0x41013c type switch: the predicted byte (0x45e38b) and the
+     * prediction flag (0x45e38f) are cleared together with the channel
+     * counter.  Leaving the stale predicted byte in place makes the next
+     * non-multimedia segment add the wrong context byte to the order-1
+     * symbol (arena 0x40e3xx: e38b = 0 on a model-id change). */
+    c->g_e38b = 0;
+    c->g_e38f = 0;
     c->g_e38d = (bl == 5 || bl == 6) ? 1 : 0;
     if (bl > 4)
         dec4c_mm_new(c);
