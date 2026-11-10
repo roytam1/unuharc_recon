@@ -93,7 +93,12 @@ every per-file CRC matches.
   (44 files, 33 MB), plus `D3X.UHA` listing (45 files). Also all 103
   `uharc-rs/testdata/arc/*.uha` (STORE/RLE/LZW/LZP/PPM/ALZ, `-md1`…
   `-md32m`, `-mm±`, `-pwsecret`/`-ph`, EXE/fax/media filters, kennedy.xls);
-  `x` output compared byte-identical to `uharc-rs/testdata/src`.
+  `x` output compared byte-identical to `uharc-rs/testdata/src`. Core 4 of
+  0.6 uses the clean typed port; it agrees with the arena reference
+  byte-for-byte on the corpus, and a mutation fuzz (bit flips, bursts and
+  truncations of every corpus archive) shows the same extracted bytes on
+  damaged input — the arena reference faults on some of those, the clean
+  port reports a data error instead.
 
 The three `gmud-*m3` / `gmud-*z` sets extract to the same 44 files
 (33,705,622 bytes), which cross-checks the 0.3, 0.4 and 0.6 ports against
