@@ -4063,7 +4063,7 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
     int esc = 1;
     unsigned l3c;
     int l52, l4e, l40, l76;
-    unsigned long l104, l100, l108 = 0, l28 = 0;
+    unsigned long l104, l100;
     int bm = (c->binmode != 0) ? 1 : 0;
     int mru_upd = 1;
     unsigned long a4 = 0xFFFFFFFFUL; /* delta entry or none */
@@ -4094,9 +4094,6 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
         unsigned char s2 = 0;
         c->g_e394 = 1;
         c->g45c6b0 = (c->g45c6b0 + 1UL) & 0xFFFFFFFFUL;
-        /* l108/l28 for the delta stage (Rust locals) */
-        l108 = dec4c_rom32(0x42754dUL + 4UL * ((b[0x1A] >> 4) & 0x0FUL));
-        l28 = b[0x0DUL + (b[0x1A] & 0x0FUL)];
         c->g_e397 = (unsigned char)l52;
         c->g_e394 = (unsigned char)(l4e ? 0 : 1);
         if (!l4e) {
