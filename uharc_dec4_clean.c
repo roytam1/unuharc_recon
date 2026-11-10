@@ -129,6 +129,8 @@ typedef struct dec4c_ctx_s {
     unsigned long didx[8];              /* 0x446044 delta indices */
     unsigned char g_e3a1, g_e3a4, g_e3a5;
     unsigned char g_e3a3;
+    unsigned long g_l108;               /* order-4 bucket weight (w54d) */
+    unsigned char g_l28;                /* order-4 bucket symbol (l28) */
     unsigned char bad;
     unsigned char g_e39b, g_e39e;      /* 0x45e39b/e9e text states */
     unsigned char *outbuf;              /* decoded bytes (out_len) */
@@ -2112,6 +2114,14 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
 {
     unsigned long bm = (c->binmode != 0) ? 1UL : 0UL;
     unsigned long l50_dummy = 0;
+    /* The order-4 "weight by run count" (l108) and the symbol the bucket
+     * points at (l28) are taken from the bucket as soon as it is found -
+     * before any of the skip tests.  They stay valid when the order-4
+     * coder is skipped and the order-2/delta stage runs (Rust lit.rs
+     * computes l108/l28 right after the bucket copy, the original does
+     * the same at 0x41030f). */
+    c->g_l108 = 0UL;
+    c->g_l28 = 0U;
     /* l52/l4e/g68c need lit state; for scan we evaluate skip tests that
      * only need b/rec/g45/g6b8. l52/l4e paths return "skip" conservatively. */
     for (;;) {
@@ -2150,6 +2160,8 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
         }
         (void)f0; (void)ec;
         b1a = b[0x1A];
+        c->g_l108 = dec4c_rom32(0x42754dUL + 4UL * ((b1a >> 4) & 0x0FUL));
+        c->g_l28 = b[0x0DUL + (b1a & 0x0FUL)];
         c->g45c678 = sum;
         /* Skip: g45c6a0/g45c674/g68c threshold */
         if (c->g45c6a0 == 0 && c->g45c674 > 1UL &&
@@ -4179,11 +4191,13 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
                                 arr1 = e[1];
                             }
                             arr1 = (arr1 + dec4c_rom32(0x4274cdUL + 4UL * ((e[3] >> 3) & 0x0FUL))) & 0xFFFFFFFFUL;
-                            /* Rust: arr[(e2==l28)] += l108 etc. (add to arr[1] if match, else arr[0]) */
-                            if (e2 == l28)
-                                arr1 = (arr1 + l108) & 0xFFFFFFFFUL;
+                            /* Rust: arr[(e2==l28)] += l108 etc. (add to arr[1] if match, else arr[0]).
+                             * l28/l108 come from the order-4 bucket and stay valid even
+                             * when the order-4 coder was skipped (c->g_l28/c->g_l108). */
+                            if (e2 == c->g_l28)
+                                arr1 = (arr1 + c->g_l108) & 0xFFFFFFFFUL;
                             else
-                                arr0 = (arr0 + l108) & 0xFFFFFFFFUL;
+                                arr0 = (arr0 + c->g_l108) & 0xFFFFFFFFUL;
                             if (e2 == l3c)
                                 arr1 = (arr1 + l104) & 0xFFFFFFFFUL;
                             else
