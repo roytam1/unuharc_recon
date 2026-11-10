@@ -3355,7 +3355,7 @@ static unsigned d5_ctx_ppm(uharc_dec5_t *d, unsigned sym)
     unsigned d2;
     unsigned v4;
     unsigned v6;
-    unsigned long v7;
+    unsigned long hist_byte;
     d2 = ((unsigned)v1 - (unsigned)d->fb7) & 0xFFu;
     if (d->fbE) {
         d2 = (unsigned)(-(int)d2) & 0xFFu;
@@ -3403,9 +3403,9 @@ static unsigned d5_ctx_ppm(uharc_dec5_t *d, unsigned sym)
     d->fa0 = (d->fa0 << 8) + (unsigned long)(unsigned)v1;
     d->fa0 &= 0xFFFFFFFFUL;
     v6 = (unsigned)d->e90;
-    v7 = d->fa0 >> d->fbF;
+    hist_byte = d->fa0 >> d->fbF;
     d->e90 = (long)((unsigned)d->f94 % (unsigned)d->e94);
-    d->fb7 = (unsigned char)(v7 & 0xFFUL);
+    d->fb7 = (unsigned char)(hist_byte & 0xFFUL);
     if (d->fb8 == 3) {
         int taken;
         unsigned slot;
@@ -3421,9 +3421,9 @@ static unsigned d5_ctx_ppm(uharc_dec5_t *d, unsigned sym)
         if (d->fbA) {
             d->fbD = d->fbE;
             d->ec0[0] = (long)(32u * v6 + 849u);
-            v7 = (unsigned long)d->hist[(unsigned)d->fbB];
+            hist_byte = (unsigned long)d->hist[(unsigned)d->fbB];
             d->fbE = 0;
-            d->fb7 = (unsigned char)(v7 & 0xFFUL);
+            d->fb7 = (unsigned char)(hist_byte & 0xFFUL);
         }
         if (taken) {
             d->e8c++;
@@ -3431,9 +3431,9 @@ static unsigned d5_ctx_ppm(uharc_dec5_t *d, unsigned sym)
             d->e8c = 0;
         }
     } else if (d->fb8 >= 5) {
-        v7 = (unsigned long)d5_predict(d);
+        hist_byte = (unsigned long)d5_predict(d);
     }
-    return (unsigned)(v7 & 0xFFFFFFFFUL);
+    return (unsigned)(hist_byte & 0xFFFFFFFFUL);
 }
 
 /* -------- 416412: predictor trainer (group < 7 half) ----------------- */
@@ -3462,18 +3462,18 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
             int sym_val;
             int delta;
             long vv[6];
-            int v8;
+            int order;
             unsigned v10;
             unsigned v11;
             unsigned v40;
             unsigned v44;
             unsigned v45;
-            long v12;
-            long *v13;
-            int v16;
-            int v17;
-            int v18;
-            int v19;
+            long cost;
+            long *rec;
+            int rec_hi;
+            int dlt_val;
+            int rec_top;
+            int shifted;
             if (d->fb8 == 6) {
                 sym_val = (int)(signed char)sym;
             } else {
@@ -3518,20 +3518,20 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
             if (((unsigned long)v2[27] & 0xFu) == 0UL) {
                 long best = v2[12];
                 v2[12] = 0;
-                v8 = 0;
+                order = 0;
                 {
                     int k;
                     for (k = 1; k < 11; k++) {
                         if (v2[k + 12] < best) {
                             best = v2[k + 12];
-                            v8 = k;
+                            order = k;
                         }
                         /* the asm zeroes the slot it just compared
                          * (p43[k+12]), not p43[k+11]. */
                         v2[k + 12] = 0;
                     }
                 }
-                switch (v8) {
+                switch (order) {
                 case 1:
                     if (v2[5] > -32L) {
                         v2[5]--;
@@ -3612,11 +3612,11 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                         + (unsigned)d5_e45(d, (unsigned)d2x & 0xFFFu));
                     d2x = d5_p29get(d, (d->f94 - 2u) & 0x7Fu)
                         - d5_p29get(d, (d->f94 - 2u - v10) & 0x7Fu);
-                    v12 = (long)(unsigned)d5_e45(d, (unsigned)d2x & 0xFFFu)
+                    cost = (long)(unsigned)d5_e45(d, (unsigned)d2x & 0xFFFu)
                         + (long)u46;
-                    d->pc4[v11] = d5_wrap32((unsigned long)v12
+                    d->pc4[v11] = d5_wrap32((unsigned long)cost
                         + (((13u * (unsigned)d->pc4[v11]) & 0xFFFFFFFFUL) >> 4));
-                    v44 = (unsigned)v12;
+                    v44 = (unsigned)cost;
                     if (d->pc4[v11] < d->pc4[(unsigned)d->p7ac]) {
                         d->p7ac = (int)v10;
                     }
@@ -3634,41 +3634,41 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
             vv[3] = (long)sym_val - d->pbd0;
             d->p7a8 = 0;
             v45 = 0;
-            v13 = d->p2bdc;
+            rec = d->p2bdc;
             {
                 int k;
                 for (k = 0; k < 6; k++) {
                     unsigned v14 = (unsigned)d->f94 & 0xFFu;
                     long nv;
-                    v13[256] = d5_wrap32((unsigned long)v13[256]
-                        - (unsigned long)(unsigned long)v13[v14]);
+                    rec[256] = d5_wrap32((unsigned long)rec[256]
+                        - (unsigned long)(unsigned long)rec[v14]);
                     nv = dec5_t427e26[((unsigned)vv[k] & 0x1FFu)];
-                    v13[v14] = nv;
-                    v13[256] = d5_wrap32((unsigned long)v13[256]
+                    rec[v14] = nv;
+                    rec[256] = d5_wrap32((unsigned long)rec[256]
                         + (unsigned long)nv);
                     /* dword_462FDC[p7a8 * 0x404] is the running total
                      * element (index 256) of cost table p7a8. */
-                    if (v13[256]
+                    if (rec[256]
                         < d->p2bdc[(size_t)257 * (size_t)(unsigned)d->p7a8
                             + 256u]) {
                         d->p7a8 = (int)v45;
                     }
                     v45++;
-                    v13 += 257;
+                    rec += 257;
                 }
             }
             d->p7b8 = d->p7b4;
             d->p7b4 = sym_val;
-            v16 = (int)v2[29];
+            rec_hi = (int)v2[29];
             v2[28] = d5_wrap32((unsigned long)(unsigned)v47
                 + (((unsigned long)(unsigned)v2[28]) << 8));
-            v17 = (int)v47;
-            v18 = (int)v2[30];
+            dlt_val = (int)v47;
+            rec_top = (int)v2[30];
             v2[29] = d5_wrap32((unsigned long)(unsigned)dec5_t428626[v47]
-                + (((unsigned long)(unsigned)v16) << 8));
-            v19 = v18 << 8;
-            result = (unsigned)dec5_t428e26[v17];
-            v2[30] = d5_wrap32((unsigned long)result + (unsigned long)(unsigned)v19);
+                + (((unsigned long)(unsigned)rec_hi) << 8));
+            shifted = rec_top << 8;
+            result = (unsigned)dec5_t428e26[dlt_val];
+            v2[30] = d5_wrap32((unsigned long)result + (unsigned long)(unsigned)shifted);
             return result;
         }
 
@@ -4447,35 +4447,35 @@ lend:
         unsigned char *v34p = 0;
         unsigned v60 = 0;
         unsigned v58 = 0;
-        long v35;
+        long dist_class;
         unsigned v37;
         unsigned v62 = 0;
         if (d->fb1 == 1) {
-            v35 = 0;
+            dist_class = 0;
             if (d->e84 >= 0x100L) {
-                v35 = 1;
+                dist_class = 1;
                 if (d->e84 >= 0x1000L) {
-                    v35 = 2;
+                    dist_class = 2;
                     if (d->e84 >= 0x10000L) {
-                        v35 = 3;
+                        dist_class = 3;
                         if (d->e84 >= 0x100000L) {
-                            v35 = 4;
+                            dist_class = 4;
                         }
                     }
                 }
             }
-            v59 = (unsigned)v35 + 3u;
+            v59 = (unsigned)dist_class + 3u;
         } else {
-            v35 = 5;
+            dist_class = 5;
             if (d->fb0) {
-                v35 = (long)((d->fb0 > 2u) + 6u);
+                dist_class = (long)((d->fb0 > 2u) + 6u);
             }
         }
-        if (v35 <= 5L && d->e84 > 1L) {
+        if (dist_class <= 5L && d->e84 > 1L) {
             unsigned v36;
             v36 = ((unsigned)d->dict[(d->fa4 - (unsigned)d->e84) & d->dictmask] << 8)
                 + (unsigned)d->dict[((d->fa4 - (unsigned)d->e84) + 1u) & d->dictmask];
-            if (v35 == 5L) {
+            if (dist_class == 5L) {
                 v36 += 0x10000u;
             }
             v34p = d->win2 + v36;
@@ -4486,7 +4486,7 @@ lend:
         v37 = 10;
         do {
             unsigned char *v55 = (unsigned char *)d->banks
-                + (size_t)4096 * (size_t)(unsigned)v35;
+                + (size_t)4096 * (size_t)(unsigned)dist_class;
             v62 = v37 + 1u;
             if (v59 < v62) {
                 unsigned long *e;

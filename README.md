@@ -342,6 +342,17 @@ method ID across 2–7.
     tool extracts both archives correctly, so the stream is good and the
     port is not. The 0.3 and 0.6 equivalents of the same data are fine.
 
+### Naming conventions
+
+The ports are written from the original disassemblies, so the audit in
+`tools/audit_registers.py` keeps them honest: it reports the x86
+register names used as ordinary locals (there must be none) separately
+from the Hex-Rays spill names (`v1`, `v2`, ...). Every file this project
+ships is free of register-named locals; the spill names survive only in
+the 0.6 arena reference, which is kept as the oracle for differential
+debugging. `tools/rename_local.py` renames one local at a time inside
+the function that declares it.
+
 ### Core 4 implementation notes
 
 All three versions have two core-4 decoders:
