@@ -93,7 +93,9 @@ every per-file CRC matches.
   (44 files, 33 MB), plus `D3X.UHA` listing (45 files). Also all 103
   `uharc-rs/testdata/arc/*.uha` (STORE/RLE/LZW/LZP/PPM/ALZ, `-md1`…
   `-md32m`, `-mm±`, `-pwsecret`/`-ph`, EXE/fax/media filters, kennedy.xls);
-  `x` output compared byte-identical to `uharc-rs/testdata/src`. Core 4 of
+  `x` output compared byte-identical to `uharc-rs/testdata/src`. Run it
+  with `python tools/run_corpus.py` (integrity check + extraction +
+  byte-for-byte comparison, non-zero exit on any difference). Core 4 of
   0.6 uses the clean typed port; it agrees with the arena reference
   byte-for-byte on the corpus, and a mutation fuzz (bit flips, bursts and
   truncations of every corpus archive) shows the same extracted bytes on
@@ -233,6 +235,7 @@ uharc06_main.c                 CLI: version detect + dispatch
 | `test_tab.c`, `test_dec3.c` | 0.6 directory/table tests |
 | `MAKE02.BAT` | builds the 0.2 corpus and archives on a DOS machine |
 | `tools/pty_run.py` | captures console output from the original archivers via `pywinpty` |
+| `tools/run_corpus.py` | regression runner: per-archive integrity check, extraction and byte-for-byte comparison against a reference tree |
 | `UHCLS_CREATE.md` | notes and patcher for the CLASS edition (`CLS\xFF` archives) |
 
 ## Codec model
@@ -315,8 +318,11 @@ method ID across 2–7.
    not used; mixed-codec archives are untested.
 7. **0.6 skip markers** — `method == 0xFF` entries with non-zero size are
    rejected rather than skipped.
-8. **CLI and test automation** — no switches, no recursive output, no
-   scripted regression runner yet.
+8. **CLI and test automation** — no switches, no recursive output. A
+   scripted regression runner exists (`tools/run_corpus.py`): it runs the
+   container's own integrity check on every archive of a corpus directory,
+   extracts each one and compares the result byte for byte with a
+   reference tree, and exits non-zero when anything differs.
 9. **Damaged archives** — the clean 0.6 core-4 decoder and the arena
    reference diverge on corrupt input (they walk different model paths),
    so they do not necessarily stop at the same byte. On one fuzz sample
