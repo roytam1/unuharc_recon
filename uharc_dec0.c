@@ -43,7 +43,16 @@ int uharc_dec_core_v(int method, int ver)
         if (method <= 35) return 4;          /* 22..35 */
         return 5;                            /* 36..79 */
     }
-    /* 0.4 and 0.6 share the layout */
+    /* The 0.4 family has its own method layout: its core-4 decoder
+     * (uha04_dec4.c, sub_415130) accepts methods 24..39 only and its
+     * core-5 decoder (uha04_dec5.c, sub_415180) accepts 40..87, so
+     * methods 40 and up must not be sent to core 4 the way 0.6 does. */
+    if (ver == 4) {
+        if (method > 87) return -1;
+        if (method >= 40) return 5;
+        return (int)method_to_core[method];
+    }
+    /* 0.6 */
     if (method > 87) return -1;
     return (int)method_to_core[method];
 }
