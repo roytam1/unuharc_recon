@@ -4,10 +4,10 @@
  * re-implementation of UNUHARC06 0x40cdd1/0x40f962). It replaces the
  * 32-bit arena emulation in uharc_dec4.c with explicit C state.
  *
- * Status: scaffolding. Range coder + header (0x413a96) are done;
- * the main loop (0x40f962) is not yet ported. The arena decoder
- * remains the default; this module is built and tested but not
- * wired into uharc_dec0.c until it passes the 103-archive corpus.
+ * Status: complete. The port passes the whole 0.6 corpus (103/103) and
+ * is the decoder uharc_dec0.c uses for 0.6 core 4. uharc_dec4.c stays
+ * in the tree as the arena reference; build with -DDEC4_ARENA to
+ * select it for differential testing.
  */
 #ifndef UHARC_DEC4_CLEAN_H
 #define UHARC_DEC4_CLEAN_H
