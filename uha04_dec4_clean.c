@@ -2475,7 +2475,7 @@ l_415C84:
     /* 0x00415C86 */ edx = (edx + 1) & U32MASK;
     /* 0x00415C87 */ eax = (eax + 1) & U32MASK;
     /* 0x00415C88 */ ebx = (ebx & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx + edx - 1) & U32MASK)));
+        (unsigned long)c->blk00_dict[((ebx + edx - 1) & U32MASK) - c->blk00_base];
     /* 0x00415C8C */ edx &= ecx;
     /* 0x00415C8E */ buf[(eax - 1) & 0xFF] = (unsigned char)(ebx & 0xFFUL);
     /* 0x00415C92 */ /* cmp eax,100h */;
@@ -2502,7 +2502,7 @@ l_415CC2:
 l_415CDB:
     /* 0x00415CDB */ edx = (edi + ebp) & U32MASK; /* lea */
     /* 0x00415CDE */ esi = (unsigned long)D4V_DICT_MASK_32(&c->st);
-    /* 0x00415CE4 */ edx = (edx & 0xFFFFFF00UL) | (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)(edx)));
+    /* 0x00415CE4 */ edx = (edx & 0xFFFFFF00UL) | (unsigned long)c->blk00_dict[edx - c->blk00_base];
     /* 0x00415CE6 */ ecx = (eax + 1) & U32MASK; /* lea */
     /* 0x00415CE9 */ edx = (edx & 0xFFFFFF00UL) |
         (unsigned long)((~(edx & 0xFFUL)) & 0xFFUL); /* not dl */
@@ -2524,7 +2524,7 @@ l_415CDB:
 l_415D21:
     /* 0x00415D21 */ eax = (eax & 0xFFFFFF00UL) |
         (unsigned long)((~(eax & 0xFFUL)) & 0xFFUL); /* not al */
-    /* 0x00415D23 */ (*(unsigned char *)d4v_ptr(c, (unsigned long)(ebx))) = (unsigned char)(eax & 0xFFUL);
+    /* 0x00415D23 */ c->blk00_dict[ebx - c->blk00_base] = (unsigned char)(eax & 0xFFUL);
     /* 0x00415D25 */ eax = ecx;
 l_415D27:
     /* 0x00415D27 */ /* cmp edi,eax */;
@@ -2550,7 +2550,7 @@ l_415D61:
     /* 0x00415D72 */ ebx = (ebx & 0xFFFFFF00UL) |
         (unsigned long)buf[edx & 0xFF];
     /* 0x00415D75 */ edi = (unsigned long)D4V_DICT_MASK_32(&c->st);
-    /* 0x00415D7B */ (*(unsigned char *)d4v_ptr(c, (unsigned long)((ecx + eax) & U32MASK))) = (unsigned char)(ebx & 0xFFUL);
+    /* 0x00415D7B */ c->blk00_dict[((ecx + eax) & U32MASK) - c->blk00_base] = (unsigned char)(ebx & 0xFFUL);
     /* 0x00415D7E */ eax = (eax + esi) & U32MASK;
     /* 0x00415D80 */ edx = (edx + esi) & U32MASK;
     /* 0x00415D82 */ eax &= edi;
