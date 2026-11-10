@@ -2583,7 +2583,7 @@ l_415D9E:
     /* 0x00415DDB jle */ if ((int)(eax & U32MASK) > 0) { /* signed 32-bit */
         /* 0x00415DDD rep movsb */
         while (ecx != 0) {
-            (*(unsigned char *)d4v_ptr(c, (unsigned long)(edi))) = (*(unsigned char *)d4v_ptr(c, (unsigned long)(esi)));
+            c->blk00_dict[edi - c->blk00_base] = c->blk00_dict[esi - c->blk00_base];
             esi = (esi + 1) & U32MASK;
             edi = (edi + 1) & U32MASK;
             ecx = (ecx - 1) & U32MASK;
@@ -2593,7 +2593,7 @@ l_415D9E:
         /* 0x00415DE4 */ ecx >>= 2;
         /* 0x00415DE7 rep movsd */
         while (ecx != 0) {
-            (*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)(edi))) = (*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)(esi)));
+            (*(unsigned int *)(void *)(c->blk00_dict + (edi - c->blk00_base))) = (*(unsigned int *)(void *)(c->blk00_dict + (esi - c->blk00_base)));
             esi = (esi + 4) & U32MASK;
             edi = (edi + 4) & U32MASK;
             ecx = (ecx - 1) & U32MASK;
@@ -2603,7 +2603,7 @@ l_415DE9:
     /* 0x00415DE9 */ ecx = (ecx + eax) & U32MASK;
     /* 0x00415DEB rep movsb */
     while (ecx != 0) {
-        (*(unsigned char *)d4v_ptr(c, (unsigned long)(edi))) = (*(unsigned char *)d4v_ptr(c, (unsigned long)(esi)));
+        c->blk00_dict[edi - c->blk00_base] = c->blk00_dict[esi - c->blk00_base];
         esi = (esi + 1) & U32MASK;
         edi = (edi + 1) & U32MASK;
         ecx = (ecx - 1) & U32MASK;
