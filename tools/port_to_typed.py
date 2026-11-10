@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+"""Rewrite a core-4 arena port into a typed-state port.
+
+The 0.3/0.4 core-4 ports keep their model state in a flat 32-bit address
+arena.  This tool rewrites the accesses to the *named* arena cells so that
+they go to typed struct members instead, and emits the matching context
+type.  The model tables (the big blocks carved out of the arena) stay in
+the arena for now: they are addressed through computed offsets, and moving
+them to typed arrays is a separate, hand-written step.
+
+Only cells that live outside the loaded image (the DGROUP window) are
+moved; the cells inside it keep their arena access, because their
+initial values come from the image.
+
+usage: port_to_typed.py <arena-port.c> <state-header.h> <out.c> [prefix]
+"""
+import re
+import sys
+
+CELL = re.compile(r'\b([GM])(8|16|32)\s*\(\s*([A-Z][A-Z0-9_]*)\s*\)')
+ARRAY = re.compile(r'\b([GM])(8|16|32)\s*\(\s*([A-Z][A-Z0-9_]*)\s*([+-])\s*([^()]*(?:\([^()]*\)[^()]*)*)\)')
+
+
+def read_state(path):
+    """cell name -> address, from the generated header."""
+    cells = {}
+    pat = re.compile(r'^\s*(?:unsigned char|unsigned short|unsigned int)\s+(\w+);'
+                     r'\s*/\*\s+0x([0-9A-Fa-f]+)')
+    for line in open(path, encoding="latin-1"):
+        m = pat.match(line)
+        if m:
+            cells[m.group(1)] = int(m.group(2), 16)
+    return cells
+
+
+def main():
+    src_path, state_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    prefix = sys.argv[4] if len(sys.argv) > 4 else "d3u"
+    src = open(src_path, encoding="latin-1").read()
+
+    # the loaded-image window: the DGROUP slice the port copies in
+    m = re.search(r'memcpy\(c->mem \+ (\w+),\s*(\w+),\s*(?:\(size_t\))?(\w+)\s*\)', src, re.S)
+    if not m:
+        print("no DGROUP memcpy found")
+        return 2
+    base_name, blob_name, len_name = m.group(1), m.group(2), m.group(3)
+    blob_len = 0
+    for cand in (src_path.replace(".c", "_dg.c"),):
+        if len_name.isdigit():
+            blob_len = int(len_name)
+            break
+        try:
+            dgs = open(cand, encoding="latin-1").read()
+        except OSError:
+            continue
+        lm = re.search(r'const unsigned long %s = (\d+)UL' % re.escape(len_name), dgs)
+        if lm:
+            blob_len = int(lm.group(1))
+            break
+    if not blob_len:
+        print("cannot determine the image length (%s)" % len_name)
+        return 2
+    base = 0
+    dg_path = src_path.replace(".c", "_dg.c")
+    try:
+        dgs = open(dg_path, encoding="latin-1").read()
+    except OSError:
+        dgs = ""
+    dm = re.search(r'const unsigned long %s = (0x[0-9A-Fa-f]+)UL' % re.escape(base_name), dgs)
+    if dm:
+        base = int(dm.group(1), 16)
+    else:
+        # the base may be a macro in the address header instead
+        ah = open(src_path.replace(".c", "_addr.h"), encoding="latin-1").read()
+        am = re.search(r'#define\s+%s\s+(0x[0-9A-Fa-f]+)UL' % re.escape(base_name), ah)
+        if am:
+            base = int(am.group(1), 16)
+    print("%s: image window 0x%06X..0x%06X (%d bytes)" % (prefix, base, base + blob_len, blob_len))
+
+    cells = read_state(state_path)
+
+    def in_image(addr):
+        return base <= addr < base + blob_len
+
+    moved = {n: a for n, a in cells.items() if not in_image(a)}
+    kept = {n: a for n, a in cells.items() if in_image(a)}
+    print("   %d cells outside the image -> typed members" % len(moved))
+    print("   %d cells inside the image  -> stay in the arena" % len(kept))
+
+    # rewrite the array accesses first (they contain the plain ones)
+    def array_sub(m):
+        kind, width, name, op, expr = m.groups()
+        if name not in moved:
+            return m.group(0)
+        return "%s_%s(&c->st, %s%s)" % (name, width, op, expr.strip())
+
+    def plain_sub(m):
+        kind, width, name = m.groups()
+        if name not in moved:
+            return m.group(0)
+        return "%s_%s(&c->st)" % (name, width)
+
+    out = ARRAY.sub(array_sub, src)
+    out = CELL.sub(plain_sub, out)
+
+    # the context type: the typed state joins the existing context
+    ctx_re = re.compile(r'typedef struct (\w+) \{(.*?)\n\} \1;', re.S)
+
+    def ctx_sub(m):
+        name, body = m.group(1), m.group(2)
+        body = body.rstrip("\n")
+        if "unsigned long out_buf;" in body:
+            body += "\n    %s_state st;   /* typed model state */" % prefix
+        else:
+            body += ("\n    %s_state st;   /* typed model state */" % prefix)
+        return "typedef struct %s {%s\n} %s;" % (name, body, name)
+
+    out = ctx_re.sub(ctx_sub, out, count=1)
+
+    # pull in the typed state header next to the address header
+    addr_inc = re.search(r'#include "(\w+_addr\.h)"', out)
+    if addr_inc:
+        state_inc = addr_inc.group(1).replace("_addr.h", "_state.h")
+        out = out.replace(addr_inc.group(0),
+                          '%s\n#include "%s"' % (addr_inc.group(0), state_inc),
+                          1)
+
+    # mark the file as generated
+    banner = ("/* Typed-state port of %s - generated by tools/port_to_typed.py.\n"
+              " *\n"
+              " * The model state that lives outside the loaded image now sits in\n"
+              " * typed struct members; the cells inside the image and the model\n"
+              " * tables (addressed through computed arena offsets) still use the\n"
+              " * arena.  Regenerate with:\n"
+              " *   python tools/port_to_typed.py %s %s_state.h %s %s\n"
+              " */\n") % (src_path, src_path,
+                        src_path.replace(".c", "_state.h"), out_path, prefix)
+    out = banner + out
+
+    # The arena port exports a lot of non-static workers; the typed port
+    # has to use its own names so that both can be linked into one binary.
+    # Only definitions are renamed, so extern references (the DGROUP blob)
+    # keep pointing at the shared image.
+    if len(sys.argv) > 5:
+        renames = []
+        for spec in sys.argv[5].split(","):
+            old, new = spec.split(":")
+            renames.append((old, new))
+        def_re = re.compile(r'^(?!\s*static\b)(?:[A-Za-z_]\w*\s+|\*\s*)+'
+                            r'(d[34][uv]_\w+|uharc_dec4[uv]_\w+)\s*\(', re.M)
+        names = sorted(set(m.group(1) for m in def_re.finditer(out)))
+        for n in names:
+            if "dgroup" in n:
+                continue          # shared with the image file
+            new = n
+            for old, rep in renames:
+                if n.startswith(old):
+                    new = rep + n[len(old):]
+                    break
+            if new != n:
+                out = re.sub(r'\b%s\b' % re.escape(n), new, out)
+        print("   renamed %d exported symbols" % len(names))
+
+    open(out_path, "w", encoding="latin-1").write(out)
+    print("   wrote", out_path)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

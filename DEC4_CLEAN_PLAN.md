@@ -52,7 +52,29 @@ except the two live cells breaks the decode, so those bytes do matter.
 0.3 avoids this: its comment at `uha03_dec4.c:291` says the model blocks
 must live above the fixed DGROUP window, and the init honours that.
 
-## Plan
+## Status
+
+Done:
+
+1. **Typed state.** `tools/gen_dec4_state.py` derives the state from the
+   address header and `uha03_dec4_state.h` / `uha04_dec4_state.h` hold
+   it; `test_dec4state.c` checks the accessors.
+2. **Typed ports.** `tools/port_to_typed.py` rewrites a port so that the
+   cells outside the loaded image become typed struct members.
+   `uha03_dec4_clean.c` (145 cells moved) and `uha04_dec4_clean.c`
+   (167 cells) are generated from the arena ports and are byte-identical
+   to them on the regenerated corpora (0.3: 103/103, 0.4: 101/103 - the
+   two failures are core 5). The dispatcher selects them by default and
+   the arena ports with `-DDEC4_ARENA`.
+
+Left:
+
+3. **Const tables.** The cells inside the loaded image and the model
+   tables (addressed through computed arena offsets) still use the arena.
+   Moving the tables to typed arrays needs the per-site work described
+   under Risks; the arena's 0.4 heap overwriting 44 % of the image has to
+   be reproduced exactly while that happens.
+
 
 1. **Typed state.** `tools/gen_dec4_state.py` derives the state from the
    address header: one struct member per cell, sized from the distance to

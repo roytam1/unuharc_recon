@@ -8,6 +8,9 @@
 #include "uharc_filter.h"
 #include "uha02_mm.h"
 #include "uhcrypt04.h"
+/* typed-state core-4 port (uha03_dec4_clean.c / uha04_dec4_clean.c) */
+int uharc_dec4vc_set_flags2(unsigned char flags2);
+
 
 static unsigned long crc_tab[256];
 static int crc_init = 0;
@@ -647,6 +650,8 @@ int uha04_extract(uha04_t *h, const char *outdir,
     g_uha04_mm = (h->hdr.flags_filt & 2) ? 1 : 0;
     g_uha04_fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
     uharc_dec4v_set_flags2((unsigned char)h->hdr.flags_filt);
+    /* the typed-state core-4 port has its own copy of the flag */
+    uharc_dec4vc_set_flags2((unsigned char)h->hdr.flags_filt);
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 4,
                          (g_uha04_exe || g_uha04_mm || g_uha04_fax) ? uha04_unfilter : 0,

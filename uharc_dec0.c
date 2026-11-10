@@ -256,6 +256,14 @@ int uharc_dec4u_decode_b(void *ctx,
                         uharc_dec_write_cb wcb, void *wctx,
                         unsigned long out_len);
 void uharc_dec4u_free(void *ctx);
+/* 0.3 core4, typed-state port (uha03_dec4_clean.c) */
+int uharc_dec4uc_init(void **pctx, int method);
+int uharc_dec4uc_decode_b(void *ctx,
+                         const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
+void uharc_dec4uc_free(void *ctx);
 /* 0.4 core4 (methods 24..39) */
 int uharc_dec4v_init(void **pctx, int method);
 int uharc_dec4v_decode_b(void *ctx,
@@ -264,6 +272,14 @@ int uharc_dec4v_decode_b(void *ctx,
                         uharc_dec_write_cb wcb, void *wctx,
                         unsigned long out_len);
 void uharc_dec4v_free(void *ctx);
+/* 0.4 core4, typed-state port (uha04_dec4_clean.c) */
+int uharc_dec4vc_init(void **pctx, int method);
+int uharc_dec4vc_decode_b(void *ctx,
+                         const unsigned long *cum, unsigned long ncum,
+                         uharc_dec_read_cb rcb, void *rctx,
+                         uharc_dec_write_cb wcb, void *wctx,
+                         unsigned long out_len);
+void uharc_dec4vc_free(void *ctx);
 struct uharc_dec5;
 typedef struct uharc_dec5 uharc_dec5_t;
 uharc_dec5_t *uharc_dec5_init(int method);
@@ -443,21 +459,41 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
         if (ver == 4) {
             /* 0.4 has its own LZP+PPM coder */
             void *c4 = 0;
+#if defined(DEC4_ARENA)
             ret = uharc_dec4v_init(&c4, method);
             if (ret == 0) {
                 ret = uharc_dec4v_decode_b(c4, cum, ncum, rcb, rctx, wcb,
                                            wctx, out_len);
                 uharc_dec4v_free(c4);
             }
+#else
+            /* typed-state port; the arena port stays behind -DDEC4_ARENA */
+            ret = uharc_dec4vc_init(&c4, method);
+            if (ret == 0) {
+                ret = uharc_dec4vc_decode_b(c4, cum, ncum, rcb, rctx, wcb,
+                                            wctx, out_len);
+                uharc_dec4vc_free(c4);
+            }
+#endif
         } else if (ver == 3) {
             /* 0.3 has its own LZP+PPM coder */
             void *c4 = 0;
+#if defined(DEC4_ARENA)
             ret = uharc_dec4u_init(&c4, method);
             if (ret == 0) {
                 ret = uharc_dec4u_decode_b(c4, cum, ncum, rcb, rctx, wcb,
                                            wctx, out_len);
                 uharc_dec4u_free(c4);
             }
+#else
+            /* typed-state port; the arena port stays behind -DDEC4_ARENA */
+            ret = uharc_dec4uc_init(&c4, method);
+            if (ret == 0) {
+                ret = uharc_dec4uc_decode_b(c4, cum, ncum, rcb, rctx, wcb,
+                                            wctx, out_len);
+                uharc_dec4uc_free(c4);
+            }
+#endif
         } else {
 #if defined(DEC4_ARENA)
             /* The arena decoder (uharc_dec4.c) is the reference port and stays

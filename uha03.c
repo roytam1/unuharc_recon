@@ -13,6 +13,9 @@
  * 0.3 assumed same - TODO verify via directory CRC once 03 cores work;
  * split to uhcrypt03.* if divergence found). */
 #include "uhcrypt04.h"
+/* typed-state core-4 port (uha03_dec4_clean.c / uha04_dec4_clean.c) */
+int uharc_dec4uc_set_flags2(unsigned char flags2);
+
 
 static unsigned long crc_tab[256];
 static int crc_init = 0;
@@ -653,6 +656,8 @@ int uha03_extract(uha03_t *h, const char *outdir,
     g_uha03_mm = (h->hdr.flags_filt & 2) ? 1 : 0;
     g_uha03_fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
     uharc_dec4u_set_flags2((unsigned char)h->hdr.flags_filt);
+    /* the typed-state core-4 port has its own copy of the flag */
+    uharc_dec4uc_set_flags2((unsigned char)h->hdr.flags_filt);
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 3,
                          (g_uha03_exe || g_uha03_mm || g_uha03_fax) ? uha03_unfilter : 0,
