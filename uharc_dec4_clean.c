@@ -3544,7 +3544,11 @@ static unsigned long dec4c_mru_see(dec4c_ctx *c, unsigned long ctx, unsigned cha
     {
         unsigned long ecx = x | 0x200UL;
         if (c->binmode != 0) {
-            if (((c->pos - c->lastpos[s_]) & c->dictmask) <= 0x40UL)
+            /* arena 0x412b8x: (unsigned)(dict_pos - last_pos[s]) is compared
+             * WITHOUT the dictionary mask.  After the dictionary wraps the
+             * stale entry must read as a huge distance (no recent hit), not
+             * as a small masked one. */
+            if ((unsigned long)(c->pos - c->lastpos[s_]) <= 0x40UL)
                 x = ecx;
         } else if (dec4c_rom8(0x42738dUL + s_) != 0) {
             x = ecx;
