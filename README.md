@@ -335,10 +335,12 @@ method ID across 2–7.
    spends tens of milliseconds per symbol; valid archives are unaffected.
 10. **0.4 core 5 with a small dictionary** - the 0.4 archives that the
     native `UHARC04.EXE` produced with `-md1`/`-md64` (`md1_m1.uha`,
-    `alz2_md64.uha` of a regenerated 0.4 corpus) decode wrongly in
-    `uha04_dec5.c`. The native tool extracts both archives correctly, so
-    the stream is good and the port is not. The 0.3 and 0.6 equivalents
-    of the same data are fine.
+    `alz2_md64.uha` of a regenerated 0.4 corpus) previously failed to
+    decode in `uha04_dec5.c` (2/103 of the 0.4 corpus). The native tool
+    extracts both archives correctly, so the stream is good and the
+    port was at fault. The 0.3 and 0.6 equivalents of the same data are
+    fine. A fix for the wrapped match-copy `s914` bug was applied but
+    could not be rebuilt/tested in this environment (see below).
 
     What is known: the dictionary is *not* the problem. Dumping the
     dictionary and the output history at the same moment and comparing
@@ -369,18 +371,26 @@ method ID across 2–7.
     escape decay), the increment table `word_44D0F4` (33, with 10 for
     contexts 1009..1016 and 44 for 1017..1026) and the escape weight
     table `word_44C8EE` (15, with 8 for contexts 993..1016 and 6 for
-    context 768). So the fault is further upstream: the symbol decode
-    (`sub_410440`), the price/cost accounting (`sub_410990`) or the
-    decision between models (`sub_40FDB0`).
-
-    The symbol decode (`sub_410440`) and its price (`sub_410990`) were
-    checked too and match: the `s913` adjustment subtracts
-    `counts[ctx][s914]`, the escape price is
+    context 768). The symbol decode (`sub_410440`) and its price
+    (`sub_410990`) were checked too and match: the `s913` adjustment
+    subtracts `counts[ctx][s914]`, the escape price is
     `LUT[(ext << 14) / (ext + total)]`, the symbol price is
     `LUT[(count << 14) / (total + ext - counts[ctx][s914])]`, and
-    `ext` is only added for contexts below 0x403. So the fault is in
-    the decision (`sub_40FDB0`), the later distance stages or the group
-    context updates (`sub_40F240`, `sub_40F500`).
+    `ext` is only added for contexts below 0x403.
+
+    The match-copy path had a real bug (sub_40FB80): when the copy
+    wrapped the dictionary ring, `s914` was read as
+    `dict[(src + 2*len) & mask]` instead of `dict[(src + len) & mask]`
+    because `src` had been advanced inside the byte-by-byte loop. The
+    end position is now saved before the copy. This is a plausible
+    cause for the small-dictionary failures (both affected archives
+    use a 64 KB / 128 KB dictionary and wrap frequently), but the fix
+    is **unverified in this environment**: no working compiler was
+    available to rebuild the unpacker and re-run the 0.4 corpus
+    (`uharc-rs-04/arc/alz2_md64.uha`, `md1_m1.uha`). If the failures
+    persist after a rebuild, the remaining suspects are the decision
+    (`sub_40FDB0`), the later distance stages and the group context
+    updates (`sub_40F240`, `sub_40F500`).
 
 
 
