@@ -172,7 +172,7 @@ int uharc_dec4c_init(void **ctx, int method)
     c->mchk = (unsigned char *)calloc(0x40000UL, 1);
     c->x698 = (unsigned char *)calloc(0x40000UL, 1);
     c->o2 = (unsigned long *)calloc(0x10000UL * 5UL, sizeof(unsigned long));
-    c->delta = (unsigned char *)calloc(0x100000UL, 4U);
+    c->delta = (unsigned char (*)[4])(void *)calloc(0x100000UL, 4U);
     c->o4 = (unsigned char *)calloc(0x40000UL, 32U);
     if (!c->dict || !c->mh1 || !c->mh2 || !c->mlen || !c->mchk || !c->x698 ||
         !c->o2 || !c->delta || !c->o4) {
@@ -289,40 +289,8 @@ static unsigned dec4c_match_len(dec4c_ctx *c, unsigned long a, unsigned long b)
 }
 
 /* Candidate search part of 0x40f9d0 (order-12 + last-distance pre-check).
- * Returns best length and sets *out_edi (candidate position). */
-static unsigned dec4c_match_candidates(dec4c_ctx *c, unsigned long *out_edi)
-{
-    unsigned long c0 = c->c0, c1 = c->c1, c2 = c->c2;
-    unsigned long mask = c->dictmask;
-    unsigned long pos = c->pos;
-    unsigned long h2;
-    unsigned best = 0, edi = 0;
-    int slot;
-    unsigned long cur = (pos < 0x40UL) ? pos + c->dictsize : pos;
-    h2 = ((((c1 >> 15) ^ c1) << 6) ^ (((c0 >> 15) ^ c0) << 4) ^ ((c2 >> 15) ^ c2)) & 0x3FFFFUL;
-    {
-        static const unsigned slots[2] = {1U, 0U};
-        for (slot = 0; slot < 2; slot++) {
-            unsigned long raw = c->mh2[2UL * h2 + slots[slot]];
-            unsigned long ebx = raw;
-            if (ebx != 0xFFFFFFFFUL && ((ebx - pos) & mask) >= 0x140UL) {
-                if (ebx < 0x40UL)
-                    ebx = (ebx + c->dictsize) & 0xFFFFFFFFUL;
-                if (dec4c_tb(c, (cur - 0xCUL) & 0xFFFFFFFFUL) == dec4c_tb(c, (ebx - 0xCUL) & 0xFFFFFFFFUL)) {
-                    unsigned len = dec4c_match_len(c, (cur - 1UL) & 0xFFFFFFFFUL, (ebx - 1UL) & 0xFFFFFFFFUL);
-                    if (len >= best) {
-                        best = len;
-                        edi = raw;
-                    }
-                }
-            }
-        }
-    }
-    c->mh2[2UL * h2 + 1UL] = c->mh2[2UL * h2];
-    c->mh2[2UL * h2] = pos;
-    *out_edi = edi;
-    return best;
-}
+ * NOTE: this helper is superseded by dec4c_match_model(), which performs
+ * the same search inline; kept out of the build to avoid a duplicate. */
 
 /* 0x40e810: update match-flag model. */
 static void dec4c_match_flag_update(dec4c_ctx *c, unsigned ctx, unsigned k)
@@ -1531,6 +1499,12 @@ static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta
 {
     unsigned long n = c->nbytes;
     unsigned ty = c->mmtype;
+    /* Arena 0x413347 gates the multimedia update on
+     *   flag_45e391 || 45ae14 >= M32(0x45ade4),
+     * and 0x45ade4 is written exactly once (to 0) at init and never
+     * afterwards, so the gate is always true and the "backoff" path of
+     * 0x412ffa (which restores the predicted byte from the pred_cache ring
+     * at 0x45e0900) is unreachable.  The check is kept for fidelity. */
     if (c->g_e391 == 0 && c->g45ae14 < c->imgq_n)
         return;
     if (ty < 7) {
@@ -2353,7 +2327,6 @@ static void dec4c_o4_multi(dec4c_ctx *c, unsigned char b[32],
                            unsigned long c698, unsigned long lfc,
                            int *esc, unsigned char *sym, unsigned long *see_esc)
 {
-    unsigned long ecx = (c698 - (unsigned long)b[0]) & 0xFFFFFFFFUL;
     unsigned long p42 = 0, p3a = 0, p2e = 0, pedi = 0;
     unsigned long k2a, t;
     unsigned long l104, l100, l108, l28, f0, ec;
@@ -2379,8 +2352,7 @@ static void dec4c_o4_multi(dec4c_ctx *c, unsigned char b[32],
     {
         unsigned k = 0;
         unsigned fk;
-        sum: ;
-        /* sum not needed here; compute f0/ec directly */
+        /* f0/ec are recomputed directly from the order-4 record below */
         k = 0;
         fk = b[1];
         {
