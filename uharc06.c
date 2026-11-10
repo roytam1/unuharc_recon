@@ -10,6 +10,7 @@
 #endif
 #include "uharc06.h"
 #include "uharc_dec.h"
+#include "uharc_dec4_clean.h"
 #include "uharc_filter.h"
 #include "uha02_mm.h"
 #include "uhcrypt06.h"
@@ -1006,6 +1007,9 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     mr.len = packed_len;
     mr.pos = 0;
     uharc_dec4_set_flags2((unsigned char)h->hdr.flags2);
+    /* The clean core-4 decoder needs the same header flags (flags2 bit 6
+     * selects the "text end" from the file end table). */
+    uharc_dec4c_set_flags2((unsigned char)h->hdr.flags2);
     drc = uharc_dec_decode_b((int)h->hdr.method, 0, 6, cum, h->nfiles,
                              mr_read, &mr, uharc06_split_write, 0,
                              h->hdr.total_size);
