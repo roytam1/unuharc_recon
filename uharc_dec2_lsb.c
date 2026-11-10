@@ -46,7 +46,7 @@ typedef struct uharc_dec2_ctx_s {
     unsigned b;                /* 1 << maxbits (= maxcode + 1) */
     unsigned maxbits;
     unsigned short *parent;
-    unsigned char *ch;
+    unsigned char *prefix;
     unsigned char *tmp;
 } uharc_dec2_ctx;
 
@@ -56,7 +56,7 @@ int uharc_dec2l_init(void **pctx, int method)
     uharc_dec2_ctx *c;
     unsigned b;
     unsigned short *parent;
-    unsigned char *ch;
+    unsigned char *prefix;
     unsigned char *tmp;
     unsigned i;
 
@@ -67,24 +67,24 @@ int uharc_dec2l_init(void **pctx, int method)
     if (!c)
         return 2;
     parent = (unsigned short *)malloc(sizeof(unsigned short) * (b ? b : 1u));
-    ch = (unsigned char *)malloc(b ? b : 1u);
+    prefix = (unsigned char *)malloc(b ? b : 1u);
     tmp = (unsigned char *)malloc(b ? b : 1u);
-    if (!parent || !ch || !tmp) {
+    if (!parent || !prefix || !tmp) {
         free(parent);
-        free(ch);
+        free(prefix);
         free(tmp);
         free(c);
         return 2;
     }
     for (i = 0; i < b; i++) {
         parent[i] = 0;
-        ch[i] = (unsigned char)(i & 0xFFu);
+        prefix[i] = (unsigned char)(i & 0xFFu);
         tmp[i] = 0;
     }
     c->b = b;
     c->maxbits = (unsigned)(method + 8);
     c->parent = parent;
-    c->ch = ch;
+    c->prefix = prefix;
     c->tmp = tmp;
     *pctx = (void *)c;
     return 0;
@@ -96,7 +96,7 @@ void uharc_dec2l_free(void *ctx)
     if (!c)
         return;
     free(c->parent);
-    free(c->ch);
+    free(c->prefix);
     free(c->tmp);
     free(c);
 }
@@ -276,7 +276,7 @@ int uharc_dec2l_decode(void *ctx,
         return 1;
     if (out_len == 0)
         return 0;
-    if (c->b == 0 || !c->parent || !c->ch || !c->tmp)
+    if (c->b == 0 || !c->parent || !c->prefix || !c->tmp)
         return 1;
 
     inb = (unsigned char *)malloc(0x10000u);
@@ -397,7 +397,7 @@ int uharc_dec2l_decode(void *ctx,
                 s.err = 7;
                 break;
             }
-            c->tmp[len++] = c->ch[cur];
+            c->tmp[len++] = c->prefix[cur];
             cur = c->parent[cur];
         }
         if (s.err)
@@ -434,7 +434,7 @@ int uharc_dec2l_decode(void *ctx,
         /* ---- add table entry: parent = prev, char = first byte ---- */
         if (nextFree < c->b) {
             c->parent[nextFree] = (unsigned short)prev;
-            c->ch[nextFree] = (unsigned char)root;
+            c->prefix[nextFree] = (unsigned char)root;
         }
         nextFree++;
         if (nextFree == ncode && bits < c->maxbits) {

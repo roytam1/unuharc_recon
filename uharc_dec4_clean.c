@@ -69,7 +69,7 @@ typedef struct dec4c_ctx_s {
     unsigned char mmtype;      /* 0x45e390 */
     unsigned long mmctx;       /* 0x45ae20 */
     unsigned long mmper;       /* 0x45ae24 */
-    unsigned long ch;          /* 0x45ae2c channel */
+    unsigned long channel;          /* 0x45ae2c channel */
     unsigned char g_e38c;      /* 0x45e38c */
     unsigned char g_e38b;       /* 0x45e38b predicted byte */
     unsigned char g_e38e;      /* 0x45e38e */
@@ -386,7 +386,7 @@ static void dec4c_read_switch_pos(dec4c_ctx *c)
 static void dec4c_init_see(dec4c_ctx *c)
 {
     unsigned long k, j, u, a, b, cc;
-    unsigned long ebx;
+    unsigned long slot;
     unsigned long *see = c->see;
     for (k = 0; k < 0x20UL; k++) {
         for (j = 0; j < 16UL; j++) {
@@ -399,7 +399,7 @@ static void dec4c_init_see(dec4c_ctx *c)
         see[D4C_S_O2ESC + k] = 0x1000UL;
         see[D4C_S_O1TOT + k] = (dec4c_rom32(0x427651UL + 4UL * k) << 7) & 0xFFFFFFFFUL;
     }
-    ebx = 0;
+    slot = 0;
     for (u = 0; u < 0x80UL; u++) {
         for (j = 0; j < 16UL; j++) {
             unsigned long t = dec4c_rom32(0x4275cdUL + 4UL * j);
@@ -408,15 +408,15 @@ static void dec4c_init_see(dec4c_ctx *c)
             unsigned long a64 = (u >= 64UL) ? 4UL : 0UL;
             unsigned long b16 = (u >= 16UL) ? 1UL : 0UL;
             if (u < 16UL)
-                see[D4C_S_O2MRU + ebx] = (((t + a8) << 13) >> 6) & 0xFFFFFFFFUL;
+                see[D4C_S_O2MRU + slot] = (((t + a8) << 13) >> 6) & 0xFFFFFFFFUL;
             if (u < 32UL)
-                see[D4C_S_O4MRU + ebx] = (((t + a16) << 13) >> 6) & 0xFFFFFFFFUL;
+                see[D4C_S_O4MRU + slot] = (((t + a16) << 13) >> 6) & 0xFFFFFFFFUL;
             if (u < 16UL)
-                see[D4C_S_O4O2 + ebx] = (((t + a8) << 13) >> 6) & 0xFFFFFFFFUL;
-            see[D4C_S_O1MRU + ebx] = (((t + a64) << 13) >> 6) & 0xFFFFFFFFUL;
-            see[D4C_S_O2O2 + ebx] = (((b16 + t + a64) << 13) >> 6) & 0xFFFFFFFFUL;
-            see[D4C_S_O4MPS + ebx] = (((a64 + b16 + t) << 13) >> 6) & 0xFFFFFFFFUL;
-            ebx += 1UL;
+                see[D4C_S_O4O2 + slot] = (((t + a8) << 13) >> 6) & 0xFFFFFFFFUL;
+            see[D4C_S_O1MRU + slot] = (((t + a64) << 13) >> 6) & 0xFFFFFFFFUL;
+            see[D4C_S_O2O2 + slot] = (((b16 + t + a64) << 13) >> 6) & 0xFFFFFFFFUL;
+            see[D4C_S_O4MPS + slot] = (((a64 + b16 + t) << 13) >> 6) & 0xFFFFFFFFUL;
+            slot += 1UL;
         }
     }
     for (a = 0; a < 8UL; a++) {
@@ -488,7 +488,7 @@ static void dec4c_set_mmtype(dec4c_ctx *c, unsigned char bl)
     c->mmper = dec4c_rom32(0x4246a0UL + 4UL * i);
     c->g_e38c = (unsigned char)dec4c_rom8(0x424718UL + i);
     c->g_e38e = 0;
-    c->ch = 0;
+    c->channel = 0;
     /* 0x40deb6/0x41013c type switch: the predicted byte (0x45e38b) and the
      * prediction flag (0x45e38f) are cleared together with the channel
      * counter.  Leaving the stale predicted byte in place makes the next
@@ -1444,13 +1444,13 @@ static void dec4c_mm_predict(dec4c_ctx *c)
 {
     unsigned long n = c->nbytes;
     unsigned ty = c->mmtype;
-    unsigned long ebx;
+    unsigned long next_ctx;
     if (ty < 7) {
         unsigned e1 = (unsigned)((n - c->mm.d730) & 0x7FUL);
         unsigned long *r = c->mm.rec[0];
         unsigned long eaxv = c->mm.d738;
         unsigned long s;
-        unsigned char al;
+        unsigned char pred_byte;
         unsigned sel;
         c->mm.pred[0] = 0;
         c->mm.pred[1] = eaxv;
@@ -1462,38 +1462,38 @@ static void dec4c_mm_predict(dec4c_ctx *c)
         c->mm.pred[4] = c->mm.hist[e1];
         c->mm.pred[5] = c->mm.hist[(unsigned)((n - c->mm.d734) & 0x7FUL)];
         sel = (unsigned)c->mm.sel;
-        al = (unsigned char)(c->mm.pred[sel < 6 ? sel : 0] & 0xFFUL);
-        if (sel >= 4) al = (unsigned char)(al + (unsigned char)c->mm.d738);
-        c->g_e38b = al;
-        ebx = (ty == 5) ? 0x2E9UL : 0x2EDUL;
+        pred_byte = (unsigned char)(c->mm.pred[sel < 6 ? sel : 0] & 0xFFUL);
+        if (sel >= 4) pred_byte = (unsigned char)(pred_byte + (unsigned char)c->mm.d738);
+        c->g_e38b = pred_byte;
+        next_ctx = (ty == 5) ? 0x2E9UL : 0x2EDUL;
         if (ty == 5) c->g_e38b = (unsigned char)(c->g_e38b + 0x80U);
-        if (r[28] == 0) ebx += 1;
-        else if (r[29] == 0) ebx += 2;
-        else if (r[30] == 0) ebx += 3;
+        if (r[28] == 0) next_ctx += 1;
+        else if (r[29] == 0) next_ctx += 2;
+        else if (r[30] == 0) next_ctx += 3;
     } else {
-        unsigned ch = c->ch & 3U;
-        unsigned long *r = c->mm.rec[ch];
+        unsigned channel = c->channel & 3U;
+        unsigned long *r = c->mm.rec[channel];
         unsigned long s;
-        unsigned char al;
+        unsigned char pred_byte;
         r[3]=r[2]; r[2]=r[1]; r[1]=r[11]-r[0]; r[0]=r[11];
         s = r[5]*r[0] + (r[10]<<4) + r[6]*r[1] + r[7]*r[2] + r[8]*r[3] + r[9]*c->mm.d740;
         c->mm.pred[0] = dec4c_sdiv16(s);
-        al = (r[23] > r[24]) ? (unsigned char)r[10] : (unsigned char)c->mm.pred[0];
-        c->g_e38b = al;
+        pred_byte = (r[23] > r[24]) ? (unsigned char)r[10] : (unsigned char)c->mm.pred[0];
+        c->g_e38b = pred_byte;
         if (ty == 7) {
-            ebx = (unsigned long)ch + 0x2F1UL;
+            next_ctx = (unsigned long)channel + 0x2F1UL;
             c->g_e38b = (unsigned char)(c->g_e38b + 0x80U);
-            if (r[28]==0) ebx += 2; else if (r[29]==0) ebx += 4; else if (r[30]==0) ebx += 6;
+            if (r[28]==0) next_ctx += 2; else if (r[29]==0) next_ctx += 4; else if (r[30]==0) next_ctx += 6;
         } else if (ty == 8) {
-            ebx = (r[28]!=0) ? (unsigned long)ch : 2UL;
-            ebx += 0x2F9UL;
+            next_ctx = (r[28]!=0) ? (unsigned long)channel : 2UL;
+            next_ctx += 0x2F9UL;
         } else {
-            ebx = (r[28]!=0) ? (unsigned long)ch : 4UL;
-            ebx += 0x2FCUL;
+            next_ctx = (r[28]!=0) ? (unsigned long)channel : 4UL;
+            next_ctx += 0x2FCUL;
         }
-        c->g_e38e = c->mm.sgn[ch];
+        c->g_e38e = c->mm.sgn[channel];
     }
-    c->mmctx = ebx;
+    c->mmctx = next_ctx;
 }
 /* 0x413347 */
 static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta)
@@ -1514,14 +1514,14 @@ static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta
         unsigned long eaxv = (unsigned long)(((long)((signed char)((unsigned char)c->mm.pred[3] - (unsigned char)ecx))) << 4);
         unsigned long *r = c->mm.rec[0];
         unsigned long last = r[4];
-        unsigned char al;
+        unsigned char pred_byte;
         unsigned sel, ni;
         int k;
         dec4c_mm_update_errs(r, eaxv, last);
-        al = (unsigned char)ecx - (unsigned char)r[10];
+        pred_byte = (unsigned char)ecx - (unsigned char)r[10];
         r[27] += 1;
         r[10] = ecx;
-        r[11] = (unsigned long)(long)(signed char)al;
+        r[11] = (unsigned long)(long)(signed char)pred_byte;
         if ((r[27] & 0xFUL) == 0) dec4c_mm_adapt_weights(r);
         c->mm.hist[n & 0x7FUL] = e14;
         sel = (unsigned)c->mm.sel;
@@ -1564,14 +1564,14 @@ static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta
         r[29] = (r[29]<<8) + dec4c_t425554[delta];
         r[30] = (r[30]<<8) + dec4c_t425D54[delta];
     } else {
-        unsigned ch = c->ch & 3U;
-        unsigned long *r = c->mm.rec[ch];
+        unsigned channel = c->channel & 3U;
+        unsigned long *r = c->mm.rec[channel];
         unsigned long ecx = (ty >= 8) ? (unsigned long)(long)(signed char)sym : ((unsigned long)sym - 0x80UL);
         unsigned char p = (unsigned char)c->mm.pred[0];
         unsigned long eaxv = (unsigned long)(((long)((signed char)(p - (unsigned char)ecx))) << 4);
         unsigned long l = c->mm.d740;
         unsigned char a;
-        c->mm.sgn[ch] = c->g_e38e;
+        c->mm.sgn[channel] = c->g_e38e;
         dec4c_mm_update_errs(r, eaxv, l);
         /* The original masks the difference to a byte before indexing the
          * error curve (0x426554); without the mask the index can go
@@ -1594,7 +1594,7 @@ static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta
         if (ty == 9) {
             unsigned long tmp = c->mm.d740; c->mm.d740 = c->mm.d744; c->mm.d744 = tmp;
         }
-        r = c->mm.rec[ch];
+        r = c->mm.rec[channel];
         r[28] = (r[28]<<8) + (unsigned long)delta;
         if (ty == 7) {
             r[29] = (r[29]<<8) + dec4c_t425954[delta];
@@ -1685,7 +1685,7 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
                 unsigned e = (c->mmctx - 0x209UL) & 0x0FUL;
                 c->mmctx = ((dec4c_rom8(0x424b2cUL + e) << 4) + dec4c_rom8(0x424b3cUL + al) + 0x209UL) & 0xFFFFFFFFUL;
             } else {
-                unsigned edx = (c->ch << 4) & 0xFFFFFFFFUL;
+                unsigned edx = (c->channel << 4) & 0xFFFFFFFFUL;
                 if (ty == 2) {
                     c->mmctx = (dec4c_rom8(0x424b3cUL + al) + edx + 0x229UL) & 0xFFFFFFFFUL;
                 } else if (ty == 3) {
@@ -1709,7 +1709,7 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
                         c->cnt3[ecx] >>= 1;
                     {
                         unsigned d = dec4c_rom8(0x424c3cUL + al);
-                        c->mmctx = (((c->ch << 5) & 0xFFFFFFFFUL) + d + 0x249UL) & 0xFFFFFFFFUL;
+                        c->mmctx = (((c->channel << 5) & 0xFFFFFFFFUL) + d + 0x249UL) & 0xFFFFFFFFUL;
                     }
                 } else if (ty == 4) {
                     c->mmctx = (dec4c_rom8(0x424b3cUL + al) + edx + 0x2a9UL) & 0xFFFFFFFFUL;
@@ -1747,8 +1747,8 @@ static void dec4c_after_symbol(dec4c_ctx *c, unsigned char sym, int dl)
         }
         {
             unsigned shift = c->g_e38c;
-            unsigned long esi = c->ch;
-            c->ch = rem;
+            unsigned long esi = c->channel;
+            c->channel = rem;
             c->g_e38b = (unsigned char)((c->c0 >> shift) & 0xFFUL);
             if (c->mmtype == 3) {
                 unsigned dl3 = (unsigned)(n % 6UL);
@@ -2294,17 +2294,17 @@ static unsigned long dec4c_o4_escape(dec4c_ctx *c, const unsigned char b[32],
     unsigned long ecx = (c698 - (unsigned long)b[0]) & 0xFFFFFFFFUL;
     unsigned long t = c698;
     if (ecx < 0x80UL) {
-        unsigned long edx, eax, idx, pa;
+        unsigned long ctx_same, ctx_level, idx, pa;
         if (bm) {
             unsigned long l2a = (c6a4 >> 8) & 0xE0UL;
-            edx = (((c6a4 & 0xE0UL) == l2a) ? 1UL : 0UL);
-            eax = (c6a4 & 0xC0UL) >> 5;
+            ctx_same = (((c6a4 & 0xE0UL) == l2a) ? 1UL : 0UL);
+            ctx_level = (c6a4 & 0xC0UL) >> 5;
         } else {
             unsigned long l2a = (unsigned long)dec4c_rom8(0x42738dUL + ((c6a4 >> 8) & 0xFFUL)) * 2UL;
-            edx = (unsigned long)dec4c_rom8(0x42738dUL + (c6a4 & 0xFFUL)) * 4UL + l2a;
-            eax = ((c6a4 & 0xFFUL) == 0xDFUL) ? 1UL : 0UL;
+            ctx_same = (unsigned long)dec4c_rom8(0x42738dUL + (c6a4 & 0xFFUL)) * 4UL + l2a;
+            ctx_level = ((c6a4 & 0xFFUL) == 0xDFUL) ? 1UL : 0UL;
         }
-        idx = eax + edx + ((rec[7] != 0) ? 8UL : 0UL) + ((c->g45c6b0 >= 6UL) ? 16UL : 0UL);
+        idx = ctx_level + ctx_same + ((rec[7] != 0) ? 8UL : 0UL) + ((c->g45c6b0 >= 6UL) ? 16UL : 0UL);
         {
             unsigned long lb0 = dec4c_rom32(0x4239f0UL + 4UL * (unsigned)b[0]);
             unsigned long lcx = dec4c_rom32(0x4239f0UL + 4UL * (ecx & 0xFFUL));
@@ -2714,7 +2714,7 @@ static unsigned long dec4c_delta_lookup(dec4c_ctx *c)
     unsigned long edx = c0 >> 8;
     unsigned long esi = c0 >> 16;
     unsigned bh = 0;
-    unsigned long eax;
+    unsigned long ctx_check;
     unsigned long ecx = esi & 0xFF00UL;
     unsigned long b0 = c0 & 0xFFUL;
     unsigned long c64c, cl, b4, ph, v, t7;
@@ -2734,14 +2734,14 @@ static unsigned long dec4c_delta_lookup(dec4c_ctx *c)
         check = 0x60000UL;
     else
         check = 0;
-    eax = check;
+    ctx_check = check;
     c->didx[0] = ((c1 >> 24) + ecx) & 0xFFFFFFFFUL;
     c->didx[1] = edx & 0xFFFFUL;
     c->didx[2] = esi & 0xFFFFUL;
     c->didx[3] = ((edx & 0xFF00UL) + b0) & 0xFFFFFFFFUL;
     c->didx[4] = ecx + (edx & 0xFFUL);
     c->didx[5] = ecx + b0;
-    c->didx[6] = ((c1 & 0xFFFFUL) + eax) & 0xFFFFFFFFUL;
+    c->didx[6] = ((c1 & 0xFFFFUL) + ctx_check) & 0xFFFFFFFFUL;
     if (b0 == 0xFFUL) {
         unsigned d;
         for (d = 1; d < 3U; d++) {
@@ -2915,14 +2915,14 @@ static void dec4c_order2(dec4c_ctx *c, unsigned long o2i,
             ecx = 1;
         }
         if (eax < 0x10UL) {
-            unsigned long edx;
+            unsigned long ctx_idx;
             if (bm)
-                edx = ((c6a4 & 0xC0UL) >> 5);
+                ctx_idx = ((c6a4 & 0xC0UL) >> 5);
             else {
-                edx = (unsigned long)dec4c_rom8(0x42738dUL + ((c6a4 >> 8) & 0xFFUL)) * 2UL +
+                ctx_idx = (unsigned long)dec4c_rom8(0x42738dUL + ((c6a4 >> 8) & 0xFFUL)) * 2UL +
                       (unsigned long)dec4c_rom8(0x42738dUL + (c6a4 & 0xFFUL)) * 4UL;
             }
-            ecx |= edx;
+            ecx |= ctx_idx;
         }
         if (bm && dec4c_recent(c, (unsigned char)s9))
             ecx |= 8UL;
@@ -3278,40 +3278,40 @@ static void dec4c_to_binary_mode(dec4c_ctx *c)
     unsigned long sv104 = c->g45d104;
     unsigned long mask = c->dictmask;
     unsigned char save[256];
-    unsigned long edx, eax, ecx, start;
+    unsigned long dpos, wpos, half, start;
     int i;
-    edx = c->pos;
+    dpos = c->pos;
     for (i = 0; i < 256; i++) {
-        save[i] = dec4c_tb(c, edx);
-        edx = (edx + 1UL) & mask;
+        save[i] = dec4c_tb(c, dpos);
+        dpos = (dpos + 1UL) & mask;
     }
-    ecx = (c->dictsize - 0x140UL) >> 1;
+    half = (c->dictsize - 0x140UL) >> 1;
     start = (c->pos + 0x140UL) & mask;
-    edx = (start + ecx) & mask;
-    if (ecx > c->nbytes)
-        edx = 0;
+    dpos = (start + half) & mask;
+    if (half > c->nbytes)
+        dpos = 0;
     c->g_e39b = 0;
-    eax = start;
-    while (edx != c->pos) {
-        unsigned bl = (unsigned char)(~dec4c_tb(c, edx));
-        unsigned long esi = (eax + 1UL) & mask;
+    wpos = start;
+    while (dpos != c->pos) {
+        unsigned bl = (unsigned char)(~dec4c_tb(c, dpos));
+        unsigned long esi = (wpos + 1UL) & mask;
         unsigned st = c->g_e39b;
         if (st == 1) {
             unsigned long ii = (unsigned long)(((unsigned char)(c->g_e39e - 0xA6U) * 0x0BUL) & 0xFFFFFFFFUL);
             c->g_e39b = 0;
-            c->dict[eax] = (unsigned char)(~dec4c_rom8(0x427179UL + ii + bl));
-            eax = esi;
+            c->dict[wpos] = (unsigned char)(~dec4c_rom8(0x427179UL + ii + bl));
+            wpos = esi;
         } else if (bl < 0x80UL && st == 0) {
-            c->dict[eax] = (unsigned char)(~bl);
-            eax = esi;
+            c->dict[wpos] = (unsigned char)(~bl);
+            wpos = esi;
         } else {
-            unsigned long edi = (eax + 1UL) & mask;
+            unsigned long edi = (wpos + 1UL) & mask;
             unsigned bh = dec4c_rom8(0x42711fUL + bl);
             if (bh >= 0xC8UL) {
                 bl = (bl - c->g_e39b) & 0xFFUL;
                 c->g_e39b = 0;
-                c->dict[eax] = (unsigned char)(~bl);
-                eax = edi;
+                c->dict[wpos] = (unsigned char)(~bl);
+                wpos = edi;
             } else if (bh == 0x64UL) {
                 c->g_e39b = 1;
                 c->g_e39e = (unsigned char)bl;
@@ -3322,29 +3322,29 @@ static void dec4c_to_binary_mode(dec4c_ctx *c)
                 unsigned cnt = dec4c_rom8(0x426c53UL + bh);
                 if (c->g_e39b != 0) {
                     c->g_e39b = 0;
-                    c->dict[eax] = (unsigned char)(dec4c_rom8(src) + 0x20UL);
-                    eax = edi;
+                    c->dict[wpos] = (unsigned char)(dec4c_rom8(src) + 0x20UL);
+                    wpos = edi;
                     src = (src + 1UL) & 0xFFFFFFFFUL;
                     cnt = (cnt - 1UL) & 0xFFUL;
                 }
                 for (;;) {
-                    c->dict[eax] = dec4c_rom8(src);
-                    eax = (eax + 1UL) & mask;
+                    c->dict[wpos] = dec4c_rom8(src);
+                    wpos = (wpos + 1UL) & mask;
                     src = (src + 1UL) & 0xFFFFFFFFUL;
-                    if (edx == eax) break;
+                    if (dpos == wpos) break;
                     cnt = (cnt - 1UL) & 0xFFUL;
                     if (cnt == 0) break;
                 }
             }
         }
-        if (edx == eax) break;
-        edx = (edx + 1UL) & mask;
+        if (dpos == wpos) break;
+        dpos = (dpos + 1UL) & mask;
     }
-    c->g45d140 = (c->g45d140 + eax - c->pos) & mask;
+    c->g45d140 = (c->g45d140 + wpos - c->pos) & mask;
     c->g_e39b = 0;
-    c->pos = eax;
+    c->pos = wpos;
     {
-        unsigned long e = eax;
+        unsigned long e = wpos;
         for (i = 0; i < 256; i++) {
             c->dict[e] = save[i];
             e = (e + 1UL) & mask;
@@ -3630,7 +3630,7 @@ static unsigned char dec4c_o1_symbol(dec4c_ctx *c, unsigned long ctx)
                 unsigned fo_i = dec4c_cx(c->g45c690);
                 unsigned s16;
                 unsigned long t2;
-                unsigned long v2;
+                unsigned long esc_total;
                 unsigned k;
                 int fail = 0;
                 memset(bm, 0, sizeof(bm));
@@ -3640,14 +3640,14 @@ static unsigned char dec4c_o1_symbol(dec4c_ctx *c, unsigned long ctx)
                 dec4c_rc_dec(c, lo, hi);
                 s16 = (unsigned)dec4c_masked_sum(c, fo_i, cc, bm);
                 t2 = ((unsigned long)c->o1t[fo_i][0][0] - s16) & 0xFFFFFFFFUL;
-                v2 = dec4c_rc_div(c, t2) & 0xFFFFUL;
+                esc_total = dec4c_rc_div(c, t2) & 0xFFFFUL;
                 s16 = 0;
                 k = 0x100U;
                 for (;;) {
                     k -= 1U;
                     if (c->o1t[cc][1][k] == 0 && !bm[k])
                         s16 = (s16 + (unsigned)c->o1t[fo_i][1][k]) & 0xFFFFU;
-                    if (s16 > v2)
+                    if (s16 > esc_total)
                         break;
                     if (k == 0) {
                         fail = 1;
@@ -3881,36 +3881,36 @@ static unsigned char dec4c_o1_decode(dec4c_ctx *c, unsigned long ctx, unsigned l
             dec4c_o1_cost(c, ctx, sym);
         } else {
             unsigned o0 = 0x302UL + flag;
-            unsigned long ecx;
+            unsigned long saved_cost;
             unsigned long c10;
             if (c->avg_a[flag] >= c->avg_b[flag]) {
                 sym = dec4c_o1_symbol(c, ctx);
-                ecx = c->g45c648;
+                saved_cost = c->g45c648;
                 c->g45c690 = o0;
                 c->g45c648 = 0;
                 dec4c_o1_cost(c, 0x200UL, sym);
                 c10 = c->g45c648;
-                c->g45c648 = ecx;
+                c->g45c648 = saved_cost;
             } else {
                 c->g45c690 = o0;
                 sym = dec4c_o1_symbol(c, 0x200UL);
-                ecx = c->g45c648;
+                saved_cost = c->g45c648;
                 c->g45c690 = fb;
                 c->g45c648 = 0;
-                c10 = ecx;
+                c10 = saved_cost;
                 dec4c_o1_cost(c, ctx, sym);
             }
             if (c->g_e39f != 0)
-                c->g45c668 = (c->g45c668 + ecx) & 0xFFFFFFFFUL;
+                c->g45c668 = (c->g45c668 + saved_cost) & 0xFFFFFFFFUL;
             {
                 unsigned i = c->g_e3a1 & 3U;
                 c->qsym[i] = sym;
-                c->ring[c->g45c650 & 0xFFUL] = ecx;
+                c->ring[c->g45c650 & 0xFFUL] = saved_cost;
                 c->qctx[i] = 0x200UL;
                 c->qfb[i] = o0;
                 c->avg_a[flag] = ((c->avg_a[flag] * 0x1FUL) >> 5) + c10;
                 single = 0;
-                c->g45c644 = (c->g45c644 + ecx) & 0xFFFFFFFFUL;
+                c->g45c644 = (c->g45c644 + saved_cost) & 0xFFFFFFFFUL;
                 c->g_e3a1 = (unsigned char)(c->g_e3a1 + 1U);
             }
         }
@@ -4282,13 +4282,13 @@ static void dec4c_decode_symbol(dec4c_ctx *c)
         dec4c_delta_update(c, sym);
     if (l52) {
         unsigned char al = (unsigned char)(sym - c->g_e38b);
-        unsigned long edx, eax;
+        unsigned long fb_ctx, mm_ctx;
         if (c->g_e38e != 0)
             al = (unsigned char)(0U - al);
-        edx = (unsigned long)c->mmtype + 0x304UL;
-        eax = c->mmctx;
+        fb_ctx = (unsigned long)c->mmtype + 0x304UL;
+        mm_ctx = c->mmctx;
         c->nex = 0;
-        dec4c_o1_cost_avg(c, eax, edx, al);
+        dec4c_o1_cost_avg(c, mm_ctx, fb_ctx, al);
         if (c->g_e39f != 0)
             c->g45c658 = (c->g45c658 + c->g45c668) & 0xFFFFFFFFUL;
         c->g45c654 = (((c->g45c654 * 0x1FUL) >> 5) + c->g45c658) & 0xFFFFFFFFUL;

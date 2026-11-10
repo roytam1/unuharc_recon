@@ -2477,39 +2477,39 @@ static void d5v_pred_train(d5v *d, unsigned sym, unsigned dlt)
     unsigned rate = (unsigned)d->c87c;
     unsigned sb = sym & 0xFFu;
     unsigned db = dlt & 0xFFu;
-    long v100, v99, v51;
+    long sym_bias, pred_next, pred_bias;
 
     if (g >= 7u) {
         long *v = d->pred43 + 31u * rate;
 
         d->pred70dc[rate] = d->s90e;
-        if (g < 8u) v100 = (long)sb - 128;
-        else v100 = (long)(signed char)sb;
+        if (g < 8u) sym_bias = (long)sb - 128;
+        else sym_bias = (long)(signed char)sb;
 
-        v51 = (long)(signed char)((unsigned char)d5v_u32(d->predbc[0])
-                                  - (unsigned char)v100) * 16;
-        v[12] += (long)d5v_abs12(v51);
-        v[13] += (long)d5v_abs12(d5v_sub32(v51, v[0]));
-        v[14] += (long)d5v_abs12(d5v_add32(v51, v[0]));
-        v[15] += (long)d5v_abs12(d5v_sub32(v51, v[1]));
-        v[16] += (long)d5v_abs12(d5v_add32(v51, v[1]));
-        v[17] += (long)d5v_abs12(d5v_sub32(v51, v[2]));
-        v[18] += (long)d5v_abs12(d5v_add32(v51, v[2]));
-        v[19] += (long)d5v_abs12(d5v_sub32(v51, v[3]));
-        v[20] += (long)d5v_abs12(d5v_add32(v51, v[3]));
-        v[21] += (long)d5v_abs12(d5v_sub32(v51, d->pred2b4));
-        v[22] += (long)d5v_abs12(d5v_add32(v51, d->pred2b4));
+        pred_bias = (long)(signed char)((unsigned char)d5v_u32(d->predbc[0])
+                                  - (unsigned char)sym_bias) * 16;
+        v[12] += (long)d5v_abs12(pred_bias);
+        v[13] += (long)d5v_abs12(d5v_sub32(pred_bias, v[0]));
+        v[14] += (long)d5v_abs12(d5v_add32(pred_bias, v[0]));
+        v[15] += (long)d5v_abs12(d5v_sub32(pred_bias, v[1]));
+        v[16] += (long)d5v_abs12(d5v_add32(pred_bias, v[1]));
+        v[17] += (long)d5v_abs12(d5v_sub32(pred_bias, v[2]));
+        v[18] += (long)d5v_abs12(d5v_add32(pred_bias, v[2]));
+        v[19] += (long)d5v_abs12(d5v_sub32(pred_bias, v[3]));
+        v[20] += (long)d5v_abs12(d5v_add32(pred_bias, v[3]));
+        v[21] += (long)d5v_abs12(d5v_sub32(pred_bias, d->pred2b4));
+        v[22] += (long)d5v_abs12(d5v_add32(pred_bias, d->pred2b4));
 
         v[23] += (long)d5v_t433140[(unsigned char)(
-            (unsigned char)d5v_u32(d->predbc[0]) - (unsigned char)v100)];
+            (unsigned char)d5v_u32(d->predbc[0]) - (unsigned char)sym_bias)];
         v[24] += (long)d5v_t433140[(unsigned char)(
-            (unsigned char)d5v_u32(v[10]) - (unsigned char)v100)];
+            (unsigned char)d5v_u32(v[10]) - (unsigned char)sym_bias)];
 
-        v[11] = (long)(signed char)((unsigned char)v100
+        v[11] = (long)(signed char)((unsigned char)sym_bias
                                     - (unsigned char)d5v_u32(v[10]));
         d->pred2b4 = v[11];
         v[27] = d5v_add32(v[27], 1);
-        v[10] = v100;
+        v[10] = sym_bias;
         if (!((unsigned char)d5v_u32(v[27]) & 0x0Fu)) d5v_pred_adapt(d, v);
 
         if (g == 9u) {
@@ -2528,33 +2528,33 @@ static void d5v_pred_train(d5v *d, unsigned sym, unsigned dlt)
     }
 
     /* groups 5 and 6: the short-range linear predictor */
-    if (g == 6u) v100 = (long)(signed char)sb;
-    else v100 = (long)sb - 128;
-    v99 = d5v_sub32(v100, d->pred2ac);
-    v51 = (long)(signed char)((unsigned char)d5v_u32(d->predbc[3])
-                              - (unsigned char)v100) * 16;
+    if (g == 6u) sym_bias = (long)(signed char)sb;
+    else sym_bias = (long)sb - 128;
+    pred_next = d5v_sub32(sym_bias, d->pred2ac);
+    pred_bias = (long)(signed char)((unsigned char)d5v_u32(d->predbc[3])
+                              - (unsigned char)sym_bias) * 16;
 
-    d->pred43[12] += (long)d5v_abs12(v51);
-    d->pred43[13] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[0]));
-    d->pred43[14] += (long)d5v_abs12(d5v_add32(v51, d->pred43[0]));
-    d->pred43[15] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[1]));
-    d->pred43[16] += (long)d5v_abs12(d5v_add32(v51, d->pred43[1]));
-    d->pred43[17] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[2]));
-    d->pred43[18] += (long)d5v_abs12(d5v_add32(v51, d->pred43[2]));
-    d->pred43[19] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[3]));
-    d->pred43[20] += (long)d5v_abs12(d5v_add32(v51, d->pred43[3]));
-    d->pred43[21] += (long)d5v_abs12(d5v_sub32(v51, d->pred43[4]));
-    d->pred43[22] += (long)d5v_abs12(d5v_add32(v51, d->pred43[4]));
+    d->pred43[12] += (long)d5v_abs12(pred_bias);
+    d->pred43[13] += (long)d5v_abs12(d5v_sub32(pred_bias, d->pred43[0]));
+    d->pred43[14] += (long)d5v_abs12(d5v_add32(pred_bias, d->pred43[0]));
+    d->pred43[15] += (long)d5v_abs12(d5v_sub32(pred_bias, d->pred43[1]));
+    d->pred43[16] += (long)d5v_abs12(d5v_add32(pred_bias, d->pred43[1]));
+    d->pred43[17] += (long)d5v_abs12(d5v_sub32(pred_bias, d->pred43[2]));
+    d->pred43[18] += (long)d5v_abs12(d5v_add32(pred_bias, d->pred43[2]));
+    d->pred43[19] += (long)d5v_abs12(d5v_sub32(pred_bias, d->pred43[3]));
+    d->pred43[20] += (long)d5v_abs12(d5v_add32(pred_bias, d->pred43[3]));
+    d->pred43[21] += (long)d5v_abs12(d5v_sub32(pred_bias, d->pred43[4]));
+    d->pred43[22] += (long)d5v_abs12(d5v_add32(pred_bias, d->pred43[4]));
 
-    d->pred43[11] = (long)(signed char)((unsigned char)v100
+    d->pred43[11] = (long)(signed char)((unsigned char)sym_bias
                                         - (unsigned char)d5v_u32(d->pred43[10]));
     d->pred43[27] = d5v_add32(d->pred43[27], 1);
-    d->pred43[10] = v100;
+    d->pred43[10] = sym_bias;
     if (!((unsigned char)d5v_u32(d->pred43[27]) & 0x0Fu))
         d5v_pred_adapt(d, d->pred43);
 
     /* dword_4454BC history, indexed by the low 7 bits of pos */
-    d->pred4bc[(unsigned)d->pos & 0x7Fu] = v99;
+    d->pred4bc[(unsigned)d->pos & 0x7Fu] = pred_next;
 
     /* order search every N bytes; the mask depends on the previous call's
      * order (dword_431928: 0x7F for 0..3, 7 for 4, 3 for 5) */
@@ -2564,27 +2564,27 @@ static void d5v_pred_train(d5v *d, unsigned sym, unsigned dlt)
         if (!((unsigned)d->pos
               & (unsigned)osearch[prevord > 5u ? 0u : prevord])) {
             unsigned long v28 = 0xFFFFUL;
-            unsigned long v30;
+            unsigned long cost_idx;
             d->pred2a4 = 2;
             d->pred2a8 = 2;
-            for (v30 = 2; v30 < 0x7Cu; v30++) {
+            for (cost_idx = 2; cost_idx < 0x7Cu; cost_idx++) {
                 unsigned long p = (unsigned)d->pos;
                 unsigned long a, b, c, v31;
                 a = d5v_abs12(d->pred4bc[(p - 1u) & 0x7Fu]
-                              - d->pred4bc[(p - 1u - v30) & 0x7Fu]);
+                              - d->pred4bc[(p - 1u - cost_idx) & 0x7Fu]);
                 b = d5v_abs12(d->pred4bc[p & 0x7Fu]
-                              - d->pred4bc[(p - v30) & 0x7Fu]);
+                              - d->pred4bc[(p - cost_idx) & 0x7Fu]);
                 c = d5v_abs12(d->pred4bc[(p - 2u) & 0x7Fu]
-                              - d->pred4bc[(p - 2u - v30) & 0x7Fu]);
+                              - d->pred4bc[(p - 2u - cost_idx) & 0x7Fu]);
                 v31 = a + b + c;
-                d->pred2bc[v30] = (long)(v31
-                    + ((13UL * (unsigned long)d->pred2bc[v30]) >> 4));
-                if ((unsigned long)d->pred2bc[v30]
+                d->pred2bc[cost_idx] = (long)(v31
+                    + ((13UL * (unsigned long)d->pred2bc[cost_idx]) >> 4));
+                if ((unsigned long)d->pred2bc[cost_idx]
                     < (unsigned long)d->pred2bc[d->pred2a4])
-                    d->pred2a4 = (long)v30;
+                    d->pred2a4 = (long)cost_idx;
                 if (v31 < v28) {
                     v28 = v31;
-                    d->pred2a8 = (long)v30;
+                    d->pred2a8 = (long)cost_idx;
                 }
             }
         }
@@ -2599,24 +2599,24 @@ static void d5v_pred_train(d5v *d, unsigned sym, unsigned dlt)
         unsigned char idx = (unsigned char)((unsigned)d->pos & 0xFFu);
         long diff[6];
         unsigned o;
-        diff[0] = d5v_sub32(v100, d->predbc[0]);
-        diff[1] = d5v_sub32(v100, d->predbc[1]);
-        diff[2] = d5v_sub32(v100, d->predbc[2]);
-        diff[3] = d5v_sub32(v100, d->predbc[3]);
-        diff[4] = d5v_sub32(v99, d->predbc[4]);
-        diff[5] = d5v_sub32(v99, d->predbc[5]);
+        diff[0] = d5v_sub32(sym_bias, d->predbc[0]);
+        diff[1] = d5v_sub32(sym_bias, d->predbc[1]);
+        diff[2] = d5v_sub32(sym_bias, d->predbc[2]);
+        diff[3] = d5v_sub32(sym_bias, d->predbc[3]);
+        diff[4] = d5v_sub32(pred_next, d->predbc[4]);
+        diff[5] = d5v_sub32(pred_next, d->predbc[5]);
         d->pred2a0 = 0;
         for (o = 0; o < 6u; o++) {
             long *cw = d->p6cost + (size_t)o * 257u;
-            long v36;
+            long cost_val;
             cw[256] = d5v_sub32(cw[256], cw[(unsigned)idx]);
-            v36 = (long)d5v_t431940[(unsigned long)diff[o] & 0x1FFUL];
-            cw[(unsigned)idx] = v36;
-            cw[256] = d5v_add32(cw[256], v36);
+            cost_val = (long)d5v_t431940[(unsigned long)diff[o] & 0x1FFUL];
+            cw[(unsigned)idx] = cost_val;
+            cw[256] = d5v_add32(cw[256], cost_val);
 #if U4_DEBUG
-            fprintf(stderr, "    ord o=%u sum=%ld cmp=%ld diff=%ld v36=%ld -> ",
+            fprintf(stderr, "    ord o=%u sum=%ld cmp=%ld diff=%ld cost_val=%ld -> ",
                     o, cw[256], d->p6cost[(size_t)d->pred2a0 * 257u + 256u],
-                    diff[o], v36);
+                    diff[o], cost_val);
 #endif
             if (cw[256]
                 < d->p6cost[(size_t)d->pred2a0 * 257u + 256u])
@@ -2628,7 +2628,7 @@ static void d5v_pred_train(d5v *d, unsigned sym, unsigned dlt)
     }
 
     d->pred2b0 = d->pred2ac;
-    d->pred2ac = v100;
+    d->pred2ac = sym_bias;
     d->pred43[28] = d5v_add32(d5v_u32(d->pred43[28]) << 8, (long)db);
     d->pred43[29] = d5v_add32(d5v_u32(d->pred43[29]) << 8,
                               (long)d5v_t432140[db]);
@@ -2927,26 +2927,26 @@ static unsigned d5v_lit(d5v *d, unsigned ctx, unsigned model)
         unsigned raw = d5v_sym(d, ctx);
         unsigned ebp = d->p88c;
         unsigned edi;
-        unsigned char cl;
+        unsigned char sym_byte;
         if (d->err) return 0;
         d->p88c = 0;
         d->escctx = 1029u;
         d->s913 = 0;
         if (d->hasprev)
-            cl = d->s90e ? (unsigned char)(d->prevb - raw)
+            sym_byte = d->s90e ? (unsigned char)(d->prevb - raw)
                          : (unsigned char)(d->prevb + raw);
-        else cl = (unsigned char)raw;
+        else sym_byte = (unsigned char)raw;
 #if U4_DEBUG
-        fprintf(stderr, "    direct raw=%u prevb=%02X s90e=%u cl=%02X\n",
-                raw, (unsigned)d->prevb, (unsigned)d->s90e, (unsigned)cl);
+        fprintf(stderr, "    direct raw=%u prevb=%02X s90e=%u sym_byte=%02X\n",
+                raw, (unsigned)d->prevb, (unsigned)d->s90e, (unsigned)sym_byte);
 #endif
-        d5v_cost(d, 0x300u, (unsigned)cl);
+        d5v_cost(d, 0x300u, (unsigned)sym_byte);
         edi = d->p88c;
         var18 = (unsigned char)raw;
         f20 = 1;
         d->escctx = 1029u;
         d->p88c = ebp;
-        d5v_update(d, (unsigned)cl, 0x300u);
+        d5v_update(d, (unsigned)sym_byte, 0x300u);
         d->p894 = ((d->p894 * 31u) >> 5) + edi;
         d->escctx = model;
         f1c = 0;

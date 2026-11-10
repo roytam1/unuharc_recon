@@ -474,7 +474,7 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
     unsigned long total;
     unsigned long scaled;
     unsigned long esc_total;
-    unsigned long v42;
+    unsigned long total_scaled;
     int have_eb;
     int eb_on;
     unsigned eb;
@@ -487,7 +487,7 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
     unsigned short *f318;
     unsigned short xsum;
     unsigned i;
-    unsigned long v17;
+    unsigned long acc_scaled;
     unsigned long s2;
     unsigned short acc;
     unsigned v40;
@@ -526,7 +526,7 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
         p = 0;
         rem = (unsigned)(total - scaled);
         if (have_eb) {
-            v42 = r[eb];
+            total_scaled = r[eb];
             eb_on = 1;
             for (step = 128; step != 0; step >>= 1) {
                 q = p + step;
@@ -535,10 +535,10 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
                         p = q;
                         rem -= f[q];
                     }
-                } else if (f[q] < v42 + rem) {
+                } else if (f[q] < total_scaled + rem) {
                     p = q;
                     eb_on = 0;
-                    rem = (rem - f[q] + (unsigned)v42) & 0xFFFFU;
+                    rem = (rem - f[q] + (unsigned)total_scaled) & 0xFFFFU;
                 }
             }
         } else {
@@ -576,12 +576,12 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
             if (r[i] != 0) xsum = (unsigned short)(xsum + r318[i]);
         }
         if (have_eb && r[eb] == 0) xsum = (unsigned short)(xsum + r318[eb]);
-        v17 = (f318[0] - xsum) & D3_M32;
-        if (v17 == 0) {
+        acc_scaled = (f318[0] - xsum) & D3_M32;
+        if (acc_scaled == 0) {
             d->err = 7;
             return 0;
         }
-        d->range /= v17;
+        d->range /= acc_scaled;
         if (d->range == 0) {
             d->err = 7;
             return 0;

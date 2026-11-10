@@ -259,22 +259,22 @@ void d3u_progress_callback(dec3w_ctx *c)
  * until 444EF8 >= 444EE4. Returns 444EF8. */
 void d3u_decode_stream(dec3w_ctx *c)
 {
-    unsigned int eax;
+    unsigned int out_pos;
     d3u_rc_init(c);
     d3u_primer(c);
     do {
-        eax = G32(D3U_OUT_TOTAL_POS);
-        if (eax >= G32(D3U_PRIMER_TOTAL))
+        out_pos = G32(D3U_OUT_TOTAL_POS);
+        if (out_pos >= G32(D3U_PRIMER_TOTAL))
             d3u_topup_dict_rebuild(c);
-        eax = G32(D3U_OUT_TOTAL_POS);
-        if (eax >= G32(D3U_TBL_444230))
+        out_pos = G32(D3U_OUT_TOTAL_POS);
+        if (out_pos >= G32(D3U_TBL_444230))
             d3u_topup_model_reinit(c);
-        eax = d3u_decode_match(c, 0U);
-        if ((eax & 0xFFU) == 0U)
+        out_pos = d3u_decode_match(c, 0U);
+        if ((out_pos & 0xFFU) == 0U)
             d3u_decode_fallback(c, 0U);
         d3u_progress_callback(c);
-        eax = G32(D3U_OUT_TOTAL_POS);
-    } while (eax < G32(D3U_OUT_TOTAL_LEN));
+        out_pos = G32(D3U_OUT_TOTAL_POS);
+    } while (out_pos < G32(D3U_OUT_TOTAL_LEN));
 }
 
 int uharc_dec4u_init(void **pctx, int method)

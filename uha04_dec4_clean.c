@@ -267,19 +267,19 @@ static void d4v_rc_reset(dec4v_ctx *c) /* range reset (orig d4v_426f70) */
  * Entry regs: none. */
 static void d4v_rc_init(dec4v_ctx *c) /* range prime: 5 bytes BE (orig d4v_426f30) */
 {
-    unsigned int edx;
-    unsigned int ecx;
-    unsigned int eax;
+    unsigned int i;
+    unsigned int byte;
+    unsigned int code;
     G32(D4V_RC_CODE) = 0; /* 0x426F39 */
     G32(D4V_RC_RANGE) = 0xFFFFFFFFUL; /* 0x426F3F */
-    eax = 0;
-    for (edx = 0; edx < 5; edx++) { /* 0x426F45 loc_426F45 */
-        ecx = 0; /* 0x426F45 xor ecx,ecx */
-        ecx = d4v_get_byte(c) & 0xFFU; /* 0x426F47 call 4220B0; 0x426F4C mov cl,al */
-        eax = G32(D4V_RC_CODE); /* 0x426F4E */
-        eax = ((eax << 8) | ecx) & 0xFFFFFFFFUL; /* 0x426F53 shl; 0x426F56 or */
-        G32(D4V_RC_CODE) = eax; /* 0x426F59 */
-    } /* 0x426F5E cmp edx,5; 0x426F61 jb */
+    code = 0;
+    for (i = 0; i < 5; i++) { /* 0x426F45 loc_426F45 */
+        byte = 0; /* 0x426F45 xor byte,byte */
+        byte = d4v_get_byte(c) & 0xFFU; /* 0x426F47 call 4220B0; 0x426F4C mov cl,al */
+        code = G32(D4V_RC_CODE); /* 0x426F4E */
+        code = ((code << 8) | byte) & 0xFFFFFFFFUL; /* 0x426F53 shl; 0x426F56 or */
+        G32(D4V_RC_CODE) = code; /* 0x426F59 */
+    } /* 0x426F5E cmp i,5; 0x426F61 jb */
 }
 
 
@@ -313,115 +313,115 @@ static void d4v_rcrenorm_reg(dec4v_ctx *c, unsigned int *pcode, unsigned int *pr
  * explicitly and the first half uses the same [eax+4]/[eax+8] shape). */
 static void d4v_rc_primer(dec4v_ctx *c) /* range reader init + primer (orig d4v_41f2a0) */
 {
-    unsigned int edx;
-    unsigned int ecx;
-    unsigned int eax;
-    unsigned int ebx;
-    unsigned int edi;
-    unsigned int esi = D4V_RSLOT_LO;
-    unsigned int ebp;
-    unsigned int var_1c;
-    edx = 2; ecx = 2;
-    G32(D4V_RSLOT_LO) = edx;
-    eax = G32(D4V_RC_RANGE);
-    edx = 0;
-    /* div ecx(2) */
-    ebx = eax; eax = ebx / ecx;
-    edx = 0;
-    G32(D4V_RC_RANGE) = eax;
-    ecx = eax;
-    eax = G32(D4V_RC_CODE);
-    /* div ecx */
-    ebx = eax; eax = ecx ? ebx / ecx : 0; edx = ecx ? ebx % ecx : 0;
-    ebx = eax;
-    G8(D4V_CTX_B_45C67F) = (unsigned char)ebx;
-    eax = ebx;
-    G32(D4V_RSLOT_MID) = eax;
-    eax = ebx + 1;
-    G32(D4V_RSLOT_HI) = eax;
-    eax = esi;
-    edx = M32(eax + 8);
-    eax = M32(eax + 4);
-    ecx = G32(D4V_RC_RANGE);
-    edx = edx - eax;
-    eax = eax * ecx;
-    edx = edx * ecx;
-    ecx = G32(D4V_RC_CODE);
-    ecx = ecx - eax;
-    d4v_rcrenorm(c, &ecx, &edx);
-    G32(D4V_RC_CODE) = ecx;
-    G32(D4V_RC_RANGE) = edx;
+    unsigned int rem;
+    unsigned int divisor;
+    unsigned int val;
+    unsigned int dividend;
+    unsigned int prefix_sum;
+    unsigned int slot_base = D4V_RSLOT_LO;
+    unsigned int saved_two;
+    unsigned int counter;
+    rem = 2; divisor = 2;
+    G32(D4V_RSLOT_LO) = rem;
+    val = G32(D4V_RC_RANGE);
+    rem = 0;
+    /* div divisor(2) */
+    dividend = val; val = dividend / divisor;
+    rem = 0;
+    G32(D4V_RC_RANGE) = val;
+    divisor = val;
+    val = G32(D4V_RC_CODE);
+    /* div divisor */
+    dividend = val; val = divisor ? dividend / divisor : 0; rem = divisor ? dividend % divisor : 0;
+    dividend = val;
+    G8(D4V_CTX_B_45C67F) = (unsigned char)dividend;
+    val = dividend;
+    G32(D4V_RSLOT_MID) = val;
+    val = dividend + 1;
+    G32(D4V_RSLOT_HI) = val;
+    val = slot_base;
+    rem = M32(val + 8);
+    val = M32(val + 4);
+    divisor = G32(D4V_RC_RANGE);
+    rem = rem - val;
+    val = val * divisor;
+    rem = rem * divisor;
+    divisor = G32(D4V_RC_CODE);
+    divisor = divisor - val;
+    d4v_rcrenorm(c, &divisor, &rem);
+    G32(D4V_RC_CODE) = divisor;
+    G32(D4V_RC_RANGE) = rem;
     if (G8(D4V_CTX_B_45C67F))
         return;
-    ecx = 0;
-    var_1c = 0;
-    esi = D4V_RSLOT_LO;
-    ebp = 2;
+    divisor = 0;
+    counter = 0;
+    slot_base = D4V_RSLOT_LO;
+    saved_two = 2;
     for (;;) {
-        ebx = 0x800;
-        G32(D4V_RSLOT_LO) = ebx;
-        ecx = ebx;
-        ebx = 0;
-        eax = G32(D4V_RC_RANGE);
-        edx = 0;
-        ebx = eax; eax = ebx / ecx;
-        G32(D4V_RC_RANGE) = eax;
-        ecx = eax;
-        eax = G32(D4V_RC_CODE);
-        ebx = eax; eax = ecx ? ebx / ecx : 0;
-        ebx = eax & 0xFFFFU;
-        G32(D4V_RSLOT_MID) = ebx;
-        eax = ebx + 1;
-        G32(D4V_RSLOT_HI) = eax;
-        eax = esi;
-        edx = M32(eax + 8);
-        eax = M32(eax + 4);
-        ecx = G32(D4V_RC_RANGE);
-        edx = edx - eax;
-        eax = eax * ecx;
-        edx = edx * ecx;
-        ecx = G32(D4V_RC_CODE);
-        ecx = ecx - eax;
-        d4v_rcrenorm(c, &ecx, &edx);
-        G32(D4V_RC_CODE) = ecx;
-        G32(D4V_RC_RANGE) = edx;
+        dividend = 0x800;
+        G32(D4V_RSLOT_LO) = dividend;
+        divisor = dividend;
+        dividend = 0;
+        val = G32(D4V_RC_RANGE);
+        rem = 0;
+        dividend = val; val = dividend / divisor;
+        G32(D4V_RC_RANGE) = val;
+        divisor = val;
+        val = G32(D4V_RC_CODE);
+        dividend = val; val = divisor ? dividend / divisor : 0;
+        dividend = val & 0xFFFFU;
+        G32(D4V_RSLOT_MID) = dividend;
+        val = dividend + 1;
+        G32(D4V_RSLOT_HI) = val;
+        val = slot_base;
+        rem = M32(val + 8);
+        val = M32(val + 4);
+        divisor = G32(D4V_RC_RANGE);
+        rem = rem - val;
+        val = val * divisor;
+        rem = rem * divisor;
+        divisor = G32(D4V_RC_CODE);
+        divisor = divisor - val;
+        d4v_rcrenorm(c, &divisor, &rem);
+        G32(D4V_RC_CODE) = divisor;
+        G32(D4V_RC_RANGE) = rem;
         {
-            unsigned int cl = var_1c & 0xFFU;
-            eax = var_1c;
-            edi = G32(D4V_PREFIX_SUM_TMP);
-            G32(D4V_RSLOT_LO) = ebp;
-            eax = eax + 0x0BU;
-            ebx = (ebx << cl) & 0xFFFFFFFFUL;
-            var_1c = eax;
-            edi = edi + ebx;
-            ecx = ebp;
-            G32(D4V_PREFIX_SUM_TMP) = edi;
+            unsigned int cl = counter & 0xFFU;
+            val = counter;
+            prefix_sum = G32(D4V_PREFIX_SUM_TMP);
+            G32(D4V_RSLOT_LO) = saved_two;
+            val = val + 0x0BU;
+            dividend = (dividend << cl) & 0xFFFFFFFFUL;
+            counter = val;
+            prefix_sum = prefix_sum + dividend;
+            divisor = saved_two;
+            G32(D4V_PREFIX_SUM_TMP) = prefix_sum;
         }
-        ebx = 0;
-        eax = G32(D4V_RC_RANGE);
-        edx = 0;
-        ebx = eax; eax = ecx ? ebx / ecx : 0;
-        G32(D4V_RC_RANGE) = eax;
-        ecx = eax;
-        eax = G32(D4V_RC_CODE);
-        ebx = eax; eax = ecx ? ebx / ecx : 0;
-        ebx = eax & 0xFFFFU;
-        G32(D4V_RSLOT_MID) = ebx;
-        eax = ebx + 1;
-        G32(D4V_RSLOT_HI) = eax;
-        eax = esi;
-        edx = M32(eax + 8);
-        eax = M32(eax + 4);
-        ecx = G32(D4V_RC_RANGE);
-        edx = edx - eax;
-        eax = eax * ecx;
-        edx = edx * ecx;
-        ecx = G32(D4V_RC_CODE);
-        ecx = ecx - eax;
-        d4v_rcrenorm(c, &ecx, &edx);
-        G32(D4V_RC_CODE) = ecx;
-        G32(D4V_RC_RANGE) = edx;
-        if (!ebx) break;
+        dividend = 0;
+        val = G32(D4V_RC_RANGE);
+        rem = 0;
+        dividend = val; val = divisor ? dividend / divisor : 0;
+        G32(D4V_RC_RANGE) = val;
+        divisor = val;
+        val = G32(D4V_RC_CODE);
+        dividend = val; val = divisor ? dividend / divisor : 0;
+        dividend = val & 0xFFFFU;
+        G32(D4V_RSLOT_MID) = dividend;
+        val = dividend + 1;
+        G32(D4V_RSLOT_HI) = val;
+        val = slot_base;
+        rem = M32(val + 8);
+        val = M32(val + 4);
+        divisor = G32(D4V_RC_RANGE);
+        rem = rem - val;
+        val = val * divisor;
+        rem = rem * divisor;
+        divisor = G32(D4V_RC_CODE);
+        divisor = divisor - val;
+        d4v_rcrenorm(c, &divisor, &rem);
+        G32(D4V_RC_CODE) = divisor;
+        G32(D4V_RC_RANGE) = rem;
+        if (!dividend) break;
     }
     G32(D4V_LZP_TRIGGER) = G32(D4V_PREFIX_SUM_TMP);
 }
@@ -530,25 +530,25 @@ static void d4v_emit(dec4v_ctx *c, unsigned int a1, unsigned int a2)
  * or 436EC8 error. */
 static void d4v_decode_block(dec4v_ctx *c)
 {
-    unsigned int eax;
-    unsigned int edx;
+    unsigned int out_total;
+    unsigned int limit;
     d4v_rc_init(c);
     d4v_rc_primer(c);
     for (;;) {
-        eax = G32(D4V_IO_OUT_TOTAL);
-        if (eax >= G32(D4V_LZP_TRIGGER))
+        out_total = G32(D4V_IO_OUT_TOTAL);
+        if (out_total >= G32(D4V_LZP_TRIGGER))
             d4vc_lzp(c);
-        eax = G32(D4V_IO_OUT_TOTAL);
-        if (eax >= G32(D4V_TBL_45AFB4))
+        out_total = G32(D4V_IO_OUT_TOTAL);
+        if (out_total >= G32(D4V_TBL_45AFB4))
             d4vc_ppm(c);
-        eax = d4vc_ppmdec(c);
-        if (!(eax & 0xFFU))
-            d4vc_sym(c, eax);
-        edx = G32(D4V_IO_IN_TOTAL);
-        eax = G32(D4V_IO_OUT_TOTAL);
-        d4v_emit(c, edx, eax);
-        eax = G32(D4V_IO_OUT_TOTAL);
-        if (eax >= G32(D4V_IO_OUT_LEN)) break;
+        out_total = d4vc_ppmdec(c);
+        if (!(out_total & 0xFFU))
+            d4vc_sym(c, out_total);
+        limit = G32(D4V_IO_IN_TOTAL);
+        out_total = G32(D4V_IO_OUT_TOTAL);
+        d4v_emit(c, limit, out_total);
+        out_total = G32(D4V_IO_OUT_TOTAL);
+        if (out_total >= G32(D4V_IO_OUT_LEN)) break;
         if (G32(D4V_IO_ERR)) break;
     }
 }

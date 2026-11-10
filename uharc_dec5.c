@@ -3459,8 +3459,8 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
     if (d->fb9 || d->e78 >= d->e80) {
         if (d->fb8 < 7) {
             long *v2 = d->p43;
-            int v3;
-            int v4;
+            int sym_val;
+            int delta;
             long vv[6];
             int v8;
             unsigned v10;
@@ -3475,36 +3475,36 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
             int v18;
             int v19;
             if (d->fb8 == 6) {
-                v3 = (int)(signed char)sym;
+                sym_val = (int)(signed char)sym;
             } else {
-                v3 = (int)sym - 128;
+                sym_val = (int)sym - 128;
             }
-            v4 = 16 * (signed char)(d->pbd0 - (long)v3);
+            delta = 16 * (signed char)(d->pbd0 - (long)sym_val);
             v2[12] = d5_wrap32((unsigned long)v2[12]
-                + (unsigned long)(unsigned)d5_e45(d, (unsigned)v4));
+                + (unsigned long)(unsigned)d5_e45(d, (unsigned)delta));
             v2[13] = d5_wrap32((unsigned long)v2[13]
-                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(v4 - (int)v2[0])));
+                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(delta - (int)v2[0])));
             v2[14] = d5_wrap32((unsigned long)v2[14]
                 + (unsigned long)(unsigned)d5_e45(d,
-                    ((unsigned)(unsigned short)v4 + (unsigned)(unsigned short)v2[0]) & 0xFFFu));
+                    ((unsigned)(unsigned short)delta + (unsigned)(unsigned short)v2[0]) & 0xFFFu));
             v2[15] = d5_wrap32((unsigned long)v2[15]
-                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(v4 - (int)v2[1])));
+                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(delta - (int)v2[1])));
             v2[16] = d5_wrap32((unsigned long)v2[16]
                 + (unsigned long)(unsigned)d5_e45(d,
-                    ((unsigned)(unsigned short)v4 + (unsigned)(unsigned short)v2[1]) & 0xFFFu));
+                    ((unsigned)(unsigned short)delta + (unsigned)(unsigned short)v2[1]) & 0xFFFu));
             v2[17] = d5_wrap32((unsigned long)v2[17]
-                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(v4 - (int)v2[2])));
+                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(delta - (int)v2[2])));
             v2[18] = d5_wrap32((unsigned long)v2[18]
                 + (unsigned long)(unsigned)d5_e45(d,
-                    ((unsigned)(unsigned short)v4 + (unsigned)(unsigned short)v2[2]) & 0xFFFu));
+                    ((unsigned)(unsigned short)delta + (unsigned)(unsigned short)v2[2]) & 0xFFFu));
             v2[19] = d5_wrap32((unsigned long)v2[19]
-                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(v4 - (int)v2[3])));
+                + (unsigned long)(unsigned)d5_e45(d, (unsigned)(delta - (int)v2[3])));
             v2[20] = d5_wrap32((unsigned long)v2[20]
                 + (unsigned long)(unsigned)d5_e45(d,
-                    ((unsigned)(unsigned short)v4 + (unsigned)(unsigned short)v2[3]) & 0xFFFu));
+                    ((unsigned)(unsigned short)delta + (unsigned)(unsigned short)v2[3]) & 0xFFFu));
             {
-                unsigned gu = (unsigned)(v4 - (int)v2[4]) & 0xFFFu;
-                unsigned hu = (unsigned)((int)v2[4] + v4) & 0xFFFu;
+                unsigned gu = (unsigned)(delta - (int)v2[4]) & 0xFFFu;
+                unsigned hu = (unsigned)((int)v2[4] + delta) & 0xFFFu;
                 v2[21] = d5_wrap32((unsigned long)v2[21]
                     + (unsigned long)(unsigned)d5_e45(d, gu));
                 v2[22] = d5_wrap32((unsigned long)v2[22]
@@ -3512,8 +3512,8 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
             }
             /* sub_416412: al = dl - p43[10] (old value), movsx, then
              * p43[10] = dl.  p43[11] is the signed per-symbol slope. */
-            v2[11] = (long)(signed char)((v3 - (int)(v2[10] & 0xFFL)) & 0xFF);
-            v2[10] = (long)v3;
+            v2[11] = (long)(signed char)((sym_val - (int)(v2[10] & 0xFFL)) & 0xFF);
+            v2[10] = (long)sym_val;
             v2[27]++;
             if (((unsigned long)v2[27] & 0xFu) == 0UL) {
                 long best = v2[12];
@@ -3587,7 +3587,7 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                 }
             }
             {
-                long vv0 = (long)v3 - d->p7b4;
+                long vv0 = (long)sym_val - d->p7b4;
                 unsigned idx29 = (unsigned)d->f94 & 0x7Fu;
                 d->p29c4[idx29] = vv0;
                 vv[4] = vv0 - d->pbd4;
@@ -3628,10 +3628,10 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                     v11++;
                 } while (v10 < 0x7Cu);
             }
-            vv[0] = (long)v3 - d->pbc4[0];
-            vv[1] = (long)v3 - d->pbc8;
-            vv[2] = (long)v3 - d->pbcc;
-            vv[3] = (long)v3 - d->pbd0;
+            vv[0] = (long)sym_val - d->pbc4[0];
+            vv[1] = (long)sym_val - d->pbc8;
+            vv[2] = (long)sym_val - d->pbcc;
+            vv[3] = (long)sym_val - d->pbd0;
             d->p7a8 = 0;
             v45 = 0;
             v13 = d->p2bdc;
@@ -3658,7 +3658,7 @@ static unsigned d5_train(uharc_dec5_t *d, unsigned sym, unsigned char dlt)
                 }
             }
             d->p7b8 = d->p7b4;
-            d->p7b4 = v3;
+            d->p7b4 = sym_val;
             v16 = (int)v2[29];
             v2[28] = d5_wrap32((unsigned long)(unsigned)v47
                 + (((unsigned long)(unsigned)v2[28]) << 8));
@@ -4098,13 +4098,13 @@ static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
     unsigned cost_second = 0;
     int v27 = 1;
     int v28 = 1;
-    unsigned char dh;
+    unsigned char fc2_byte;
     d->f70 = (d->f70 + 1u) & 0xFFu;
     d->f80a = 0;
     d->f78s = d5_wrap32((unsigned long)d->f78s
         - (unsigned long)(unsigned long)d->la4c[(d->f70) + 1u]);
     d->fac = gx;
-    dh = d->fc2;
+    fc2_byte = d->fc2;
     if ((unsigned long)d->f78s < 0x6D4250UL
         || (unsigned long)d->f78s >= 0xFEFF01UL) {
         v29 = d5_ppmdec(d, v2);
@@ -4164,7 +4164,7 @@ static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
             v29 = (unsigned)raw;
         }
         d->f80a = 0;
-        d->fc2 = dh;
+        d->fc2 = fc2_byte;
         /* sub_4157AE restores dword_472FAC to the caller's gx (line
          * 22939) before this sub_415F35 call; only the later
          * sub_41488F(_, 768) runs with 1026. */
@@ -4330,7 +4330,7 @@ static int d5_matchdist(uharc_dec5_t *d)
         }
         if (d->fb1 == 1) {
             unsigned v8 = v1 - 1;
-            long v10;
+            long dist_a;
             long v11 = 0;
             long v61 = -1;
             d->e84 = dec5_dist_b[v8];
@@ -4338,11 +4338,11 @@ static int d5_matchdist(uharc_dec5_t *d)
                 d->fb3 = -1;
                 goto lend;
             }
-            v10 = dec5_dist_a[v8];
-            if (v10 + d->e84 - 1L > (long)d->f94) {
-                v10 = (long)d->f94 - dec5_dist_b[v8] + 1L;
+            dist_a = dec5_dist_a[v8];
+            if (dist_a + d->e84 - 1L > (long)d->f94) {
+                dist_a = (long)d->f94 - dec5_dist_b[v8] + 1L;
             }
-            if (v10 >= 4L) {
+            if (dist_a >= 4L) {
                 unsigned bit;
                 unsigned v48;
                 unsigned v52;
@@ -4371,10 +4371,10 @@ static int d5_matchdist(uharc_dec5_t *d)
                 if (d->err) {
                     return 0;
                 }
-                v10 >>= 1;
+                dist_a >>= 1;
             }
-            if (v10 > 0x800L) {
-                unsigned sc = (unsigned)(((v10 - 1L) >> 11) + 1L);
+            if (dist_a > 0x800L) {
+                unsigned sc = (unsigned)(((dist_a - 1L) >> 11) + 1L);
                 unsigned v19;
                 unsigned v53;
                 if (sc == 0) {
@@ -4397,22 +4397,22 @@ static int d5_matchdist(uharc_dec5_t *d)
                 }
                 v11 = (long)((unsigned long)v19 << 11);
                 if (sc != v53) {
-                    v10 = 2048L;
+                    dist_a = 2048L;
                     goto l29;
                 }
-                v10 -= (long)((unsigned long)v19 << 11);
+                dist_a -= (long)((unsigned long)v19 << 11);
             }
-            if (v10 < 2L) {
+            if (dist_a < 2L) {
                 goto l32;
             }
 l29:
             {
                 unsigned v26;
-                if (v10 <= 0L) {
+                if (dist_a <= 0L) {
                     d->err = 4;
                     return 0;
                 }
-                d->range /= (unsigned long)v10;
+                d->range /= (unsigned long)dist_a;
                 if (d->range == 0UL) {
                     d->err = 4;
                     return 0;
@@ -4491,8 +4491,8 @@ lend:
             if (v59 < v62) {
                 unsigned long *e;
                 unsigned long p;
-                unsigned long v50;
-                unsigned long v54;
+                unsigned long lo;
+                unsigned long hi;
                 unsigned long span;
                 unsigned long base;
                 e = (unsigned long *)(v55
@@ -4506,18 +4506,18 @@ lend:
                 }
                 p = (unsigned long)(unsigned)*e;
                 if ((unsigned)(d->low / d->range) >= (unsigned)p) {
-                    v54 = 4096UL;
-                    v50 = p;
+                    hi = 4096UL;
+                    lo = p;
                     *e = (long)d5_wrap32((unsigned long)*e - (p >> 5));
                 } else {
-                    v50 = 0UL;
-                    v54 = p;
+                    lo = 0UL;
+                    hi = p;
                     v62 = v37;
                     *e = (long)d5_wrap32((unsigned long)*e
                         + (((unsigned long)4096 - p) >> 5));
                 }
-                base = v50;
-                span = d->range * (v54 - v50);
+                base = lo;
+                span = d->range * (hi - lo);
                 d->low = DEC5_MASK32(d->low - d->range * base);
                 d->range = span;
                 d5_norm(d);
@@ -4609,15 +4609,15 @@ static void d5_stput(uharc_dec5_t *d, unsigned b, unsigned off, unsigned v)
 
 static int d5_step(uharc_dec5_t *d)
 {
-    unsigned char v0;
+    unsigned char state_byte;
     unsigned v28;
     if (d->fb0) {
-        v0 = (unsigned char)((d->fb0 > 2u) + 64u);
+        state_byte = (unsigned char)((d->fb0 > 2u) + 64u);
     } else {
-        v0 = d->fc1;
+        state_byte = d->fc1;
     }
-    v28 = v0;
-    if (v0 <= 0xFu) {
+    v28 = state_byte;
+    if (state_byte <= 0xFu) {
         unsigned idx = (unsigned)(d->fa0 & 0xFFFFUL);
         d->lastidx = (long)idx;
         if ((d->lastctx[idx] & 0x38u) != 0u) {

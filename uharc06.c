@@ -515,10 +515,10 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
         {
             unsigned char *b = tab2;
             unsigned long off = 0;
-            char *sp;
+            char *name_pool;
             unsigned k;
             /* sizes plane is at 6N..10N, method at 10N */
-            sp = h->strpool + dirs_total;
+            name_pool = h->strpool + dirs_total;
             for (k = 0; k < nfiles; k++) {
                 uharc06_entry *e = &h->entries[k];
                 unsigned t, d;
@@ -616,11 +616,11 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
                 for (kk = 0; kk < nfiles; kk++) {
                     unsigned l = tab1[q++];
                     uharc06_entry *e = &h->entries[kk];
-                    memcpy(sp, tab1 + q, l);
-                    sp[l] = 0;
+                    memcpy(name_pool, tab1 + q, l);
+                    name_pool[l] = 0;
                     q += l;
-                    e->name = sp;
-                    sp += l + 1;
+                    e->name = name_pool;
+                    name_pool += l + 1;
                     /* dir */
                     if ((e->dir_index & 0xFFFFU) < ndirs) {
                         e->dir = h->strpool + dir_offs[e->dir_index & 0xFFFFU];
@@ -628,27 +628,27 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
                         e->dir = "";
                     }
                     /* path: strip trailing slashes from dir to avoid // */
-                    e->path = sp;
+                    e->path = name_pool;
                     if (e->dir[0]) {
                         char *dend;
-                        strcpy(sp, e->dir);
-                        dend = sp + strlen(sp);
-                        while (dend > sp && (dend[-1] == '/' || dend[-1] == '\\'))
+                        strcpy(name_pool, e->dir);
+                        dend = name_pool + strlen(name_pool);
+                        while (dend > name_pool && (dend[-1] == '/' || dend[-1] == '\\'))
                             *--dend = 0;
-                        strcat(sp, "/");
-                        strcat(sp, e->name);
+                        strcat(name_pool, "/");
+                        strcat(name_pool, e->name);
                     } else {
-                        strcpy(sp, e->name);
+                        strcpy(name_pool, e->name);
                     }
                     /* normalize backslash */
                     {
-                        char *s = sp;
+                        char *s = name_pool;
                         while (*s) {
                             if (*s == '\\') *s = '/';
                             s++;
                         }
                     }
-                    sp += strlen(sp) + 1;
+                    name_pool += strlen(name_pool) + 1;
                 }
             }
         }
