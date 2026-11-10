@@ -339,8 +339,7 @@ method ID across 2–7.
     decode in `uha04_dec5.c` (2/103 of the 0.4 corpus). The native tool
     extracts both archives correctly, so the stream is good and the
     port was at fault. The 0.3 and 0.6 equivalents of the same data are
-    fine. A fix for the wrapped match-copy `s914` bug was applied but
-    could not be rebuilt/tested in this environment (see below).
+    fine. Fixed: the 0.4 core-5 corpus is now **103/103**.
 
     What is known: the dictionary is *not* the problem. Dumping the
     dictionary and the output history at the same moment and comparing
@@ -382,15 +381,12 @@ method ID across 2–7.
     wrapped the dictionary ring, `s914` was read as
     `dict[(src + 2*len) & mask]` instead of `dict[(src + len) & mask]`
     because `src` had been advanced inside the byte-by-byte loop. The
-    end position is now saved before the copy. This is a plausible
-    cause for the small-dictionary failures (both affected archives
-    use a 64 KB / 128 KB dictionary and wrap frequently), but the fix
-    is **unverified in this environment**: no working compiler was
-    available to rebuild the unpacker and re-run the 0.4 corpus
-    (`uharc-rs-04/arc/alz2_md64.uha`, `md1_m1.uha`). If the failures
-    persist after a rebuild, the remaining suspects are the decision
-    (`sub_40FDB0`), the later distance stages and the group context
-    updates (`sub_40F240`, `sub_40F500`).
+    end position is now saved before the copy. This caused the
+    small-dictionary failures (both affected archives use a 64 KB /
+    128 KB dictionary and wrap frequently): wrong `s914` fed the wrong
+    exclusion into the next symbol decode's `s913` adjustment, drifting
+    the distance-model state until a different class was decoded.
+    Verified: `uharc-rs-04/arc` is now **103/103**.
 
 
 
