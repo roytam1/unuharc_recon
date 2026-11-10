@@ -2728,7 +2728,7 @@ l_415F95:
 l_415FA4:
     /* 0x00415FA4 */ eax = ebp;
     /* 0x00415FA6 */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi + eax) & U32MASK))); /* mov al,[esi+eax] */
+        (unsigned long)c->blk00_dict[((esi + eax) & U32MASK) - c->blk00_base]; /* mov al,[esi+eax] */
     /* 0x00415FA9 */ eax &= 0xFFUL;
     /* 0x00415FAE */ D4V_BLK_PTR_00_DICT_32(&c->st) = (unsigned int)ebp;
     /* 0x00415FB4 */ d4vc_ppm_list_update_32(c, (unsigned int)eax); /* call sub_417220 */
@@ -2748,7 +2748,7 @@ l_415FBF:
     /* 0x00415FEB */ D4V_SHIFT_R1_32(&c->st) = (unsigned int)eax;
     /* 0x00415FF0 */ eax = ebp;
     /* 0x00415FF2 */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi + eax) & U32MASK))); /* mov al,[esi+eax] */
+        (unsigned long)c->blk00_dict[((esi + eax) & U32MASK) - c->blk00_base]; /* mov al,[esi+eax] */
     /* 0x00415FF5 */ edx = (unsigned long)D4V_SHIFT_R0_32(&c->st, 0);
     /* 0x00415FFB */ eax &= 0xFFUL;
     /* 0x00416000 */ edx = (edx << 8) & U32MASK;
