@@ -333,14 +333,27 @@ method ID across 2–7.
    the arena reports a data error after 296 KB while the clean decoder
    keeps going and, because the decoded bytes turn into long matches,
    spends tens of milliseconds per symbol; valid archives are unaffected.
-10. **0.4 core 5 with a small dictionary** — the 0.4 archives that the
+10. **0.4 core 5 with a small dictionary** - the 0.4 archives that the
     native `UHARC04.EXE` produced with `-md1`/`-md64` (`md1_m1.uha`,
     `alz2_md64.uha` of a regenerated 0.4 corpus) decode wrongly in
-    `uha04_dec5.c`: the match copy leaves the dictionary out of sync with
-    the output, and the first wrong byte appears once the dictionary has
-    wrapped (around 196 KB of output with a 64 KB dictionary). The native
-    tool extracts both archives correctly, so the stream is good and the
-    port is not. The 0.3 and 0.6 equivalents of the same data are fine.
+    `uha04_dec5.c`. The native tool extracts both archives correctly, so
+    the stream is good and the port is not. The 0.3 and 0.6 equivalents
+    of the same data are fine.
+
+    What is known: the dictionary is *not* the problem. Dumping the
+    dictionary and the output history at the same moment and comparing
+    them byte for byte shows the dictionary mirrors the output exactly
+    (64 KB, no mismatch), so the match copy is faithful and the
+    divergence is upstream of it. In `alz2_md64.uha` the first wrong
+    byte is at output 196 620, where both decoders take a match but
+    decode different distances: the native copies from 58 576 bytes
+    back (`text fox compres`), we copy from 9 386 (`lazy dog`). The
+    distance is decoded in three range-coded stages (`d5v_dbase` /
+    `d5v_drange`, the 4096-scale `dprob` branch, the 0x800-scale stage
+    and the final stage), so the fault is in the distance model or in
+    the range-coder state it reads - most likely an upstream
+    model-state divergence (the same class as the two 0.6 core-4 bugs),
+    not in the copy path.
 
 ### Naming conventions
 
