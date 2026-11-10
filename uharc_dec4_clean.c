@@ -3582,9 +3582,11 @@ static unsigned char dec4c_o1_symbol(dec4c_ctx *c, unsigned long ctx)
             unsigned long hi = hit ? p : 0x2000UL;
             unsigned long cst = dec4c_cost(c, 2UL * (hi - lo));
             if (!hit) {
-                c->excl[n] = s;
+                if (n < 256U) {
+                    c->excl[n] = s;
+                    n += 1U;
+                }
                 si = (si - (unsigned short)f) & 0xFFFFU;
-                n += 1U;
             }
             c->g45c648 = (c->g45c648 + cst) & 0xFFFFFFFFUL;
             dec4c_rc_dec(c, lo, hi);
@@ -3768,8 +3770,10 @@ static void dec4c_o1_cost(dec4c_ctx *c, unsigned long ctx, unsigned char sym)
                     ecx = (unsigned)p;
                 } else {
                     ecx = (unsigned)((0x2000UL - p) & 0xFFFFFFFFUL);
-                    c->excl[n] = s;
-                    n += 1U;
+                    if (n < 256U) {
+                        c->excl[n] = s;
+                        n += 1U;
+                    }
                     s0c = (s0c - (unsigned short)f) & 0xFFFFU;
                 }
                 cst = dec4c_cost(c, 2UL * ecx);
