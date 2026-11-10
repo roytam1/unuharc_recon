@@ -350,10 +350,18 @@ method ID across 2–7.
     back (`text fox compres`), we copy from 9 386 (`lazy dog`). The
     distance is decoded in three range-coded stages (`d5v_dbase` /
     `d5v_drange`, the 4096-scale `dprob` branch, the 0x800-scale stage
-    and the final stage), so the fault is in the distance model or in
-    the range-coder state it reads - most likely an upstream
-    model-state divergence (the same class as the two 0.6 core-4 bugs),
-    not in the copy path.
+    and the final stage).
+
+    The two distances even belong to different *classes*: the native's
+    58 576 is class 26 (`d5v_dbase[26]` = 49 152, range 16 384) and
+    ours 9 386 is class 21 (base 8 192, range 4 096). The class is the
+    symbol decoded from the distance PPM model, so the range coder and
+    the offset stages are not the problem either - the *symbol model*
+    (the per-context frequencies `cnt`/`fen` and the escape counts
+    `ext` of the distance contexts) had already drifted before this
+    symbol. That puts the fault in the model update path
+    (`d5v_update` / `d5v_fenadd` / `d5v_rescale`), the same class of
+    defect as the two 0.6 core-4 bugs.
 
 ### Naming conventions
 
