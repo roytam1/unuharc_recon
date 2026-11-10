@@ -2210,6 +2210,8 @@ static int dec4c_o4_scan(dec4c_ctx *c, unsigned long c6a4, const unsigned char r
             (void)mask;
             c->g45c698 = c698;
             if ((unsigned long)b[0] >= c698) {
+                c->g_e394 = 1;
+                c->g45c6b0 = (c->g45c6b0 + 1UL) & 0xFFFFFFFFUL;
                 return 0;
             }
         }
