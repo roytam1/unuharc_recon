@@ -1591,9 +1591,12 @@ static void dec4c_mm_update(dec4c_ctx *c, unsigned char sym, unsigned char delta
         unsigned char a;
         c->mm.sgn[ch] = c->g_e38e;
         dec4c_mm_update_errs(r, eaxv, l);
-        a = p - (unsigned char)ecx;
+        /* The original masks the difference to a byte before indexing the
+         * error curve (0x426554); without the mask the index can go
+         * negative and reads outside the table. */
+        a = (unsigned char)(p - (unsigned char)ecx);
         r[23] += dec4c_t426554[a];
-        a = (unsigned char)r[10] - (unsigned char)ecx;
+        a = (unsigned char)((unsigned char)r[10] - (unsigned char)ecx);
         r[24] += dec4c_t426554[a];
         r[11] = (unsigned long)(long)(signed char)((unsigned char)ecx - (unsigned char)r[10]);
         c->mm.d740 = r[11];
