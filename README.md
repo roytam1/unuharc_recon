@@ -202,7 +202,8 @@ uharc06_main.c                 CLI: version detect + dispatch
    ├─ uha03_dec3.c             0.3 core 3
    ├─ uha04_dec3.c             0.4 core 3
    ├─ uha02_dec3.c             0.2 core 3
-   ├─ uharc_dec4.c             0.6 core 4
+   ├─ uharc_dec4_clean.c       0.6 core 4 — production decoder (typed port)
+   ├─ uharc_dec4.c             0.6 core 4 — arena reference port
    ├─ uha04_dec4.c             0.4 core 4 (methods 24–39) + DGROUP image
    │                            (`uha04_dec4_dg.c`, copied into the arena)
    ├─ uharc_dec5.c             0.6 core 5
@@ -314,14 +315,41 @@ method ID across 2–7.
 
 ### Core 4 implementation notes
 
-`uharc_dec4.c` is a statement-by-statement translation of the 0.6 dispatcher
-case `sub_40F962`, using a flat 32-bit address arena so that the original
-DGROUP aliasing is preserved. The common Hex-Rays pitfalls in this unit are
-truncated 32-bit pointer values, dropped pointer destinations, signed-`char`
-comparisons that miss bytes `>= 0x80`, table values used as addresses, and
-`BYTE1(x) |= N` rendered as a no-op. When continuing, compare against the
-native decoder from the first divergent output byte and keep the `cum[]`
-file-end table in sync with `dword_45D128`.
+0.6 core 4 has two ports:
+
+* `uharc_dec4_clean.c` — the production decoder. A typed C89 port with its
+  own state struct (no flat arena), written against the `uharc-rs` 0.6
+  decoder. It passes the whole 0.6 corpus (103/103) and is what
+  `uharc_dec0.c` calls by default.
+* `uharc_dec4.c` — the arena reference port. A statement-by-statement
+  translation of the 0.6 dispatcher case `sub_40F962`, using a flat 32-bit
+  address arena so that the original DGROUP aliasing is preserved. It stays
+  in the tree as the oracle for differential testing; build with
+  `-DDEC4_ARENA` to select it.
+
+The common Hex-Rays pitfalls in the arena unit are truncated 32-bit pointer
+values, dropped pointer destinations, signed-`char` comparisons that miss
+bytes `>= 0x80`, table values used as addresses, and `BYTE1(x) |= N` rendered
+as a no-op. When continuing, compare against the native decoder from the
+first divergent output byte and keep the `cum[]` file-end table in sync with
+`dword_45D128`.
+
+Two behaviours of the 0.6 core-4 model are easy to miss and both change the
+decoded bytes:
+
+* The multimedia **predicted byte** (`0x45e38b`) and the prediction flag
+  (`0x45e38f`) are cleared whenever the model id changes
+  (`0x40deb6`/`0x41013c` type switch). A stale predicted byte makes the
+  following plain segment add the wrong context byte to the order-1 symbol.
+* The order-1 MRU SEE index compares the **raw unsigned** distance
+  `dict_pos - last_pos[s]` against 64. Masking it with the dictionary size
+  turns a stale entry from before a dictionary wrap into a false "recent"
+  hit, which changes the SEE index, the accumulated cost and the symbol.
+
+Arena address notes for these tables: the order-1 cumulative/frequency
+planes are `c->fenwick1`/`c->fenwick2` (784 contexts each), the escape
+counts live in `c->ppm_tot`, the per-symbol "last position" table is
+`0x4455AC`, and the "recent position" table is `0x444DA4`.
 
 ## Provenance
 
