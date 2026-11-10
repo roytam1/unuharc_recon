@@ -4410,7 +4410,14 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
         c->outbuf = 0;
         return 0;
     }
+    /* On a data error the arena has already streamed the bytes it decoded,
+     * so hand over the partial output too instead of dropping it. */
+    if (c->out_pos > 0) {
+        unsigned n = (unsigned)c->out_pos;
+        if (n > c->out_len) n = (unsigned)c->out_len;
+        if (n > 0) (void)wcb(wctx, c->outbuf, n);
+    }
     free(c->outbuf);
     c->outbuf = 0;
-    return c->bad ? 3 : 3;
+    return 3;
 }
