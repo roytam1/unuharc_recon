@@ -198,6 +198,20 @@ Left:
    tables, 0x45AF00/0x45AF10/0x45AF14, which the corpus never
    reaches) are the starting point.
 
+   **The layout has to stay byte-identical to the arena's.**  A read
+   past a table lands on whatever follows it in the arena - the next
+   table's bytes, or the zero tail of the fixed region - so a typed
+   array that stops at the table's real end would hand back the wrong
+   bytes for the index expressions that are not bounded (the price
+   table is read up to 128 KB past the image).  Two ways out: size each
+   group's array so that it covers the *whole* arena range the group
+   can reach, gaps included, which keeps the layout byte-identical and
+   the memory the same size as today; or bound the index expressions
+   per table and collapse the gaps, which needs the semantic extents
+   above and would shrink the fixed region from 256 KB to about 96 KB.
+   The first is mechanical and can be done now; the second is the one
+   that pays off, and it is the per-table reverse engineering.
+
    Measured on `uha04_dec4_clean.c`:
 
    * the port overrides **630** `D4V_*` accessors back to `d4v_ptr()`
