@@ -59,6 +59,7 @@
 typedef struct dec3w_ctx {
     unsigned char *mem; /* compat, unused */
     unsigned char *fixed_mem;
+    unsigned char fx_gap;   /* the arena's zero gap outside the globals */
     unsigned char *io_mem;
     unsigned char *model_mem;
     /* per-block pointers (aliases into model_mem) and bases */
@@ -131,7 +132,10 @@ static unsigned char *d3u_ptr(dec3w_ctx *c, unsigned long addr)
         return c->fixed_mem + (addr - D3U_FIXED_BASE);
     if (addr >= D3U_IO_BASE && addr < D3U_IO_BASE + D3U_IO_SIZE)
         return c->io_mem + (addr - D3U_IO_BASE);
-    return c->fixed_mem;
+    /* The arena port clamps every address to the end of its buffer, so
+     * an address outside the globals, the I/O buffers and the model
+     * blocks reads the arena's zero gap.  fx_gap stands in for it. */
+    return &c->fx_gap;
 }
 
 /* sub_40C9C0-style byte fill (ebx=len, eax=dst, edx=val). */
