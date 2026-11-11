@@ -165,6 +165,39 @@ Left:
    mechanical rewrite of the port.  The measured extents are the input
    that layout needs.
 
+   **The layout that falls out.**  The tables are not independent:
+   several of them are *views of the same array* at different offsets
+   (the arena accesses `0x453560+eax`, `0x453564+eax` and `0x453568+eax`
+   with the same index).  Merging the tables whose ranges overlap
+   gives **36 groups** covering 96 635 bytes and 128 named cells:
+
+   | group | base | end | bytes | groups merged |
+   |---|---|---|---|---|
+   | 1 | 0x433B90 | 0x433BE9 | 89 | 433B90, 433BA4 |
+   | 2 | 0x433E77 | 0x43406D | 502 | 433E77, 433E8C, 433FCC, 43404C |
+   | 3-6 | 0x43407C-0x43419C | | 12-103 | one table each |
+   | 9 | 0x434328 | 0x436151 | 7 721 | 434328, 434338, 434438, 434538, 434550, 434D50, 435150, 435550, 435950, 435D50 |
+   | 10-13 | 0x4362C0-0x436B8A | | 100-622 | 436450, 43691C+436976, 436B8A |
+   | 14 | 0x437966 | 0x43F96B | 32 773 | PRICE_SRC, PRICE_SUM |
+   | 15 | 0x44D920 | 0x451921 | 16 385 | NEG_44D920 |
+   | 17 | 0x451B3C | 0x451D52 | 534 | 451B3C, 451D3C (+5 cells) |
+   | 19 | 0x453560 | 0x455F60 | 10 752 | 453560, 453564, 453568, ... |
+   | 22 | 0x457360 | 0x458778 | 5 144 | 457360, 457378 (+6 cells) |
+   | 24 | 0x458788 | 0x458B9C | 1 044 | 458788, 458794, 458798, ... |
+   | 25 | 0x458F94 | 0x459BA0 | 3 084 | 458F94, 458F98, 459398, ... |
+   | 30 | 0x45AA7A | 0x45AE80 | 1 030 | 45AA7A, 45AA7C, 45AA7E, 45AA80, 45AA82, 45AC78, ... |
+   | 31-32 | 0x45AF00 / 0x45AF14 | | 20 / 20 | 45AF00 (+4 cells), 45AF14 |
+   | 35 | 0x45BA58 | 0x45C676 | 3 102 | 45BA58, 45BA5E, 45C05C, 45C044, ... |
+
+   The group's byte array has to cover every byte the tables can
+   reach, and the *measured* extent is only a lower bound: the index
+   expressions are mostly unbounded loop counters (`+ eax * 4`), so the
+   real bound is the table's semantic size - the loop bound or the data
+   structure behind it.  That per-table reverse engineering is the
+   remaining work; the measured extents (and the three hand-checked S4
+   tables, 0x45AF00/0x45AF10/0x45AF14, which the corpus never
+   reaches) are the starting point.
+
    Measured on `uha04_dec4_clean.c`:
 
    * the port overrides **630** `D4V_*` accessors back to `d4v_ptr()`
