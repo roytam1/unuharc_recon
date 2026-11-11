@@ -198,6 +198,23 @@ Left:
    tables, 0x45AF00/0x45AF10/0x45AF14, which the corpus never
    reaches) are the starting point.
 
+   **A latent deviation in the raw accesses.**  The arena port reaches
+   every cell through `M8/M16/M32`, which clamp the address:
+   `V4O(o)` caps it at `V4_ARENA - 8`, so an out-of-range index reads
+   the arena's last byte.  `tools/port_to_typed.py` rewrote the computed
+   accesses into plain `c->fixed_mem + N + index` arithmetic and that
+   clamp was lost, so an index past the end of the 256 KB fixed region
+   reads out of bounds in the clean port where the arena port would
+   have read a (zero) byte of its 64 MB buffer.  The unbounded
+   expressions are the price table's (`word_437968[(eax & 0xFFFF) * 2]`
+   and one `* 2` with a full 32-bit index), so a damaged archive can
+   reach it; the differential fuzz (412 trials over both corpora) has
+   not hit it, and the byte-exact corpus comparison passes, but the
+   clean port can read out of bounds where the arena port cannot.
+   Matching the arena exactly here would mean giving the clean port
+   the same 64 MB layout, which is what the arena port has and what the
+   typed port deliberately gives up.
+
    **The layout has to stay byte-identical to the arena's.**  A read
    past a table lands on whatever follows it in the arena - the next
    table's bytes, or the zero tail of the fixed region - so a typed
