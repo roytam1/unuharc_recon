@@ -90,27 +90,36 @@ Left:
 
    The first step is done: **413 of the 630 `D4V_*` overrides in the
    0.4 clean port were never used at all** and have been deleted (the
-   generated `d4v_state` accessors take over).  The override block is
-   down to 217 entries.  The remaining 217 are the ones that carry
-   state, and they fall into these groups:
+   generated `d4v_state` accessors take over).  A further **59** of the
+   used overrides were moved into the typed state as well, so the
+   override block is down to **159** entries (from 630) and the
+   `d4v_state` struct is live for the cells it can hold.
 
-   | group | count | why it stays |
-   |---|---|---|
-   | image cell (`< 0x440000`) | 84 | its initial value comes from the DGROUP image |
-   | the cell has views of another width | 190 | the narrow view stays in the arena, so the bytes are shared |
-   | table-backed | 234 | a raw or indexed table reaches into the cell |
-   | overlapping view | 12 | two named cells alias (0x440E78/0x440E7A, 0x459E3C/0x459E3E, 0x459E40/0x459E42) |
-   | different accessor signature | 15 | the state header's accessor takes an offset the port does not pass |
-   | init writes a non-zero value | 15 | `d4v_fill` / `d4vc_fill16` / plain stores put the value in the arena |
-   | coupled with another access | 7 | see below |
+   The remaining 159 are the ones that carry state, and they fall into
+   these groups:
 
-   The **shadow build** settles the last group: it mirrors every moved
-   cell's write into the arena copy, so a cell whose arena copy goes
-   stale shows up as a decode difference.  Running it over the 88
-   candidate cells shows that the PPM context bytes 0x45C679..0x45C67D,
-   the range coder's code-hi 0x45D0C4 (the 64-bit code is split over
-   0x45D0B4 / 0x45D0C4) and 0x45AFCC are each read through a second
-   path and cannot move on their own.
+   | group | why it stays |
+   |---|---|
+   | image cell (`< 0x440000`) | its initial value comes from the DGROUP image |
+   | the cell has views of another width | the narrow view stays in the arena, so the bytes are shared |
+   | table-backed | a raw or indexed table reaches into the cell |
+   | overlapping view | two named cells alias (0x440E78/0x440E7A, 0x459E3C/0x459E3E, 0x459E40/0x459E42) |
+   | different accessor signature | the state header's accessor takes an offset the port does not pass |
+   | init writes a non-zero value | `d4v_fill` / `d4vc_fill16` / plain stores put the value in the arena |
+   | read through a second path | 36 cells, see below |
+
+   The **shadow build** is the tool that settles the last group: it
+   mirrors every moved cell's write into the arena copy, so a cell whose
+   arena copy goes stale shows up as a decode difference, and a funnel
+   check in `d4v_ptr` reports every arena access that lands inside a
+   moved cell.  The two together give the 36 cells that cannot move:
+   the PPM price slots 0x459E44..0x459E54 (read through the indexed
+   `D4V_TBL_459E38_32(s, ord*4)` accessor), the range coder's code and
+   range 0x45D0B8/0x45D0BC, the LZP shift registers 0x45BA1C/0x45BA20,
+   the I/O counters 0x45CD10/0x45CD14/0x45CD1C/0x45CD24/0x45CD28, the
+   PPM context bytes 0x45C679..0x45C692, the PPM order state
+   0x45AF90..0x45AFA0, 0x45AFB4/0x45AFB8/0x45AFC0, 0x45AF3C/0x45AF40
+   and 0x45AFCC.
 
    Measured on `uha04_dec4_clean.c`:
 
