@@ -78,6 +78,20 @@ Left:
    Moving the tables to typed arrays needs the per-site work described
    under Risks; the arena's 0.4 heap overwriting 44 % of the image has to
    be reproduced exactly while that happens.
+4. **Model-block attribution.** `blk00_dict` / `blk00_base` are named
+   as if they were the dictionary block, but they alias the *whole* model
+   region: `c->hi` is set to `<PORT>_MODEL_BASE` before the model blocks
+   are carved and the dict block is the FIRST carve, so
+   `blk00_base == MODEL_BASE` and `blk00_dict == model_mem` (verified at
+   runtime in both ports).  Consequently
+   `blk00_dict[X - blk00_base] == d4v_ptr(c, X)` for every model-region
+   address `X`, and a `blk00_dict[...]` site whose address comes from
+   another block pointer resolves correctly but is misattributed.  Such
+   sites are being re-expressed with the owning block pointer
+   (`c->blkNN`).  The `blk00_dict` spelling is only valid for
+   model-region addresses; an instrumented build confirms that every
+   `blk00_dict` access (84 in 0.4, 59 in 0.3) stays inside the model
+   region on the whole corpus.
 
 
 1. **Typed state.** `tools/gen_dec4_state.py` derives the state from the
