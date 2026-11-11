@@ -218,6 +218,29 @@ Left:
    The 59 cells that are already typed are all outside the regions, so
    they do not collide with the tables.
 
+   **The layout and the generator are ready.**  `uha04_dec4_layout.h`
+   holds the 21 regions (55 043 bytes) and `tools/gen_dec4_state.py`
+   takes it as an optional fifth argument: with it, the generator emits
+   one byte array per region, turns the named cells inside a region into
+   indices into that array and keeps the rest as typed members.  The
+   port rewrite that goes with it is prototyped and needs four more
+   things:
+
+   * **The cells inside a region have to be reached the same way.**  The
+     PPM price table is eight 4-byte slots that the decoder reaches
+     with `ord * 4` from the first one, and the PPM context bytes
+     0x45C675..0x45C694 are one cluster that the raw byte table at
+     0x45C65E runs over; both are in the layout now, but the port's
+     calls have to name the offset explicitly (`D4V_X_32(&c->st, 0)`)
+     because the state's accessor is now an index into the region.
+   * **The init's fills have to be split per region** - the mapper hands
+     out one region per call, so a fill that spans three regions (the
+     PPM planes do) only fills the first piece otherwise.
+   * **The image stays in the arena buffer.**  The cells the decoder
+     writes there (the block pointers, the I/O cursors, the price-done
+     flag) keep their initial values from the DGROUP copy; the regions
+     are all in the zero-initialised BSS above it.
+
    The group's byte array has to cover every byte the tables can
    reach, and the *measured* extent is only a lower bound: the index
    expressions are mostly unbounded loop counters (`+ eax * 4`), so the

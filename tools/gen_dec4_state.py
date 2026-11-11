@@ -53,9 +53,30 @@ def parse_uses(path):
     return widths, dynamic
 
 
+def parse_layout(path):
+    """The layout file lists the fixed-region ranges the port addresses
+    as arrays: one "0xBASE 0xEND" pair per line.  Everything inside a
+    range becomes a byte array of the typed state, and the named cells
+    in it become indices into that array."""
+    regions = []
+    if not path:
+        return regions
+    for line in open(path, encoding="latin-1"):
+        m = re.match(r"\s*(0x[0-9A-Fa-f]+)\s+(0x[0-9A-Fa-f]+)", line)
+        if m:
+            b = int(m.group(1), 16)
+            e = int(m.group(2), 16)
+            if e > b:
+                regions.append((b, e))
+    regions.sort()
+    return regions
+
+
 def main():
     hdr_path, src_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
     prefix = sys.argv[4] if len(sys.argv) > 4 else "d4v"
+    layout_path = sys.argv[5] if len(sys.argv) > 5 else None
+    regions = parse_layout(layout_path)
 
     defs = parse_header(hdr_path)
     widths, dynamic = parse_uses(src_path)
@@ -83,9 +104,22 @@ def main():
     lines.append("typedef struct %s_state {" % prefix)
     lines.append("    unsigned char *mem;")
     raws = []
+    aliases = {}
+    for b, e in regions:
+        lines.append("    unsigned char fx_%06X[%d];   /* 0x%06X..0x%06X */"
+                     % (b, e - b, b, e))
     for name in sorted(used, key=lambda n: defs[n]):
         a = defs[name]
         ws = sorted(set(w for (_k, w) in widths[name]))
+        reg = None
+        for b, e in regions:
+            if b <= a < e:
+                reg = (b, e)
+                break
+        if reg is not None:
+            # the cell lives inside a byte array: it is an index into it
+            aliases[name] = (reg[0], a - reg[0], name in dynamic)
+            continue
         if len(ws) > 1 or name in dynamic:
             raws.append(name)
             lines.append("    unsigned char %s_raw[%d];   /* 0x%06X, %s */"
@@ -101,6 +135,20 @@ def main():
     lines.append(" * multi-width cells are byte arrays, so the width is")
     lines.append(" * checked at the access site instead of being assumed. */")
     for name in sorted(used, key=lambda n: defs[n]):
+        if name in aliases:
+            base, off, isdyn = aliases[name]
+            arr = "((unsigned char *)(s)->fx_%06X + %dUL)" % (base, off)
+            ws = sorted(set(w for (_k, w) in widths[name]))
+            for w in ws:
+                ctype = {8: "unsigned char", 16: "unsigned short",
+                         32: "unsigned int"}[w]
+                if True:
+                    lines.append("#define %s_%d(s, a) (*(%s *)(void *)(%s + (a)))"
+                                 % (name, w, ctype, arr))
+                else:
+                    lines.append("#define %s_%d(s) (*(%s *)(void *)(%s))"
+                                 % (name, w, ctype, arr))
+            continue
         if name in raws:
             base = "(s)->%s_raw" % name.lower()
             lines.append("#define %s_8(s, a)  ((unsigned char *)%s)[(a)]" % (name, base))
