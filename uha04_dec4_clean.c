@@ -1342,6 +1342,17 @@ typedef struct dec4v_ctx {
     unsigned long in_buf;
     unsigned long out_buf;
     /* per-block pointers (aliases into model_mem) and bases */
+    /* blk00_dict/blk00_base: MODEL-REGION alias, not just the dict block.
+     * c->hi is set to D4V_MODEL_BASE before the model blocks are carved and
+     * the dict block is the FIRST carve, so blk00_base == D4V_MODEL_BASE
+     * and blk00_dict == model_mem.  Hence
+     *     blk00_dict[X - blk00_base] == model_mem[X - MODEL_BASE]
+     *     == d4v_ptr(c, X)
+     * for every model-region address X.  A blk00_dict[...] access whose
+     * address comes from another block pointer (BLK_PTR_03/04/05/...)
+     * therefore RESOLVES CORRECTLY but is misattributed; such sites use
+     * the owning block pointer (c->blkNN) instead.  Every blk00_dict
+     * access has been checked to land inside the model region. */
     unsigned char *blk00_dict; unsigned long blk00_base; unsigned long blk00_size;
     unsigned char *blk01; unsigned long blk01_base; unsigned long blk01_size;
     unsigned char *blk02; unsigned long blk02_base; unsigned long blk02_size;

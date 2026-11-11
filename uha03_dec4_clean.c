@@ -58,6 +58,14 @@ typedef struct dec3w_ctx {
     unsigned char *io_mem;
     unsigned char *model_mem;
     /* per-block pointers (aliases into model_mem) and bases */
+    /* blk00_dict/blk00_base: MODEL-REGION alias, not just the dict block.
+     * c->hi is set to D3U_MODEL_BASE before the model blocks are carved and
+     * the dict block is the FIRST carve, so blk00_base == D3U_MODEL_BASE
+     * and blk00_dict == model_mem.  Hence
+     *     blk00_dict[X - blk00_base] == model_mem[X - MODEL_BASE]
+     *     == d3u_ptr(c, X)
+     * for every model-region address X.  All blk00_dict accesses in this
+     * port have been checked to land inside the model region. */
     unsigned char *blk00_dict; unsigned long blk00_base; unsigned long blk00_size;
     unsigned char *blk01; unsigned long blk01_base; unsigned long blk01_size;
     unsigned char *blk02; unsigned long blk02_base; unsigned long blk02_size;
