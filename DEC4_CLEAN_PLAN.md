@@ -195,6 +195,29 @@ Left:
    remaining 169 cells as typed members - 100 KB of state instead of the
    256 KB fixed buffer, and no address arithmetic over the globals.
 
+   **What the conversion needs.**  Moving the tables into the typed
+   state was prototyped (the tables become `fx_<region>` members of the
+   context, one address -> storage mapper replaces the per-cell arena
+   lookups) and it works, but it needs three things that the port alone
+   cannot provide:
+
+   * **The regions must cover every access**, not just the raw table
+     accesses: the cell overrides inside a region reach further than the
+     table does (the PPM context bytes 0x45C675..0x45C694 sit past the
+     raw table's measured end), and the measured extent is only a lower
+     bound, so a few tables still need their semantic bound.
+   * **The init's fills have to be region-aware.**  A fill such as
+     `d4v_fill(c, 0x1400, 0x455F60, 0)` spans three regions, and the
+     mapper hands out one region per call, so a single memset only
+     fills the first piece - the rest has to be split.
+   * **The cells inside a region must become aliases into it.**  While
+     they are separate struct members the region and the typed state
+     hold two copies of the same bytes and disagree; the accessors have
+     to index into the region instead.  That is the generator change.
+
+   The 59 cells that are already typed are all outside the regions, so
+   they do not collide with the tables.
+
    The group's byte array has to cover every byte the tables can
    reach, and the *measured* extent is only a lower bound: the index
    expressions are mostly unbounded loop counters (`+ eax * 4`), so the
