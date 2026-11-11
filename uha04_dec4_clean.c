@@ -3670,7 +3670,7 @@ l_417EC2:
     /* 0x00417EC2 */ ecx = (ecx & 0xFFFF00FFUL) | ((v28 & 0xFFUL) << 8);
     /* 0x00417EC6 */ ecx = (ecx & 0xFFFF00FFUL) |
         ((((((ecx >> 8) & 0xFFUL) - 1) & 0xFFUL)) << 8); /* dec ch */
-    /* 0x00417EC8 */ eax = (unsigned long)(*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(edx) - c->blk00_base)));
+    /* 0x00417EC8 */ eax = (unsigned long)(*(unsigned int *)(void *)(c->blk04 + ((unsigned long)(edx) - c->blk04_base)));
     /* 0x00417ECA */ v28 = (ecx >> 8) & 0xFFUL;
     /* 0x00417ECE */ /* cmp eax,0FFFFFFFFh */;
     /* 0x00417ED1 jz */ if (eax == 0xFFFFFFFFUL) goto l_417FA3;
@@ -3771,13 +3771,13 @@ l_417F93:
     /* 0x00417F97 */ /* cmp al,[var_20] */;
     /* 0x00417F9B jb */ if ((eax & 0xFFUL) < v20) goto l_417FA3; /* unsigned */
     /* 0x00417F9D */ v20 = eax & 0xFFUL;
-    /* 0x00417FA1 */ edi = (unsigned long)(*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(edx) - c->blk00_base)));
+    /* 0x00417FA1 */ edi = (unsigned long)(*(unsigned int *)(void *)(c->blk04 + ((unsigned long)(edx) - c->blk04_base)));
 l_417FA3:
     /* 0x00417FA3 */ /* cmp [var_28],0 */;
     /* 0x00417FA8 jz */ if (v28 == 0) goto l_417FCB;
     /* 0x00417FAA */ edx = (edx - 4) & U32MASK;
-    /* 0x00417FAD */ eax = (unsigned long)(*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(edx) - c->blk00_base)));
-    /* 0x00417FAF */ (*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)((edx + 4) & U32MASK) - c->blk00_base))) = (unsigned int)eax;
+    /* 0x00417FAD */ eax = (unsigned long)(*(unsigned int *)(void *)(c->blk04 + ((unsigned long)(edx) - c->blk04_base)));
+    /* 0x00417FAF */ (*(unsigned int *)(void *)(c->blk04 + ((unsigned long)((edx + 4) & U32MASK) - c->blk04_base))) = (unsigned int)eax;
     /* 0x00417FB2 jmp */ goto l_417EC2;
 l_417FB7:
     /* 0x00417FB7 */ ecx = v38;
@@ -3787,7 +3787,7 @@ l_417FB7:
     /* 0x00417FC6 jmp */ goto l_417EBA;
 l_417FCB:
     /* 0x00417FCB */ eax = (unsigned long)D4V_DICT_CURSOR_32(&c->st);
-    /* 0x00417FD0 */ (*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(edx) - c->blk00_base))) = (unsigned int)eax;
+    /* 0x00417FD0 */ (*(unsigned int *)(void *)(c->blk04 + ((unsigned long)(edx) - c->blk04_base))) = (unsigned int)eax;
     /* 0x00417FD2 */ /* cmp [var_20],0Ch */;
     /* 0x00417FD7 jb */ if (v20 < 0xCUL) goto l_417FDE; /* unsigned */
     /* 0x00417FD9 */ v24 = 0x15UL;
@@ -3853,9 +3853,9 @@ l_418095:
 l_41809F:
     /* 0x0041809F */ edx = v34;
     /* 0x004180A3 */ eax = (unsigned long)D4V_DICT_CURSOR_32(&c->st);
-    /* 0x004180A8 */ (*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)(edx) - c->blk00_base))) = (unsigned int)eax;
+    /* 0x004180A8 */ (*(unsigned int *)(void *)(c->blk03 + ((unsigned long)(edx) - c->blk03_base))) = (unsigned int)eax;
     /* 0x004180AA */ eax = (unsigned long)D4V_SHIFT_R0_32(&c->st, 0);
-    /* 0x004180AF */ (*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)((edx + 4) & U32MASK) - c->blk00_base))) = (unsigned int)eax;
+    /* 0x004180AF */ (*(unsigned int *)(void *)(c->blk03 + ((unsigned long)((edx + 4) & U32MASK) - c->blk03_base))) = (unsigned int)eax;
     /* 0x004180B2 */ /* cmp [var_24],0 */;
     /* 0x004180B7 jz */ if (v24 == 0) goto l_41824E;
     /* 0x004180BD */ ebx = (unsigned long)D4V_DICT_CURSOR_32(&c->st);
@@ -3871,7 +3871,7 @@ l_41809F:
     /* 0x004180E7 */ eax = (unsigned long)D4V_BLK_PTR_05_32(&c->st);
     /* 0x004180EC */ eax = (eax + edx) & U32MASK;
     /* 0x004180EE */ /* cmp byte [eax],0 */;
-    /* 0x004180F1 jz */ if ((c->blk00_dict[((unsigned long)(eax) - c->blk00_base)]) == 0) goto l_418216;
+    /* 0x004180F1 jz */ if ((c->blk05[((unsigned long)(eax) - c->blk05_base)]) == 0) goto l_418216;
     /* 0x004180F7 */ eax = 0xFFFFFFFFUL;
 l_4180FC:
     /* 0x004180FC */ edx = 0; /* xor */
@@ -3954,10 +3954,10 @@ l_4181D4:
     /* 0x004181DF */ eax = v34;
     /* 0x004181E3 */ ecx = (unsigned long)D4V_SHIFT_R0_32(&c->st, 0);
     /* 0x004181E9 */ /* cmp ecx,[eax+4] */;
-    /* 0x004181EC jnz */ if (ecx != (unsigned long)(*(unsigned int *)(void *)(c->blk00_dict + ((unsigned long)((eax + 4) & U32MASK) - c->blk00_base))))
+    /* 0x004181EC jnz */ if (ecx != (unsigned long)(*(unsigned int *)(void *)(c->blk03 + ((unsigned long)((eax + 4) & U32MASK) - c->blk03_base))))
         goto l_418203;
     /* 0x004181EE */ edi = v34;
-    /* 0x004181F2 */ edi = (unsigned long)(*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)(edi)));
+    /* 0x004181F2 */ edi = (unsigned long)(*(unsigned int *)(void *)(c->blk03 + ((unsigned long)(edi) - c->blk03_base)));
     /* 0x004181F4 */ /* cmp edi,0FFFFFFFFh */;
     /* 0x004181F7 setnz al: al = (edi != -1) */;
     eax = (eax & 0xFFFFFF00UL) | (unsigned long)(edi != 0xFFFFFFFFUL ? 1 : 0);
@@ -3986,7 +3986,7 @@ l_418240:
     /* 0x00418240 */ ebx = v30;
     /* 0x00418244 */ eax = (unsigned long)D4V_BLK_PTR_05_32(&c->st);
     /* 0x00418249 */ eax = (eax + ebx) & U32MASK;
-    /* 0x0041824B */ (c->blk00_dict[((unsigned long)(eax) - c->blk00_base)]) = 0;
+    /* 0x0041824B */ (c->blk05[((unsigned long)(eax) - c->blk05_base)]) = 0;
 l_41824E:
     /* 0x0041824E */ esi = 0; /* xor */
     /* 0x00418250 */ eax &= 0xFFFFFF00UL; /* xor al,al */
@@ -4021,7 +4021,7 @@ l_41828B:
     /* 0x004182A9 */ eax = (unsigned long)D4V_BLK_PTR_05_32(&c->st);
     /* 0x004182AE */ eax = (eax + esi) & U32MASK;
     /* 0x004182B0 */ /* cmp byte [eax],10h */;
-    /* 0x004182B3 jb */ if ((c->blk00_dict[((unsigned long)(eax) - c->blk00_base)]) < 0x10) goto l_4183B2; /* unsigned */
+    /* 0x004182B3 jb */ if ((c->blk05[((unsigned long)(eax) - c->blk05_base)]) < 0x10) goto l_4183B2; /* unsigned */
     /* 0x004182B9 */ edx = 1;
 l_4182BE:
     /* 0x004182BE */ ebp = 0x30CUL;
@@ -4052,7 +4052,7 @@ l_4182E8:
     /* 0x00418307 */ eax = (eax + esi) & U32MASK;
     /* 0x00418309 */ D4V_TBL_45BA48_32(&c->st) = (unsigned int)ecx; /* callee-preserved */
     /* 0x0041830F */ D4V_TBL_45BA40_32(&c->st) = (unsigned int)ebp; /* =0 */
-    /* 0x00418315 */ (c->blk00_dict[((unsigned long)(eax) - c->blk00_base)]) = (unsigned char)((ebx >> 8) & 0xFFUL);
+    /* 0x00418315 */ (c->blk05[((unsigned long)(eax) - c->blk05_base)]) = (unsigned char)((ebx >> 8) & 0xFFUL);
     /* 0x00418317 */ /* cmp bh,0FFh */;
     /* 0x0041831A jz */ if (((ebx >> 8) & 0xFFUL) == 0xFF) goto l_4183B9;
     /* 0x00418320 */ /* cmp bh,7 */;
