@@ -144,6 +144,20 @@ Left:
    0.3's typed state stays empty until its tables are typed; the 0.4
    port is the one that can make progress cell by cell.
 
+   **Why the tables are the blocker.**  In the arena the tables and the
+   named cells are *interleaved* in one contiguous address space:
+   `dword_45AF00[eax*4]` walks straight over the named cells
+   0x45AF04, 0x45AF08, 0x45AF0C and 0x45AF10, and the address map's
+   "cell = distance to the next name" extents are systematically too
+   small (the measured extents run past them by up to a kilobyte).  So a
+   table cannot become a standalone array unless the cells it walks
+   over are folded into the same array - and the cells' accessors have
+   to become indices into it.  That means the typed state needs a
+   *unified* layout (tables as arrays, cells as aliases into them),
+   which is a change to `tools/gen_dec4_state.py` rather than a
+   mechanical rewrite of the port.  The measured extents are the input
+   that layout needs.
+
    Measured on `uha04_dec4_clean.c`:
 
    * the port overrides **630** `D4V_*` accessors back to `d4v_ptr()`
