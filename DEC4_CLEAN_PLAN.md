@@ -81,6 +81,11 @@ Checked with `tools/diff_fuzz.py`: the typed ports and their arena
 references agree byte for byte on mutated archives as well (103 trials
 per version, bit flips, bursts and truncations, 0 differences).
 
+The full corpora are compared against the arena references as well: the
+0.4 clean port is byte-identical on all 103 archives of `uharc-rs-04/arc`
+and the 0.3 clean port on all 103 archives of `uharc-rs-03/arc` (both
+built with `-DDEC4_ARENA` for the reference).
+
 Left:
 
 3. **Const tables.** The cells inside the loaded image and the model
@@ -120,6 +125,24 @@ Left:
    PPM context bytes 0x45C679..0x45C692, the PPM order state
    0x45AF90..0x45AFA0, 0x45AFB4/0x45AFB8/0x45AFC0, 0x45AF3C/0x45AF40
    and 0x45AFCC.
+
+   The image tables cannot simply be read out of the const ROM: they are
+   indexed with values that are not bounded by the mask the code
+   suggests (the price table `word_437968` is read at `(eax & 0xFFFF) * 2`,
+   i.e. up to 128 KB past the image), so they rely on the arena's
+   zero-filled tail.  Turning them into const tables therefore needs
+   their extents first - the same blocker as everything else.
+
+   **0.3 is a different shape.**  Its clean port has no override block:
+   it addresses the fixed region through `G8/G16/G32(D3U_X)` (named) and
+   `M8/M16/M32(...)` (computed) macros.  Measured over the 0.3 corpus
+   (29 348 fixed-region bytes touched, only two cells with a non-zero
+   post-init value: 0x42BC6E and 0x435274), **none** of its 159 named
+   cells can move into the typed state: 114 are the base of a computed
+   access (they are tables), 42 have a byte-array member (the arena port
+   used more than one width on them), and 3 are read at two widths.  So
+   0.3's typed state stays empty until its tables are typed; the 0.4
+   port is the one that can make progress cell by cell.
 
    Measured on `uha04_dec4_clean.c`:
 
