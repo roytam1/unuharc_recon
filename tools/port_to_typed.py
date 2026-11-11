@@ -131,10 +131,14 @@ def main():
               " * The model state that lives outside the loaded image now sits in\n"
               " * typed struct members; the cells inside the image and the model\n"
               " * tables (addressed through computed arena offsets) still use the\n"
-              " * arena.  Regenerate with:\n"
-              " *   python tools/port_to_typed.py %s %s_state.h %s %s\n"
-              " */\n") % (src_path, src_path,
-                        src_path.replace(".c", "_state.h"), out_path, prefix)
+              " * arena.\n"
+              " *\n"
+              " * The file is maintained by hand on top of the generated version:\n"
+              " * the D4V_* accessor overrides that keep the arena cells in the\n"
+              " * arena, the per-block model pointers in the context and the PPM\n"
+              " * order table are hand-written, and re-running this tool would\n"
+              " * drop them.  See DEC4_CLEAN_PLAN.md.\n"
+              " */\n") % src_path
     out = banner + out
 
     # The arena port exports a lot of non-static workers; the typed port

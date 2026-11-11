@@ -3,8 +3,13 @@
  * The model state that lives outside the loaded image now sits in
  * typed struct members; the cells inside the image and the model
  * tables (addressed through computed arena offsets) still use the
- * arena.  Regenerate with:
- *   python tools/port_to_typed.py uha04_dec4.c uha04_dec4_state.h_state.h uha04_dec4_clean.c d4v
+ * arena.
+ *
+ * The file is maintained by hand on top of the generated version: the
+ * D4V_* accessor overrides that keep the arena cells in the arena, the
+ * per-block model pointers in the context and the PPM order table are
+ * all hand-written, and re-running tools/port_to_typed.py would drop
+ * them.  See DEC4_CLEAN_PLAN.md.
  */
 /* UHARC 0.4 decompressor core 4 (methods 24..39) - portable C89 port.
  *

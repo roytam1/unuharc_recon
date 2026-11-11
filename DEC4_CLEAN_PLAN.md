@@ -77,6 +77,13 @@ Done:
    two failures are core 5). The dispatcher selects them by default and
    the arena ports with `-DDEC4_ARENA`.
 
+   Both clean ports are now **maintained by hand on top of the generated
+   version** - the `D4V_*` accessor overrides that keep the arena cells
+   in the arena, the per-block model pointers in the context and the PPM
+   order table are hand-written.  Re-running `tools/port_to_typed.py`
+   would drop them, so the banner in the two files now says so.  The
+   tool itself is unchanged apart from that banner.
+
 Checked with `tools/diff_fuzz.py`: the typed ports and their arena
 references agree byte for byte on mutated archives as well (103 trials
 per version, bit flips, bursts and truncations, 0 differences).
