@@ -55,1264 +55,438 @@
 /* arena-backed overrides for ALL named cells: segmented memory */
 #undef D4V_TAIL_GATE_FLAG_8
 #define D4V_TAIL_GATE_FLAG_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x431209UL)))
-#undef D4V_TAIL_GATE_FLAG_16
-#define D4V_TAIL_GATE_FLAG_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x431209UL)))
-#undef D4V_TAIL_GATE_FLAG_32
-#define D4V_TAIL_GATE_FLAG_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x431209UL)))
 #undef D4V_PREFIX_SUM_TMP_32
 #define D4V_PREFIX_SUM_TMP_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43120CUL)))
-#undef D4V_PREFIX_SUM_TMP_8
-#define D4V_PREFIX_SUM_TMP_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43120CUL)))
-#undef D4V_PREFIX_SUM_TMP_16
-#define D4V_PREFIX_SUM_TMP_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43120CUL)))
 #undef D4V_BLK_PTR_00_DICT_32
 #define D4V_BLK_PTR_00_DICT_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B40UL)))
-#undef D4V_BLK_PTR_00_DICT_8
-#define D4V_BLK_PTR_00_DICT_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B40UL)))
-#undef D4V_BLK_PTR_00_DICT_16
-#define D4V_BLK_PTR_00_DICT_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B40UL)))
 #undef D4V_BLK_PTR_01_32
 #define D4V_BLK_PTR_01_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B44UL)))
-#undef D4V_BLK_PTR_01_8
-#define D4V_BLK_PTR_01_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B44UL)))
-#undef D4V_BLK_PTR_01_16
-#define D4V_BLK_PTR_01_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B44UL)))
 #undef D4V_BLK_PTR_02_32
 #define D4V_BLK_PTR_02_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B48UL)))
-#undef D4V_BLK_PTR_02_8
-#define D4V_BLK_PTR_02_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B48UL)))
-#undef D4V_BLK_PTR_02_16
-#define D4V_BLK_PTR_02_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B48UL)))
 #undef D4V_BLK_PTR_03_32
 #define D4V_BLK_PTR_03_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B4CUL)))
-#undef D4V_BLK_PTR_03_8
-#define D4V_BLK_PTR_03_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B4CUL)))
-#undef D4V_BLK_PTR_03_16
-#define D4V_BLK_PTR_03_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B4CUL)))
 #undef D4V_BLK_PTR_04_32
 #define D4V_BLK_PTR_04_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B50UL)))
-#undef D4V_BLK_PTR_04_8
-#define D4V_BLK_PTR_04_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B50UL)))
-#undef D4V_BLK_PTR_04_16
-#define D4V_BLK_PTR_04_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B50UL)))
 #undef D4V_BLK_PTR_05_32
 #define D4V_BLK_PTR_05_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B54UL)))
-#undef D4V_BLK_PTR_05_8
-#define D4V_BLK_PTR_05_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B54UL)))
-#undef D4V_BLK_PTR_05_16
-#define D4V_BLK_PTR_05_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B54UL)))
 #undef D4V_BLK_PTR_07_32
 #define D4V_BLK_PTR_07_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B5CUL)))
-#undef D4V_BLK_PTR_07_8
-#define D4V_BLK_PTR_07_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B5CUL)))
-#undef D4V_BLK_PTR_07_16
-#define D4V_BLK_PTR_07_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B5CUL)))
 #undef D4V_BLK_PTR_08_32
 #define D4V_BLK_PTR_08_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B60UL)))
-#undef D4V_BLK_PTR_08_8
-#define D4V_BLK_PTR_08_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B60UL)))
-#undef D4V_BLK_PTR_08_16
-#define D4V_BLK_PTR_08_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B60UL)))
 #undef D4V_BLK_PTR_09_32
 #define D4V_BLK_PTR_09_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B64UL)))
-#undef D4V_BLK_PTR_09_8
-#define D4V_BLK_PTR_09_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B64UL)))
-#undef D4V_BLK_PTR_09_16
-#define D4V_BLK_PTR_09_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B64UL)))
 #undef D4V_BLK_PTR_10_32
 #define D4V_BLK_PTR_10_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B68UL)))
-#undef D4V_BLK_PTR_10_8
-#define D4V_BLK_PTR_10_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B68UL)))
-#undef D4V_BLK_PTR_10_16
-#define D4V_BLK_PTR_10_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B68UL)))
 #undef D4V_BLK_PTR_11_32
 #define D4V_BLK_PTR_11_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B6CUL)))
-#undef D4V_BLK_PTR_11_8
-#define D4V_BLK_PTR_11_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B6CUL)))
-#undef D4V_BLK_PTR_11_16
-#define D4V_BLK_PTR_11_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B6CUL)))
 #undef D4V_BLK_PTR_12_32
 #define D4V_BLK_PTR_12_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B70UL)))
-#undef D4V_BLK_PTR_12_8
-#define D4V_BLK_PTR_12_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B70UL)))
-#undef D4V_BLK_PTR_12_16
-#define D4V_BLK_PTR_12_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B70UL)))
 #undef D4V_BLK_PTR_13_32
 #define D4V_BLK_PTR_13_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B74UL)))
-#undef D4V_BLK_PTR_13_8
-#define D4V_BLK_PTR_13_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B74UL)))
-#undef D4V_BLK_PTR_13_16
-#define D4V_BLK_PTR_13_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B74UL)))
 #undef D4V_BLK_PTR_14_32
 #define D4V_BLK_PTR_14_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B78UL)))
-#undef D4V_BLK_PTR_14_8
-#define D4V_BLK_PTR_14_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B78UL)))
-#undef D4V_BLK_PTR_14_16
-#define D4V_BLK_PTR_14_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B78UL)))
 #undef D4V_BLK_PTR_15_32
 #define D4V_BLK_PTR_15_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B7CUL)))
-#undef D4V_BLK_PTR_15_8
-#define D4V_BLK_PTR_15_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B7CUL)))
-#undef D4V_BLK_PTR_15_16
-#define D4V_BLK_PTR_15_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B7CUL)))
 #undef D4V_BLK_PTR_16_32
 #define D4V_BLK_PTR_16_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B80UL)))
-#undef D4V_BLK_PTR_16_8
-#define D4V_BLK_PTR_16_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B80UL)))
-#undef D4V_BLK_PTR_16_16
-#define D4V_BLK_PTR_16_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B80UL)))
 #undef D4V_BLK_PTR_17_32
 #define D4V_BLK_PTR_17_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B84UL)))
-#undef D4V_BLK_PTR_17_8
-#define D4V_BLK_PTR_17_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B84UL)))
-#undef D4V_BLK_PTR_17_16
-#define D4V_BLK_PTR_17_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B84UL)))
 #undef D4V_BLK_PTR_18_32
 #define D4V_BLK_PTR_18_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B88UL)))
-#undef D4V_BLK_PTR_18_8
-#define D4V_BLK_PTR_18_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B88UL)))
-#undef D4V_BLK_PTR_18_16
-#define D4V_BLK_PTR_18_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B88UL)))
 #undef D4V_BLK_PTR_19_32
 #define D4V_BLK_PTR_19_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B8CUL)))
-#undef D4V_BLK_PTR_19_8
-#define D4V_BLK_PTR_19_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B8CUL)))
-#undef D4V_BLK_PTR_19_16
-#define D4V_BLK_PTR_19_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B8CUL)))
 #undef D4V_TBL_436150_8
 #define D4V_TBL_436150_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436150UL)))
-#undef D4V_TBL_436150_16
-#define D4V_TBL_436150_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436150UL)))
-#undef D4V_TBL_436150_32
-#define D4V_TBL_436150_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436150UL)))
 #undef D4V_TBL_436152_8
 #define D4V_TBL_436152_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436152UL)))
-#undef D4V_TBL_436152_16
-#define D4V_TBL_436152_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436152UL)))
-#undef D4V_TBL_436152_32
-#define D4V_TBL_436152_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436152UL)))
 #undef D4V_IO_ERR_32
 #define D4V_IO_ERR_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436EC8UL)))
-#undef D4V_IO_ERR_8
-#define D4V_IO_ERR_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436EC8UL)))
-#undef D4V_IO_ERR_16
-#define D4V_IO_ERR_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436EC8UL)))
 #undef D4V_IO_IN_PTR_32
 #define D4V_IO_IN_PTR_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436ED0UL)))
-#undef D4V_IO_IN_PTR_8
-#define D4V_IO_IN_PTR_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436ED0UL)))
-#undef D4V_IO_IN_PTR_16
-#define D4V_IO_IN_PTR_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436ED0UL)))
 #undef D4V_IO_OUT_PTR_32
 #define D4V_IO_OUT_PTR_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436ED4UL)))
-#undef D4V_IO_OUT_PTR_8
-#define D4V_IO_OUT_PTR_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436ED4UL)))
-#undef D4V_IO_OUT_PTR_16
-#define D4V_IO_OUT_PTR_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x436ED4UL)))
 #undef D4V_PRICE_DONE_8
 #define D4V_PRICE_DONE_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43F968UL)))
-#undef D4V_PRICE_DONE_16
-#define D4V_PRICE_DONE_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43F968UL)))
-#undef D4V_PRICE_DONE_32
-#define D4V_PRICE_DONE_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43F968UL)))
 #undef D4V_IO_SNAP_IN_32
 #define D4V_IO_SNAP_IN_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E70UL)))
-#undef D4V_IO_SNAP_IN_8
-#define D4V_IO_SNAP_IN_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E70UL)))
-#undef D4V_IO_SNAP_IN_16
-#define D4V_IO_SNAP_IN_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E70UL)))
 #undef D4V_IO_SNAP_OUT_32
 #define D4V_IO_SNAP_OUT_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E74UL)))
-#undef D4V_IO_SNAP_OUT_8
-#define D4V_IO_SNAP_OUT_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E74UL)))
-#undef D4V_IO_SNAP_OUT_16
-#define D4V_IO_SNAP_OUT_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E74UL)))
 #undef D4V_ALLOC_CURSOR_32
 #define D4V_ALLOC_CURSOR_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E78UL)))
-#undef D4V_ALLOC_CURSOR_8
-#define D4V_ALLOC_CURSOR_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E78UL)))
-#undef D4V_ALLOC_CURSOR_16
-#define D4V_ALLOC_CURSOR_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E78UL)))
 #undef D4V_ALLOC_HI16_16
 #define D4V_ALLOC_HI16_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E7AUL)))
-#undef D4V_ALLOC_HI16_8
-#define D4V_ALLOC_HI16_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E7AUL)))
-#undef D4V_ALLOC_HI16_32
-#define D4V_ALLOC_HI16_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x440E7AUL)))
 #undef D4V_TBL_451920_32
 #define D4V_TBL_451920_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451920UL)))
-#undef D4V_TBL_451920_8
-#define D4V_TBL_451920_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451920UL)))
-#undef D4V_TBL_451920_16
-#define D4V_TBL_451920_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451920UL)))
 #undef D4V_TBL_451924_32
 #define D4V_TBL_451924_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451924UL)))
-#undef D4V_TBL_451924_8
-#define D4V_TBL_451924_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451924UL)))
-#undef D4V_TBL_451924_16
-#define D4V_TBL_451924_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451924UL)))
 #undef D4V_TBL_451928_32
 #define D4V_TBL_451928_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451928UL)))
-#undef D4V_TBL_451928_8
-#define D4V_TBL_451928_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451928UL)))
-#undef D4V_TBL_451928_16
-#define D4V_TBL_451928_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451928UL)))
 #undef D4V_TBL_451930_32
 #define D4V_TBL_451930_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451930UL)))
-#undef D4V_TBL_451930_8
-#define D4V_TBL_451930_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451930UL)))
-#undef D4V_TBL_451930_16
-#define D4V_TBL_451930_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451930UL)))
 #undef D4V_TBL_451934_32
 #define D4V_TBL_451934_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451934UL)))
-#undef D4V_TBL_451934_8
-#define D4V_TBL_451934_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451934UL)))
-#undef D4V_TBL_451934_16
-#define D4V_TBL_451934_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451934UL)))
 #undef D4V_TBL_451938_32
 #define D4V_TBL_451938_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451938UL)))
-#undef D4V_TBL_451938_8
-#define D4V_TBL_451938_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451938UL)))
-#undef D4V_TBL_451938_16
-#define D4V_TBL_451938_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451938UL)))
 #undef D4V_TBL_451D40_32
 #define D4V_TBL_451D40_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D40UL)))
-#undef D4V_TBL_451D40_8
-#define D4V_TBL_451D40_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D40UL)))
-#undef D4V_TBL_451D40_16
-#define D4V_TBL_451D40_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D40UL)))
 #undef D4V_TBL_451D44_32
 #define D4V_TBL_451D44_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D44UL)))
-#undef D4V_TBL_451D44_8
-#define D4V_TBL_451D44_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D44UL)))
-#undef D4V_TBL_451D44_16
-#define D4V_TBL_451D44_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D44UL)))
 #undef D4V_TBL_451D4C_32
 #define D4V_TBL_451D4C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D4CUL)))
-#undef D4V_TBL_451D4C_8
-#define D4V_TBL_451D4C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D4CUL)))
-#undef D4V_TBL_451D4C_16
-#define D4V_TBL_451D4C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D4CUL)))
 #undef D4V_TBL_451D50_32
 #define D4V_TBL_451D50_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D50UL)))
-#undef D4V_TBL_451D50_8
-#define D4V_TBL_451D50_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D50UL)))
-#undef D4V_TBL_451D50_16
-#define D4V_TBL_451D50_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D50UL)))
 #undef D4V_TBL_45356C_32
 #define D4V_TBL_45356C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45356CUL)))
-#undef D4V_TBL_45356C_8
-#define D4V_TBL_45356C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45356CUL)))
-#undef D4V_TBL_45356C_16
-#define D4V_TBL_45356C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45356CUL)))
 #undef D4V_TBL_453570_32
 #define D4V_TBL_453570_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453570UL)))
-#undef D4V_TBL_453570_8
-#define D4V_TBL_453570_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453570UL)))
-#undef D4V_TBL_453570_16
-#define D4V_TBL_453570_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453570UL)))
 #undef D4V_TBL_453574_32
 #define D4V_TBL_453574_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453574UL)))
-#undef D4V_TBL_453574_8
-#define D4V_TBL_453574_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453574UL)))
-#undef D4V_TBL_453574_16
-#define D4V_TBL_453574_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453574UL)))
 #undef D4V_TBL_453578_32
 #define D4V_TBL_453578_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453578UL)))
-#undef D4V_TBL_453578_8
-#define D4V_TBL_453578_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453578UL)))
-#undef D4V_TBL_453578_16
-#define D4V_TBL_453578_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453578UL)))
 #undef D4V_TBL_45357C_32
 #define D4V_TBL_45357C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45357CUL)))
-#undef D4V_TBL_45357C_8
-#define D4V_TBL_45357C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45357CUL)))
-#undef D4V_TBL_45357C_16
-#define D4V_TBL_45357C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45357CUL)))
 #undef D4V_TBL_453580_32
 #define D4V_TBL_453580_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453580UL)))
-#undef D4V_TBL_453580_8
-#define D4V_TBL_453580_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453580UL)))
-#undef D4V_TBL_453580_16
-#define D4V_TBL_453580_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453580UL)))
 #undef D4V_TBL_453584_32
 #define D4V_TBL_453584_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453584UL)))
-#undef D4V_TBL_453584_8
-#define D4V_TBL_453584_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453584UL)))
-#undef D4V_TBL_453584_16
-#define D4V_TBL_453584_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453584UL)))
 #undef D4V_TBL_453588_32
 #define D4V_TBL_453588_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453588UL)))
-#undef D4V_TBL_453588_8
-#define D4V_TBL_453588_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453588UL)))
-#undef D4V_TBL_453588_16
-#define D4V_TBL_453588_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453588UL)))
 #undef D4V_TBL_45358C_32
 #define D4V_TBL_45358C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45358CUL)))
-#undef D4V_TBL_45358C_8
-#define D4V_TBL_45358C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45358CUL)))
-#undef D4V_TBL_45358C_16
-#define D4V_TBL_45358C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45358CUL)))
 #undef D4V_TBL_453590_32
 #define D4V_TBL_453590_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453590UL)))
-#undef D4V_TBL_453590_8
-#define D4V_TBL_453590_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453590UL)))
-#undef D4V_TBL_453590_16
-#define D4V_TBL_453590_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453590UL)))
 #undef D4V_TBL_453594_32
 #define D4V_TBL_453594_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453594UL)))
-#undef D4V_TBL_453594_8
-#define D4V_TBL_453594_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453594UL)))
-#undef D4V_TBL_453594_16
-#define D4V_TBL_453594_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453594UL)))
 #undef D4V_TBL_453598_32
 #define D4V_TBL_453598_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453598UL)))
-#undef D4V_TBL_453598_8
-#define D4V_TBL_453598_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453598UL)))
-#undef D4V_TBL_453598_16
-#define D4V_TBL_453598_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x453598UL)))
 #undef D4V_TBL_457360_32
 #define D4V_TBL_457360_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457360UL)))
-#undef D4V_TBL_457360_8
-#define D4V_TBL_457360_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457360UL)))
-#undef D4V_TBL_457360_16
-#define D4V_TBL_457360_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457360UL)))
 #undef D4V_TBL_457364_32
 #define D4V_TBL_457364_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457364UL)))
-#undef D4V_TBL_457364_8
-#define D4V_TBL_457364_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457364UL)))
-#undef D4V_TBL_457364_16
-#define D4V_TBL_457364_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457364UL)))
 #undef D4V_TBL_457368_32
 #define D4V_TBL_457368_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457368UL)))
-#undef D4V_TBL_457368_8
-#define D4V_TBL_457368_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457368UL)))
-#undef D4V_TBL_457368_16
-#define D4V_TBL_457368_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457368UL)))
 #undef D4V_TBL_45736C_32
 #define D4V_TBL_45736C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45736CUL)))
-#undef D4V_TBL_45736C_8
-#define D4V_TBL_45736C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45736CUL)))
-#undef D4V_TBL_45736C_16
-#define D4V_TBL_45736C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45736CUL)))
 #undef D4V_TBL_457370_32
 #define D4V_TBL_457370_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457370UL)))
-#undef D4V_TBL_457370_8
-#define D4V_TBL_457370_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457370UL)))
-#undef D4V_TBL_457370_16
-#define D4V_TBL_457370_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457370UL)))
 #undef D4V_TBL_457374_32
 #define D4V_TBL_457374_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457374UL)))
-#undef D4V_TBL_457374_8
-#define D4V_TBL_457374_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457374UL)))
-#undef D4V_TBL_457374_16
-#define D4V_TBL_457374_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x457374UL)))
 #undef D4V_TBL_45879C_32
 #define D4V_TBL_45879C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45879CUL)))
-#undef D4V_TBL_45879C_8
-#define D4V_TBL_45879C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45879CUL)))
-#undef D4V_TBL_45879C_16
-#define D4V_TBL_45879C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45879CUL)))
 #undef D4V_TBL_458B9C_32
 #define D4V_TBL_458B9C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x458B9CUL)))
-#undef D4V_TBL_458B9C_8
-#define D4V_TBL_458B9C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x458B9CUL)))
-#undef D4V_TBL_458B9C_16
-#define D4V_TBL_458B9C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x458B9CUL)))
 #undef D4V_TBL_45939C_32
 #define D4V_TBL_45939C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45939CUL)))
-#undef D4V_TBL_45939C_8
-#define D4V_TBL_45939C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45939CUL)))
-#undef D4V_TBL_45939C_16
-#define D4V_TBL_45939C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45939CUL)))
 #undef D4V_TBL_459BA4_32
 #define D4V_TBL_459BA4_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA4UL)))
-#undef D4V_TBL_459BA4_8
-#define D4V_TBL_459BA4_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA4UL)))
-#undef D4V_TBL_459BA4_16
-#define D4V_TBL_459BA4_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA4UL)))
 #undef D4V_TBL_459E3C_32
 #define D4V_TBL_459E3C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E3CUL)))
-#undef D4V_TBL_459E3C_8
-#define D4V_TBL_459E3C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E3CUL)))
-#undef D4V_TBL_459E3C_16
-#define D4V_TBL_459E3C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E3CUL)))
 #undef D4V_TBL_459E3E_16
 #define D4V_TBL_459E3E_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E3EUL)))
-#undef D4V_TBL_459E3E_8
-#define D4V_TBL_459E3E_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E3EUL)))
-#undef D4V_TBL_459E3E_32
-#define D4V_TBL_459E3E_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E3EUL)))
 #undef D4V_TBL_459E40_32
 #define D4V_TBL_459E40_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E40UL)))
-#undef D4V_TBL_459E40_8
-#define D4V_TBL_459E40_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E40UL)))
-#undef D4V_TBL_459E40_16
-#define D4V_TBL_459E40_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E40UL)))
 #undef D4V_TBL_459E42_16
 #define D4V_TBL_459E42_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E42UL)))
-#undef D4V_TBL_459E42_8
-#define D4V_TBL_459E42_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E42UL)))
-#undef D4V_TBL_459E42_32
-#define D4V_TBL_459E42_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E42UL)))
 #undef D4V_TBL_459E44_32
 #define D4V_TBL_459E44_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E44UL)))
-#undef D4V_TBL_459E44_8
-#define D4V_TBL_459E44_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E44UL)))
-#undef D4V_TBL_459E44_16
-#define D4V_TBL_459E44_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E44UL)))
 #undef D4V_TBL_459E48_32
 #define D4V_TBL_459E48_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E48UL)))
-#undef D4V_TBL_459E48_8
-#define D4V_TBL_459E48_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E48UL)))
-#undef D4V_TBL_459E48_16
-#define D4V_TBL_459E48_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E48UL)))
 #undef D4V_TBL_459E4C_32
 #define D4V_TBL_459E4C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E4CUL)))
-#undef D4V_TBL_459E4C_8
-#define D4V_TBL_459E4C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E4CUL)))
-#undef D4V_TBL_459E4C_16
-#define D4V_TBL_459E4C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E4CUL)))
 #undef D4V_TBL_459E50_32
 #define D4V_TBL_459E50_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E50UL)))
-#undef D4V_TBL_459E50_8
-#define D4V_TBL_459E50_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E50UL)))
-#undef D4V_TBL_459E50_16
-#define D4V_TBL_459E50_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E50UL)))
 #undef D4V_TBL_459E54_32
 #define D4V_TBL_459E54_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E54UL)))
-#undef D4V_TBL_459E54_8
-#define D4V_TBL_459E54_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E54UL)))
-#undef D4V_TBL_459E54_16
-#define D4V_TBL_459E54_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E54UL)))
 #undef D4V_CTX_B_45A25D_8
 #define D4V_CTX_B_45A25D_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A25DUL)))
-#undef D4V_CTX_B_45A25D_16
-#define D4V_CTX_B_45A25D_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A25DUL)))
-#undef D4V_CTX_B_45A25D_32
-#define D4V_CTX_B_45A25D_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A25DUL)))
 #undef D4V_CTX_B_45A25F_8
 #define D4V_CTX_B_45A25F_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A25FUL)))
-#undef D4V_CTX_B_45A25F_16
-#define D4V_CTX_B_45A25F_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A25FUL)))
-#undef D4V_CTX_B_45A25F_32
-#define D4V_CTX_B_45A25F_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A25FUL)))
 #undef D4V_CTX_B_45A267_8
 #define D4V_CTX_B_45A267_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A267UL)))
-#undef D4V_CTX_B_45A267_16
-#define D4V_CTX_B_45A267_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A267UL)))
-#undef D4V_CTX_B_45A267_32
-#define D4V_CTX_B_45A267_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A267UL)))
 #undef D4V_CTX_B_45A268_8
 #define D4V_CTX_B_45A268_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A268UL)))
-#undef D4V_CTX_B_45A268_16
-#define D4V_CTX_B_45A268_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A268UL)))
-#undef D4V_CTX_B_45A268_32
-#define D4V_CTX_B_45A268_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A268UL)))
 #undef D4V_CTX_B_45A270_8
 #define D4V_CTX_B_45A270_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A270UL)))
-#undef D4V_CTX_B_45A270_16
-#define D4V_CTX_B_45A270_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A270UL)))
-#undef D4V_CTX_B_45A270_32
-#define D4V_CTX_B_45A270_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A270UL)))
 #undef D4V_CTX_B_45A272_8
 #define D4V_CTX_B_45A272_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A272UL)))
-#undef D4V_CTX_B_45A272_16
-#define D4V_CTX_B_45A272_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A272UL)))
-#undef D4V_CTX_B_45A272_32
-#define D4V_CTX_B_45A272_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A272UL)))
 #undef D4V_CTX_B_45A27A_8
 #define D4V_CTX_B_45A27A_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27AUL)))
-#undef D4V_CTX_B_45A27A_16
-#define D4V_CTX_B_45A27A_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27AUL)))
-#undef D4V_CTX_B_45A27A_32
-#define D4V_CTX_B_45A27A_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27AUL)))
 #undef D4V_CTX_B_45A27C_8
 #define D4V_CTX_B_45A27C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27CUL)))
-#undef D4V_CTX_B_45A27C_16
-#define D4V_CTX_B_45A27C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27CUL)))
-#undef D4V_CTX_B_45A27C_32
-#define D4V_CTX_B_45A27C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27CUL)))
 #undef D4V_CTX_B_45A27E_8
 #define D4V_CTX_B_45A27E_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27EUL)))
-#undef D4V_CTX_B_45A27E_16
-#define D4V_CTX_B_45A27E_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27EUL)))
-#undef D4V_CTX_B_45A27E_32
-#define D4V_CTX_B_45A27E_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45A27EUL)))
 #undef D4V_TBL_45AF04_32
 #define D4V_TBL_45AF04_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF04UL)))
-#undef D4V_TBL_45AF04_8
-#define D4V_TBL_45AF04_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF04UL)))
-#undef D4V_TBL_45AF04_16
-#define D4V_TBL_45AF04_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF04UL)))
 #undef D4V_TBL_45AF08_32
 #define D4V_TBL_45AF08_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF08UL)))
-#undef D4V_TBL_45AF08_8
-#define D4V_TBL_45AF08_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF08UL)))
-#undef D4V_TBL_45AF08_16
-#define D4V_TBL_45AF08_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF08UL)))
 #undef D4V_TBL_45AF0C_32
 #define D4V_TBL_45AF0C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF0CUL)))
-#undef D4V_TBL_45AF0C_8
-#define D4V_TBL_45AF0C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF0CUL)))
-#undef D4V_TBL_45AF0C_16
-#define D4V_TBL_45AF0C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF0CUL)))
 #undef D4V_TBL_45AF28_32
 #define D4V_TBL_45AF28_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF28UL)))
-#undef D4V_TBL_45AF28_8
-#define D4V_TBL_45AF28_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF28UL)))
-#undef D4V_TBL_45AF28_16
-#define D4V_TBL_45AF28_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF28UL)))
 #undef D4V_TBL_45AF2C_32
 #define D4V_TBL_45AF2C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF2CUL)))
-#undef D4V_TBL_45AF2C_8
-#define D4V_TBL_45AF2C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF2CUL)))
-#undef D4V_TBL_45AF2C_16
-#define D4V_TBL_45AF2C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF2CUL)))
 #undef D4V_TBL_45AF30_32
 #define D4V_TBL_45AF30_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF30UL)))
-#undef D4V_TBL_45AF30_8
-#define D4V_TBL_45AF30_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF30UL)))
-#undef D4V_TBL_45AF30_16
-#define D4V_TBL_45AF30_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF30UL)))
 #undef D4V_TBL_45AF34_32
 #define D4V_TBL_45AF34_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF34UL)))
-#undef D4V_TBL_45AF34_8
-#define D4V_TBL_45AF34_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF34UL)))
-#undef D4V_TBL_45AF34_16
-#define D4V_TBL_45AF34_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF34UL)))
 #undef D4V_TBL_45AF3C_32
 #define D4V_TBL_45AF3C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF3CUL)))
-#undef D4V_TBL_45AF3C_8
-#define D4V_TBL_45AF3C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF3CUL)))
-#undef D4V_TBL_45AF3C_16
-#define D4V_TBL_45AF3C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF3CUL)))
 #undef D4V_TBL_45AF40_32
 #define D4V_TBL_45AF40_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF40UL)))
-#undef D4V_TBL_45AF40_8
-#define D4V_TBL_45AF40_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF40UL)))
-#undef D4V_TBL_45AF40_16
-#define D4V_TBL_45AF40_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF40UL)))
 #undef D4V_TBL_45AF44_32
 #define D4V_TBL_45AF44_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF44UL)))
-#undef D4V_TBL_45AF44_8
-#define D4V_TBL_45AF44_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF44UL)))
-#undef D4V_TBL_45AF44_16
-#define D4V_TBL_45AF44_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF44UL)))
 #undef D4V_TBL_45AF48_32
 #define D4V_TBL_45AF48_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF48UL)))
-#undef D4V_TBL_45AF48_8
-#define D4V_TBL_45AF48_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF48UL)))
-#undef D4V_TBL_45AF48_16
-#define D4V_TBL_45AF48_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF48UL)))
 #undef D4V_TBL_45AF4C_32
 #define D4V_TBL_45AF4C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF4CUL)))
-#undef D4V_TBL_45AF4C_8
-#define D4V_TBL_45AF4C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF4CUL)))
-#undef D4V_TBL_45AF4C_16
-#define D4V_TBL_45AF4C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF4CUL)))
 #undef D4V_TBL_45AF54_32
 #define D4V_TBL_45AF54_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF54UL)))
-#undef D4V_TBL_45AF54_8
-#define D4V_TBL_45AF54_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF54UL)))
-#undef D4V_TBL_45AF54_16
-#define D4V_TBL_45AF54_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF54UL)))
 #undef D4V_TBL_45AF58_32
 #define D4V_TBL_45AF58_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF58UL)))
-#undef D4V_TBL_45AF58_8
-#define D4V_TBL_45AF58_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF58UL)))
-#undef D4V_TBL_45AF58_16
-#define D4V_TBL_45AF58_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF58UL)))
 #undef D4V_TBL_45AF5C_32
 #define D4V_TBL_45AF5C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF5CUL)))
-#undef D4V_TBL_45AF5C_8
-#define D4V_TBL_45AF5C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF5CUL)))
-#undef D4V_TBL_45AF5C_16
-#define D4V_TBL_45AF5C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF5CUL)))
 #undef D4V_TBL_45AF60_32
 #define D4V_TBL_45AF60_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF60UL)))
-#undef D4V_TBL_45AF60_8
-#define D4V_TBL_45AF60_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF60UL)))
-#undef D4V_TBL_45AF60_16
-#define D4V_TBL_45AF60_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF60UL)))
 #undef D4V_TBL_45AF64_32
 #define D4V_TBL_45AF64_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF64UL)))
-#undef D4V_TBL_45AF64_8
-#define D4V_TBL_45AF64_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF64UL)))
-#undef D4V_TBL_45AF64_16
-#define D4V_TBL_45AF64_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF64UL)))
 #undef D4V_RSLOT_LO_32
 #define D4V_RSLOT_LO_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF68UL)))
-#undef D4V_RSLOT_LO_8
-#define D4V_RSLOT_LO_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF68UL)))
-#undef D4V_RSLOT_LO_16
-#define D4V_RSLOT_LO_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF68UL)))
 #undef D4V_RSLOT_MID_32
 #define D4V_RSLOT_MID_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF6CUL)))
-#undef D4V_RSLOT_MID_8
-#define D4V_RSLOT_MID_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF6CUL)))
-#undef D4V_RSLOT_MID_16
-#define D4V_RSLOT_MID_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF6CUL)))
 #undef D4V_RSLOT_HI_32
 #define D4V_RSLOT_HI_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF70UL)))
-#undef D4V_RSLOT_HI_8
-#define D4V_RSLOT_HI_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF70UL)))
-#undef D4V_RSLOT_HI_16
-#define D4V_RSLOT_HI_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF70UL)))
 #undef D4V_TBL_45AF74_32
 #define D4V_TBL_45AF74_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF74UL)))
-#undef D4V_TBL_45AF74_8
-#define D4V_TBL_45AF74_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF74UL)))
-#undef D4V_TBL_45AF74_16
-#define D4V_TBL_45AF74_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF74UL)))
 #undef D4V_TBL_45AF78_32
 #define D4V_TBL_45AF78_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF78UL)))
-#undef D4V_TBL_45AF78_8
-#define D4V_TBL_45AF78_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF78UL)))
-#undef D4V_TBL_45AF78_16
-#define D4V_TBL_45AF78_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF78UL)))
 #undef D4V_TBL_45AF80_32
 #define D4V_TBL_45AF80_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF80UL)))
-#undef D4V_TBL_45AF80_8
-#define D4V_TBL_45AF80_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF80UL)))
-#undef D4V_TBL_45AF80_16
-#define D4V_TBL_45AF80_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF80UL)))
 #undef D4V_TBL_45AF84_32
 #define D4V_TBL_45AF84_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF84UL)))
-#undef D4V_TBL_45AF84_8
-#define D4V_TBL_45AF84_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF84UL)))
-#undef D4V_TBL_45AF84_16
-#define D4V_TBL_45AF84_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF84UL)))
 #undef D4V_TBL_45AF88_32
 #define D4V_TBL_45AF88_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF88UL)))
-#undef D4V_TBL_45AF88_8
-#define D4V_TBL_45AF88_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF88UL)))
-#undef D4V_TBL_45AF88_16
-#define D4V_TBL_45AF88_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF88UL)))
 #undef D4V_TBL_45AF8C_32
 #define D4V_TBL_45AF8C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF8CUL)))
-#undef D4V_TBL_45AF8C_8
-#define D4V_TBL_45AF8C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF8CUL)))
-#undef D4V_TBL_45AF8C_16
-#define D4V_TBL_45AF8C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF8CUL)))
 #undef D4V_TBL_45AF90_32
 #define D4V_TBL_45AF90_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF90UL)))
-#undef D4V_TBL_45AF90_8
-#define D4V_TBL_45AF90_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF90UL)))
-#undef D4V_TBL_45AF90_16
-#define D4V_TBL_45AF90_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF90UL)))
 #undef D4V_TBL_45AF94_32
 #define D4V_TBL_45AF94_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF94UL)))
-#undef D4V_TBL_45AF94_8
-#define D4V_TBL_45AF94_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF94UL)))
-#undef D4V_TBL_45AF94_16
-#define D4V_TBL_45AF94_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF94UL)))
 #undef D4V_TBL_45AF98_32
 #define D4V_TBL_45AF98_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF98UL)))
-#undef D4V_TBL_45AF98_8
-#define D4V_TBL_45AF98_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF98UL)))
-#undef D4V_TBL_45AF98_16
-#define D4V_TBL_45AF98_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF98UL)))
 #undef D4V_TBL_45AF9C_32
 #define D4V_TBL_45AF9C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF9CUL)))
-#undef D4V_TBL_45AF9C_8
-#define D4V_TBL_45AF9C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF9CUL)))
-#undef D4V_TBL_45AF9C_16
-#define D4V_TBL_45AF9C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF9CUL)))
 #undef D4V_TBL_45AFA0_32
 #define D4V_TBL_45AFA0_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA0UL)))
-#undef D4V_TBL_45AFA0_8
-#define D4V_TBL_45AFA0_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA0UL)))
-#undef D4V_TBL_45AFA0_16
-#define D4V_TBL_45AFA0_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA0UL)))
 #undef D4V_TBL_45AFA4_32
 #define D4V_TBL_45AFA4_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA4UL)))
-#undef D4V_TBL_45AFA4_8
-#define D4V_TBL_45AFA4_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA4UL)))
-#undef D4V_TBL_45AFA4_16
-#define D4V_TBL_45AFA4_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA4UL)))
 #undef D4V_TBL_45AFA8_32
 #define D4V_TBL_45AFA8_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA8UL)))
-#undef D4V_TBL_45AFA8_8
-#define D4V_TBL_45AFA8_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA8UL)))
-#undef D4V_TBL_45AFA8_16
-#define D4V_TBL_45AFA8_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFA8UL)))
 #undef D4V_FILETAB_PTR_32
 #define D4V_FILETAB_PTR_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB0UL)))
-#undef D4V_FILETAB_PTR_8
-#define D4V_FILETAB_PTR_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB0UL)))
-#undef D4V_FILETAB_PTR_16
-#define D4V_FILETAB_PTR_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB0UL)))
 #undef D4V_TBL_45AFB4_32
 #define D4V_TBL_45AFB4_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB4UL)))
-#undef D4V_TBL_45AFB4_8
-#define D4V_TBL_45AFB4_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB4UL)))
-#undef D4V_TBL_45AFB4_16
-#define D4V_TBL_45AFB4_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB4UL)))
 #undef D4V_TBL_45AFB8_32
 #define D4V_TBL_45AFB8_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB8UL)))
-#undef D4V_TBL_45AFB8_8
-#define D4V_TBL_45AFB8_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB8UL)))
-#undef D4V_TBL_45AFB8_16
-#define D4V_TBL_45AFB8_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFB8UL)))
 #undef D4V_TBL_45AFBC_32
 #define D4V_TBL_45AFBC_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFBCUL)))
-#undef D4V_TBL_45AFBC_8
-#define D4V_TBL_45AFBC_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFBCUL)))
-#undef D4V_TBL_45AFBC_16
-#define D4V_TBL_45AFBC_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFBCUL)))
 #undef D4V_TBL_45AFC0_32
 #define D4V_TBL_45AFC0_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC0UL)))
-#undef D4V_TBL_45AFC0_8
-#define D4V_TBL_45AFC0_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC0UL)))
-#undef D4V_TBL_45AFC0_16
-#define D4V_TBL_45AFC0_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC0UL)))
 #undef D4V_TBL_45AFC8_32
 #define D4V_TBL_45AFC8_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC8UL)))
-#undef D4V_TBL_45AFC8_8
-#define D4V_TBL_45AFC8_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC8UL)))
-#undef D4V_TBL_45AFC8_16
-#define D4V_TBL_45AFC8_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC8UL)))
 #undef D4V_TBL_45AFCC_32
 #define D4V_TBL_45AFCC_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFCCUL)))
-#undef D4V_TBL_45AFCC_8
-#define D4V_TBL_45AFCC_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFCCUL)))
-#undef D4V_TBL_45AFCC_16
-#define D4V_TBL_45AFCC_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFCCUL)))
 #undef D4V_TBL_45AFD0_32
 #define D4V_TBL_45AFD0_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFD0UL)))
-#undef D4V_TBL_45AFD0_8
-#define D4V_TBL_45AFD0_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFD0UL)))
-#undef D4V_TBL_45AFD0_16
-#define D4V_TBL_45AFD0_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFD0UL)))
 #undef D4V_TBL_45AFD4_32
 #define D4V_TBL_45AFD4_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFD4UL)))
-#undef D4V_TBL_45AFD4_8
-#define D4V_TBL_45AFD4_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFD4UL)))
-#undef D4V_TBL_45AFD4_16
-#define D4V_TBL_45AFD4_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFD4UL)))
 #undef D4V_SHIFT_R1_32
 #define D4V_SHIFT_R1_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA1CUL)))
-#undef D4V_SHIFT_R1_8
-#define D4V_SHIFT_R1_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA1CUL)))
-#undef D4V_SHIFT_R1_16
-#define D4V_SHIFT_R1_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA1CUL)))
 #undef D4V_SHIFT_R2_32
 #define D4V_SHIFT_R2_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA20UL)))
-#undef D4V_SHIFT_R2_8
-#define D4V_SHIFT_R2_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA20UL)))
-#undef D4V_SHIFT_R2_16
-#define D4V_SHIFT_R2_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA20UL)))
 #undef D4V_TBL_45BA24_32
 #define D4V_TBL_45BA24_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA24UL)))
-#undef D4V_TBL_45BA24_8
-#define D4V_TBL_45BA24_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA24UL)))
-#undef D4V_TBL_45BA24_16
-#define D4V_TBL_45BA24_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA24UL)))
 #undef D4V_TBL_45BA28_32
 #define D4V_TBL_45BA28_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA28UL)))
-#undef D4V_TBL_45BA28_8
-#define D4V_TBL_45BA28_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA28UL)))
-#undef D4V_TBL_45BA28_16
-#define D4V_TBL_45BA28_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA28UL)))
 #undef D4V_TBL_45BA2C_32
 #define D4V_TBL_45BA2C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA2CUL)))
-#undef D4V_TBL_45BA2C_8
-#define D4V_TBL_45BA2C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA2CUL)))
-#undef D4V_TBL_45BA2C_16
-#define D4V_TBL_45BA2C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA2CUL)))
 #undef D4V_DICT_SIZE_32
 #define D4V_DICT_SIZE_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA30UL)))
-#undef D4V_DICT_SIZE_8
-#define D4V_DICT_SIZE_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA30UL)))
-#undef D4V_DICT_SIZE_16
-#define D4V_DICT_SIZE_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA30UL)))
 #undef D4V_DICT_CURSOR_32
 #define D4V_DICT_CURSOR_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA34UL)))
-#undef D4V_DICT_CURSOR_8
-#define D4V_DICT_CURSOR_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA34UL)))
-#undef D4V_DICT_CURSOR_16
-#define D4V_DICT_CURSOR_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA34UL)))
 #undef D4V_TBL_45BA38_32
 #define D4V_TBL_45BA38_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA38UL)))
-#undef D4V_TBL_45BA38_8
-#define D4V_TBL_45BA38_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA38UL)))
-#undef D4V_TBL_45BA38_16
-#define D4V_TBL_45BA38_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA38UL)))
 #undef D4V_DICT_MASK_32
 #define D4V_DICT_MASK_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA3CUL)))
-#undef D4V_DICT_MASK_8
-#define D4V_DICT_MASK_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA3CUL)))
-#undef D4V_DICT_MASK_16
-#define D4V_DICT_MASK_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA3CUL)))
 #undef D4V_TBL_45BA40_32
 #define D4V_TBL_45BA40_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA40UL)))
-#undef D4V_TBL_45BA40_8
-#define D4V_TBL_45BA40_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA40UL)))
-#undef D4V_TBL_45BA40_16
-#define D4V_TBL_45BA40_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA40UL)))
 #undef D4V_TBL_45BA44_32
 #define D4V_TBL_45BA44_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA44UL)))
-#undef D4V_TBL_45BA44_8
-#define D4V_TBL_45BA44_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA44UL)))
-#undef D4V_TBL_45BA44_16
-#define D4V_TBL_45BA44_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA44UL)))
 #undef D4V_TBL_45BA48_32
 #define D4V_TBL_45BA48_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA48UL)))
-#undef D4V_TBL_45BA48_8
-#define D4V_TBL_45BA48_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA48UL)))
-#undef D4V_TBL_45BA48_16
-#define D4V_TBL_45BA48_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA48UL)))
 #undef D4V_TBL_45BA4C_32
 #define D4V_TBL_45BA4C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA4CUL)))
-#undef D4V_TBL_45BA4C_8
-#define D4V_TBL_45BA4C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA4CUL)))
-#undef D4V_TBL_45BA4C_16
-#define D4V_TBL_45BA4C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA4CUL)))
 #undef D4V_LZP_TRIGGER_32
 #define D4V_LZP_TRIGGER_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA50UL)))
-#undef D4V_LZP_TRIGGER_8
-#define D4V_LZP_TRIGGER_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA50UL)))
-#undef D4V_LZP_TRIGGER_16
-#define D4V_LZP_TRIGGER_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA50UL)))
 #undef D4V_TBL_45BA54_32
 #define D4V_TBL_45BA54_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA54UL)))
-#undef D4V_TBL_45BA54_8
-#define D4V_TBL_45BA54_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA54UL)))
-#undef D4V_TBL_45BA54_16
-#define D4V_TBL_45BA54_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA54UL)))
 #undef D4V_TBL_45BA58_8
 #define D4V_TBL_45BA58_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA58UL)))
-#undef D4V_TBL_45BA58_16
-#define D4V_TBL_45BA58_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA58UL)))
-#undef D4V_TBL_45BA58_32
-#define D4V_TBL_45BA58_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA58UL)))
 #undef D4V_TBL_45BA59_8
 #define D4V_TBL_45BA59_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA59UL)))
-#undef D4V_TBL_45BA59_16
-#define D4V_TBL_45BA59_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA59UL)))
-#undef D4V_TBL_45BA59_32
-#define D4V_TBL_45BA59_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA59UL)))
 #undef D4V_TBL_45BA5A_8
 #define D4V_TBL_45BA5A_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5AUL)))
-#undef D4V_TBL_45BA5A_16
-#define D4V_TBL_45BA5A_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5AUL)))
-#undef D4V_TBL_45BA5A_32
-#define D4V_TBL_45BA5A_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5AUL)))
 #undef D4V_TBL_45BA5B_8
 #define D4V_TBL_45BA5B_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5BUL)))
-#undef D4V_TBL_45BA5B_16
-#define D4V_TBL_45BA5B_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5BUL)))
-#undef D4V_TBL_45BA5B_32
-#define D4V_TBL_45BA5B_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5BUL)))
 #undef D4V_TBL_45BA5C_8
 #define D4V_TBL_45BA5C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5CUL)))
-#undef D4V_TBL_45BA5C_16
-#define D4V_TBL_45BA5C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5CUL)))
-#undef D4V_TBL_45BA5C_32
-#define D4V_TBL_45BA5C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5CUL)))
 #undef D4V_TBL_45BA5D_8
 #define D4V_TBL_45BA5D_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5DUL)))
-#undef D4V_TBL_45BA5D_16
-#define D4V_TBL_45BA5D_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5DUL)))
-#undef D4V_TBL_45BA5D_32
-#define D4V_TBL_45BA5D_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA5DUL)))
 #undef D4V_TBL_45C45C_16
 #define D4V_TBL_45C45C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C45CUL)))
-#undef D4V_TBL_45C45C_8
-#define D4V_TBL_45C45C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C45CUL)))
-#undef D4V_TBL_45C45C_32
-#define D4V_TBL_45C45C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C45CUL)))
 #undef D4V_CTX_B_45C65A_8
 #define D4V_CTX_B_45C65A_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65AUL)))
-#undef D4V_CTX_B_45C65A_16
-#define D4V_CTX_B_45C65A_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65AUL)))
-#undef D4V_CTX_B_45C65A_32
-#define D4V_CTX_B_45C65A_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65AUL)))
 #undef D4V_CTX_B_45C65B_8
 #define D4V_CTX_B_45C65B_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65BUL)))
-#undef D4V_CTX_B_45C65B_16
-#define D4V_CTX_B_45C65B_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65BUL)))
-#undef D4V_CTX_B_45C65B_32
-#define D4V_CTX_B_45C65B_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65BUL)))
 #undef D4V_CTX_B_45C65C_8
 #define D4V_CTX_B_45C65C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65CUL)))
-#undef D4V_CTX_B_45C65C_16
-#define D4V_CTX_B_45C65C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65CUL)))
-#undef D4V_CTX_B_45C65C_32
-#define D4V_CTX_B_45C65C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65CUL)))
 #undef D4V_CTX_B_45C675_8
 #define D4V_CTX_B_45C675_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C675UL)))
-#undef D4V_CTX_B_45C675_16
-#define D4V_CTX_B_45C675_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C675UL)))
-#undef D4V_CTX_B_45C675_32
-#define D4V_CTX_B_45C675_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C675UL)))
 #undef D4V_CTX_B_45C676_8
 #define D4V_CTX_B_45C676_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C676UL)))
-#undef D4V_CTX_B_45C676_16
-#define D4V_CTX_B_45C676_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C676UL)))
-#undef D4V_CTX_B_45C676_32
-#define D4V_CTX_B_45C676_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C676UL)))
 #undef D4V_CTX_B_45C677_8
 #define D4V_CTX_B_45C677_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C677UL)))
-#undef D4V_CTX_B_45C677_16
-#define D4V_CTX_B_45C677_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C677UL)))
-#undef D4V_CTX_B_45C677_32
-#define D4V_CTX_B_45C677_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C677UL)))
 #undef D4V_CTX_B_45C678_8
 #define D4V_CTX_B_45C678_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C678UL)))
-#undef D4V_CTX_B_45C678_16
-#define D4V_CTX_B_45C678_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C678UL)))
-#undef D4V_CTX_B_45C678_32
-#define D4V_CTX_B_45C678_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C678UL)))
 #undef D4V_CTX_B_45C679_8
 #define D4V_CTX_B_45C679_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C679UL)))
-#undef D4V_CTX_B_45C679_16
-#define D4V_CTX_B_45C679_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C679UL)))
-#undef D4V_CTX_B_45C679_32
-#define D4V_CTX_B_45C679_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C679UL)))
 #undef D4V_CTX_B_45C67A_8
 #define D4V_CTX_B_45C67A_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67AUL)))
-#undef D4V_CTX_B_45C67A_16
-#define D4V_CTX_B_45C67A_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67AUL)))
-#undef D4V_CTX_B_45C67A_32
-#define D4V_CTX_B_45C67A_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67AUL)))
 #undef D4V_CTX_B_45C67B_8
 #define D4V_CTX_B_45C67B_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67BUL)))
-#undef D4V_CTX_B_45C67B_16
-#define D4V_CTX_B_45C67B_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67BUL)))
-#undef D4V_CTX_B_45C67B_32
-#define D4V_CTX_B_45C67B_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67BUL)))
 #undef D4V_CTX_B_45C67C_8
 #define D4V_CTX_B_45C67C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67CUL)))
-#undef D4V_CTX_B_45C67C_16
-#define D4V_CTX_B_45C67C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67CUL)))
-#undef D4V_CTX_B_45C67C_32
-#define D4V_CTX_B_45C67C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67CUL)))
 #undef D4V_CTX_B_45C67D_8
 #define D4V_CTX_B_45C67D_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67DUL)))
-#undef D4V_CTX_B_45C67D_16
-#define D4V_CTX_B_45C67D_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67DUL)))
-#undef D4V_CTX_B_45C67D_32
-#define D4V_CTX_B_45C67D_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67DUL)))
 #undef D4V_CTX_B_45C67E_8
 #define D4V_CTX_B_45C67E_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67EUL)))
-#undef D4V_CTX_B_45C67E_16
-#define D4V_CTX_B_45C67E_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67EUL)))
-#undef D4V_CTX_B_45C67E_32
-#define D4V_CTX_B_45C67E_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67EUL)))
 #undef D4V_CTX_B_45C67F_8
 #define D4V_CTX_B_45C67F_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67FUL)))
-#undef D4V_CTX_B_45C67F_16
-#define D4V_CTX_B_45C67F_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67FUL)))
-#undef D4V_CTX_B_45C67F_32
-#define D4V_CTX_B_45C67F_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C67FUL)))
 #undef D4V_CTX_B_45C680_8
 #define D4V_CTX_B_45C680_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C680UL)))
-#undef D4V_CTX_B_45C680_16
-#define D4V_CTX_B_45C680_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C680UL)))
-#undef D4V_CTX_B_45C680_32
-#define D4V_CTX_B_45C680_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C680UL)))
 #undef D4V_CTX_B_45C681_8
 #define D4V_CTX_B_45C681_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C681UL)))
-#undef D4V_CTX_B_45C681_16
-#define D4V_CTX_B_45C681_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C681UL)))
-#undef D4V_CTX_B_45C681_32
-#define D4V_CTX_B_45C681_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C681UL)))
 #undef D4V_CTX_B_45C682_8
 #define D4V_CTX_B_45C682_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C682UL)))
-#undef D4V_CTX_B_45C682_16
-#define D4V_CTX_B_45C682_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C682UL)))
-#undef D4V_CTX_B_45C682_32
-#define D4V_CTX_B_45C682_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C682UL)))
 #undef D4V_CTX_B_45C683_8
 #define D4V_CTX_B_45C683_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C683UL)))
-#undef D4V_CTX_B_45C683_16
-#define D4V_CTX_B_45C683_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C683UL)))
-#undef D4V_CTX_B_45C683_32
-#define D4V_CTX_B_45C683_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C683UL)))
 #undef D4V_CTX_B_45C684_8
 #define D4V_CTX_B_45C684_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C684UL)))
-#undef D4V_CTX_B_45C684_16
-#define D4V_CTX_B_45C684_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C684UL)))
-#undef D4V_CTX_B_45C684_32
-#define D4V_CTX_B_45C684_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C684UL)))
 #undef D4V_CTX_B_45C685_8
 #define D4V_CTX_B_45C685_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C685UL)))
-#undef D4V_CTX_B_45C685_16
-#define D4V_CTX_B_45C685_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C685UL)))
-#undef D4V_CTX_B_45C685_32
-#define D4V_CTX_B_45C685_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C685UL)))
 #undef D4V_CTX_B_45C686_8
 #define D4V_CTX_B_45C686_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C686UL)))
-#undef D4V_CTX_B_45C686_16
-#define D4V_CTX_B_45C686_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C686UL)))
-#undef D4V_CTX_B_45C686_32
-#define D4V_CTX_B_45C686_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C686UL)))
 #undef D4V_CTX_B_45C687_8
 #define D4V_CTX_B_45C687_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C687UL)))
-#undef D4V_CTX_B_45C687_16
-#define D4V_CTX_B_45C687_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C687UL)))
-#undef D4V_CTX_B_45C687_32
-#define D4V_CTX_B_45C687_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C687UL)))
 #undef D4V_CTX_B_45C688_8
 #define D4V_CTX_B_45C688_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C688UL)))
-#undef D4V_CTX_B_45C688_16
-#define D4V_CTX_B_45C688_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C688UL)))
-#undef D4V_CTX_B_45C688_32
-#define D4V_CTX_B_45C688_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C688UL)))
 #undef D4V_CTX_B_45C689_8
 #define D4V_CTX_B_45C689_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C689UL)))
-#undef D4V_CTX_B_45C689_16
-#define D4V_CTX_B_45C689_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C689UL)))
-#undef D4V_CTX_B_45C689_32
-#define D4V_CTX_B_45C689_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C689UL)))
 #undef D4V_CTX_B_45C68A_8
 #define D4V_CTX_B_45C68A_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68AUL)))
-#undef D4V_CTX_B_45C68A_16
-#define D4V_CTX_B_45C68A_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68AUL)))
-#undef D4V_CTX_B_45C68A_32
-#define D4V_CTX_B_45C68A_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68AUL)))
 #undef D4V_CTX_B_45C68B_8
 #define D4V_CTX_B_45C68B_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68BUL)))
-#undef D4V_CTX_B_45C68B_16
-#define D4V_CTX_B_45C68B_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68BUL)))
-#undef D4V_CTX_B_45C68B_32
-#define D4V_CTX_B_45C68B_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68BUL)))
 #undef D4V_CTX_B_45C68C_8
 #define D4V_CTX_B_45C68C_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68CUL)))
-#undef D4V_CTX_B_45C68C_16
-#define D4V_CTX_B_45C68C_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68CUL)))
-#undef D4V_CTX_B_45C68C_32
-#define D4V_CTX_B_45C68C_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68CUL)))
 #undef D4V_CTX_B_45C68D_8
 #define D4V_CTX_B_45C68D_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68DUL)))
-#undef D4V_CTX_B_45C68D_16
-#define D4V_CTX_B_45C68D_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68DUL)))
-#undef D4V_CTX_B_45C68D_32
-#define D4V_CTX_B_45C68D_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68DUL)))
 #undef D4V_CTX_B_45C68E_8
 #define D4V_CTX_B_45C68E_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68EUL)))
-#undef D4V_CTX_B_45C68E_16
-#define D4V_CTX_B_45C68E_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68EUL)))
-#undef D4V_CTX_B_45C68E_32
-#define D4V_CTX_B_45C68E_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68EUL)))
 #undef D4V_CTX_B_45C68F_8
 #define D4V_CTX_B_45C68F_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68FUL)))
-#undef D4V_CTX_B_45C68F_16
-#define D4V_CTX_B_45C68F_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68FUL)))
-#undef D4V_CTX_B_45C68F_32
-#define D4V_CTX_B_45C68F_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C68FUL)))
 #undef D4V_CTX_B_45C690_8
 #define D4V_CTX_B_45C690_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C690UL)))
-#undef D4V_CTX_B_45C690_16
-#define D4V_CTX_B_45C690_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C690UL)))
-#undef D4V_CTX_B_45C690_32
-#define D4V_CTX_B_45C690_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C690UL)))
 #undef D4V_CTX_B_45C691_8
 #define D4V_CTX_B_45C691_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C691UL)))
-#undef D4V_CTX_B_45C691_16
-#define D4V_CTX_B_45C691_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C691UL)))
-#undef D4V_CTX_B_45C691_32
-#define D4V_CTX_B_45C691_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C691UL)))
 #undef D4V_CTX_B_45C692_8
 #define D4V_CTX_B_45C692_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C692UL)))
-#undef D4V_CTX_B_45C692_16
-#define D4V_CTX_B_45C692_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C692UL)))
-#undef D4V_CTX_B_45C692_32
-#define D4V_CTX_B_45C692_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C692UL)))
 #undef D4V_CTX_B_45C693_8
 #define D4V_CTX_B_45C693_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C693UL)))
-#undef D4V_CTX_B_45C693_16
-#define D4V_CTX_B_45C693_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C693UL)))
-#undef D4V_CTX_B_45C693_32
-#define D4V_CTX_B_45C693_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C693UL)))
 #undef D4V_CTX_B_45C694_8
 #define D4V_CTX_B_45C694_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C694UL)))
-#undef D4V_CTX_B_45C694_16
-#define D4V_CTX_B_45C694_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C694UL)))
-#undef D4V_CTX_B_45C694_32
-#define D4V_CTX_B_45C694_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C694UL)))
 #undef D4V_IO_OUT_CAP_32
 #define D4V_IO_OUT_CAP_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD10UL)))
-#undef D4V_IO_OUT_CAP_8
-#define D4V_IO_OUT_CAP_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD10UL)))
-#undef D4V_IO_OUT_CAP_16
-#define D4V_IO_OUT_CAP_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD10UL)))
 #undef D4V_IO_OUT_LEN_32
 #define D4V_IO_OUT_LEN_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD14UL)))
-#undef D4V_IO_OUT_LEN_8
-#define D4V_IO_OUT_LEN_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD14UL)))
-#undef D4V_IO_OUT_LEN_16
-#define D4V_IO_OUT_LEN_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD14UL)))
 #undef D4V_IO_IN_POS_32
 #define D4V_IO_IN_POS_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD18UL)))
-#undef D4V_IO_IN_POS_8
-#define D4V_IO_IN_POS_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD18UL)))
-#undef D4V_IO_IN_POS_16
-#define D4V_IO_IN_POS_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD18UL)))
 #undef D4V_IO_OUT_POS_32
 #define D4V_IO_OUT_POS_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD1CUL)))
-#undef D4V_IO_OUT_POS_8
-#define D4V_IO_OUT_POS_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD1CUL)))
-#undef D4V_IO_OUT_POS_16
-#define D4V_IO_OUT_POS_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD1CUL)))
 #undef D4V_IO_IN_VALID_32
 #define D4V_IO_IN_VALID_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD20UL)))
-#undef D4V_IO_IN_VALID_8
-#define D4V_IO_IN_VALID_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD20UL)))
-#undef D4V_IO_IN_VALID_16
-#define D4V_IO_IN_VALID_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD20UL)))
 #undef D4V_IO_IN_TOTAL_32
 #define D4V_IO_IN_TOTAL_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD24UL)))
-#undef D4V_IO_IN_TOTAL_8
-#define D4V_IO_IN_TOTAL_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD24UL)))
-#undef D4V_IO_IN_TOTAL_16
-#define D4V_IO_IN_TOTAL_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD24UL)))
 #undef D4V_IO_OUT_TOTAL_32
 #define D4V_IO_OUT_TOTAL_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD28UL)))
-#undef D4V_IO_OUT_TOTAL_8
-#define D4V_IO_OUT_TOTAL_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD28UL)))
-#undef D4V_IO_OUT_TOTAL_16
-#define D4V_IO_OUT_TOTAL_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD28UL)))
 #undef D4V_IO_IN_CAP_32
 #define D4V_IO_IN_CAP_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD2CUL)))
-#undef D4V_IO_IN_CAP_8
-#define D4V_IO_IN_CAP_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD2CUL)))
-#undef D4V_IO_IN_CAP_16
-#define D4V_IO_IN_CAP_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45CD2CUL)))
 #undef D4V_RC_CARRY_CNT_32
 #define D4V_RC_CARRY_CNT_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B0UL)))
-#undef D4V_RC_CARRY_CNT_8
-#define D4V_RC_CARRY_CNT_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B0UL)))
-#undef D4V_RC_CARRY_CNT_16
-#define D4V_RC_CARRY_CNT_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B0UL)))
 #undef D4V_RC_CODE_LO_32
 #define D4V_RC_CODE_LO_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B4UL)))
-#undef D4V_RC_CODE_LO_8
-#define D4V_RC_CODE_LO_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B4UL)))
-#undef D4V_RC_CODE_LO_16
-#define D4V_RC_CODE_LO_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B4UL)))
 #undef D4V_RC_CODE_32
 #define D4V_RC_CODE_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B8UL)))
-#undef D4V_RC_CODE_8
-#define D4V_RC_CODE_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B8UL)))
-#undef D4V_RC_CODE_16
-#define D4V_RC_CODE_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0B8UL)))
 #undef D4V_RC_RANGE_32
 #define D4V_RC_RANGE_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0BCUL)))
-#undef D4V_RC_RANGE_8
-#define D4V_RC_RANGE_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0BCUL)))
-#undef D4V_RC_RANGE_16
-#define D4V_RC_RANGE_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0BCUL)))
 #undef D4V_RC_PENDING_B_32
 #define D4V_RC_PENDING_B_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0C0UL)))
-#undef D4V_RC_PENDING_B_8
-#define D4V_RC_PENDING_B_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0C0UL)))
-#undef D4V_RC_PENDING_B_16
-#define D4V_RC_PENDING_B_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0C0UL)))
 #undef D4V_RC_CODE_HI_32
 #define D4V_RC_CODE_HI_32(s) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0C4UL)))
-#undef D4V_RC_CODE_HI_8
-#define D4V_RC_CODE_HI_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0C4UL)))
-#undef D4V_RC_CODE_HI_16
-#define D4V_RC_CODE_HI_16(s) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45D0C4UL)))
-#undef D4V_BLK_PTR_06_8
-#define D4V_BLK_PTR_06_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B58UL + (off))))
-#undef D4V_BLK_PTR_06_16
-#define D4V_BLK_PTR_06_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B58UL + (off))))
 #undef D4V_BLK_PTR_06_32
 #define D4V_BLK_PTR_06_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B58UL + (off))))
 #undef D4V_TBL_45192C_8
 #define D4V_TBL_45192C_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45192CUL + (off))))
-#undef D4V_TBL_45192C_16
-#define D4V_TBL_45192C_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45192CUL + (off))))
 #undef D4V_TBL_45192C_32
 #define D4V_TBL_45192C_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45192CUL + (off))))
 #undef D4V_TBL_451D3C_8
 #define D4V_TBL_451D3C_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D3CUL + (off))))
-#undef D4V_TBL_451D3C_16
-#define D4V_TBL_451D3C_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D3CUL + (off))))
 #undef D4V_TBL_451D3C_32
 #define D4V_TBL_451D3C_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D3CUL + (off))))
 #undef D4V_TBL_451D48_8
 #define D4V_TBL_451D48_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D48UL + (off))))
-#undef D4V_TBL_451D48_16
-#define D4V_TBL_451D48_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D48UL + (off))))
 #undef D4V_TBL_451D48_32
 #define D4V_TBL_451D48_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D48UL + (off))))
-#undef D4V_TBL_459398_8
-#define D4V_TBL_459398_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459398UL + (off))))
-#undef D4V_TBL_459398_16
-#define D4V_TBL_459398_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459398UL + (off))))
 #undef D4V_TBL_459398_32
 #define D4V_TBL_459398_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459398UL + (off))))
-#undef D4V_TBL_459BA0_8
-#define D4V_TBL_459BA0_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA0UL + (off))))
-#undef D4V_TBL_459BA0_16
-#define D4V_TBL_459BA0_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA0UL + (off))))
 #undef D4V_TBL_459BA0_32
 #define D4V_TBL_459BA0_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA0UL + (off))))
-#undef D4V_TBL_459E38_8
-#define D4V_TBL_459E38_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E38UL + (off))))
-#undef D4V_TBL_459E38_16
-#define D4V_TBL_459E38_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E38UL + (off))))
 #undef D4V_TBL_459E38_32
 #define D4V_TBL_459E38_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E38UL + (off))))
-#undef D4V_TBL_45AF00_8
-#define D4V_TBL_45AF00_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF00UL + (off))))
-#undef D4V_TBL_45AF00_16
-#define D4V_TBL_45AF00_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF00UL + (off))))
 #undef D4V_TBL_45AF00_32
 #define D4V_TBL_45AF00_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF00UL + (off))))
-#undef D4V_TBL_45AF10_8
-#define D4V_TBL_45AF10_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF10UL + (off))))
-#undef D4V_TBL_45AF10_16
-#define D4V_TBL_45AF10_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF10UL + (off))))
 #undef D4V_TBL_45AF10_32
 #define D4V_TBL_45AF10_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF10UL + (off))))
 #undef D4V_TBL_45AF38_8
 #define D4V_TBL_45AF38_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF38UL + (off))))
-#undef D4V_TBL_45AF38_16
-#define D4V_TBL_45AF38_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF38UL + (off))))
 #undef D4V_TBL_45AF38_32
 #define D4V_TBL_45AF38_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF38UL + (off))))
 #undef D4V_TBL_45AF7C_8
 #define D4V_TBL_45AF7C_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF7CUL + (off))))
-#undef D4V_TBL_45AF7C_16
-#define D4V_TBL_45AF7C_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF7CUL + (off))))
 #undef D4V_TBL_45AF7C_32
 #define D4V_TBL_45AF7C_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF7CUL + (off))))
-#undef D4V_TBL_45AFAC_8
-#define D4V_TBL_45AFAC_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFACUL + (off))))
-#undef D4V_TBL_45AFAC_16
-#define D4V_TBL_45AFAC_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFACUL + (off))))
 #undef D4V_TBL_45AFAC_32
 #define D4V_TBL_45AFAC_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFACUL + (off))))
 #undef D4V_TBL_45AFC4_8
 #define D4V_TBL_45AFC4_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC4UL + (off))))
-#undef D4V_TBL_45AFC4_16
-#define D4V_TBL_45AFC4_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC4UL + (off))))
 #undef D4V_TBL_45AFC4_32
 #define D4V_TBL_45AFC4_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC4UL + (off))))
 #undef D4V_SHIFT_R0_8
 #define D4V_SHIFT_R0_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA18UL + (off))))
-#undef D4V_SHIFT_R0_16
-#define D4V_SHIFT_R0_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA18UL + (off))))
 #undef D4V_SHIFT_R0_32
 #define D4V_SHIFT_R0_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA18UL + (off))))
 #undef D4V_CTX_B_45C65D_8
 #define D4V_CTX_B_45C65D_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65DUL + (off))))
-#undef D4V_CTX_B_45C65D_16
-#define D4V_CTX_B_45C65D_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65DUL + (off))))
-#undef D4V_CTX_B_45C65D_32
-#define D4V_CTX_B_45C65D_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65DUL + (off))))
 #undef D4V_CTX_B_45C65E_8
 #define D4V_CTX_B_45C65E_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65EUL + (off))))
-#undef D4V_CTX_B_45C65E_16
-#define D4V_CTX_B_45C65E_16(s, off) (*(unsigned short *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65EUL + (off))))
-#undef D4V_CTX_B_45C65E_32
-#define D4V_CTX_B_45C65E_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65EUL + (off))))
 
 
 #define D4V_FIXED_BASE 0x420000UL
