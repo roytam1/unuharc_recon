@@ -3706,47 +3706,47 @@ l_417F25:
     /* 0x00417F2E jnz */ if ((eax & 0xFFUL) != (unsigned long)(c->blk00_dict[((unsigned long)(esi) - c->blk00_base)]))
         goto l_417F93;
     /* 0x00417F30 */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 1) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 1) & U32MASK) - c->blk00_base]);
     /* 0x00417F33 */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F35 */ /* cmp al,[esi-1] */;
     /* 0x00417F38 jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 1) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 1) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F3A */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 2) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 2) & U32MASK) - c->blk00_base]);
     /* 0x00417F3D */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F3F */ /* cmp al,[esi-2] */;
     /* 0x00417F42 jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 2) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 2) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F44 */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 3) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 3) & U32MASK) - c->blk00_base]);
     /* 0x00417F47 */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F49 */ /* cmp al,[esi-3] */;
     /* 0x00417F4C jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 3) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 3) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F4E */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 4) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 4) & U32MASK) - c->blk00_base]);
     /* 0x00417F51 */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F53 */ /* cmp al,[esi-4] */;
     /* 0x00417F56 jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 4) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 4) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F58 */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 5) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 5) & U32MASK) - c->blk00_base]);
     /* 0x00417F5B */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F5D */ /* cmp al,[esi-5] */;
     /* 0x00417F60 jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 5) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 5) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F62 */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 6) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 6) & U32MASK) - c->blk00_base]);
     /* 0x00417F65 */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F67 */ /* cmp al,[esi-6] */;
     /* 0x00417F6A jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 6) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 6) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F6C */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 7) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 7) & U32MASK) - c->blk00_base]);
     /* 0x00417F6F */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F71 */ /* cmp al,[esi-7] */;
     /* 0x00417F74 jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((esi - 7) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((esi - 7) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F76 */ ebx = (ebx - 8) & U32MASK;
     /* 0x00417F79 */ esi = (esi - 8) & U32MASK;
     /* 0x00417F7C */ DECB_LO(ecx); /* dec cl */
@@ -3758,9 +3758,9 @@ l_417F82:
 l_417F86:
     /* 0x00417F86 */ /* cmp al,[ebx+esi] */;
     /* 0x00417F89 jnz */ if ((eax & 0xFFUL) !=
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx + esi) & U32MASK)))) goto l_417F93;
+        (unsigned long)(c->blk00_dict[((ebx + esi) & U32MASK) - c->blk00_base])) goto l_417F93;
     /* 0x00417F8B */ eax = (eax & 0xFFFFFF00UL) |
-        (unsigned long)(*(unsigned char *)d4v_ptr(c, (unsigned long)((ebx - 1) & U32MASK)));
+        (unsigned long)(c->blk00_dict[((ebx - 1) & U32MASK) - c->blk00_base]);
     /* 0x00417F8E */ ebx = (ebx - 1) & U32MASK; /* dec */
     /* 0x00417F8F */ DECB_LO(ecx); /* dec cl */
     /* 0x00417F91 jnz */ if ((ecx & 0xFFUL) != 0) goto l_417F86;
