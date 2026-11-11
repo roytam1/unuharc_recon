@@ -169,25 +169,31 @@ Left:
    several of them are *views of the same array* at different offsets
    (the arena accesses `0x453560+eax`, `0x453564+eax` and `0x453568+eax`
    with the same index).  Merging the tables whose ranges overlap
-   gives **36 groups** covering 96 635 bytes and 128 named cells:
+   gives **35 regions covering 99 848 bytes**, with 169 named cells left
+   as typed members.
 
-   | group | base | end | bytes | groups merged |
-   |---|---|---|---|---|
-   | 1 | 0x433B90 | 0x433BE9 | 89 | 433B90, 433BA4 |
-   | 2 | 0x433E77 | 0x43406D | 502 | 433E77, 433E8C, 433FCC, 43404C |
-   | 3-6 | 0x43407C-0x43419C | | 12-103 | one table each |
-   | 9 | 0x434328 | 0x436151 | 7 721 | 434328, 434338, 434438, 434538, 434550, 434D50, 435150, 435550, 435950, 435D50 |
-   | 10-13 | 0x4362C0-0x436B8A | | 100-622 | 436450, 43691C+436976, 436B8A |
-   | 14 | 0x437966 | 0x43F96B | 32 773 | PRICE_SRC, PRICE_SUM |
-   | 15 | 0x44D920 | 0x451921 | 16 385 | NEG_44D920 |
-   | 17 | 0x451B3C | 0x451D52 | 534 | 451B3C, 451D3C (+5 cells) |
-   | 19 | 0x453560 | 0x455F60 | 10 752 | 453560, 453564, 453568, ... |
-   | 22 | 0x457360 | 0x458778 | 5 144 | 457360, 457378 (+6 cells) |
-   | 24 | 0x458788 | 0x458B9C | 1 044 | 458788, 458794, 458798, ... |
-   | 25 | 0x458F94 | 0x459BA0 | 3 084 | 458F94, 458F98, 459398, ... |
-   | 30 | 0x45AA7A | 0x45AE80 | 1 030 | 45AA7A, 45AA7C, 45AA7E, 45AA80, 45AA82, 45AC78, ... |
-   | 31-32 | 0x45AF00 / 0x45AF14 | | 20 / 20 | 45AF00 (+4 cells), 45AF14 |
-   | 35 | 0x45BA58 | 0x45C676 | 3 102 | 45BA58, 45BA5E, 45C05C, 45C044, ... |
+   Each region's extent is the largest of four bounds, and all four are
+   now available:
+
+   | bound | source |
+   |---|---|
+   | the distance to the next named cell | the address map |
+   | the highest offset the corpus reaches | the instrumented build |
+   | the PPM plane the table lives in | the init's `d4v_fill` / `d4vc_fill16` lengths |
+   | the end of the last named cell it covers | the cell's own type |
+
+   The init's fills are what make the third bound work: they *define*
+   the PPM planes (`d4v_fill(c, 0x800, 0x45A280, 0)` covers
+   0x45A280..0x45AA80, `d4vc_fill16(c, 0x2FF, 0x45BA5E, 0x20)` covers
+   0x45BA5E..0x45C05C), so every table inside a plane is bounded by
+   the plane.  The three tables the corpus never reaches (the S4 path's
+   0x45AF00, 0x45AF10 and 0x45AF14) come from the same code: the
+   init copies 20 bytes from 0x45AF14 to 0x45AF00.
+
+   With the extents known, the typed state can hold the regions as byte
+   arrays, the named cells inside a region as indices into it, and the
+   remaining 169 cells as typed members - 100 KB of state instead of the
+   256 KB fixed buffer, and no address arithmetic over the globals.
 
    The group's byte array has to cover every byte the tables can
    reach, and the *measured* extent is only a lower bound: the index
