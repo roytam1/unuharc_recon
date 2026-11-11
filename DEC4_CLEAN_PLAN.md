@@ -90,8 +90,27 @@ Left:
    sites are being re-expressed with the owning block pointer
    (`c->blkNN`).  The `blk00_dict` spelling is only valid for
    model-region addresses; an instrumented build confirms that every
-   `blk00_dict` access (84 in 0.4, 59 in 0.3) stays inside the model
-   region on the whole corpus.
+   `blk00_dict` access stays inside the model region on the whole
+   corpus (58 in 0.3; 81 in 0.4 before the PPM order table was
+   converted, 67 after).
+
+   The PPM **order table** is the last dynamic (order-indexed) model
+   access and is now converted in 0.4.  The stride-4 cell run
+   `0x433B58..0x433B74` is exactly the contiguous block-pointer array
+   `BLK_PTR_06..BLK_PTR_13`, so PPM order `o` owns model block `06+o`,
+   and `dword_459E38[o*4]` is a 4-byte slot index inside that block
+   (byte offset `price << 2`).  An instrumented build over all 17
+   core-4 archives of the 0.4 corpus (9.7 M order probes) confirms that
+   the cell value always equals the block base and that the slot index
+   always stays inside the owning block - the highest byte touched per
+   order is 262143 / 524287 / 524287 / 262143 / 262143 / 262143 /
+   1835007 / 260887 against block sizes 0x40000 / 0x80000 / 0x80000 /
+   0x40000 / 0x40000 / 0x40000 / 0x1C0000 / 0x40000.  The context
+   therefore carries `blkord[8]` (typed block pointers) and
+   `blkord_base[8]` (the arena bases, still needed because
+   `d4vc_ppm_score_orders` returns the slot's arena address to its
+   caller, which dereferences it).  `d4vc_ppm_score_orders` and
+   `d4vc_ppm_rescale_orders` now address the slot block-relative.
 
 
 1. **Typed state.** `tools/gen_dec4_state.py` derives the state from the
