@@ -33,24 +33,34 @@ memcpy), `D4V_TAIL_GATE_FLAG` (0x431209) and `D4V_PREFIX_SUM_TMP`
 (0x43120C). Everything else is reached through the block pointers or
 through computed offsets, so the blob cannot simply be dropped.
 
-## The DGROUP overlap is a real hazard
+## The DGROUP overlap was a real hazard (now avoided)
 
-In 0.4 the heap blocks are bumped from 0x18C4E upwards while the DGROUP
-image is copied to 0x42E000, so the allocations overwrite the image:
+In the *original* program the heap blocks are bumped from 0x18C4E upwards
+while the DGROUP image is loaded at 0x42E000, so the allocations run over
+the image:
 
 ```
 DGROUP live bytes 41318/73728 (56.0%)   alloc cursor 0x18f54a4
 ```
 
-Only 56 % of the image survives the allocations. The decoder still
-matches the native tool on the corpus, which means the overwritten bytes
-are never read - but it also means the arena's behaviour depends on the
-allocation order, and a typed port (separate heap, separate const tables)
-must reproduce the *surviving* bytes exactly. Poisoning the whole image
-except the two live cells breaks the decode, so those bytes do matter.
+Only 56 % of the image survives. The decoder still matches the native
+tool on the corpus, which means the overwritten bytes are never read -
+but it also means the arena's behaviour depends on the allocation order,
+and a typed port (separate heap, separate const tables) must reproduce
+the *surviving* bytes exactly. Poisoning the whole image except the two
+live cells breaks the decode, so those bytes do matter.
 
-0.3 avoids this: its comment at `uha03_dec4.c:291` says the model blocks
-must live above the fixed DGROUP window, and the init honours that.
+Both C ports now avoid the overlap instead of reproducing it: the model
+blocks are bumped from `hi = 0x600000`, above the globals window
+(`uha04_dec4.c:135-138` and the 0.3 equivalent), so the DGROUP image
+stays intact.  That is safe because the bytes the original's heap would
+have overwritten are never read, and it is what makes a typed port
+possible: the image can be lifted into const tables unchanged.
+
+The image itself carries real data - 47 090 of its 73 728 bytes are
+non-zero.  Of the 63 named cells inside the window, 33 are zero
+(a typed struct's calloc-zeroing reproduces them) and 30 hold const
+table bytes that a typed port has to carry over verbatim.
 
 ## Status
 
@@ -75,9 +85,45 @@ Left:
 
 3. **Const tables.** The cells inside the loaded image and the model
    tables (addressed through computed arena offsets) still use the arena.
-   Moving the tables to typed arrays needs the per-site work described
-   under Risks; the arena's 0.4 heap overwriting 44 % of the image has to
-   be reproduced exactly while that happens.
+   The inventory for 0.4 is now measured (see below), so what is left is
+   the mechanical move once the table extents are settled.
+
+   Measured on `uha04_dec4_clean.c`:
+
+   * the port overrides **630** `D4V_*` accessors back to `d4v_ptr()`
+     (546 of them address a BSS cell `>= 0x440000`, 84 an image cell
+     `< 0x440000`), so the generated `d4v_state` struct is dead weight;
+   * **80** distinct raw `c->fixed_mem + N` targets (**281**
+     references) address tables that the typed struct does not cover;
+     32 targets (67 references) are inside the DGROUP image and are
+     read-only, 48 targets (214 references) are BSS tables that the
+     decoder writes at run time;
+   * the 13 raw targets that land *inside* a named cell are the
+     table bases that the address map names (`d4v_tbl_45af00_raw`,
+     `d4v_tbl_459398_raw`, `d4v_tbl_457360`, `d4v_ctx_b_45c65d_raw`,
+     ...).
+
+   The blocker is the **table extents**.  `tools/gen_dec4_state.py`
+   sizes a member from the distance to the next named cell, but the
+   named cells are table *bases*: `dword_45AF00[eax*4]`,
+   `dword_459398[esi*4]` and `dword_457360[(eax&0xFF)*4]` are tables
+   that run far past the next name, so the generated member sizes are
+   not the table sizes and the generated struct cannot be used as-is
+   for them.  The real extents have to be recovered per table from the
+   data layout and the index bounds before a typed array can be
+   declared; that is the work item 3 still needs.
+
+   Two special cases are already clear:
+
+   * the PPM price table `word_437968` is a **const** table: the
+     prefix-sum loop in `d4vc_prices` adds the BSS-zero source
+     `word_437966`, so it is a no-op and the table keeps the image's
+     bytes.  Its read index is a full 32-bit value at some sites, so the
+     typed array needs a defined tail (the image ends at 0x43F968);
+   * the PPM context table `0x459E38..0x459E54` is a run of eight
+     4-byte slots with two overlapping 16-bit hi-word views
+     (`0x459E3E`, `0x459E42`); it needs a union, not eight members.
+
 4. **Model-block attribution.** `blk00_dict` / `blk00_base` are named
    as if they were the dictionary block, but they alias the *whole* model
    region: `c->hi` is set to `<PORT>_MODEL_BASE` before the model blocks

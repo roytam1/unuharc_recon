@@ -1381,7 +1381,13 @@ typedef struct dec4v_ctx {
      * typed pointer and blkord_base[o] its arena base address (the PPM
      * scorer hands that address to its caller, so it is still needed).
      * Verified over the whole core-4 corpus: the cell value always equals
-     * the block base and the slot index always stays inside the block. */
+     * the block base and the slot index always stays inside the block.
+     *
+     * The slot index itself is read through D4V_TBL_459E38_32, which is
+     * still overridden to d4v_ptr(): the eight slots 0x459E38..0x459E54
+     * carry two overlapping 16-bit hi-word views (0x459E3E, 0x459E42) and
+     * therefore need a union, not eight struct members, before the
+     * overrides can go. */
     unsigned char *blkord[8];
     unsigned long blkord_base[8];
     d4v_state st;   /* typed model state */
