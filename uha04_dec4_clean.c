@@ -2568,7 +2568,7 @@ l_415D2F:
 l_415D61:
     /* 0x00415D61 */ ecx = eax;
     /* 0x00415D63 */ ecx &= 0xFFUL;
-    /* 0x00415D69 */ (*(unsigned int *)(void *)(d4v_fx(c, 237144UL + ecx * 4))) = (unsigned int)esi; /* =1 */
+    /* 0x00415D69 */ D4V_TBL_459E58_32(&c->st, ecx * 4) = (unsigned int)esi; /* =1 */
     /* 0x00415D70 */ ecx = ebp;
     /* 0x00415D72 */ ebx = (ebx & 0xFFFFFF00UL) |
         (unsigned long)buf[edx & 0xFF];
@@ -4936,14 +4936,14 @@ L_419B51:
     eax = D4V_TBL_45AF80_32(&c->st, 0); /* 0x00419B9E */
     edx = edx << 2; /* 0x00419BA3 */
     D4V_TBL_458F98_32(&c->st, (eax & 0xFFUL) * 4UL) = edi; /* 0x00419BA6 */
-    eax = (*(unsigned int *)(void *)(d4v_fx(c, 234392UL + edx))); /* 0x00419BAD */
+    eax = (unsigned long)D4V_TBL_459398_32(&c->st, edx); /* 0x00419BAD */
     var1C = eax; /* 0x00419BB3 */
     eax = eax << 5; /* 0x00419BB6 */
     eax = eax - var1C; /* 0x00419BB9 */
     eax = eax >> 5; /* 0x00419BBC */
     eax = eax + edi; /* 0x00419BBF */
     D4V_TBL_45AF74_32(&c->st, 0) = ebp; /* 0x00419BC1 */
-    (*(unsigned int *)(void *)(d4v_fx(c, 234392UL + edx))) = eax; /* 0x00419BC7 */
+    D4V_TBL_459398_32(&c->st, edx) = eax; /* 0x00419BC7 */
     edx = edx & 0xFFFF00FFUL; /* 0x00419BCD */
     D4V_TBL_45AFA4_32(&c->st, 0) = ecx; /* 0x00419BCF */
     var18 = (unsigned char)((edx >> 8) & 0xFFUL); /* 0x00419BD5 */
@@ -4980,7 +4980,7 @@ L_419C55:
     eax = D4V_TBL_45AF80_32(&c->st, 0); /* 0x00419C55 */
     esi = (ebx >> 8) & 0xFFUL; /* 0x00419C5A */
     edx = D4V_TBL_45AF74_32(&c->st, 0); /* 0x00419C5D */
-    ecx = (*(unsigned int *)(void *)(d4v_fx(c, 234392UL + esi * 4UL))); /* 0x00419C63 */
+    ecx = (unsigned long)D4V_TBL_459398_32(&c->st, esi * 4UL); /* 0x00419C63 */
     D4V_TBL_458F98_32(&c->st, (eax & 0xFFUL) * 4UL) = edx; /* 0x00419C6A */
     eax = ecx; /* 0x00419C71 */
     eax = eax << 5; /* 0x00419C73 */
@@ -4990,7 +4990,7 @@ L_419C55:
     ebp = ebp + edx; /* 0x00419C81 */
     eax = eax + edx; /* 0x00419C83 */
     D4V_TBL_45AF64_32(&c->st, 0) = ebp; /* 0x00419C85 */
-    (*(unsigned int *)(void *)(d4v_fx(c, 234392UL + esi * 4UL))) = eax; /* 0x00419C8B */
+    D4V_TBL_459398_32(&c->st, esi * 4UL) = eax; /* 0x00419C8B */
     goto L_419AC6; /* 0x00419C92 */
 }
 
@@ -8446,7 +8446,7 @@ l_41D0C7:
     eax = 0; /* 0x41D0EF xor eax,eax */
     eax = var_24 & 0xFFU; /* 0x41D0F1 mov al,[esp+44h+var_24] */
     ecx = (eax * 4) & U32MASK; /* 0x41D0F5 lea ecx,ds:0[eax*4] */
-    esi = (esi * (*(unsigned int *)(void *)(d4v_fx(c, 241408UL + ecx)))) & U32MASK; /* 0x41D0FC imul esi,ds:dword_45AF00[ecx] */
+    esi = (esi * (unsigned long)D4V_TBL_45AF00_32(&c->st, ecx)) & U32MASK; /* 0x41D0FC imul esi,ds:dword_45AF00[ecx] */
     edi = D4V_TBL_45AF00_32(&c->st, 0); /* 0x41D103 mov edi,ds:dword_45AF00 */
     edi = (edi << 6) & U32MASK; /* 0x41D109 shl edi,6 */
     if (esi <= edi) /* 0x41D10C cmp esi,edi */ /* 0x41D10E jbe loc_41D39A */

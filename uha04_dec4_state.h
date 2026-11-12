@@ -121,6 +121,7 @@ typedef struct d4v_state {
 #define D4V_TBL_459E4C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_42E000 + 179788UL) + (a)))
 #define D4V_TBL_459E50_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_42E000 + 179792UL) + (a)))
 #define D4V_TBL_459E54_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_42E000 + 179796UL) + (a)))
+#define D4V_TBL_459E58_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_42E000 + 179800UL) + (a)))
 #define D4V_CTX_B_45A25D_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_42E000 + 180829UL) + (a)))
 #define D4V_CTX_B_45A25F_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_42E000 + 180831UL) + (a)))
 #define D4V_CTX_B_45A267_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_42E000 + 180839UL) + (a)))
