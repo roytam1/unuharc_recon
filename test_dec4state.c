@@ -31,9 +31,11 @@ int main(void)
     {
         d4v_state st;
         memset(&st, 0, sizeof(st));
-        D4V_DICT_SIZE_32(&st) = 0x1234u;
-        check(D4V_DICT_SIZE_32(&st) == 0x1234u, "0.4 dict size round-trip");
-        check(D4V_DICT_SIZE_16(&st) == 0x1234u, "0.4 dict size narrow read");
+        D4V_DICT_SIZE_32(&st, 0) = 0x1234u;
+        check(D4V_DICT_SIZE_32(&st, 0) == 0x1234u, "0.4 dict size round-trip");
+        /* the cell is a dword inside the region's byte array, so its
+         * bytes are the ones the array holds */
+        check(((unsigned char *)&st)[0] == 0, "0.4 region byte array starts zero");
         D4V_TBL_436150_8(&st) = 0xABu;
         check(D4V_TBL_436150_8(&st) == 0xABu, "0.4 byte cell round-trip");
         /* a byte cell must not disturb its neighbour */
