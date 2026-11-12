@@ -413,6 +413,27 @@ Left:
    the live bytes against all 26 tables at the end of every decode
    reports no mismatch over either corpus.
 
+   **0.3: 19 tables lifted, 41 access sites.**  The same two checks
+   apply to the slice in `uha03_dec4_dg.c` (0x428000, 54 476 bytes):
+   the slice is mutated at run time too - the block-pointer cells the
+   init fills, the accumulator at 0x428EDC, the range-coder tables
+   above 0x42D272 - and the lifted ranges are the untouched ones:
+
+   | table | extent | bound |
+   |---|---|---|
+   | 0x429E3A | 16 B | index masked to a byte; next cell 0x429E44 |
+   | 0x429E44 | 16 B | index masked to 0x0F |
+   | 0x429E30, 0x429E54, 0x429F54, 0x429BB8, 0x429CB8, 0x42BF6C, 0x42C438, 0x42C6A6 | 256 B | index a byte |
+   | 0x429DB8, 0x429DE0, 0x429E08, 0x42A86C, 0x42AC6C, 0x42B06C, 0x42B46C, 0x42B86C, 0x42BDDC | 256 u32 | index a byte |
+
+   The width of a lifted table follows from the width of the access,
+   not from the width of the neighbouring tables: 0x429BB8 was lifted
+   as a dword table first and the corpus caught it, because the access
+   is a byte read.  What stays on the image path in 0.3 is the
+   quotient-indexed reads (0x429B98, 0x429BA8, 0x42A054, 0x42A06C,
+   0x42C492), the block-pointer cells the init fills and the range
+   coder's delta/cumulative tables.
+
 3. **The port.** Move the arena port over function by function: the
    model blocks become typed pointers, the cells become struct members,
    the DGROUP reads become const-table reads. Keep the arena port as the
