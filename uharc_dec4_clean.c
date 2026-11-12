@@ -133,7 +133,12 @@ typedef struct dec4c_ctx_s {
     unsigned char g_l28;                /* order-4 bucket symbol (l28) */
     unsigned char bad;
     unsigned char g_e39b, g_e39e;      /* 0x45e39b/e9e text states */
-    unsigned char *outbuf;              /* decoded bytes (out_len) */
+    unsigned char *outflush;            /* streaming output buffer */
+    unsigned out_fill;
+    unsigned out_cap;
+    uharc_dec_write_cb wcb;
+    void *wctx;
+    int out_err;
     unsigned char excl[256];            /* 0x45dd6e excluded symbols */
     unsigned char nex;                  /* 0x45e39c */
     unsigned long *fe;                 /* file ends */
@@ -211,7 +216,7 @@ void uharc_dec4c_free(void *ctx)
     free(c->mlen); free(c->mchk); free(c->x698);
     free(c->o2); free(c->delta); free(c->o4);
     free(c->fe);
-    free(c->outbuf);
+    free(c->outflush);
     free(c->inbuf);
     free(c);
 }
@@ -840,10 +845,30 @@ static void dec4c_new_segment(dec4c_ctx *c)
     }
 }
 
+static int dec4c_flush(dec4c_ctx *c)
+{
+    if (c->out_err)
+        return 0;
+    if (c->out_fill == 0)
+        return 1;
+    if (c->wcb(c->wctx, c->outflush, c->out_fill) != 0) {
+        c->out_err = 1;
+        c->bad = 1;
+        return 0;
+    }
+    c->out_fill = 0;
+    return 1;
+}
+
 static void dec4c_put_byte(dec4c_ctx *c, unsigned char b)
 {
-    if (c->outbuf && c->out_pos < c->out_len)
-        c->outbuf[c->out_pos] = b;
+    if (c->out_pos < c->out_len) {
+        if (!c->out_err) {
+            c->outflush[c->out_fill++] = b;
+            if (c->out_fill >= c->out_cap)
+                dec4c_flush(c);
+        }
+    }
     c->out_pos = (c->out_pos + 1UL) & 0xFFFFFFFFUL;
 }
 
@@ -4331,7 +4356,7 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
 {
     dec4c_ctx *c = (dec4c_ctx *)ctx;
     unsigned char tmp[4096];
-    unsigned long got, want, i;
+    unsigned long got, i;
     /* Drain the packed stream into memory (decoder reads it whole). */
     unsigned long cap, len;
     if (!c || !rcb || !wcb)
@@ -4352,21 +4377,24 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
     }
     c->out_pos = 0;
     c->out_len = out_len;
-    cap = out_len + out_len / 2UL + 8192UL;
-    if (cap < 65536UL) cap = 65536UL;
+    c->wcb = wcb;
+    c->wctx = wctx;
+    c->out_err = 0;
+    c->out_fill = 0;
+    c->out_cap = 0x10000U;
+    c->outflush = (unsigned char *)malloc((size_t)c->out_cap);
+    if (!c->outflush) return 2;
+    cap = 65536UL;
     c->inbuf = (unsigned char *)malloc((size_t)cap);
-    if (!c->inbuf) return 2;
+    if (!c->inbuf) { free(c->outflush); c->outflush = 0; return 2; }
     len = 0;
     for (;;) {
-        want = cap - len;
-        if (want > sizeof(tmp)) want = sizeof(tmp);
-        if (want == 0) break;
-        got = (unsigned)rcb(rctx, tmp, (unsigned)want);
+        got = (unsigned)rcb(rctx, tmp, (unsigned)sizeof(tmp));
         if (got == 0) break;
         if (len + got > cap) {
             unsigned char *nb;
             nb = (unsigned char *)realloc(c->inbuf, (size_t)(len + got + 8192UL));
-            if (!nb) return 2;
+            if (!nb) { free(c->outflush); c->outflush = 0; return 2; }
             c->inbuf = nb;
             cap = len + got + 8192UL;
         }
@@ -4376,8 +4404,6 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
     }
     c->in_len = len;
     c->in_pos = 0;
-    c->outbuf = (unsigned char *)malloc((size_t)(out_len ? out_len : 1));
-    if (!c->outbuf) return 2;
     /* File-end table for new_segment (padded with zeros like orig). */
     if (cum && ncum) {
         unsigned long capn = ((4UL * ncum + 16UL + 0xFFFUL) & ~0xFFFUL) / 4UL;
@@ -4408,22 +4434,26 @@ int uharc_dec4c_decode_b(void *ctx, const unsigned long *cum, unsigned long ncum
         if (c->bad)
             break;
     }
+    if (c->out_err) {
+        free(c->outflush);
+        c->outflush = 0;
+        return 4;
+    }
     if (c->out_pos >= c->out_len) {
-        unsigned n = (unsigned)c->out_len;
-        if (n > 0 && wcb(wctx, c->outbuf, n) != 0)
+        if (!dec4c_flush(c)) {
+            free(c->outflush);
+            c->outflush = 0;
             return 4;
-        free(c->outbuf);
-        c->outbuf = 0;
+        }
+        free(c->outflush);
+        c->outflush = 0;
         return 0;
     }
     /* On a data error the arena has already streamed the bytes it decoded,
      * so hand over the partial output too instead of dropping it. */
-    if (c->out_pos > 0) {
-        unsigned n = (unsigned)c->out_pos;
-        if (n > c->out_len) n = (unsigned)c->out_len;
-        if (n > 0) (void)wcb(wctx, c->outbuf, n);
-    }
-    free(c->outbuf);
-    c->outbuf = 0;
+    dec4c_flush(c);
+    free(c->outflush);
+    c->outflush = 0;
+    if (c->out_err) return 4;
     return 3;
 }
