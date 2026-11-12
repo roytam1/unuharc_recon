@@ -69,9 +69,11 @@ def parse_uses(path, defs=None, regions=None):
             for w in (8, 16, 32):
                 if re.search(r'\b%s_%d\s*\(\s*&c->st' % (re.escape(name), w), src):
                     widths.setdefault(name, Counter())[("t", w)] += 1
-                if re.search(r'\bd[34][a-z]*u_(?:ld|st)(8|16|32)\s*\(\s*c\s*,\s*'
-                             r'\(unsigned long\)\(\s*%s\b' % re.escape(name), src):
-                    widths.setdefault(name, Counter())[("t", w)] += 1
+            # the byte-wise helpers spell the cell as an absolute address,
+            # and the width is the one in the helper's name
+            for m2 in re.finditer(r'\bd[34][a-z]*u_(?:ld|st)(8|16|32)\s*\(\s*c\s*,\s*'
+                                  r'\(unsigned long\)\(\s*%s\b' % re.escape(name), src):
+                widths.setdefault(name, Counter())[("t", int(m2.group(1)))] += 1
     return widths, dynamic
 
 
