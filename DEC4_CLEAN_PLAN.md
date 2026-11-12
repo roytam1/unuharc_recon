@@ -352,16 +352,11 @@ Left:
    the array so it covers the whole arena range the group can reach
    ("gaps included"), or to bound the index expressions per table and
    collapse the gaps.  The first is what the ports do now, and it is
-   why the state is not smaller than the buffer it replaced: the 0.3
-   region is 0x428000..0x468000 (262 144 bytes) because the arena's
-   globals - the DGROUP slice and the BSS above it - end at 0x468000,
-   not because the decoder uses all of it.  Trimming it to the
-   corpus-observed bound (0x4450FC) would save about 140 KB, but only
-   if nothing writes above the bound, and the init's fills *do* write
-   the whole fixed region - with zeros.  The bytes above the bound are
-   zero, so trimming them would not change what the decoder reads; it
-   would only change how much the state occupies.  It is worth doing
-   once the extents are proven.
+   why the state is not smaller than the buffer it replaced: the 0.4
+   region is 0x42E000..0x45D0C8 (192 712 bytes) because the DGROUP
+   image and the BSS above it end at the last named cell, not because
+   the decoder uses all of it.  The 0.3 region is the same: it ends at
+   the last named cell, 0x445100.
 
    **A fill that runs into the gap now stops there.**  The ports
    stand in for the arena's zero gap - the space between the globals
@@ -479,13 +474,19 @@ Left:
    So in both ports the accesses that are still on the mapper stay
    *inside* the layout region - the region ends at the last named cell
    and nothing reaches past it - and the init's fills stay well below
-   the region's end.  That is what makes the regions right-sized; the
-   0.3 region could be trimmed to the last named cell (0x445100) and
-   would save 143 KB, but only if nothing writes above the bound, and
-   the tables whose index the code does not bound (the match-extension
-   table, the range coder's cumulative table, the S4 tables) could in
-   principle write there.  The measured bound is a lower bound, so the
-   trim waits for the per-table extents.
+   the region's end.
+
+   The 0.3 region is trimmed to the last named cell: 0x428000..0x445100,
+   119 040 bytes, 143 KB less than the 0x468000 it used to cover.  That
+   is safe because nothing writes above the bound - every write through
+   the typed state is an index the code bounds (the named cells end at
+   0x4450FC and the table accesses are masked with 0xFF, 0x7F or
+   0xFFF, or are a loop counter below 0x400), the init's fills end at
+   0x444188, and the accesses that are still on the mapper are reads -
+   the arena's bytes above the bound are zero, because the arena's
+   globals are only written by the same instructions.  So a read above
+   the bound finds the same zero in the arena as the port's one-byte
+   stand-in for the zero gap.
 
    **The tables that are read with a bounded index are already lifted.**
    The 27 0.4 tables and the 21 0.3 tables above are the ones whose
