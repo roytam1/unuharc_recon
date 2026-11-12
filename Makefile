@@ -1,7 +1,21 @@
 CC=gcc
 CFLAGS=-std=c89 -Wall -Wextra -O2
-OBJS=uharc06_main.o uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4.o uha04_dec4_dg.o uha04_dec4_clean.o uha03_dec4.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4.o uharc_dec4_clean.o uharc_dec5.o
-DECOBJS=uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4.o uha04_dec4_dg.o uha04_dec4_clean.o uha03_dec4.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4.o uharc_dec4_clean.o uharc_dec5.o
+
+# The production decoder is the typed-state core-4 port.  The arena ports
+# (uha04_dec4.c, uha03_dec4.c, uharc_dec4.c) are the reference
+# implementation for differential testing; they are NOT linked into
+# uharc06_unpack.exe.  `make arena` builds uharc06_arena.exe with
+# -DDEC4_ARENA, which is what tools/diff_fuzz.py compares against.
+ARENA_PORTS=uha04_dec4.o uha03_dec4.o uharc_dec4.o
+
+OBJS=uharc06_main.o uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4_dg.o uha04_dec4_clean.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4_clean.o uharc_dec5.o
+DECOBJS=uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4_dg.o uha04_dec4_clean.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4_clean.o uharc_dec5.o
+
+# The arena build keeps its objects in their own directory: they are
+# compiled with -DDEC4_ARENA and must not be mixed with the production
+# objects.
+ARENA_DIR=arena
+ARENA_OBJS=$(addprefix $(ARENA_DIR)/,$(OBJS) $(ARENA_PORTS))
 
 # Define your targets in a variable so they can be shared
 TARGETS=uharc06_unpack.exe hdrtest.exe hdrtest04.exe hdrtest03.exe hdrtest02.exe test_tab.exe test_dec3.exe test_dec4state.exe test_gapfill.exe
@@ -20,6 +34,25 @@ test_dec4state.o: uha03_dec4_state.h uha04_dec4_state.h
 uha03_dec4_clean.o: uha03_dec4_state.h uha03_dec4_addr.h
 uha04_dec4_clean.o: uha04_dec4_state.h uha04_dec4_addr.h
 uharc_dec4_clean.o: dec4c_rom2.h
+
+# The arena reference build.  It compiles every object with -DDEC4_ARENA
+# in its own directory, so the dispatcher selects the arena ports and the
+# container layer calls the arena flag setters.
+$(ARENA_DIR)/%.o: %.c
+	@mkdir -p $(ARENA_DIR)
+	$(CC) $(CFLAGS) -DDEC4_ARENA -c $< -o $@
+
+$(ARENA_DIR)/uha04_dec4.o: uha04_dec4_addr.h
+$(ARENA_DIR)/uha03_dec4.o: uha03_dec4_addr.h
+$(ARENA_DIR)/uharc_dec4.o: uharc_dec4_addr.h
+$(ARENA_DIR)/uha04_dec4_clean.o: uha04_dec4_state.h uha04_dec4_addr.h
+$(ARENA_DIR)/uha03_dec4_clean.o: uha03_dec4_state.h uha03_dec4_addr.h
+$(ARENA_DIR)/uharc_dec4_clean.o: dec4c_rom2.h
+
+arena: uharc06_arena.exe
+
+uharc06_arena.exe: $(ARENA_OBJS)
+	$(CC) -o $@ $(ARENA_OBJS)
 
 uharc06_unpack.exe: $(OBJS)
 	$(CC) -o $@ $(OBJS)
@@ -52,4 +85,4 @@ test_gapfill.exe: test_gapfill.o uha03_dec4_dg.o uha04_dec4_dg.o
 	$(CC) -o $@ test_gapfill.o uha03_dec4_dg.o uha04_dec4_dg.o
 
 clean:
-	del *.o $(TARGETS)
+	rm -rf *.o $(TARGETS) uharc06_arena.exe $(ARENA_DIR)

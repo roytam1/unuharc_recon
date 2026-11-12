@@ -757,7 +757,12 @@ Left:
    model blocks become typed pointers, the cells become struct members,
    the DGROUP reads become const-table reads. Keep the arena port as the
    reference implementation and select between them with a build switch
-   the way 0.6 does (`-DDEC4_ARENA`).
+   the way 0.6 does (`-DDEC4_ARENA`).  Done: the production binary links
+   only the typed ports (`make`), and `make arena` builds
+   `uharc06_arena.exe` with `-DDEC4_ARENA` for differential testing.
+   The three container files call the arena flag setters only under the
+   switch, so the reference objects are no longer linked into
+   `uharc06_unpack.exe` (817 712 bytes instead of 1 033 783).
 
 4. **Verification.** Byte-exact against the arena port on the regenerated
    corpora (`tools/run_corpus.py --arc-dir uharc-rs-0X/arc`), then against

@@ -422,14 +422,15 @@ named cell is an index into it (`uha03_dec4_state.h`,
 layout in `uha03_dec4_layout.h` / `uha04_dec4_layout.h`).  Only the
 model blocks and the I/O buffers are separate allocations, and the
 ports address them by typed pointer, not by absolute address.  The
-arena ports stay in the tree as the reference implementation - build
-with `-DDEC4_ARENA` (e.g.
-`make CFLAGS="-std=c89 -Wall -Wextra -O2 -DDEC4_ARENA"`) to select them.
-All three versions produce byte-identical output either way; the
-regenerated corpora are checked with `tools/run_corpus.py`.
+arena ports stay in the tree as the reference implementation and are
+not linked into the production binary: `make` builds the typed ports,
+and `make arena` builds `uharc06_arena.exe` with `-DDEC4_ARENA` for
+differential testing (`tools/diff_fuzz.py`).  All three versions produce
+byte-identical output either way; the regenerated corpora are checked
+with `tools/run_corpus.py`.
 
 The read-only tables that the decoder reads out of the loaded image are
-lifted into `static const` arrays - 27 of them in 0.4 and 21 in 0.3.
+lifted into `static const` arrays - 30 of them in 0.4 and 25 in 0.3.
 `tools/check_lifted_tables.py` compares every one of them with the
 image byte for byte and checks the element counts, because the
 extraction has to be exact: the image's header comment holds the

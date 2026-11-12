@@ -649,9 +649,12 @@ int uha04_extract(uha04_t *h, const char *outdir,
     g_uha04_exe = (h->hdr.flags_filt & 1) ? 1 : 0;
     g_uha04_mm = (h->hdr.flags_filt & 2) ? 1 : 0;
     g_uha04_fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
+#if defined(DEC4_ARENA)
     uharc_dec4v_set_flags2((unsigned char)h->hdr.flags_filt);
+#else
     /* the typed-state core-4 port has its own copy of the flag */
     uharc_dec4vc_set_flags2((unsigned char)h->hdr.flags_filt);
+#endif
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 4,
                          (g_uha04_exe || g_uha04_mm || g_uha04_fax) ? uha04_unfilter : 0,

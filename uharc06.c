@@ -1006,10 +1006,13 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
     mr.buf = packed;
     mr.len = packed_len;
     mr.pos = 0;
+#if defined(DEC4_ARENA)
     uharc_dec4_set_flags2((unsigned char)h->hdr.flags2);
+#else
     /* The clean core-4 decoder needs the same header flags (flags2 bit 6
      * selects the "text end" from the file end table). */
     uharc_dec4c_set_flags2((unsigned char)h->hdr.flags2);
+#endif
     drc = uharc_dec_decode_b((int)h->hdr.method, 0, 6, cum, h->nfiles,
                              mr_read, &mr, uharc06_split_write, 0,
                              h->hdr.total_size);
