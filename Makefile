@@ -4,7 +4,7 @@ OBJS=uharc06_main.o uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uh
 DECOBJS=uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4.o uha04_dec4_dg.o uha04_dec4_clean.o uha03_dec4.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4.o uharc_dec4_clean.o uharc_dec5.o
 
 # Define your targets in a variable so they can be shared
-TARGETS=uharc06_unpack.exe hdrtest.exe hdrtest04.exe hdrtest03.exe hdrtest02.exe test_tab.exe test_dec3.exe test_dec4state.exe
+TARGETS=uharc06_unpack.exe hdrtest.exe hdrtest04.exe hdrtest03.exe hdrtest02.exe test_tab.exe test_dec3.exe test_dec4state.exe test_gapfill.exe
 
 all: $(TARGETS)
 
@@ -36,6 +36,11 @@ test_dec3.exe: test_dec3.o $(DECOBJS)
 # Self-test for the generated typed core-4 state headers (0.3 / 0.4).
 test_dec4state.exe: test_dec4state.o
 	$(CC) -o $@ test_dec4state.o
+
+# Self-test for the 0.3 fixed-region fill: it must stop at the one-byte
+# stand-in for the arena's zero gap.
+test_gapfill.exe: test_gapfill.o uha03_dec4_dg.o
+	$(CC) -o $@ test_gapfill.o uha03_dec4_dg.o
 
 clean:
 	del *.o $(TARGETS)

@@ -270,7 +270,10 @@ static unsigned char *d4v_ptr(dec4v_ctx *c, unsigned long addr)
         return c->fixed_mem + (addr - D4V_FIXED_BASE);
     if (addr < D4V_IO_SIZE)
         return c->io_mem + addr;
-    return c->fixed_mem;
+    /* The arena port clamps every address to the end of its buffer, so
+     * an address outside the globals, the I/O buffers and the model
+     * blocks reads the arena's zero gap.  fx_gap stands in for it. */
+    return &c->fx_gap;
 }
 
 /* Boundary-safe byte-wise accessors: the fixed region is stored in more
@@ -1833,6 +1836,14 @@ static void d4v_fill(dec4v_ctx *c, unsigned int len, unsigned int dst,
         if (a >= D4V_MODEL_BASE && a < D4V_MODEL_BASE + D4V_MODEL_SIZE
             && a + chunk > D4V_MODEL_BASE + D4V_MODEL_SIZE)
             chunk = (D4V_MODEL_BASE + D4V_MODEL_SIZE) - a;
+        /* The rest of a fill that runs past the globals lands in the
+         * arena's zero gap, which the port stands in for with one byte,
+         * so it is written once and the fill ends there. */
+        if (a >= D4V_MODEL_BASE + D4V_MODEL_SIZE
+            || (a >= D4V_FIXED_BASE + D4V_FIXED_SIZE && a < D4V_MODEL_BASE)) {
+            memset(d4v_ptr(c, a), (int)v, (size_t)1);
+            break;
+        }
         memset(d4v_ptr(c, a), (int)v, (size_t)chunk);
         a += chunk;
         n -= chunk;
