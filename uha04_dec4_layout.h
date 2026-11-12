@@ -11,4 +11,4 @@
  *   python tools/gen_dec4_state.py uha04_dec4_addr.h uha04_dec4.c \
  *       uha04_dec4_state.h d4v uha04_dec4_layout.h
  */
-0x440000 0x45D0C8
+0x42E000 0x45D0C8

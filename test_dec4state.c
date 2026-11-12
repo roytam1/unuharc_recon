@@ -36,10 +36,15 @@ int main(void)
         /* the cell is a dword inside the region's byte array, so its
          * bytes are the ones the array holds */
         check(((unsigned char *)&st)[0] == 0, "0.4 region byte array starts zero");
-        D4V_TBL_436150_8(&st) = 0xABu;
-        check(D4V_TBL_436150_8(&st) == 0xABu, "0.4 byte cell round-trip");
+        D4V_TBL_436150_8(&st, 0) = 0xABu;
+        check(D4V_TBL_436150_8(&st, 0) == 0xABu, "0.4 byte cell round-trip");
         /* a byte cell must not disturb its neighbour */
-        check(D4V_TBL_436152_8(&st) == 0, "0.4 byte cell does not spill");
+        check(D4V_TBL_436152_8(&st, 0) == 0, "0.4 byte cell does not spill");
+        /* a cell inside the DGROUP image is an index into the same
+         * array, so it round-trips the same way */
+        D4V_BLK_PTR_00_DICT_32(&st, 0) = 0x600000u;
+        check(D4V_BLK_PTR_00_DICT_32(&st, 0) == 0x600000u,
+              "0.4 image cell round-trip");
     }
     /* 0.4: the multi-width cells are byte arrays; an aligned 32-bit
      * access must see the bytes that were written individually. */
