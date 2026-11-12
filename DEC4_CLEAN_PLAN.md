@@ -242,10 +242,9 @@ Left:
      between them, and a named cell in a gap would have lived in two
      places at once - the struct member the generated accessor reads
      and the `fixed_mem` byte the raw table accesses read.  The 21
-     regions are merged into one contiguous span, 0x440000..0x45D0C8
-     (118 984 bytes), and 0.3's nine into one, 0x436E40..0x468000
-     (201 152 bytes).  One array means one branch in the address
-     mapper and one boundary in the init's fills.
+     regions are merged into one contiguous span, and 0.3's nine into
+     one.  One array means one branch in the address mapper and one
+     boundary in the init's fills.
    * **The cells inside a region are reached with their offset.**  The
      generator's accessor for a cell inside a region takes the offset
      into the array, so the port's calls name it: 685 of the 0.4 port's
@@ -258,29 +257,44 @@ Left:
      block.  The 0.4 port's 238 raw multi-byte reads and 134 writes
      became `d4v_ld16`/`d4v_st16` and `d4v_ld32`/`d4v_st32`.
    * **The init's fills are split per region.**
-   * **The image stays in the arena buffer.**  The cells the decoder
-     writes there (the block pointers, the I/O cursors, the price-done
-     flag) keep their initial values from the DGROUP copy.
+   * **The image is in the array.**  The image is copied into the
+     state's array at init, so a cell inside the image keeps its
+     initial value from the image and a cell in the BSS starts at
+     zero - which is what the arena held.
 
-   That drops the 0.4 port's override block from 136 entries to 28.
-   The 28 that stay are all cells inside the DGROUP image
-   (`< 0x440000`): the block pointers the init fills, the I/O cursors,
-   the price-done flag and the two prefix-sum temporaries.  They keep
-   their initial values from the image copy, which stays in the arena
-   buffer.  The overlapping `D4V_ALLOC_CURSOR` (dword at 0x440E78) and
+   **The image joins the array.**  The layout now covers the whole
+   globals region, not just the BSS above the image: 0x42E000..0x45D0C8
+   in 0.4 (192 712 bytes: the DGROUP image and the BSS above it) and
+   0x428000..0x468000 in 0.3 (262 144 bytes: the DGROUP slice and the
+   BSS above it).  So the globals are one byte array in the typed
+   state, the image is copied into it at init, and every named cell -
+   in the image or in the BSS - is an index into it.
+
+   That is the end of the hand-written accessor overrides: the 0.4
+   port's block is down from 136 entries to **none**, because the
+   generated accessors are the ones the port calls (the 175 call sites
+   that used the one-argument form now pass the offset).  The 0.3 port
+   already reached every cell through the two-argument accessors, so
+   no call site changed there.
+
+   It also ends the second allocation for the globals: the ports kept
+   the image in a separate 256 KB arena buffer, and that buffer is
+   gone.  The 0.4 state grows by the image (73 728 bytes) and the
+   buffer goes away (262 144), so the globals cost **188 KB less**; the
+   0.3 state grows by 60 992 bytes and the buffer goes away, so its
+   globals cost **201 KB less**.  The address mapper has one branch
+   for the globals instead of two, and the fills have one boundary
+   instead of three.
+
+   The overlapping `D4V_ALLOC_CURSOR` (dword at 0x440E78) and
    `D4V_ALLOC_HI16` (word at 0x440E7A) are inside the region now, so
    the generator aliases them into the same array at their overlapping
    offsets - the union the plan asked for comes out of the layout
    rather than needing a hand-written one.
 
-   The last **22** of the overrides were redundant: they were the
-   cells *inside* the region, and for those the generated accessor
-   already names the same bytes (`(s)->fx_440000 + <offset>` is what
-   `d4v_ptr` returns for the same address).  They are gone now, so
-   the typed state really is the storage for every cell of the BSS
-   and the hand-written block is only the image's own cells.  The
-   header and the port still reach a fixpoint: regenerating
-   `uha04_dec4_state.h` after the change reproduces it byte for byte.
+   The header and the port still reach a fixpoint: regenerating
+   `uha04_dec4_state.h` or `uha03_dec4_state.h` after the change
+   reproduces them byte for byte.
 
    **0.3 reaches its cells through the state too.**  The port used to
    address its named cells by absolute address - through the `G8`/`M8`
@@ -292,12 +306,14 @@ Left:
    Two things had to be got right for that:
 
    * **A two-argument accessor does not mean the cell is in the
-     region.**  The generator gives the image's *multi-width* cells a
-     two-argument accessor too (they are byte arrays), but their bytes
-     are the image copy in the arena buffer, so reading them through
-     the state member and writing them through `d3u_stNN` would split
-     each of them across two storages.  The filter is the cell's
-     *address*, not the accessor's shape.
+     region.**  The generator gives a cell that is used at several
+     widths a two-argument accessor too (it is a byte array), but
+     before the image joined the array its bytes were the image copy in
+     the arena buffer, so reading them through the state member and
+     writing them through `d3u_stNN` would split each of them across
+     two storages.  The filter is the cell's *address*, not the
+     accessor's shape.  With the image in the array the split is gone,
+     so the filter can go too.
    * **The generator has to see the typed port.**  It derived the
      widths of every cell from the arena port alone, so a cell the
      typed port reaches but the arena port never names got no accessor
@@ -329,14 +345,15 @@ Left:
    ("gaps included"), or to bound the index expressions per table and
    collapse the gaps.  The first is what the ports do now, and it is
    why the state is not smaller than the buffer it replaced: the 0.3
-   region is 0x436E40..0x468000 (201 152 bytes) because the arena's
-   globals end at 0x468000, not because the decoder uses all of it.
-   Trimming it to the corpus-observed bound (0x4450FC) would save
-   about 140 KB, but only if nothing writes above the bound, and the
-   init's fills *do* write the whole fixed region - with zeros.  The
-   bytes above the bound are zero, so trimming them would not change
-   what the decoder reads; it would only change how much the state
-   occupies.  It is worth doing once the extents are proven.
+   region is 0x428000..0x468000 (262 144 bytes) because the arena's
+   globals - the DGROUP slice and the BSS above it - end at 0x468000,
+   not because the decoder uses all of it.  Trimming it to the
+   corpus-observed bound (0x4450FC) would save about 140 KB, but only
+   if nothing writes above the bound, and the init's fills *do* write
+   the whole fixed region - with zeros.  The bytes above the bound are
+   zero, so trimming them would not change what the decoder reads; it
+   would only change how much the state occupies.  It is worth doing
+   once the extents are proven.
 
    **A fill that runs into the gap now stops there.**  The ports
    stand in for the arena's zero gap - the space between the globals
