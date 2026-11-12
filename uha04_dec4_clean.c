@@ -74,7 +74,7 @@
 
 typedef struct dec4v_ctx {
     unsigned char *mem; /* compat, unused */
-    unsigned char fx_gap;   /* the arena's zero gap past the fixed region */
+    unsigned char fx_gap[8]; /* the arena's zero gap past the fixed region */
     unsigned char *io_mem;
     unsigned char *model_mem;
     unsigned long hi;
@@ -159,14 +159,14 @@ static unsigned char *d4v_fx(dec4v_ctx *c, unsigned long off)
      * bytes. */
     unsigned long addr = (D4V_FIXED_BASE + off) & 0xFFFFFFFFUL;
     if (addr > (0x04000000UL - 8UL))
-        return &c->fx_gap; /* the arena's tail is zero */
+        return c->fx_gap; /* the arena's tail is zero */
     if (addr >= D4V_GLOBALS_BASE && addr < D4V_GLOBALS_END)
         return c->st.fx_42E000 + (addr - D4V_GLOBALS_BASE);
     if (addr >= D4V_MODEL_BASE && addr < D4V_MODEL_BASE + D4V_MODEL_SIZE)
         return c->model_mem + (addr - D4V_MODEL_BASE);
     if (addr < D4V_IO_SIZE)
         return c->io_mem + addr;
-    return &c->fx_gap;
+    return c->fx_gap;
 }
 
 static unsigned char *d4v_ptr(dec4v_ctx *c, unsigned long addr)
@@ -181,7 +181,7 @@ static unsigned char *d4v_ptr(dec4v_ctx *c, unsigned long addr)
     /* The arena port clamps every address to the end of its buffer, so
      * an address outside the globals, the I/O buffers and the model
      * blocks reads the arena's zero gap.  fx_gap stands in for it. */
-    return &c->fx_gap;
+    return c->fx_gap;
 }
 
 /* Boundary-safe byte-wise accessors: the fixed region is stored in more
