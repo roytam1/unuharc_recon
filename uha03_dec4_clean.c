@@ -47,8 +47,6 @@
  */
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h> /* TEMP-PROGRESS (revert) */
-#include <time.h> /* TEMP-PROGRESS (revert) */
 #include "uharc_dec.h"
 #include "uha03_dec4_addr.h"
 #include "uha03_dec4_state.h"
