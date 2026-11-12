@@ -72,6 +72,7 @@ typedef struct d3u_state {
 #define D3U_TBL_43DCD8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 89304UL) + (a)))
 #define D3U_TBL_43DCDC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 89308UL) + (a)))
 #define D3U_TBL_43DCE0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 89312UL) + (a)))
+#define D3U_TBL_43E0E4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 90340UL) + (a)))
 #define D3U_TBL_43F4F0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 95472UL) + (a)))
 #define D3U_TBL_43F4F4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 95476UL) + (a)))
 #define D3U_TBL_43F4F8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_428000 + 95480UL) + (a)))

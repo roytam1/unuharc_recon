@@ -8410,7 +8410,7 @@ L_41A068:
     ecx = 0UL; /* 0x0041A094 xor ecx,ecx */
     ecx = (ecx & ~0xFFUL) | (unsigned int)w1c; /* 0x0041A096 mov cl,[var_1C] */
     edx = ((ecx & 0xFFUL) * 4UL) & U32MASK; /* 0x0041A09A lea edx,ds:0[ecx*4] */
-    esi = d3u_ld32(c, (unsigned long)((D3U_TBL_444188 + edx) & U32MASK)); /* 0x0041A0A1 mov esi,dword_444188[edx] */
+    esi = (unsigned long)D3U_TBL_444188_32(&c->st, edx); /* 0x0041A0A1 mov esi,dword_444188[edx] */
     eax = (esi * 4UL) & U32MASK; /* 0x0041A0A7 lea eax,ds:0[esi*4] */
     eax = (eax + esi) & U32MASK; /* 0x0041A0AE add eax,esi */
     esi = D3U_TBL_444188_32(&c->st, 0); /* 0x0041A0B0 mov esi,dword_444188 */
@@ -11215,7 +11215,7 @@ l_41baef:
     /* 0x0041BB27 imul edi,dword_43D8B0,404h */ edi = (((unsigned long)D3U_TBL_43D8B0_32(&c->st, 0) * 0x404UL)) & U32MASK;
     /* 0x0041BB31 mov ebx,[eax+400h] */ ebx = (unsigned long)d3u_ld32(c, (unsigned long)((eax + 0x400UL) & U32MASK));
     /* 0x0041BB37 cmp ebx,dword_43E0E4[edi] */ /* 0x0041BB3D jge loc_41BB45 */
-    if (ebx >= (unsigned long)d3u_ld32(c, (unsigned long)((D3U_TBL_43E0E4 + edi) & U32MASK))) goto l_41bb45;
+    if (ebx >= (unsigned long)(unsigned long)D3U_TBL_43E0E4_32(&c->st, edi)) goto l_41bb45;
     /* 0x0041BB3F mov dword_43D8B0,edx */ D3U_TBL_43D8B0_32(&c->st, 0) = (unsigned int)edx;
 l_41bb45:
     /* 0x0041BB45 add esi,4 */ esi = (esi + 4UL) & U32MASK;
