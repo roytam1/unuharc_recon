@@ -37,8 +37,13 @@ int main(void)
     fixed_before = (void *)c->fixed_mem;
 
     /* a fill that starts in the gap and runs to the end of the address
-     * space must write the gap byte and stop there */
+     * space must write the gap byte and stop there.  Three addresses
+     * are tried: the gap between the globals and the model blocks, the
+     * gap between the I/O buffers and the globals, and one past the
+     * end of the model blocks. */
     d3uc_fill(c, 0x200000UL, 0x468000UL, 0x5AUL);
+    d3uc_fill(c, 0x200000UL, 0x470000UL, 0x5AUL);
+    d3uc_fill(c, 0x200000UL, 0x4600000UL, 0x5AUL);
 
     if ((void *)c->io_mem != io_before) {
         printf("FAIL the fill wrote past the gap byte (io_mem changed)\n");

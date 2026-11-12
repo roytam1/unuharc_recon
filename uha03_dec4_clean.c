@@ -1139,8 +1139,9 @@ void d3uc_fill(dec3w_ctx *c, unsigned int len, unsigned int dst,
         /* The rest of a fill that runs past the globals lands in the
          * arena's zero gap, which the port stands in for with one byte,
          * so it is written once and the fill ends there. */
-        if (a >= D3U_MODEL_BASE + D3U_MODEL_SIZE
-            || (a >= D3U_FIXED_BASE + D3U_FIXED_SIZE && a < D3U_MODEL_BASE)) {
+        if (!(a >= D3U_FIXED_BASE && a < D3U_FIXED_BASE + D3U_FIXED_SIZE)
+            && !(a >= D3U_MODEL_BASE && a < D3U_MODEL_BASE + D3U_MODEL_SIZE)
+            && !(a >= D3U_IO_BASE && a < D3U_IO_BASE + D3U_IO_SIZE)) {
             memset(d3u_ptr(c, a), (int)v, (size_t)1);
             break;
         }
