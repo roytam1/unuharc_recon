@@ -1,30 +1,20 @@
 #!/usr/bin/env python3
-"""Audit the port sources for x86 register emulation.
-
-The ports that were translated from the original disassemblies model the
-x86 machine: the register names (eax, ebx, esi, ...) and the Hex-Rays
-spills (v1, v2, e_eax, eax_) are used as ordinary variable names.  That
-makes the code hard to read and hides what a value actually means.
-
-This tool reports, per file, how many register-named locals it declares
-and where, so the naming can be cleaned up.
-
-usage: audit_registers.py [--list] [file.c ...]
-"""
+"""Audit the port sources for x86 register emulation."""
 import os
 import re
 import sys
 
-# the register names a port may use as a variable
 REGS = r'(?:e?[abcd]x|[abcd][lh]|[sd]i|[sb]p|sp)'
 HEXRAYS = r'(?:v\d{1,3}|e_\w+|_\w+|\w+_)'
+NAME = r'(?:%s|%s)' % (REGS, HEXRAYS)
 
-DECL = re.compile(
+TYPE = re.compile(
     r'^\s*(?:const\s+)?(?:unsigned\s+|signed\s+)?'
     r'(?:char|short|int|long|float|double|u?int\d+_t|UHI64|size_t|'
-    r'unsigned\s+char|unsigned\s+short|unsigned\s+int|unsigned\s+long)\s*'
-    r'(?:\*\s*)?(%s|%s)\s*(?:\[[^\]]*\])?\s*(?:,[^;]*)?;'
-    % (REGS, HEXRAYS))
+    r'unsigned\s+char|unsigned\s+short|unsigned\s+int|unsigned\s+long)\b')
+
+DECLTOR = re.compile(
+    r'\*?\s*\b(?P<name>' + NAME + r')\b\s*(?:\[[^\]]*\])?\s*(?:=\s*(?:\{[^}]*\}|[^,;]+))?')
 
 
 def audit(path):
@@ -34,17 +24,28 @@ def audit(path):
     except OSError:
         return hits
     for i, line in enumerate(lines):
-        if line.lstrip().startswith("*") or line.lstrip().startswith("/*"):
+        s = line.lstrip()
+        if s.startswith("*") or s.startswith("/*") or s.startswith("//"):
             continue
-        m = DECL.match(line)
-        if m:
-            hits.append((i + 1, m.group(1), line.strip()[:70]))
+        if not TYPE.match(line):
+            continue
+        if ';' not in line:
+            continue
+        decl = line.rsplit(';', 1)[0]
+        for m in DECLTOR.finditer(decl):
+            nm = m.group('name')
+            start = m.start('name')
+            if start == 0:
+                continue
+            prev = decl[start - 1]
+            if not (prev.isspace() or prev in ',*'):
+                continue
+            hits.append((i + 1, nm, line.strip()[:70]))
     return hits
 
 
 def classify(name):
-    """'reg' for an x86 register name, 'spill' for a Hex-Rays temp."""
-    if re.match(r'^(e?[abcd]x|[abcd][lh]|[sd]i|[sb]p|sp)(_)?$', name):
+    if re.match(r'^(e?[abcd]x|[abcd][lh]|[sd]i|[sb]p|sp)$', name):
         return "reg"
     if re.match(r'^(v\d{1,3}|e_\w+|_\w+|\w+_)$', name):
         return "spill"
