@@ -64,6 +64,21 @@ table bytes that a typed port has to carry over verbatim.
 
 ## Status
 
+Where it stands now:
+
+| | 0.4 | 0.3 |
+|---|---|---|
+| the globals | one byte array in the typed state, 0x42E000..0x45D0C8 (192 712 bytes) | one byte array, 0x428000..0x445100 (119 040 bytes) |
+| named cells reached through the state | 1715 calls | 1516 calls |
+| accesses left on the address mapper | 69 | 18 |
+| const tables lifted out of the image | 27 | 21 |
+| accessor overrides left | none | none |
+
+Every access whose index the code bounds is a typed accessor.  What is
+left on the mapper are the tables the code does not bound, and the
+mapper reads the same bytes as the arena for *every* offset: the
+address wraps in 32 bits and is clamped the way `V4O` clamps it.
+
 Done:
 
 1. **Typed state.** `tools/gen_dec4_state.py` derives the state from the
@@ -493,14 +508,13 @@ Left:
    the BSS, addressed as raw tables with unbounded indices.
 
    The accesses that reach a cell whose index the code bounds are typed
-   accessors now: 1652 of them in the 0.4 port and 1516 in the 0.3 one.
-   What is left on the mapper is 132 accesses in 0.4 and 18 in 0.3, and
+   accessors now: 1715 of them in the 0.4 port and 1516 in the 0.3 one.
+   What is left on the mapper is 69 accesses in 0.4 and 18 in 0.3, and
    every one of them is a table whose index the code does not bound: the
-   S4 tables (the model's order and symbol indices), the price table's
-   reads at a full 32-bit index, the PPM's quotient reads, the range
-   coder's cumulative table in 0.3 (read at a quotient) and the two
-   match-extension reads whose index is a signed byte and therefore
-   wraps around the table's base.
+   price table's reads at a full 32-bit index, the PPM's quotient reads,
+   the range coder's cumulative table in 0.3 (read at a quotient) and
+   the two match-extension reads whose index is a signed byte and
+   therefore wraps around the table's base.
 
    **A latent deviation in the raw accesses - now fixed.**  The arena
    port reaches every cell through `M8/M16/M32`, which clamp the
