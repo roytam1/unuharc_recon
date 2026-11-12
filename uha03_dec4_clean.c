@@ -125,24 +125,8 @@ static unsigned char *d3u_ptr(dec3w_ctx *c, unsigned long addr)
     if (addr >= D3U_MODEL_BASE && addr < D3U_MODEL_BASE + D3U_MODEL_SIZE)
         return c->model_mem + (addr - D3U_MODEL_BASE);
     /* Fixed-region layout-backed storage (BSS above DGROUP image). */
-    if (addr >= 0x436E40UL && addr < 0x43D8B0UL)
+    if (addr >= 0x436E40UL && addr < 0x468000UL)
         return c->st.fx_436E40 + (addr - 0x436E40UL);
-    if (addr >= 0x43D8B0UL && addr < 0x43F4F0UL)
-        return c->st.fx_43D8B0 + (addr - 0x43D8B0UL);
-    if (addr >= 0x43F4F0UL && addr < 0x440708UL)
-        return c->st.fx_43F4F0 + (addr - 0x43F4F0UL);
-    if (addr >= 0x440708UL && addr < 0x441F08UL)
-        return c->st.fx_440708 + (addr - 0x440708UL);
-    if (addr >= 0x441F08UL && addr < 0x442D58UL)
-        return c->st.fx_441F08 + (addr - 0x441F08UL);
-    if (addr >= 0x442D58UL && addr < 0x443B60UL)
-        return c->st.fx_442D58 + (addr - 0x442D58UL);
-    if (addr >= 0x443B60UL && addr < 0x444108UL)
-        return c->st.fx_443B60 + (addr - 0x443B60UL);
-    if (addr >= 0x444108UL && addr < 0x444870UL)
-        return c->st.fx_444108 + (addr - 0x444108UL);
-    if (addr >= 0x444870UL && addr < 0x468000UL)
-        return c->st.fx_444870 + (addr - 0x444870UL);
     if (addr >= D3U_FIXED_BASE && addr < D3U_FIXED_BASE + D3U_FIXED_SIZE)
         return c->fixed_mem + (addr - D3U_FIXED_BASE);
     if (addr >= D3U_IO_BASE && addr < D3U_IO_BASE + D3U_IO_SIZE)
@@ -998,7 +982,7 @@ void d3uc_fill(dec3w_ctx *c, unsigned int len, unsigned int dst,
     unsigned long a = (unsigned long)dst;
     unsigned long n = (unsigned long)len;
     unsigned char v = (unsigned char)(val & 0xFFU);
-    static const unsigned long bounds[] = { 0x436E40UL, 0x43D8B0UL, 0x43F4F0UL, 0x440708UL, 0x441F08UL, 0x442D58UL, 0x443B60UL, 0x444108UL, 0x444870UL, 0x468000UL };
+    static const unsigned long bounds[] = { 0x436E40UL, 0x468000UL };
     while (n > 0) {
         unsigned long chunk = n;
         unsigned int i;
