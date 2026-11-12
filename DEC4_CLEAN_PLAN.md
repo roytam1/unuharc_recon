@@ -250,12 +250,11 @@ Left:
      into the array, so the port's calls name it: 685 of the 0.4 port's
      calls now read `D4V_X_32(&c->st, 0)` rather than
      `D4V_X_32(&c->st)`.
-   * **The multi-byte accesses are byte-wise.**  The fixed region is
-     stored in more than one allocation now (the typed state's array
-     and the arena's image copy), so a 16- or 32-bit access may
-     straddle the boundary between them and must not read a contiguous
-     block.  The 0.4 port's 238 raw multi-byte reads and 134 writes
-     became `d4v_ld16`/`d4v_st16` and `d4v_ld32`/`d4v_st32`.
+   * **The multi-byte accesses are byte-wise.**  The model blocks live in
+     their own allocation, so a 16- or 32-bit access there may straddle
+     the boundary and must not read a contiguous block.  The 0.4 port's
+     238 raw multi-byte reads and 134 writes became
+     `d4v_ld16`/`d4v_st16` and `d4v_ld32`/`d4v_st32`.
    * **The init's fills are split per region.**
    * **The image is in the array.**  The image is copied into the
      state's array at init, so a cell inside the image keeps its
@@ -524,6 +523,13 @@ Left:
    offset, including the absurd ones that wrap into the model blocks.
    (The 0.3 port's mapper always did: it takes an absolute address
    that the caller has already truncated to 32 bits.)
+
+   Two things make that safe.  The stand-in for the arena's zero gap
+   is eight bytes, because the raw accesses read and write dwords
+   through the mapper - a dword into a one-byte stand-in would run
+   past it.  And the globals array is followed by a pad in the context,
+   because a dword at the array's very last byte would run past it.
+   The arena's bytes in both places are zero, and so are the port's.
 
    **The layout has to stay byte-identical to the arena's.**  A read
    past a table lands on whatever follows it in the arena - the next
