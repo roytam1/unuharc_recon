@@ -365,13 +365,13 @@ static unsigned d3_dec_tree(d3ctx *c, const unsigned short *w)
 {
     unsigned long v;
     unsigned edx, idx, step, mask, i;
-    unsigned char cl = 0;
+    unsigned char sym = 0;
     unsigned short total = w[0];
 
     edx = total;
     v = d3_rget(c, total);
     if (v < (unsigned long)((unsigned short)(edx - w[128]))) {
-        idx = 128; cl = 0x80; edx = (unsigned)(edx - w[128]);
+        idx = 128; sym = 0x80; edx = (unsigned)(edx - w[128]);
     } else {
         idx = 0;
     }
@@ -380,19 +380,19 @@ static unsigned d3_dec_tree(d3ctx *c, const unsigned short *w)
         unsigned di = (unsigned)((edx - w[idx + step]) & 0xFFFF);
         if (v < (unsigned long)di) {
             idx += step;
-            cl = (unsigned char)(cl | mask);
+            sym = (unsigned char)(sym | mask);
             edx = di;
         }
         step >>= 1;
         mask >>= 1;
     }
     c->rhigh = edx & 0xFFFF;
-    if (cl == 0xFF) {
+    if (sym == 0xFF) {
         c->rlow = 0;
-    } else if (!(cl & 1)) {
+    } else if (!(sym & 1)) {
         c->rlow = (unsigned)((edx - w[idx + 1]) & 0xFFFF);
     } else {
-        unsigned c2 = (unsigned)((cl + 1) & 0xFF);
+        unsigned c2 = (unsigned)((sym + 1) & 0xFF);
         unsigned long p = 0;
         unsigned val = total;
         mask = 0x80;
@@ -406,7 +406,7 @@ static unsigned d3_dec_tree(d3ctx *c, const unsigned short *w)
         c->rlow = val & 0xFFFF;
     }
     c->rtotal = total;
-    return (unsigned)cl;
+    return (unsigned)sym;
 }
 
 /* decode a byte from the high half of a context block: sub_1C470 */
@@ -414,7 +414,7 @@ static unsigned d3_dec_tree2(d3ctx *c, const unsigned short *w)
 {
     unsigned long v;
     unsigned edx, idx, step, mask, i;
-    unsigned char cl = 0x80;
+    unsigned char sym = 0x80;
     unsigned short total;
 
     edx = (unsigned)((w[0] - w[128]) & 0xFFFF);
@@ -424,7 +424,7 @@ static unsigned d3_dec_tree2(d3ctx *c, const unsigned short *w)
     {
         unsigned di = (unsigned)((edx - w[192]) & 0xFFFF);
         if (v < (unsigned long)di) {
-            cl = 0xC0; idx += 64; edx = di;
+            sym = 0xC0; idx += 64; edx = di;
         }
     }
     step = 32; mask = 0x20;
@@ -432,19 +432,19 @@ static unsigned d3_dec_tree2(d3ctx *c, const unsigned short *w)
         unsigned di = (unsigned)((edx - w[idx + step]) & 0xFFFF);
         if (v < (unsigned long)di) {
             idx += step;
-            cl = (unsigned char)(cl | mask);
+            sym = (unsigned char)(sym | mask);
             edx = di;
         }
         step >>= 1;
         mask >>= 1;
     }
     c->rhigh = edx & 0xFFFF;
-    if (cl == 0xFF) {
+    if (sym == 0xFF) {
         c->rlow = 0;
-    } else if (!(cl & 1)) {
+    } else if (!(sym & 1)) {
         c->rlow = (unsigned)((edx - w[idx + 1]) & 0xFFFF);
     } else {
-        unsigned c2 = (unsigned)((cl + 1) & 0xFF);
+        unsigned c2 = (unsigned)((sym + 1) & 0xFF);
         unsigned long p = 0;
         unsigned val = w[0];
         mask = 0x80;
@@ -458,7 +458,7 @@ static unsigned d3_dec_tree2(d3ctx *c, const unsigned short *w)
         c->rlow = val & 0xFFFF;
     }
     c->rtotal = total;
-    return (unsigned)cl;
+    return (unsigned)sym;
 }
 
 /* ------------------------------------------------------------------ */
@@ -673,7 +673,7 @@ static void d3_upd_lenmodel(d3ctx *c, unsigned v) /* sub_1BA30 */
 
 static void d3_upd_distlist(d3ctx *c, unsigned v) /* sub_1BAC4 */
 {
-    unsigned char cl = (unsigned char)c->class_max;
+    unsigned char cmax = (unsigned char)c->class_max;
     if (v < 3) {
         if (v == 2) c->smallm[2] = (unsigned short)(c->smallm[2] + 0x20);
         c->smallm[3] = (unsigned short)(c->smallm[3] + 0x20);
@@ -693,13 +693,13 @@ static void d3_upd_distlist(d3ctx *c, unsigned v) /* sub_1BAC4 */
         unsigned a = (unsigned)c->list_max - 1 - v;
         for (;;) {
             a++;
-            if (a >= cl) break;
+            if (a >= cmax) break;
             c->d2[a] = (unsigned short)(c->d2[a] + 0x20);
         }
-        c->d2[cl] = (unsigned short)(c->d2[cl] + 0x20);
-        if (c->d2[cl] >= 0x4000) {
+        c->d2[cmax] = (unsigned short)(c->d2[cmax] + 0x20);
+        if (c->d2[cmax] >= 0x4000) {
             unsigned d;
-            for (d = cl; d >= 1; d--) {
+            for (d = cmax; d >= 1; d--) {
                 unsigned long diff = (unsigned)(c->d2[d] - c->d2[d - 1]);
                 unsigned long h = (diff + 1) >> 1;
                 if (h < 0x100) h = 0x100;
@@ -708,12 +708,12 @@ static void d3_upd_distlist(d3ctx *c, unsigned v) /* sub_1BAC4 */
             }
             {
                 unsigned x;
-                for (x = 2; x <= cl; x++)
+                for (x = 2; x <= cmax; x++)
                     c->d2[x] = (unsigned short)(c->d2[x] + c->d2[x - 1]);
             }
         }
     }
-    c->class_max = cl;
+    c->class_max = cmax;
 }
 
 /* sub_1BF8C: decode a match length, returns the length class symbol */

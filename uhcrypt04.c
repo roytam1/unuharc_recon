@@ -101,14 +101,14 @@ void uhcrypt04_update(uhcrypt04_t *c, unsigned char *data, unsigned len)
     unsigned i;
     if (!c) return;
     for (i = 0; i < len; i++) {
-        unsigned char a, b, dh;
+        unsigned char a, b, x;
         a = c->s[c->pos];
         c->pos = (unsigned char)(c->pos + 1);
         b = c->s[c->pos];
         c->mix = (unsigned char)(c->mix + 1);
-        dh = (unsigned char)(b + a);
-        c->s[c->pos] = dh;
-        data[i] ^= dh;
+        x = (unsigned char)(b + a);
+        c->s[c->pos] = x;
+        data[i] ^= x;
         c->s[c->mix] = (unsigned char)(c->s[c->mix] - b);
     }
 }

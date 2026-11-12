@@ -4092,7 +4092,7 @@ static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
 {
     unsigned v2 = ctx;
     unsigned char raw = 0;
-    unsigned char cl = 0;
+    unsigned char litb = 0;
     unsigned v29 = 0;
     unsigned cost_first = 0;
     unsigned cost_second = 0;
@@ -4126,14 +4126,14 @@ static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
             d->f80a = 0;
             if (d->has_prev) {
                 if (d->fbE) {
-                    cl = (unsigned char)(d->prevb - raw);
+                    litb = (unsigned char)(d->prevb - raw);
                 } else {
-                    cl = (unsigned char)(raw + d->prevb);
+                    litb = (unsigned char)(raw + d->prevb);
                 }
             } else {
-                cl = raw;
+                litb = raw;
             }
-            d5_smcount(d, 0x300u, (unsigned)cl);
+            d5_smcount(d, 0x300u, (unsigned)litb);
             if (d->err) {
                 return 0;
             }
@@ -4147,7 +4147,7 @@ static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
             return 0;
         }
         raw = (unsigned char)v29;
-        cl = raw;
+        litb = raw;
         cost_first = (unsigned)d->f80a;
         v27 = 0;
         d->f78s = d5_wrap32((unsigned long)d->f78s
@@ -4204,7 +4204,7 @@ static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
     goto store;
 tail:
     d->fac = 1026;
-    d5_bitadd(d, (unsigned)cl, 0x300u);
+    d5_bitadd(d, (unsigned)litb, 0x300u);
     if (d->err) {
         return 0;
     }

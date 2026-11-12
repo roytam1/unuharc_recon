@@ -415,7 +415,7 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
         unsigned long dirs_total = 0, strs_total = 0;
         unsigned k;
         unsigned long *dir_offs = 0;
-        char *sp = 0;
+        char *strp = 0;
 
         for (k = 0; k < ndirs; k++) {
             unsigned l;
@@ -453,7 +453,7 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
             h->strpool[p2 + l] = 0;
             p1 += l; p2 += l + 1;
         }
-        sp = h->strpool + dirs_total;
+        strp = h->strpool + dirs_total;
         for (i = 0; i < nfiles; i++) {
             uha03_entry *e = &h->entries[i];
             unsigned dd, tt, w0;
@@ -517,35 +517,35 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
             for (kk = 0; kk < nfiles; kk++) {
                 unsigned l = tab1[q++];
                 uha03_entry *e = &h->entries[kk];
-                memcpy(sp, tab1 + q, l);
-                sp[l] = 0;
+                memcpy(strp, tab1 + q, l);
+                strp[l] = 0;
                 q += l;
-                e->name = sp;
-                sp += l + 1;
+                e->name = strp;
+                strp += l + 1;
                 if ((e->dir_index & 0xFFFFU) < ndirs)
                     e->dir = h->strpool + dir_offs[e->dir_index & 0xFFFFU];
                 else
                     e->dir = "";
-                e->path = sp;
+                e->path = strp;
                 if (e->dir[0]) {
                     char *dend;
-                    strcpy(sp, e->dir);
-                    dend = sp + strlen(sp);
-                    while (dend > sp && (dend[-1] == '/' || dend[-1] == '\\'))
+                    strcpy(strp, e->dir);
+                    dend = strp + strlen(strp);
+                    while (dend > strp && (dend[-1] == '/' || dend[-1] == '\\'))
                         *--dend = 0;
-                    strcat(sp, "/");
-                    strcat(sp, e->name);
+                    strcat(strp, "/");
+                    strcat(strp, e->name);
                 } else {
-                    strcpy(sp, e->name);
+                    strcpy(strp, e->name);
                 }
                 {
-                    char *s = sp;
+                    char *s = strp;
                     while (*s) {
                         if (*s == '\\') *s = '/';
                         s++;
                     }
                 }
-                sp += strlen(sp) + 1;
+                strp += strlen(strp) + 1;
             }
         }
         /* offsets already set during size conversion above. */

@@ -465,19 +465,19 @@ static unsigned d5_sym(dec5u *d, unsigned ctx)
     unsigned short *base = d->cfen + ctx * 256u;
     unsigned short *p = base;
     unsigned total = base[0];
-    unsigned point, rem, sym, dl, di, lo, hi;
+    unsigned point, rem, sym, idx_d, di, lo, hi;
     point = d5_point(d, total);
     if (d->err) return 0;
     rem = (total - point) & D5_M16;
-    dl = 0x80u;
+    idx_d = 0x80u;
     for (;;) {
-        di = p[dl];
+        di = p[idx_d];
         if (rem > di) {
-            p += dl;
+            p += idx_d;
             rem = (rem - di) & D5_M16;
         }
-        dl >>= 1;
-        if (dl == 0) break;
+        idx_d >>= 1;
+        if (idx_d == 0) break;
     }
     sym = (unsigned)(p - base);
     hi = (point + rem) & D5_M16;
@@ -493,19 +493,19 @@ static unsigned d5_sym_half(dec5u *d, unsigned ctx)
     unsigned short *half = base + 128;
     unsigned short *p = half;
     unsigned total = (unsigned)((base[0] - base[128]) & D5_M16);
-    unsigned point, rem, sym, dl, di, lo, hi;
+    unsigned point, rem, sym, idx_d, di, lo, hi;
     point = d5_point(d, total);
     if (d->err) return 0;
     rem = (total - point) & D5_M16;
-    dl = 0x40u;
+    idx_d = 0x40u;
     for (;;) {
-        di = p[dl];
+        di = p[idx_d];
         if (rem > di) {
-            p += dl;
+            p += idx_d;
             rem = (rem - di) & D5_M16;
         }
-        dl >>= 1;
-        if (dl == 0) break;
+        idx_d >>= 1;
+        if (idx_d == 0) break;
     }
     sym = (unsigned)(p - half) + 0x80u;
     hi = (point + rem) & D5_M16;
@@ -537,22 +537,22 @@ static unsigned d5_decision(dec5u *d)
 {
     unsigned short *e = d->litm + 4u * (unsigned)d->lhist;
     unsigned total = e[3];
-    unsigned point, sym, dl, lo, hi;
+    unsigned point, sym, idx_d, lo, hi;
     point = d5_point(d, total);
     if (d->err) return 0;
-    dl = 3;
+    idx_d = 3;
     for (;;) {
-        dl--;
-        sym = e[dl];
-        if (point >= sym || dl == 0) break;
+        idx_d--;
+        sym = e[idx_d];
+        if (point >= sym || idx_d == 0) break;
     }
-    lo = e[dl];
-    hi = e[dl + 1];
+    lo = e[idx_d];
+    hi = e[idx_d + 1];
     d5_narrow(d, total, lo, hi);
-    if (dl == 0) return 0;
-    if (dl <= 2) {
-        d5_litm_update(d, dl);
-        return dl;
+    if (idx_d == 0) return 0;
+    if (idx_d <= 2) {
+        d5_litm_update(d, idx_d);
+        return idx_d;
     }
     d->err = 7;
     return 0;
@@ -636,12 +636,12 @@ static void d5_dist_update(dec5u *d, unsigned sym)
     total = (unsigned)(p[61] + inc) & D5_M16;
     p[61] = (unsigned short)total;
     if (total >= 0x4000u) {
-        unsigned char dl = 61;
-        while (dl) {
-            unsigned short a = p[dl - 1];
-            unsigned diff = (unsigned)((p[dl] - a) + 1);
-            p[dl] = (unsigned short)((diff >> 1) & D5_M16);
-            dl--;
+        unsigned char cnt = 61;
+        while (cnt) {
+            unsigned short a = p[cnt - 1];
+            unsigned diff = (unsigned)((p[cnt] - a) + 1);
+            p[cnt] = (unsigned short)((diff >> 1) & D5_M16);
+            cnt--;
         }
         for (i = 2; i <= 61u; i++)
             p[i] = (unsigned short)(p[i] + p[i - 1]);
@@ -659,12 +659,12 @@ static void d5_dist_rescue(dec5u *d, unsigned sym)
         while (i <= 61u) { p[i] = (unsigned short)(p[i] + v); i++; }
     }
     {
-        unsigned char dl = 61;
-        while (dl) {
-            unsigned short a = p[dl - 1];
-            unsigned diff = (unsigned)((p[dl] - a) + 1);
-            p[dl] = (unsigned short)((diff >> 1) & D5_M16);
-            dl--;
+        unsigned char cnt = 61;
+        while (cnt) {
+            unsigned short a = p[cnt - 1];
+            unsigned diff = (unsigned)((p[cnt] - a) + 1);
+            p[cnt] = (unsigned short)((diff >> 1) & D5_M16);
+            cnt--;
         }
     }
     for (i = 2; i <= 61u; i++)
@@ -676,22 +676,22 @@ static unsigned d5_distsym(dec5u *d)
 {
     unsigned short *p = d->dist61;
     unsigned total = p[61];
-    unsigned point, dl, lo, hi;
+    unsigned point, idx_d, lo, hi;
     point = d5_point(d, total);
     if (d->err) return 0;
-    dl = 61;
+    idx_d = 61;
     for (;;) {
-        dl--;
-        if (point >= p[dl] || dl == 0) break;
+        idx_d--;
+        if (point >= p[idx_d] || idx_d == 0) break;
     }
-    lo = p[dl];
-    hi = p[dl + 1];
+    lo = p[idx_d];
+    hi = p[idx_d + 1];
     d5_narrow(d, total, lo, hi);
-    d->dval = (dl < 60u) ? d5_dbase[dl] : 0UL;
-    if (dl == 60u) return 60;
+    d->dval = (idx_d < 60u) ? d5_dbase[idx_d] : 0UL;
+    if (idx_d == 60u) return 60;
 
-    if (dl == 56u) { d->dmode = 0; return 56; }
-    if (dl == 57u) {
+    if (idx_d == 56u) { d->dmode = 0; return 56; }
+    if (idx_d == 57u) {
         unsigned m = d->mru_max;
         unsigned t2 = d->sdist[m];
         unsigned p2 = d5_point(d, t2);
@@ -707,7 +707,7 @@ static unsigned d5_distsym(dec5u *d)
         d->dmode = 1;
         return 57;
     }
-    if (dl == 58u) {
+    if (idx_d == 58u) {
         unsigned t2 = d->smalld[2];
         unsigned p2 = d5_point(d, t2);
         unsigned idx;
@@ -722,10 +722,10 @@ static unsigned d5_distsym(dec5u *d)
         d->dmode = 1;
         return 58;
     }
-    if (dl == 59u) { d->dmode = 1; return 59; }
+    if (idx_d == 59u) { d->dmode = 1; return 59; }
 
     {
-        unsigned long n = d5_drange[dl];
+        unsigned long n = d5_drange[idx_d];
         if (n + d->dval - 1UL > d->hist)
             n = d->hist - d->dval + 1UL;
         if (n >= 2UL) {
@@ -750,7 +750,7 @@ static unsigned d5_distsym(dec5u *d)
         }
     }
     d->dmode = 0;
-    return dl;
+    return idx_d;
 }
 
 /* sub_40F748: decode the match length symbol */
@@ -759,26 +759,26 @@ static unsigned d5_length(dec5u *d)
     unsigned short *p = (d->dmode == 0) ? d->lenA : d->lenB;
     unsigned c = (d->dmode == 0) ? 21u : 22u;
     unsigned total = p[c];
-    unsigned point, dl, lo, hi, bits, off;
+    unsigned point, idx_d, lo, hi, bits, off;
     point = d5_point(d, total);
     if (d->err) return 0;
-    dl = c;
+    idx_d = c;
     for (;;) {
-        dl--;
-        if (point >= p[dl] || dl == 0) break;
+        idx_d--;
+        if (point >= p[idx_d] || idx_d == 0) break;
     }
-    lo = p[dl];
-    hi = p[dl + 1];
+    lo = p[idx_d];
+    hi = p[idx_d + 1];
     d5_narrow(d, total, lo, hi);
-    bits = d5_lenbits[dl];
+    bits = d5_lenbits[idx_d];
     off = 0;
     if (bits) {
         off = d5_point(d, bits);
         if (d->err) return 0;
         d5_narrow(d, bits, off, off + 1);
     }
-    d->length = (unsigned char)((unsigned)d5_lenbase[dl] + off);
-    return dl;
+    d->length = (unsigned char)((unsigned)d5_lenbase[idx_d] + off);
+    return idx_d;
 }
 
 /* sub_40F32C: update the length model */
@@ -791,12 +791,12 @@ static void d5_len_update(dec5u *d, unsigned sym)
     while (i < c) { p[i] = (unsigned short)(p[i] + 64); i++; }
     p[c] = (unsigned short)(p[c] + 64);
     if (p[c] >= 0x4000u) {
-        unsigned char dl = (unsigned char)c;
-        while (dl) {
-            unsigned short a = p[dl - 1];
-            unsigned diff = (unsigned)((p[dl] - a) + 1);
-            p[dl] = (unsigned short)((diff >> 1) & D5_M16);
-            dl--;
+        unsigned char cnt = (unsigned char)c;
+        while (cnt) {
+            unsigned short a = p[cnt - 1];
+            unsigned diff = (unsigned)((p[cnt] - a) + 1);
+            p[cnt] = (unsigned short)((diff >> 1) & D5_M16);
+            cnt--;
         }
         for (i = 2; i <= c; i++)
             p[i] = (unsigned short)(p[i] + p[i - 1]);
@@ -837,14 +837,14 @@ static void d5_sdist_update(dec5u *d, unsigned sym)
         }
         p[c] = (unsigned short)(p[c] + 32);
         if (p[c] >= 0x4000u) {
-            unsigned char dl = (unsigned char)c;
-            while (dl) {
-                unsigned short prev = p[dl - 1];
-                unsigned diff = (unsigned)((p[dl] - prev) + 1);
+            unsigned char cnt = (unsigned char)c;
+            while (cnt) {
+                unsigned short prev = p[cnt - 1];
+                unsigned diff = (unsigned)((p[cnt] - prev) + 1);
                 unsigned v = diff >> 1;
                 if (v < 0x100u) v = 0x100u;
-                p[dl] = (unsigned short)v;
-                dl--;
+                p[cnt] = (unsigned short)v;
+                cnt--;
             }
             for (i = 2; i <= c; i++)
                 p[i] = (unsigned short)(p[i] + p[i - 1]);
@@ -923,28 +923,28 @@ static void d5_longrun(dec5u *d)
 {
     unsigned long esi = 0;
     unsigned total = d->longm[15];
-    unsigned point, dl, lo, hi;
+    unsigned point, idx_d, lo, hi;
     unsigned long range;
     unsigned b;
     unsigned long n;
 
     point = d5_point(d, total);
     if (d->err) return;
-    dl = 15;
+    idx_d = 15;
     for (;;) {
-        dl--;
-        if (point >= d->longm[dl] || dl == 0) break;
+        idx_d--;
+        if (point >= d->longm[idx_d] || idx_d == 0) break;
     }
-    lo = d->longm[dl];
-    hi = d->longm[dl + 1];
+    lo = d->longm[idx_d];
+    hi = d->longm[idx_d + 1];
     d5_narrow(d, total, lo, hi);
 
-    if (dl == 14) {
+    if (idx_d == 14) {
         esi = d->fe4;
     } else {
         range = 0x80UL;
-        if (dl < 13u) {
-            range = 1UL << (19u - dl);
+        if (idx_d < 13u) {
+            range = 1UL << (19u - idx_d);
             esi = (esi + range) & D5_M32;
         }
         if (range > 0x2000UL) {

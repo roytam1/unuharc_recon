@@ -2429,7 +2429,7 @@ static void d5v_pred_reset(d5v *d)
 static void d5v_pred_adapt(d5v *d, long *v)
 {
     unsigned long best = d5v_u32(v[12]);
-    int si = 0;
+    int sel = 0;
     int i;
     (void)d;
     v[12] = 0;
@@ -2437,12 +2437,12 @@ static void d5v_pred_adapt(d5v *d, long *v)
         long *pe = &v[12 + i];
         if (best > d5v_u32(*pe)) {
             best = d5v_u32(*pe);
-            si = i;
+            sel = i;
         }
         *pe = 0;
     }
-    si--;
-    switch (si) {
+    sel--;
+    switch (sel) {
     case 0: if (v[5] > -32) v[5]--; break;
     case 1: if (v[5] < 32) v[5]++; break;
     case 2: if (v[6] > -32) v[6]--; break;
