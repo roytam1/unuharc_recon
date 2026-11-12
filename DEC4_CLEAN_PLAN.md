@@ -69,8 +69,8 @@ Where it stands now:
 | | 0.4 | 0.3 |
 |---|---|---|
 | the globals | one byte array in the typed state, 0x42E000..0x45D0C8 (192 712 bytes) | one byte array, 0x428000..0x445100 (119 040 bytes) |
-| named cells reached through the state | 1759 calls | 1516 calls |
-| accesses left on the address mapper | 25 | 18 |
+| named cells reached through the state | 1765 calls | 1518 calls |
+| accesses left on the address mapper | 19 | 16 |
 | const tables lifted out of the image | 27 | 21 |
 | accessor overrides left | none | none |
 
@@ -508,14 +508,14 @@ Left:
    the BSS, addressed as raw tables with unbounded indices.
 
    The accesses that reach a cell whose index the code bounds are typed
-   accessors now: 1759 of them in the 0.4 port and 1516 in the 0.3 one.
-   What is left on the mapper is 25 accesses in 0.4 and 18 in 0.3, and
+   accessors now: 1765 of them in the 0.4 port and 1518 in the 0.3 one.
+   What is left on the mapper is 19 accesses in 0.4 and 16 in 0.3, and
    every one of them is a table whose index the code does not bound: the
-   price table's reads at a full 32-bit index (7), the PPM's two quotient
-   reads, the wrapping read, the S4 tables indexed by a run-time symbol
-   or row, the range coder's cumulative table in 0.3 (read at a quotient)
-   and the two match-extension reads whose index is a signed byte and
-   therefore wraps around the table's base.
+   price table's reads at a full 32-bit index (7 in 0.4), the PPM's two
+   quotient reads, the wrapping read, the range coder's cumulative
+   table in 0.3 (read at a quotient, 12) and the two match-extension
+   reads whose index is a signed byte and therefore wraps around the
+   table's base.
 
    **A latent deviation in the raw accesses - now fixed.**  The arena
    port reaches every cell through `M8/M16/M32`, which clamp the
