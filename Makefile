@@ -12,11 +12,14 @@ all: $(TARGETS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# The tests include the port sources directly, so they have to be rebuilt
-# when a port or a state header changes - the pattern rule above only
-# knows about the .c file of the target.
+# The tests and the typed ports include generated headers and port
+# sources directly, so they have to be rebuilt when those change - the
+# pattern rule above only knows about the target's own .c file.
 test_gapfill.o: uha03_dec4_clean.c uha04_dec4_clean.c uha03_dec4_state.h uha04_dec4_state.h uha03_dec4_addr.h uha04_dec4_addr.h
 test_dec4state.o: uha03_dec4_state.h uha04_dec4_state.h
+uha03_dec4_clean.o: uha03_dec4_state.h uha03_dec4_addr.h
+uha04_dec4_clean.o: uha04_dec4_state.h uha04_dec4_addr.h
+uharc_dec4_clean.o: dec4c_rom2.h
 
 uharc06_unpack.exe: $(OBJS)
 	$(CC) -o $@ $(OBJS)
