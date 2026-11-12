@@ -115,7 +115,7 @@ static unsigned int d3w_o(unsigned int o)
 #define D3U_FIXED_BASE 0x428000UL
 #define D3U_FIXED_SIZE 0x40000UL
 #define D3U_GLOBALS_BASE 0x428000UL /* the DGROUP slice */
-#define D3U_GLOBALS_END  0x468000UL /* end of the arena's globals */
+#define D3U_GLOBALS_END  0x445100UL /* end of the last named cell */
 #define D3U_IO_BASE    0x3800000UL
 #define D3U_IO_SIZE    0x510000UL
 #define D3U_MODEL_BASE 0x00600000UL

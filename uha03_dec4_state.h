@@ -11,7 +11,7 @@
 
 typedef struct d3u_state {
     unsigned char *mem;
-    unsigned char fx_428000[262144];   /* 0x428000..0x468000 */
+    unsigned char fx_428000[119040];   /* 0x428000..0x445100 */
 } d3u_state;
 
 /* Arena-spelling accessors over the typed state.  The
