@@ -219,27 +219,46 @@ Left:
    they do not collide with the tables.
 
    **The layout and the generator are ready.**  `uha04_dec4_layout.h`
-   holds the 21 regions (55 043 bytes) and `tools/gen_dec4_state.py`
-   takes it as an optional fifth argument: with it, the generator emits
-   one byte array per region, turns the named cells inside a region into
-   indices into that array and keeps the rest as typed members.  The
-   port rewrite that goes with it is prototyped and needs four more
-   things:
+   holds the layout and `tools/gen_dec4_state.py` takes it as an
+   optional fifth argument: with it, the generator emits one byte array
+   per region, turns the named cells inside a region into indices into
+   that array and keeps the rest as typed members.  The port rewrite
+   that goes with it is **done** now:
 
-   * **The cells inside a region have to be reached the same way.**  The
-     PPM price table is eight 4-byte slots that the decoder reaches
-     with `ord * 4` from the first one, and the PPM context bytes
-     0x45C675..0x45C694 are one cluster that the raw byte table at
-     0x45C65E runs over; both are in the layout now, but the port's
-     calls have to name the offset explicitly (`D4V_X_32(&c->st, 0)`)
-     because the state's accessor is now an index into the region.
-   * **The init's fills have to be split per region** - the mapper hands
-     out one region per call, so a fill that spans three regions (the
-     PPM planes do) only fills the first piece otherwise.
+   * **The regions are one array.**  The layout's 21 regions had gaps
+     between them, and a named cell in a gap would have lived in two
+     places at once - the struct member the generated accessor reads
+     and the `fixed_mem` byte the raw table accesses read.  The 21
+     regions are merged into one contiguous span, 0x440000..0x45D0C8
+     (118 984 bytes), and 0.3's nine into one, 0x436E40..0x468000
+     (201 152 bytes).  One array means one branch in the address
+     mapper and one boundary in the init's fills.
+   * **The cells inside a region are reached with their offset.**  The
+     generator's accessor for a cell inside a region takes the offset
+     into the array, so the port's calls name it: 685 of the 0.4 port's
+     calls now read `D4V_X_32(&c->st, 0)` rather than
+     `D4V_X_32(&c->st)`.
+   * **The multi-byte accesses are byte-wise.**  The fixed region is
+     stored in more than one allocation now (the typed state's array
+     and the arena's image copy), so a 16- or 32-bit access may
+     straddle the boundary between them and must not read a contiguous
+     block.  The 0.4 port's 238 raw multi-byte reads and 134 writes
+     became `d4v_ld16`/`d4v_st16` and `d4v_ld32`/`d4v_st32`.
+   * **The init's fills are split per region.**
    * **The image stays in the arena buffer.**  The cells the decoder
      writes there (the block pointers, the I/O cursors, the price-done
-     flag) keep their initial values from the DGROUP copy; the regions
-     are all in the zero-initialised BSS above it.
+     flag) keep their initial values from the DGROUP copy.
+
+   That drops the 0.4 port's override block from 136 entries to 27.
+   The 27 that stay are all cells inside the DGROUP image
+   (`< 0x440000`): the block pointers the init fills, the I/O cursors,
+   the price-done flag and the two prefix-sum temporaries.  They keep
+   their initial values from the image copy, which stays in the arena
+   buffer.  The overlapping `D4V_ALLOC_CURSOR` (dword at 0x440E78) and
+   `D4V_ALLOC_HI16` (word at 0x440E7A) are inside the region now, so
+   the generator aliases them into the same array at their overlapping
+   offsets - the union the plan asked for comes out of the layout
+   rather than needing a hand-written one.
 
    The group's byte array has to cover every byte the tables can
    reach, and the *measured* extent is only a lower bound: the index
@@ -249,6 +268,11 @@ Left:
    remaining work; the measured extents (and the three hand-checked S4
    tables, 0x45AF00/0x45AF10/0x45AF14, which the corpus never
    reaches) are the starting point.
+
+   **The tables that are read with a bounded index are already lifted.**
+   The 26 0.4 tables and the 19 0.3 tables above are the ones whose
+   extent the code proves; what the layout still holds is the rest of
+   the BSS, addressed as raw tables with unbounded indices.
 
    **A latent deviation in the raw accesses - now fixed.**  The arena
    port reaches every cell through `M8/M16/M32`, which clamp the
