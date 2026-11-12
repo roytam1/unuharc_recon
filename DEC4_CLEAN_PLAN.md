@@ -262,8 +262,8 @@ Left:
      writes there (the block pointers, the I/O cursors, the price-done
      flag) keep their initial values from the DGROUP copy.
 
-   That drops the 0.4 port's override block from 136 entries to 27.
-   The 27 that stay are all cells inside the DGROUP image
+   That drops the 0.4 port's override block from 136 entries to 28.
+   The 28 that stay are all cells inside the DGROUP image
    (`< 0x440000`): the block pointers the init fills, the I/O cursors,
    the price-done flag and the two prefix-sum temporaries.  They keep
    their initial values from the image copy, which stays in the arena
@@ -272,6 +272,15 @@ Left:
    the generator aliases them into the same array at their overlapping
    offsets - the union the plan asked for comes out of the layout
    rather than needing a hand-written one.
+
+   The last **22** of the overrides were redundant: they were the
+   cells *inside* the region, and for those the generated accessor
+   already names the same bytes (`(s)->fx_440000 + <offset>` is what
+   `d4v_ptr` returns for the same address).  They are gone now, so
+   the typed state really is the storage for every cell of the BSS
+   and the hand-written block is only the image's own cells.  The
+   header and the port still reach a fixpoint: regenerating
+   `uha04_dec4_state.h` after the change reproduces it byte for byte.
 
    **0.3 reaches its cells through the state too.**  The port used to
    address its named cells by absolute address - through the `G8`/`M8`

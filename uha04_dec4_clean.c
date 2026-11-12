@@ -57,7 +57,11 @@
 #include "uha04_dec4_state.h"
 #include <stddef.h>
 #define D4V_ST_CTX(s) ((dec4v_ctx *)((char *)(void *)(s) - offsetof(dec4v_ctx, st)))
-/* arena-backed overrides for ALL named cells: segmented memory */
+/* The cells inside the DGROUP image keep their initial values from the
+ * image copy in the arena buffer, so they are reached through
+ * d4v_ptr() instead of the generated state accessor.  The cells of the
+ * BSS above the image live in the typed state's fx_440000 array and
+ * use the generated accessor. */
 #undef D4V_TAIL_GATE_FLAG_8
 #define D4V_TAIL_GATE_FLAG_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x431209UL)))
 #undef D4V_PREFIX_SUM_TMP_32
@@ -114,50 +118,6 @@
 #define D4V_PRICE_DONE_8(s) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x43F968UL)))
 #undef D4V_BLK_PTR_06_32
 #define D4V_BLK_PTR_06_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x433B58UL + (off))))
-#undef D4V_TBL_45192C_8
-#define D4V_TBL_45192C_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45192CUL + (off))))
-#undef D4V_TBL_45192C_32
-#define D4V_TBL_45192C_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45192CUL + (off))))
-#undef D4V_TBL_451D3C_8
-#define D4V_TBL_451D3C_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D3CUL + (off))))
-#undef D4V_TBL_451D3C_32
-#define D4V_TBL_451D3C_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D3CUL + (off))))
-#undef D4V_TBL_451D48_8
-#define D4V_TBL_451D48_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D48UL + (off))))
-#undef D4V_TBL_451D48_32
-#define D4V_TBL_451D48_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x451D48UL + (off))))
-#undef D4V_TBL_459398_32
-#define D4V_TBL_459398_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459398UL + (off))))
-#undef D4V_TBL_459BA0_32
-#define D4V_TBL_459BA0_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459BA0UL + (off))))
-#undef D4V_TBL_459E38_32
-#define D4V_TBL_459E38_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x459E38UL + (off))))
-#undef D4V_TBL_45AF00_32
-#define D4V_TBL_45AF00_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF00UL + (off))))
-#undef D4V_TBL_45AF10_32
-#define D4V_TBL_45AF10_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF10UL + (off))))
-#undef D4V_TBL_45AF38_8
-#define D4V_TBL_45AF38_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF38UL + (off))))
-#undef D4V_TBL_45AF38_32
-#define D4V_TBL_45AF38_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF38UL + (off))))
-#undef D4V_TBL_45AF7C_8
-#define D4V_TBL_45AF7C_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF7CUL + (off))))
-#undef D4V_TBL_45AF7C_32
-#define D4V_TBL_45AF7C_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AF7CUL + (off))))
-#undef D4V_TBL_45AFAC_32
-#define D4V_TBL_45AFAC_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFACUL + (off))))
-#undef D4V_TBL_45AFC4_8
-#define D4V_TBL_45AFC4_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC4UL + (off))))
-#undef D4V_TBL_45AFC4_32
-#define D4V_TBL_45AFC4_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45AFC4UL + (off))))
-#undef D4V_SHIFT_R0_8
-#define D4V_SHIFT_R0_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA18UL + (off))))
-#undef D4V_SHIFT_R0_32
-#define D4V_SHIFT_R0_32(s, off) (*(unsigned int *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45BA18UL + (off))))
-#undef D4V_CTX_B_45C65D_8
-#define D4V_CTX_B_45C65D_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65DUL + (off))))
-#undef D4V_CTX_B_45C65E_8
-#define D4V_CTX_B_45C65E_8(s, off) (*(unsigned char *)(void *)(d4v_ptr(D4V_ST_CTX(s), 0x45C65EUL + (off))))
 
 
 #define D4V_FIXED_BASE 0x420000UL
