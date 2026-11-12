@@ -493,9 +493,14 @@ Left:
    the BSS, addressed as raw tables with unbounded indices.
 
    The accesses that reach a cell whose index the code bounds are typed
-   accessors now: 1590 of them in the 0.4 port and 1467 in the 0.3 one.
-   What is left on the mapper is 194 accesses in 0.4 and 74 in 0.3, and
-   every one of them is a table whose index the code does not bound.
+   accessors now: 1652 of them in the 0.4 port and 1516 in the 0.3 one.
+   What is left on the mapper is 132 accesses in 0.4 and 18 in 0.3, and
+   every one of them is a table whose index the code does not bound: the
+   S4 tables (the model's order and symbol indices), the price table's
+   reads at a full 32-bit index, the PPM's quotient reads, the range
+   coder's cumulative table in 0.3 (read at a quotient) and the two
+   match-extension reads whose index is a signed byte and therefore
+   wraps around the table's base.
 
    **A latent deviation in the raw accesses - now fixed.**  The arena
    port reaches every cell through `M8/M16/M32`, which clamp the
