@@ -12,6 +12,12 @@ all: $(TARGETS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# The tests include the port sources directly, so they have to be rebuilt
+# when a port or a state header changes - the pattern rule above only
+# knows about the .c file of the target.
+test_gapfill.o: uha03_dec4_clean.c uha04_dec4_clean.c uha03_dec4_state.h uha04_dec4_state.h uha03_dec4_addr.h uha04_dec4_addr.h
+test_dec4state.o: uha03_dec4_state.h uha04_dec4_state.h
+
 uharc06_unpack.exe: $(OBJS)
 	$(CC) -o $@ $(OBJS)
 
@@ -37,10 +43,10 @@ test_dec3.exe: test_dec3.o $(DECOBJS)
 test_dec4state.exe: test_dec4state.o
 	$(CC) -o $@ test_dec4state.o
 
-# Self-test for the 0.3 fixed-region fill: it must stop at the one-byte
-# stand-in for the arena's zero gap.
-test_gapfill.exe: test_gapfill.o uha03_dec4_dg.o
-	$(CC) -o $@ test_gapfill.o uha03_dec4_dg.o
+# Self-test for the core-4 fills: they must stop at the stand-in for
+# the arena's zero gap (0.3 and 0.4).
+test_gapfill.exe: test_gapfill.o uha03_dec4_dg.o uha04_dec4_dg.o
+	$(CC) -o $@ test_gapfill.o uha03_dec4_dg.o uha04_dec4_dg.o
 
 clean:
 	del *.o $(TARGETS)
