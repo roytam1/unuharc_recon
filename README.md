@@ -133,7 +133,10 @@ gcc -std=c89 -Wall -Wextra -O2 -o uharc06_unpack.exe ^
 ```
 
 `make` also builds the header and decoder test programs (`hdrtest*.exe`,
-`test_tab.exe`, `test_dec3.exe`).
+`test_tab.exe`, `test_dec3.exe`) and the two core-4 self-tests:
+`test_dec4state.exe` checks the generated state headers, and
+`test_gapfill.exe` drives the 0.3 and 0.4 fills into the stand-in for
+the arena's zero gap and checks that they stop there.
 
 ### MSVC6
 
