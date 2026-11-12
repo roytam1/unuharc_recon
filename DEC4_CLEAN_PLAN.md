@@ -260,6 +260,38 @@ Left:
    offsets - the union the plan asked for comes out of the layout
    rather than needing a hand-written one.
 
+   **0.3 reaches its cells through the state too.**  The port used to
+   address its named cells by absolute address - through the `G8`/`M8`
+   macros and `d3u_ldNN`/`d3u_stNN` - so the state was only reached
+   indirectly, through the address mapper.  1259 of those accesses are
+   now typed accessor calls, and no in-region named cell is reached
+   through the mapper any more.
+
+   Two things had to be got right for that:
+
+   * **A two-argument accessor does not mean the cell is in the
+     region.**  The generator gives the image's *multi-width* cells a
+     two-argument accessor too (they are byte arrays), but their bytes
+     are the image copy in the arena buffer, so reading them through
+     the state member and writing them through `d3u_stNN` would split
+     each of them across two storages.  The filter is the cell's
+     *address*, not the accessor's shape.
+   * **The generator has to see the typed port.**  It derived the
+     widths of every cell from the arena port alone, so a cell the
+     typed port reaches but the arena port never names got no accessor
+     at all.  It now takes an optional sixth argument, a second
+     source whose uses are merged in - but only for the cells inside a
+     layout region, for the reason above.  The header and the port
+     reach a fixpoint: regenerating the header from the converted port
+     reproduces it byte for byte.
+
+   ```
+   python tools/gen_dec4_state.py uha04_dec4_addr.h uha04_dec4.c \
+       uha04_dec4_state.h d4v uha04_dec4_layout.h uha04_dec4_clean.c
+   python tools/gen_dec4_state.py uha03_dec4_addr.h uha03_dec4.c \
+       uha03_dec4_state.h d3u uha03_dec4_layout.h uha03_dec4_clean.c
+   ```
+
    The group's byte array has to cover every byte the tables can
    reach, and the *measured* extent is only a lower bound: the index
    expressions are mostly unbounded loop counters (`+ eax * 4`), so the
