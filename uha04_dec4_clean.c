@@ -4722,7 +4722,7 @@ L_4197DB: e_ebx = ((e_ebx & ~0xFFu) | (D4V_CTX_B_45C690_8(&c->st, 0))); e_ebx = 
     /* cmp (e_ebx & 0xFFu), 0xFFu (flags folded into jz @0x004197EC below) */; /* 0x004197E9 */
     if (((e_ebx & 0xFFu)) == (0xFFu)) goto L_419909; /* jz, unsigned=True */ /* 0x004197EC */
     e_eax = (0u); e_eax = ((e_eax & ~0xFFu) | ((e_ebx & 0xFFu))); e_ecx = ((unsigned long)D4V_TBL_458778_32(&c->st, e_eax * 4)); e_edx = ((unsigned long)D4V_TBL_458788_32(&c->st, e_eax * 4)); /* 0x004197F2,0x004197F4,0x004197F6,0x004197FD */
-    D4V_TBL_45AFA4_32(&c->st, 0) = (e_ecx); e_eax = ((e_eax & ~0xFFu) | ((*(unsigned char *)(void *)(d4v_fx(c, 241488UL + e_eax))))); e_eax = ((e_eax) & (0xFFu)); /* 0x00419804,0x0041980A,0x00419810 */
+    D4V_TBL_45AFA4_32(&c->st, 0) = (e_ecx); e_eax = ((e_eax & ~0xFFu) | ((unsigned long)D4V_TBL_45AF50_8(&c->st, e_eax))); e_eax = ((e_eax) & (0xFFu)); /* 0x00419804,0x0041980A,0x00419810 */
     d4vc_ppm_order_update(c, e_eax, e_edx); /* 0x00419815 (ecx dead: written before read) */
     goto L_4197DB; /* 0x0041981A */
 L_41981C: e_edx = (0x2FFu); e_eax = (e_esi); /* 0x0041981C,0x00419821 */
@@ -4745,7 +4745,7 @@ L_41986A: e_ebx = ((e_ebx & ~(0xFFu << 8)) | (((e_eax & 0xFFu)) << 8)); /* 0x004
     goto L_419841; /* 0x0041986E */
 L_419870: e_edx = (0u); e_edx = ((e_edx & ~0xFFu) | (D4V_CTX_B_45C68A_8(&c->st, 0))); /* cmp e_eax, e_edx (flags folded into jnb @0x0041987A below) */; /* 0x00419870,0x00419872,0x00419878 */
     if ((e_eax) >= (e_edx)) goto L_419887; /* jnb, unsigned=True */ /* 0x0041987A */
-    e_edx = (e_eax); e_eax = ((e_eax) + 1u); D4V_CTX_B_45C65E_8(&c->st, e_edx) = ((((((*(unsigned char *)(void *)(d4v_fx(c, 247390UL + e_edx)))) - ((e_ebx & 0xFFu)))) & 0xFFu)); /* 0x0041987C,0x0041987E,0x0041987F */
+    e_edx = (e_eax); e_eax = ((e_eax) + 1u); D4V_CTX_B_45C65E_8(&c->st, e_edx) = ((((((unsigned long)D4V_CTX_B_45C65E_8(&c->st, e_edx)) - ((e_ebx & 0xFFu)))) & 0xFFu)); /* 0x0041987C,0x0041987E,0x0041987F */
     goto L_419870; /* 0x00419885 */
 L_419887: e_ebx = ((e_ebx & ~0xFFu) | (((e_ebx >> 8) & 0xFFu))); e_ebx = ((e_ebx) & (0xFFu)); e_edx = (e_edi); e_eax = (e_ecx); /* 0x00419887,0x00419889,0x0041988F,0x00419891 */
     goto L_41979A; /* 0x00419893 */
