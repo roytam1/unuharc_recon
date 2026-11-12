@@ -299,9 +299,12 @@ Left:
    **0.3 reaches its cells through the state too.**  The port used to
    address its named cells by absolute address - through the `G8`/`M8`
    macros and `d3u_ldNN`/`d3u_stNN` - so the state was only reached
-   indirectly, through the address mapper.  1259 of those accesses are
-   now typed accessor calls, and no in-region named cell is reached
-   through the mapper any more.
+   indirectly, through the address mapper.  **1457** of those accesses
+   are now typed accessor calls, and the only ones left on the mapper
+   are the table accesses whose index the code does not bound: 77 of
+   them (the S4 tables, the range coder's delta and cumulative tables)
+   and the seven reads of `D3U_TBL_4370B0`, whose base is a run-time
+   value.  That is the same class as the 0.4 port's raw table accesses.
 
    Two things had to be got right for that:
 
@@ -322,6 +325,11 @@ Left:
      layout region, for the reason above.  The header and the port
      reach a fixpoint: regenerating the header from the converted port
      reproduces it byte for byte.
+   * **The width of a cell is the width the code uses.**  The
+     generator recorded a cell as used at all three widths when it saw
+     it through one of the byte-wise helpers, whatever the helper's
+     name said; it now takes the width from the helper's name, so the
+     header carries the widths the port really uses.
 
    ```
    python tools/gen_dec4_state.py uha04_dec4_addr.h uha04_dec4.c \
