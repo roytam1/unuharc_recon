@@ -367,6 +367,52 @@ Left:
    `dec4c_rom2.h`), so the port no longer depends on a blob or on the
    heap layout.
 
+   **0.4: 26 tables lifted, 48 access sites.**  The port now reads them
+   from `static const` arrays instead of `fixed_mem`.  Two facts had to
+   be established first, and both were measured with instrumented
+   builds rather than read off the source:
+
+   * *The image is not read-only.*  A build that diffs the image region
+     against the pristine DGROUP at the end of every decode finds
+     **32 415 mutated bytes** over the 0.4 corpus: the PPM price table
+     0x437968..0x43F967 that `d4vc_prices` prefix-sums into, plus the
+     cells the init writes (0x43120C..0x43120E, 0x433B42..0x433B4F,
+     0x436150, 0x436E91..0x436E92).  "There is no store at this base"
+     is therefore *not* a proof - a lifted range has to be shown to be
+     untouched, which is what the diff does.
+   * *The bytes have to be extracted exactly.*  The array literal in
+     `uha04_dec4_dg.c` sits behind a comment that contains the address
+     `0x0042E000`; a regex that scans the whole file picks that `0x00`
+     up and shifts every table by one byte.  The extraction must parse
+     the array *body*.  (A shifted table still decodes most archives -
+     it fails only where the shifted byte matters - so the corpus alone
+     does not catch it; a build that compares the lifted regions
+     against the live buffer does.)
+
+   With those two settled, the remaining condition is a proven index
+   bound, which the code usually supplies:
+
+   | table | extent | bound |
+   |---|---|---|
+   | 0x433B90 | 5 u32 | branch at 0x418922: index <= 4; next cell 0x433BA4 |
+   | 0x433BA4 | 17 u32 | branch at 0x418939: index <= 0x10; next cell 0x433BE8 |
+   | 0x433E77 | 766 B | index = 2*byte_45C691 + dl, so <= 765 |
+   | 0x433E8C | 256 u32 | index is a byte |
+   | 0x433FCC, 0x43404C, 0x43409C, 0x43419C, 0x43431E, 0x434328, 0x434338, 0x434438, 0x436450, 0x43691C, 0x436B8A | 256 B | index masked to a byte |
+   | 0x43429C, 0x4342C4, 0x4342EC, 0x434D50, 0x435150, 0x435550, 0x435950, 0x435D50, 0x4362C0 | 256 u32 | index a byte, or `esi = ebx & 0xFF` |
+   | 0x434550 | 512 u32 | index masked to 0x1FF |
+
+   What is left on the image path is exactly the set whose index the
+   code does not bound: the symbol-index reads of 0x43429C, 0x4342C4
+   and 0x434314, the quotient reads of 0x43407C and 0x43408C, the
+   0x434538 read, the 0x436976 read and the price table
+   0x437966/0x437968 (whose destination the prefix sum writes, so it
+   is one of the mutated ranges).  A build that records the largest
+   index each lifted access sees reports 127 at most for the byte
+   tables and 511 at most for the 512-entry one; a build that compares
+   the live bytes against all 26 tables at the end of every decode
+   reports no mismatch over either corpus.
+
 3. **The port.** Move the arena port over function by function: the
    model blocks become typed pointers, the cells become struct members,
    the DGROUP reads become const-table reads. Keep the arena port as the
@@ -375,8 +421,9 @@ Left:
 
 4. **Verification.** Byte-exact against the arena port on the regenerated
    corpora (`tools/run_corpus.py --arc-dir uharc-rs-0X/arc`), then against
-   the native tools. The 0.4 corpus is currently 101/103 (the two
-   failures are core 5, not core 4) and the 0.3 corpus is 103/103.
+   the native tools. Both corpora are 103/103 with the current
+   `uharc06_unpack.exe` (the 0.4 corpus's earlier 101/103 was core 5,
+   not core 4, and is fixed).
 
 ## Risks
 
