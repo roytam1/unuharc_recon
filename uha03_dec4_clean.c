@@ -942,6 +942,15 @@ static const unsigned char d3u_t42C6A6[256] = {
     0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01
 };
 
+/* Const table lifted from the DGROUP slice 0x42A054 (6 u32): the index is
+ * dword_43D8B0, the row counter of the 0x41BAEF loop; the loop starts the
+ * counter at 0 and stops at 6, so the index is in 0..5 and the table ends
+ * at the next named cell 0x42A06C. */
+static const unsigned int d3u_t42A054[6] = {
+    0x0000007F,0x0000007F,0x0000007F,
+    0x0000007F,0x00000007,0x00000003
+};
+
 /* Const table lifted from the DGROUP slice 0x42A06C (512 u32): the access masks
  * the index to 0x1FF and the next named cell is 0x42A86C, so the table ends
  * there. */
@@ -11091,7 +11100,7 @@ l_41b939:
     /* 0x0041B94C mov eax,dword_43D8B0 */ eax = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
     /* 0x0041B951 mov edx,dword_4441C0 */ edx = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
     /* 0x0041B957 test dword_42A054[eax*4],edx */ /* 0x0041B95E jnz loc_41BA81 */
-    if ((((unsigned long)d3u_ld32(c, (unsigned long)((D3U_TBL_42A054 + eax * 4UL) & U32MASK))) & edx) != 0) goto l_41ba81;
+    if ((((unsigned long)d3u_t42A054[(unsigned int)(eax) & 0xFFU]) & edx) != 0) goto l_41ba81;
     /* 0x0041B964 mov edi,0FFFFh */ edi = 0xFFFFUL;
     /* 0x0041B969 mov eax,2 */ eax = 2UL;
     /* 0x0041B96E mov edx,8 */ edx = 8UL;

@@ -240,6 +240,7 @@ uharc06_main.c                 CLI: version detect + dispatch
 | `MAKE02.BAT` | builds the 0.2 corpus and archives on a DOS machine |
 | `tools/pty_run.py` | captures console output from the original archivers via `pywinpty` |
 | `tools/run_corpus.py` | regression runner: per-archive integrity check, extraction and byte-for-byte comparison against a reference tree |
+| `tools/check_lifted_tables.py` | checks the const tables the 0.3/0.4 core-4 ports lift out of the DGROUP image against the image, byte for byte |
 | `UHCLS_CREATE.md` | notes and patcher for the CLASS edition (`CLS\xFF` archives) |
 
 ## Codec model
@@ -419,6 +420,17 @@ the reference implementation - build with `-DDEC4_ARENA` (e.g.
 `make CFLAGS="-std=c89 -Wall -Wextra -O2 -DDEC4_ARENA"`) to select them.
 All three versions produce byte-identical output either way; the
 regenerated corpora are checked with `tools/run_corpus.py`.
+
+The read-only tables that the decoder reads out of the loaded image are
+lifted into `static const` arrays - 27 of them in 0.4 and 21 in 0.3.
+`tools/check_lifted_tables.py` compares every one of them with the
+image byte for byte and checks the element counts, because the
+extraction has to be exact: the image's header comment holds the
+address `0x0042E000`, so a scan that does not parse the array *body*
+shifts every table by one byte - and a shifted table still decodes most
+archives, so the corpus alone does not catch it. The tables that are
+left on the image path are the ones whose index the code does not
+bound; `DEC4_CLEAN_PLAN.md` says which they are and why.
 
 `uharc_dec4.c` is a statement-by-statement translation of the 0.6 dispatcher
 case `sub_40F962`, using a flat 32-bit address arena so that the original

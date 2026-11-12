@@ -140,6 +140,19 @@ Left:
    zero-filled tail.  Turning them into const tables therefore needs
    their extents first - the same blocker as everything else.
 
+   **The table lifts are now checked by a tool.**
+   `tools/check_lifted_tables.py` parses the array *body* of the image
+   (0.4: `uha04_dec4_dg.c`, 73 728 bytes at 0x42E000; 0.3:
+   `uha03_dec4_dg.c`, 54 476 bytes at 0x428000) and the array bodies of
+   every lifted table, and compares them byte for byte.  It also checks
+   that the element count in the table's comment matches the declared
+   array.  It matters because the extraction has to be exact: the
+   image's header comment holds the address `0x0042E000`, so a scan
+   that does not parse the body shifts every table by one byte - and a
+   shifted table still decodes most archives, so the corpus does not
+   catch it.  The tool reports 27/27 (0.4) and 21/21 (0.3) tables
+   matching.
+
    **0.3 is a different shape.**  Its clean port has no override block:
    it addresses the fixed region through `G8/G16/G32(D3U_X)` (named) and
    `M8/M16/M32(...)` (computed) macros.  Measured over the 0.3 corpus
@@ -353,10 +366,29 @@ Left:
      to come from the model's semantics: how many symbols a context
      holds, and how the period relates to them.
 
-   * The symbol-index reads of 0x43429C, 0x4342C4 and 0x434314 use
-     `var_30`, the symbol index, which the code does not bound either.
-   * 0x434538 is indexed by `D4V_TBL_451920_32`, another run-time
-     cell.
+     **The counters, measured.**  `D4V_TBL_45AFD0` (the period) is
+     raised by 2 per escape (0x417450) and halved together with
+     `D4V_TBL_45AFA8` and `D4V_TBL_45BA24` when it passes 0x800
+     (0x41745F..0x417496), so the code bounds the *period* by 0x800.
+     `D4V_TBL_45AFA8` (the count) is raised by 5 per modelled symbol
+     (0x417441) and is halved with the period, so the *ratio* of the
+     two - and with it the quotient - is not bounded by the code: it
+     depends on how many symbols a context sees between two escapes.
+     An instrumented build over the whole 0.4 corpus confirms the
+     shape: the period never exceeds 0x800, the count never exceeds
+     5121, and the quotient never exceeds **10** (the corpus's
+     56 939 accesses see at most 10, and the access at 0x4181E4 sees
+     at most 10 as well).  Ten is also what the two counters give if
+     they are raised together (5/2 * 4 = 10), but the code does not
+     force that, so the bound cannot be claimed.
+
+     The consequence is that these two reads cannot become const
+     tables: with an unbounded index the original reads whatever the
+     image holds at `0x43407C + q`, which is not a fixed byte, so a
+     typed table would have to cover the whole image to be faithful.
+     They stay on the image path until the model's semantics give a
+     bound.
+
    * 0x436976 is indexed by `11 * (byte_45C68C - 0xA6) + byte`, and
      the subtraction wraps when the byte is below 0xA6.
    * The price table at 0x437966/0x437968 is the one table that is
@@ -366,8 +398,43 @@ Left:
      source is BSS-zero and the sum is a no-op; that is the case the
      plan describes.)
 
+   **Three more tables are lifted now - the symbol index is a byte.**
+   The plan used to say that the symbol-index reads of 0x43429C,
+   0x4342C4 and 0x434314 were unbounded.  They are not: at 0x41D23D
+   the original stores `var_30` from `xor eax,eax` + `mov al,
+   [var_24]`, so `var_30` is a byte, and the three reads at 0x41D30A,
+   0x41D311 and 0x41D325 index with it.  The same holds for the
+   `byte_434314` read at 0x41D5D0, whose index is the byte argument
+   of sub_41D540.  All four accesses are now const-table reads.
+
+   `dword_434538` is indexed by `D4V_TBL_451920`, the row counter of
+   the 0x41ED8B loop: the loop starts the counter at 0 (0x41ED76) and
+   stops it at 6 (0x41EDEA), so the index is in 0..5 and the table is
+   the six dwords 0x434538..0x43454F - exactly the gap up to the next
+   named cell 0x434550.  It is lifted as well.  The 0.3 port has the
+   same table in the same shape: `dword_42A054`, indexed by the row
+   counter `dword_43D8B0` of the 0x41BAEF loop (0x41BAD0 zeroes it,
+   0x41BB4E stops it at 6), so the six dwords 0x42A054..0x42A06B
+   are lifted too.
+
+   **The image is not read-only, and the mutated ranges are known.**
+   An instrumented build that diffs the live DGROUP image against the
+   pristine copy at the end of every file decode finds exactly five
+   mutated ranges over the 0.4 corpus:
+
+   | range | what writes it |
+   |---|---|
+   | 0x43120C..0x43120F | the init's prefix-sum temporaries |
+   | 0x433B42..0x433B90 | the block-pointer cells the init fills |
+   | 0x436150 | the init |
+   | 0x436ED1..0x436ED7 | the init |
+   | 0x43796C..0x43F967 | the price table's prefix sum |
+
+   Every lifted table lies outside these ranges, which is what makes
+   the lift safe.
+
    **The tables that are read with a bounded index are already lifted.**
-   The 26 0.4 tables and the 19 0.3 tables above are the ones whose
+   The 27 0.4 tables and the 21 0.3 tables above are the ones whose
    extent the code proves; what the layout still holds is the rest of
    the BSS, addressed as raw tables with unbounded indices.
 
@@ -488,7 +555,7 @@ Left:
    `dec4c_rom2.h`), so the port no longer depends on a blob or on the
    heap layout.
 
-   **0.4: 26 tables lifted, 48 access sites.**  The port now reads them
+   **0.4: 27 tables lifted, 53 access sites.**  The port now reads them
    from `static const` arrays instead of `fixed_mem`.  Two facts had to
    be established first, and both were measured with instrumented
    builds rather than read off the source:
@@ -496,9 +563,9 @@ Left:
    * *The image is not read-only.*  A build that diffs the image region
      against the pristine DGROUP at the end of every decode finds
      **32 415 mutated bytes** over the 0.4 corpus: the PPM price table
-     0x437968..0x43F967 that `d4vc_prices` prefix-sums into, plus the
-     cells the init writes (0x43120C..0x43120E, 0x433B42..0x433B4F,
-     0x436150, 0x436E91..0x436E92).  "There is no store at this base"
+     0x43796C..0x43F967 that `d4vc_prices` prefix-sums into, plus the
+     cells the init writes (0x43120C..0x43120E, 0x433B42..0x433B90,
+     0x436150, 0x436ED1..0x436ED7).  "There is no store at this base"
      is therefore *not* a proof - a lifted range has to be shown to be
      untouched, which is what the diff does.
    * *The bytes have to be extracted exactly.*  The array literal in
@@ -508,7 +575,8 @@ Left:
      the array *body*.  (A shifted table still decodes most archives -
      it fails only where the shifted byte matters - so the corpus alone
      does not catch it; a build that compares the lifted regions
-     against the live buffer does.)
+     against the live buffer does.)  `tools/check_lifted_tables.py`
+     does the same comparison without an instrumented build.
 
    With those two settled, the remaining condition is a proven index
    bound, which the code usually supplies:
@@ -521,20 +589,21 @@ Left:
    | 0x433E8C | 256 u32 | index is a byte |
    | 0x433FCC, 0x43404C, 0x43409C, 0x43419C, 0x43431E, 0x434328, 0x434338, 0x434438, 0x436450, 0x43691C, 0x436B8A | 256 B | index masked to a byte |
    | 0x43429C, 0x4342C4, 0x4342EC, 0x434D50, 0x435150, 0x435550, 0x435950, 0x435D50, 0x4362C0 | 256 u32 | index a byte, or `esi = ebx & 0xFF` |
+   | 0x434314 | 256 B | index a byte (`esi`, the symbol index `var_30`, or the byte argument of sub_41D540) |
+   | 0x434538 | 6 u32 | index = the row counter `dword_451920`, in 0..5; next cell 0x434550 |
    | 0x434550 | 512 u32 | index masked to 0x1FF |
 
    What is left on the image path is exactly the set whose index the
-   code does not bound: the symbol-index reads of 0x43429C, 0x4342C4
-   and 0x434314, the quotient reads of 0x43407C and 0x43408C, the
-   0x434538 read, the 0x436976 read and the price table
-   0x437966/0x437968 (whose destination the prefix sum writes, so it
-   is one of the mutated ranges).  A build that records the largest
-   index each lifted access sees reports 127 at most for the byte
-   tables and 511 at most for the 512-entry one; a build that compares
-   the live bytes against all 26 tables at the end of every decode
-   reports no mismatch over either corpus.
+   code does not bound: the quotient reads of 0x43407C and 0x43408C,
+   the 0x436976 read and the price table 0x437966/0x437968 (whose
+   destination the prefix sum writes, so it is one of the mutated
+   ranges).  A build that records the largest index each lifted access
+   sees reports 127 at most for the byte tables and 511 at most for
+   the 512-entry one; a build that compares the live bytes against all
+   27 tables at the end of every decode reports no mismatch over
+   either corpus.
 
-   **0.3: 19 tables lifted, 41 access sites.**  The same two checks
+   **0.3: 21 tables lifted, 43 access sites.**  The same two checks
    apply to the slice in `uha03_dec4_dg.c` (0x428000, 54 476 bytes):
    the slice is mutated at run time too - the block-pointer cells the
    init fills, the accumulator at 0x428EDC, the range-coder tables
@@ -546,14 +615,17 @@ Left:
    | 0x429E44 | 16 B | index masked to 0x0F |
    | 0x429E30, 0x429E54, 0x429F54, 0x429BB8, 0x429CB8, 0x42BF6C, 0x42C438, 0x42C6A6 | 256 B | index a byte |
    | 0x429DB8, 0x429DE0, 0x429E08, 0x42A86C, 0x42AC6C, 0x42B06C, 0x42B46C, 0x42B86C, 0x42BDDC | 256 u32 | index a byte |
+   | 0x42A054 | 6 u32 | index = the row counter `dword_43D8B0`, in 0..5; next cell 0x42A06C |
+   | 0x42A06C | 512 u32 | index masked to 0x1FF; next cell 0x42A86C |
 
    The width of a lifted table follows from the width of the access,
    not from the width of the neighbouring tables: 0x429BB8 was lifted
    as a dword table first and the corpus caught it, because the access
    is a byte read.  What stays on the image path in 0.3 is the
-   quotient-indexed reads (0x429B98, 0x429BA8, 0x42A054, 0x42A06C,
-   0x42C492), the block-pointer cells the init fills and the range
-   coder's delta/cumulative tables.
+   quotient-indexed reads (0x429B98, 0x429BA8), the wrapping read of
+   0x42C492, the three single-byte cells the init writes or reads in
+   place (0x428ED9, 0x42BC6C, 0x42BC6E), the block-pointer cells the
+   init fills and the range coder's delta/cumulative tables.
 
 3. **The port.** Move the arena port over function by function: the
    model blocks become typed pointers, the cells become struct members,

@@ -1168,6 +1168,15 @@ static const unsigned int d4v_t4362C0[256] = {
     0x00000000,0x00000000,0x0000005B,0x00000000
 };
 
+/* Const table lifted from DGROUP image 0x434538 (6 u32): the index is
+ * dword_451920, the row counter of the 0x41ED8B loop; the loop starts
+ * the counter at 0 and stops at 6, so the index is in 0..5 and the table
+ * ends at the next named cell 0x434550. */
+static const unsigned int d4v_t434538[6] = {
+    0x0000007F,0x0000007F,0x0000007F,
+    0x0000007F,0x00000007,0x00000003
+};
+
 /* Const table lifted from DGROUP image 0x434550 (512 u32): region proven unmutated at runtime, index masked to 0x1FF before the access. */
 static const unsigned int d4v_t434550[512] = {
     0x00000000,0x00000001,0x00000002,0x00000002,
@@ -1386,9 +1395,10 @@ static const unsigned int d4v_t433E8C[256] = {
     0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D
 };
 
-/* Const table lifted from DGROUP image 0x434314 (256 bytes): the accesses that index
- * it with `esi` have esi = ebx & 0xFF, so the index is a byte; the two accesses that
- * index it with the symbol index stay on the image path. */
+/* Const table lifted from DGROUP image 0x434314 (256 bytes): every access
+ * index is a byte - the `esi` accesses have esi = ebx & 0xFF, the two
+ * symbol-index accesses use var_30 = var_24 & 0xFF (0x41D23D) and the
+ * byte argument of sub_41D540 (0x41D5C8). */
 static const unsigned char d4v_t434314[256] = {
     0x00,0x00,0x08,0x10,0x18,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x02,0x03,0x04,0x01,
     0x01,0x02,0x02,0x04,0x00,0x00,0x00,0x00,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
@@ -3063,6 +3073,7 @@ int d4vc_ppm(dec4v_ctx *c)
     unsigned long w28 = 0, w24 = 0, w20 = 0, w1c = 0;
     unsigned long a_ = 0;
     unsigned long dd_ = 0;
+    unsigned int i = 0;
 
     /* prologue 0x00416220 push ebx; 0x00416221 push ecx;
      * 0x00416222 push edx; 0x00416223 push esi; 0x00416224 push edi;
@@ -3157,10 +3168,8 @@ l_41633D:
     /* 0x00416352 movsd; 0x00416353 movsd; 0x00416354 movsw; 0x00416356 movsb:
      * 11 code bytes at 0x4150D0 copied to s[0..10]. Those bytes are
      * 00 01 02 05 08 0D 15 22 37 59 90 (lifted from UHARC04.EXE text);
-     * hard-coded: our arena holds no image of the native code segment. */
-    s[0] = 0x00; s[1] = 0x01; s[2] = 0x02; s[3] = 0x05;
-    s[4] = 0x08; s[5] = 0x0D; s[6] = 0x15; s[7] = 0x22;
-    s[8] = 0x37; s[9] = 0x59; s[10] = 0x90;
+     * our arena holds no image of the native code segment. */
+    for (i = 0; i < 11; i++) s[i] = d4v_t4150d0[i];
     esi = (0x4150DBUL);
 l_416357:
     /* 0x00416357 */ edi = w1c;
@@ -8707,12 +8716,12 @@ l_41D2DD:
         goto l_41D35A;
     D4V_CTX_B_45C67D_8(&c->st, 0) = (unsigned char)(eax & 0xFFU); /* 0x41D301 mov ds:byte_45C67D,al */
     eax = var_30; /* 0x41D306 mov eax,[esp+44h+var_30] */
-    edx = (*(unsigned int *)(void *)(d4v_fx(c, 82588UL + eax * 4))); /* 0x41D30A mov edx,ds:dword_43429C[eax*4] */
-    eax = (*(unsigned int *)(void *)(d4v_fx(c, 82628UL + eax * 4))); /* 0x41D311 mov eax,ds:dword_4342C4[eax*4] */
+    edx = d4v_t43429C[(unsigned int)(eax) & 0xFFU]; /* 0x41D30A mov edx,ds:dword_43429C[eax*4] */
+    eax = d4v_t4342C4[(unsigned int)(eax) & 0xFFU]; /* 0x41D311 mov eax,ds:dword_4342C4[eax*4] */
     D4V_TBL_45AF3C_32(&c->st, 0) = eax; /* 0x41D318 mov ds:dword_45AF3C,eax */
     eax = var_30; /* 0x41D31D mov eax,[esp+44h+var_30] */
     ecx = (ecx & 0xFFFFFF00UL) | (var_24 & 0xFFU); /* 0x41D321 mov cl,[esp+44h+var_24] */
-    eax = (unsigned int)(*(unsigned char *)(void *)(d4v_fx(c, 82708UL + eax))); /* 0x41D325 mov al,ds:byte_434314[eax] */
+    eax = (unsigned int)d4v_t434314[(unsigned int)(eax) & 0xFFU]; /* 0x41D325 mov al,ds:byte_434314[eax] */
     D4V_TBL_45AF40_32(&c->st, 0) = edx; /* 0x41D32B mov ds:dword_45AF40,edx */
     D4V_CTX_B_45C67A_8(&c->st, 0) = (unsigned char)(eax & 0xFFU); /* 0x41D331 mov ds:byte_45C67A,al */
     if ((ecx & 0xFFU) != 5) /* 0x41D336 cmp cl,5 */ /* 0x41D339 jnz loc_41D46F */
@@ -9448,7 +9457,7 @@ e9f0_lodone: /* 0x41EBD1 loc_41EBD1 (also switch default) */
     (*(unsigned int *)(void *)(d4v_fx(c, 203580UL + eax * 4))) = edx; /* 0x41EBDD mov [451B3C+eax*4],edx */
     eax = D4V_TBL_451920_32(&c->st, 0); /* 0x41EBE4 */
     edx = D4V_TBL_45AF38_32(&c->st, 0); /* 0x41EBE9 */
-    if (((*(unsigned int *)(void *)(d4v_fx(c, 83256UL + eax * 4))) & edx) != 0) goto e9f0_vtab; /* 0x41EBEF test [434538+eax*4],edx; 0x41EBF6 jnz loc_41ED1D */
+    if (((d4v_t434538[(unsigned int)(eax) & 0xFFU]) & edx) != 0) goto e9f0_vtab; /* 0x41EBEF test [434538+eax*4],edx; 0x41EBF6 jnz loc_41ED1D */
     edi = 0xFFFFU; /* 0x41EBFC mov edi,0FFFFh */
     esi = 2; /* 0x41EC01 mov esi,2 */
     edx = 8; /* 0x41EC06 mov edx,8 */
@@ -9941,7 +9950,7 @@ s540_5b4: /* 0x41D5B4 loc_41D5B4 */
     eax = 0; /* 0x41D5C6 xor eax,eax */
     eax = v14; /* 0x41D5C8 mov al,[var_14] (eax was zero) */
     dlb = v14; /* 0x41D5CC mov dl,[var_14] (edx high half stale, dead) */
-    alb = (*(unsigned char *)(void *)(d4v_fx(c, 82708UL + eax))); /* 0x41D5D0 mov al,byte_434314[eax] */
+    alb = d4v_t434314[(unsigned int)(eax) & 0xFFU]; /* 0x41D5D0 mov al,byte_434314[eax] */
     D4V_TBL_45AF54_32(&c->st, 0) = ebp; /* 0x41D5D6 */
     v10 = alb; /* 0x41D5DC mov [var_10],al */
     if (dlb == 0) goto s540_6a9; /* 0x41D5E0 test dl,dl; 0x41D5E2 jz */
