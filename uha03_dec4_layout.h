@@ -1,0 +1,11 @@
+/* Fixed-region layout for uha03_dec4 (BSS, above DGROUP image).
+ * Regions split by semantic table/plane boundaries; end extended for extents. */
+    0x436E40  0x43D8B0
+    0x43D8B0  0x43F4F0
+    0x43F4F0  0x440708
+    0x440708  0x441F08
+    0x441F08  0x442D58
+    0x442D58  0x443B60
+    0x443B60  0x444108
+    0x444108  0x444870
+    0x444870  0x468000

@@ -11,6 +11,15 @@
 
 typedef struct d3u_state {
     unsigned char *mem;
+    unsigned char fx_436E40[27248];   /* 0x436E40..0x43D8B0 */
+    unsigned char fx_43D8B0[7232];   /* 0x43D8B0..0x43F4F0 */
+    unsigned char fx_43F4F0[4632];   /* 0x43F4F0..0x440708 */
+    unsigned char fx_440708[6144];   /* 0x440708..0x441F08 */
+    unsigned char fx_441F08[3664];   /* 0x441F08..0x442D58 */
+    unsigned char fx_442D58[3592];   /* 0x442D58..0x443B60 */
+    unsigned char fx_443B60[1448];   /* 0x443B60..0x444108 */
+    unsigned char fx_444108[1896];   /* 0x444108..0x444870 */
+    unsigned char fx_444870[145296];   /* 0x444870..0x468000 */
     unsigned char d3u_const_flag_428ed9;   /* 0x428ED9 */
     unsigned int d3u_primer_accumulator;   /* 0x428EDC */
     unsigned int d3u_const_428f48;   /* 0x428F48 */
@@ -41,169 +50,6 @@ typedef struct d3u_state {
     unsigned int d3u_out_buffer_base;   /* 0x42C9AC */
     unsigned int d3u_tbl_42cbb0;   /* 0x42CBB0 */
     unsigned char d3u_rebuild_flag;   /* 0x435274 */
-    unsigned int d3u_tbl_436e40;   /* 0x436E40 */
-    unsigned int d3u_tbl_436e44;   /* 0x436E44 */
-    unsigned char d3u_pool_cursor_raw[27240];   /* 0x436E48, 32 bit */
-    unsigned int d3u_tbl_43d8b0;   /* 0x43D8B0 */
-    unsigned int d3u_tbl_43d8b4;   /* 0x43D8B4 */
-    unsigned int d3u_tbl_43d8b8;   /* 0x43D8B8 */
-    unsigned char d3u_tbl_43d8bc_raw[4];   /* 0x43D8BC, 8+32 bit */
-    unsigned int d3u_tbl_43d8c0;   /* 0x43D8C0 */
-    unsigned int d3u_tbl_43d8c4;   /* 0x43D8C4 */
-    unsigned int d3u_tbl_43d8c8;   /* 0x43D8C8 */
-    unsigned char d3u_tbl_43dccc_raw[4];   /* 0x43DCCC, 8+32 bit */
-    unsigned int d3u_tbl_43dcd0;   /* 0x43DCD0 */
-    unsigned int d3u_tbl_43dcd4;   /* 0x43DCD4 */
-    unsigned char d3u_tbl_43dcd8_raw[4];   /* 0x43DCD8, 8+32 bit */
-    unsigned int d3u_tbl_43dcdc;   /* 0x43DCDC */
-    unsigned int d3u_tbl_43dce0;   /* 0x43DCE0 */
-    unsigned int d3u_tbl_43f4fc;   /* 0x43F4FC */
-    unsigned int d3u_tbl_43f500;   /* 0x43F500 */
-    unsigned int d3u_tbl_43f504;   /* 0x43F504 */
-    unsigned int d3u_tbl_43f508;   /* 0x43F508 */
-    unsigned int d3u_tbl_43f50c;   /* 0x43F50C */
-    unsigned int d3u_tbl_43f510;   /* 0x43F510 */
-    unsigned int d3u_tbl_43f514;   /* 0x43F514 */
-    unsigned int d3u_tbl_43f518;   /* 0x43F518 */
-    unsigned int d3u_tbl_43f51c;   /* 0x43F51C */
-    unsigned int d3u_tbl_43f520;   /* 0x43F520 */
-    unsigned int d3u_tbl_43f524;   /* 0x43F524 */
-    unsigned int d3u_tbl_43f528;   /* 0x43F528 */
-    unsigned int d3u_tbl_440af0;   /* 0x440AF0 */
-    unsigned int d3u_tbl_440af4;   /* 0x440AF4 */
-    unsigned int d3u_tbl_440af8;   /* 0x440AF8 */
-    unsigned int d3u_tbl_440afc;   /* 0x440AFC */
-    unsigned int d3u_tbl_440b00;   /* 0x440B00 */
-    unsigned int d3u_tbl_440b04;   /* 0x440B04 */
-    unsigned char d3u_tbl_442d58;   /* 0x442D58 */
-    unsigned char d3u_tbl_443258_raw[4];   /* 0x443258, 32 bit */
-    unsigned int d3u_tbl_44325c;   /* 0x44325C */
-    unsigned char d3u_tbl_443260;   /* 0x443260 */
-    unsigned char d3u_tbl_443b60_raw[4];   /* 0x443B60, 32 bit */
-    unsigned int d3u_tbl_443b64;   /* 0x443B64 */
-    unsigned char d3u_tbl_443ce8_raw[4];   /* 0x443CE8, 32 bit */
-    unsigned char d3u_tbl_443cec_raw[4];   /* 0x443CEC, 32 bit */
-    unsigned char d3u_tbl_443cf0_raw[4];   /* 0x443CF0, 32 bit */
-    unsigned int d3u_tbl_443cf4;   /* 0x443CF4 */
-    unsigned int d3u_tbl_443cf8;   /* 0x443CF8 */
-    unsigned int d3u_tbl_443cfc;   /* 0x443CFC */
-    unsigned int d3u_tbl_443d00;   /* 0x443D00 */
-    unsigned int d3u_tbl_443d04;   /* 0x443D04 */
-    unsigned char d3u_tbl_444188_raw[4];   /* 0x444188, 32 bit */
-    unsigned int d3u_tbl_44418c;   /* 0x44418C */
-    unsigned int d3u_tbl_444190;   /* 0x444190 */
-    unsigned int d3u_tbl_444194;   /* 0x444194 */
-    unsigned char d3u_tbl_444198_raw[24];   /* 0x444198, 32 bit */
-    unsigned int d3u_tbl_4441b0;   /* 0x4441B0 */
-    unsigned int d3u_tbl_4441b4;   /* 0x4441B4 */
-    unsigned int d3u_tbl_4441b8;   /* 0x4441B8 */
-    unsigned int d3u_tbl_4441bc;   /* 0x4441BC */
-    unsigned char d3u_tbl_4441c0_raw[4];   /* 0x4441C0, 8+32 bit */
-    unsigned int d3u_tbl_4441c4;   /* 0x4441C4 */
-    unsigned int d3u_tbl_4441c8;   /* 0x4441C8 */
-    unsigned int d3u_tbl_4441cc;   /* 0x4441CC */
-    unsigned int d3u_tbl_4441d0;   /* 0x4441D0 */
-    unsigned int d3u_tbl_4441d4;   /* 0x4441D4 */
-    unsigned int d3u_tbl_4441dc;   /* 0x4441DC */
-    unsigned int d3u_tbl_4441e0;   /* 0x4441E0 */
-    unsigned int d3u_tbl_4441e4;   /* 0x4441E4 */
-    unsigned char d3u_rc_total_raw[4];   /* 0x4441E8, 16+32 bit */
-    unsigned int d3u_rc_prob_lo;   /* 0x4441EC */
-    unsigned int d3u_rc_prob_hi;   /* 0x4441F0 */
-    unsigned int d3u_tbl_4441f4;   /* 0x4441F4 */
-    unsigned int d3u_tbl_4441f8;   /* 0x4441F8 */
-    unsigned int d3u_tbl_4441fc;   /* 0x4441FC */
-    unsigned int d3u_tbl_444200;   /* 0x444200 */
-    unsigned int d3u_tbl_444204;   /* 0x444204 */
-    unsigned int d3u_tbl_444208;   /* 0x444208 */
-    unsigned int d3u_tbl_44420c;   /* 0x44420C */
-    unsigned int d3u_tbl_444210;   /* 0x444210 */
-    unsigned int d3u_tbl_444214;   /* 0x444214 */
-    unsigned int d3u_tbl_444218;   /* 0x444218 */
-    unsigned int d3u_tbl_44421c;   /* 0x44421C */
-    unsigned int d3u_tbl_444220;   /* 0x444220 */
-    unsigned int d3u_tbl_444224;   /* 0x444224 */
-    unsigned int d3u_tbl_444228;   /* 0x444228 */
-    unsigned int d3u_cum_table_ptr;   /* 0x44422C */
-    unsigned int d3u_tbl_444230;   /* 0x444230 */
-    unsigned int d3u_tbl_444234;   /* 0x444234 */
-    unsigned int d3u_tbl_444238;   /* 0x444238 */
-    unsigned int d3u_tbl_44423c;   /* 0x44423C */
-    unsigned int d3u_tbl_444240;   /* 0x444240 */
-    unsigned int d3u_tbl_444244;   /* 0x444244 */
-    unsigned int d3u_tbl_444248;   /* 0x444248 */
-    unsigned int d3u_tbl_44424c;   /* 0x44424C */
-    unsigned int d3u_tbl_444250;   /* 0x444250 */
-    unsigned int d3u_primer_total;   /* 0x444254 */
-    unsigned char d3u_tbl_444258_raw[4];   /* 0x444258, 8+32 bit */
-    unsigned int d3u_tbl_44425c;   /* 0x44425C */
-    unsigned int d3u_tbl_444260;   /* 0x444260 */
-    unsigned int d3u_tbl_444264;   /* 0x444264 */
-    unsigned int d3u_tbl_444268;   /* 0x444268 */
-    unsigned int d3u_tbl_44426c;   /* 0x44426C */
-    unsigned int d3u_dict_size;   /* 0x444270 */
-    unsigned int d3u_dict_cursor;   /* 0x444274 */
-    unsigned int d3u_dict_mask;   /* 0x444278 */
-    unsigned int d3u_tbl_44427c;   /* 0x44427C */
-    unsigned int d3u_tbl_444280;   /* 0x444280 */
-    unsigned char d3u_tbl_444284;   /* 0x444284 */
-    unsigned char d3u_tbl_444285;   /* 0x444285 */
-    unsigned char d3u_tbl_444286;   /* 0x444286 */
-    unsigned char d3u_tbl_444287;   /* 0x444287 */
-    unsigned char d3u_tbl_444288;   /* 0x444288 */
-    unsigned char d3u_tbl_444289;   /* 0x444289 */
-    unsigned short d3u_tbl_444c84;   /* 0x444C84 */
-    unsigned char d3u_flag_444e7e;   /* 0x444E7E */
-    unsigned char d3u_flag_444e7f;   /* 0x444E7F */
-    unsigned char d3u_flag_444e80;   /* 0x444E80 */
-    unsigned char d3u_flag_444e81;   /* 0x444E81 */
-    unsigned char d3u_flag_444e82;   /* 0x444E82 */
-    unsigned char d3u_flag_444e99;   /* 0x444E99 */
-    unsigned char d3u_flag_444e9a;   /* 0x444E9A */
-    unsigned char d3u_flag_444e9b;   /* 0x444E9B */
-    unsigned char d3u_flag_444e9c;   /* 0x444E9C */
-    unsigned char d3u_flag_444e9d;   /* 0x444E9D */
-    unsigned char d3u_flag_444e9e;   /* 0x444E9E */
-    unsigned char d3u_flag_444e9f;   /* 0x444E9F */
-    unsigned char d3u_flag_444ea0_raw[4];   /* 0x444EA0, 8 bit */
-    unsigned char d3u_flag_444ea1;   /* 0x444EA1 */
-    unsigned char d3u_flag_444ea2;   /* 0x444EA2 */
-    unsigned char d3u_flag_444ea3;   /* 0x444EA3 */
-    unsigned char d3u_flag_444ea4;   /* 0x444EA4 */
-    unsigned char d3u_flag_444ea5;   /* 0x444EA5 */
-    unsigned char d3u_flag_444ea6;   /* 0x444EA6 */
-    unsigned char d3u_flag_444ea7;   /* 0x444EA7 */
-    unsigned char d3u_flag_444ea8;   /* 0x444EA8 */
-    unsigned char d3u_flag_444ea9;   /* 0x444EA9 */
-    unsigned char d3u_flag_444eaa;   /* 0x444EAA */
-    unsigned char d3u_flag_444eab;   /* 0x444EAB */
-    unsigned char d3u_flag_444eac;   /* 0x444EAC */
-    unsigned char d3u_flag_444ead;   /* 0x444EAD */
-    unsigned char d3u_flag_444eae;   /* 0x444EAE */
-    unsigned char d3u_flag_444eaf;   /* 0x444EAF */
-    unsigned char d3u_flag_444eb0_raw[4];   /* 0x444EB0, 8+32 bit */
-    unsigned char d3u_flag_444eb1;   /* 0x444EB1 */
-    unsigned char d3u_flag_444eb2;   /* 0x444EB2 */
-    unsigned char d3u_flag_444eb3;   /* 0x444EB3 */
-    unsigned char d3u_flag_444eb4;   /* 0x444EB4 */
-    unsigned char d3u_flag_444eb5;   /* 0x444EB5 */
-    unsigned char d3u_flag_444eb6;   /* 0x444EB6 */
-    unsigned char d3u_flag_444eb7;   /* 0x444EB7 */
-    unsigned char d3u_flag_444eb8;   /* 0x444EB8 */
-    unsigned char d3u_flag_444eb9;   /* 0x444EB9 */
-    unsigned char d3u_flag_444eba;   /* 0x444EBA */
-    unsigned int d3u_out_flush_thresh;   /* 0x444EE0 */
-    unsigned char d3u_out_total_len_raw[4];   /* 0x444EE4, 8+32 bit */
-    unsigned int d3u_in_pos;   /* 0x444EE8 */
-    unsigned int d3u_out_staged_len;   /* 0x444EEC */
-    unsigned int d3u_in_avail;   /* 0x444EF0 */
-    unsigned int d3u_in_abs_pos;   /* 0x444EF4 */
-    unsigned int d3u_out_total_pos;   /* 0x444EF8 */
-    unsigned int d3u_tbl_444efc;   /* 0x444EFC */
-    unsigned int d3u_rc_scale;   /* 0x4450F0 */
-    unsigned char d3u_rc_value_raw[4];   /* 0x4450F4, 32 bit */
-    unsigned int d3u_rc_range;   /* 0x4450F8 */
-    unsigned char d3u_rc_carry_byte;   /* 0x4450FC */
 } d3u_state;
 
 /* Arena-spelling accessors over the typed state.  The
@@ -299,494 +145,176 @@ typedef struct d3u_state {
 #define D3U_REBUILD_FLAG_8(s) ((s)->d3u_rebuild_flag)
 #define D3U_REBUILD_FLAG_16(s) ((unsigned char)(s)->d3u_rebuild_flag)
 #define D3U_REBUILD_FLAG_32(s) ((unsigned char)(s)->d3u_rebuild_flag)
-#define D3U_TBL_436E40_32(s) ((s)->d3u_tbl_436e40)
-#define D3U_TBL_436E40_8(s) ((unsigned int)(s)->d3u_tbl_436e40)
-#define D3U_TBL_436E40_16(s) ((unsigned int)(s)->d3u_tbl_436e40)
-#define D3U_TBL_436E44_32(s) ((s)->d3u_tbl_436e44)
-#define D3U_TBL_436E44_8(s) ((unsigned int)(s)->d3u_tbl_436e44)
-#define D3U_TBL_436E44_16(s) ((unsigned int)(s)->d3u_tbl_436e44)
-#define D3U_POOL_CURSOR_8(s, a)  ((unsigned char *)(s)->d3u_pool_cursor_raw)[(a)]
-#define D3U_POOL_CURSOR_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_pool_cursor_raw + (a)))
-#define D3U_POOL_CURSOR_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_pool_cursor_raw + (a)))
-#define D3U_TBL_43D8B0_32(s) ((s)->d3u_tbl_43d8b0)
-#define D3U_TBL_43D8B0_8(s) ((unsigned int)(s)->d3u_tbl_43d8b0)
-#define D3U_TBL_43D8B0_16(s) ((unsigned int)(s)->d3u_tbl_43d8b0)
-#define D3U_TBL_43D8B4_32(s) ((s)->d3u_tbl_43d8b4)
-#define D3U_TBL_43D8B4_8(s) ((unsigned int)(s)->d3u_tbl_43d8b4)
-#define D3U_TBL_43D8B4_16(s) ((unsigned int)(s)->d3u_tbl_43d8b4)
-#define D3U_TBL_43D8B8_32(s) ((s)->d3u_tbl_43d8b8)
-#define D3U_TBL_43D8B8_8(s) ((unsigned int)(s)->d3u_tbl_43d8b8)
-#define D3U_TBL_43D8B8_16(s) ((unsigned int)(s)->d3u_tbl_43d8b8)
-#define D3U_TBL_43D8BC_8(s, a)  ((unsigned char *)(s)->d3u_tbl_43d8bc_raw)[(a)]
-#define D3U_TBL_43D8BC_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_43d8bc_raw + (a)))
-#define D3U_TBL_43D8BC_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_43d8bc_raw + (a)))
-#define D3U_TBL_43D8C0_32(s) ((s)->d3u_tbl_43d8c0)
-#define D3U_TBL_43D8C0_8(s) ((unsigned int)(s)->d3u_tbl_43d8c0)
-#define D3U_TBL_43D8C0_16(s) ((unsigned int)(s)->d3u_tbl_43d8c0)
-#define D3U_TBL_43D8C4_32(s) ((s)->d3u_tbl_43d8c4)
-#define D3U_TBL_43D8C4_8(s) ((unsigned int)(s)->d3u_tbl_43d8c4)
-#define D3U_TBL_43D8C4_16(s) ((unsigned int)(s)->d3u_tbl_43d8c4)
-#define D3U_TBL_43D8C8_32(s) ((s)->d3u_tbl_43d8c8)
-#define D3U_TBL_43D8C8_8(s) ((unsigned int)(s)->d3u_tbl_43d8c8)
-#define D3U_TBL_43D8C8_16(s) ((unsigned int)(s)->d3u_tbl_43d8c8)
-#define D3U_TBL_43DCCC_8(s, a)  ((unsigned char *)(s)->d3u_tbl_43dccc_raw)[(a)]
-#define D3U_TBL_43DCCC_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_43dccc_raw + (a)))
-#define D3U_TBL_43DCCC_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_43dccc_raw + (a)))
-#define D3U_TBL_43DCD0_32(s) ((s)->d3u_tbl_43dcd0)
-#define D3U_TBL_43DCD0_8(s) ((unsigned int)(s)->d3u_tbl_43dcd0)
-#define D3U_TBL_43DCD0_16(s) ((unsigned int)(s)->d3u_tbl_43dcd0)
-#define D3U_TBL_43DCD4_32(s) ((s)->d3u_tbl_43dcd4)
-#define D3U_TBL_43DCD4_8(s) ((unsigned int)(s)->d3u_tbl_43dcd4)
-#define D3U_TBL_43DCD4_16(s) ((unsigned int)(s)->d3u_tbl_43dcd4)
-#define D3U_TBL_43DCD8_8(s, a)  ((unsigned char *)(s)->d3u_tbl_43dcd8_raw)[(a)]
-#define D3U_TBL_43DCD8_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_43dcd8_raw + (a)))
-#define D3U_TBL_43DCD8_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_43dcd8_raw + (a)))
-#define D3U_TBL_43DCDC_32(s) ((s)->d3u_tbl_43dcdc)
-#define D3U_TBL_43DCDC_8(s) ((unsigned int)(s)->d3u_tbl_43dcdc)
-#define D3U_TBL_43DCDC_16(s) ((unsigned int)(s)->d3u_tbl_43dcdc)
-#define D3U_TBL_43DCE0_32(s) ((s)->d3u_tbl_43dce0)
-#define D3U_TBL_43DCE0_8(s) ((unsigned int)(s)->d3u_tbl_43dce0)
-#define D3U_TBL_43DCE0_16(s) ((unsigned int)(s)->d3u_tbl_43dce0)
-#define D3U_TBL_43F4FC_32(s) ((s)->d3u_tbl_43f4fc)
-#define D3U_TBL_43F4FC_8(s) ((unsigned int)(s)->d3u_tbl_43f4fc)
-#define D3U_TBL_43F4FC_16(s) ((unsigned int)(s)->d3u_tbl_43f4fc)
-#define D3U_TBL_43F500_32(s) ((s)->d3u_tbl_43f500)
-#define D3U_TBL_43F500_8(s) ((unsigned int)(s)->d3u_tbl_43f500)
-#define D3U_TBL_43F500_16(s) ((unsigned int)(s)->d3u_tbl_43f500)
-#define D3U_TBL_43F504_32(s) ((s)->d3u_tbl_43f504)
-#define D3U_TBL_43F504_8(s) ((unsigned int)(s)->d3u_tbl_43f504)
-#define D3U_TBL_43F504_16(s) ((unsigned int)(s)->d3u_tbl_43f504)
-#define D3U_TBL_43F508_32(s) ((s)->d3u_tbl_43f508)
-#define D3U_TBL_43F508_8(s) ((unsigned int)(s)->d3u_tbl_43f508)
-#define D3U_TBL_43F508_16(s) ((unsigned int)(s)->d3u_tbl_43f508)
-#define D3U_TBL_43F50C_32(s) ((s)->d3u_tbl_43f50c)
-#define D3U_TBL_43F50C_8(s) ((unsigned int)(s)->d3u_tbl_43f50c)
-#define D3U_TBL_43F50C_16(s) ((unsigned int)(s)->d3u_tbl_43f50c)
-#define D3U_TBL_43F510_32(s) ((s)->d3u_tbl_43f510)
-#define D3U_TBL_43F510_8(s) ((unsigned int)(s)->d3u_tbl_43f510)
-#define D3U_TBL_43F510_16(s) ((unsigned int)(s)->d3u_tbl_43f510)
-#define D3U_TBL_43F514_32(s) ((s)->d3u_tbl_43f514)
-#define D3U_TBL_43F514_8(s) ((unsigned int)(s)->d3u_tbl_43f514)
-#define D3U_TBL_43F514_16(s) ((unsigned int)(s)->d3u_tbl_43f514)
-#define D3U_TBL_43F518_32(s) ((s)->d3u_tbl_43f518)
-#define D3U_TBL_43F518_8(s) ((unsigned int)(s)->d3u_tbl_43f518)
-#define D3U_TBL_43F518_16(s) ((unsigned int)(s)->d3u_tbl_43f518)
-#define D3U_TBL_43F51C_32(s) ((s)->d3u_tbl_43f51c)
-#define D3U_TBL_43F51C_8(s) ((unsigned int)(s)->d3u_tbl_43f51c)
-#define D3U_TBL_43F51C_16(s) ((unsigned int)(s)->d3u_tbl_43f51c)
-#define D3U_TBL_43F520_32(s) ((s)->d3u_tbl_43f520)
-#define D3U_TBL_43F520_8(s) ((unsigned int)(s)->d3u_tbl_43f520)
-#define D3U_TBL_43F520_16(s) ((unsigned int)(s)->d3u_tbl_43f520)
-#define D3U_TBL_43F524_32(s) ((s)->d3u_tbl_43f524)
-#define D3U_TBL_43F524_8(s) ((unsigned int)(s)->d3u_tbl_43f524)
-#define D3U_TBL_43F524_16(s) ((unsigned int)(s)->d3u_tbl_43f524)
-#define D3U_TBL_43F528_32(s) ((s)->d3u_tbl_43f528)
-#define D3U_TBL_43F528_8(s) ((unsigned int)(s)->d3u_tbl_43f528)
-#define D3U_TBL_43F528_16(s) ((unsigned int)(s)->d3u_tbl_43f528)
-#define D3U_TBL_440AF0_32(s) ((s)->d3u_tbl_440af0)
-#define D3U_TBL_440AF0_8(s) ((unsigned int)(s)->d3u_tbl_440af0)
-#define D3U_TBL_440AF0_16(s) ((unsigned int)(s)->d3u_tbl_440af0)
-#define D3U_TBL_440AF4_32(s) ((s)->d3u_tbl_440af4)
-#define D3U_TBL_440AF4_8(s) ((unsigned int)(s)->d3u_tbl_440af4)
-#define D3U_TBL_440AF4_16(s) ((unsigned int)(s)->d3u_tbl_440af4)
-#define D3U_TBL_440AF8_32(s) ((s)->d3u_tbl_440af8)
-#define D3U_TBL_440AF8_8(s) ((unsigned int)(s)->d3u_tbl_440af8)
-#define D3U_TBL_440AF8_16(s) ((unsigned int)(s)->d3u_tbl_440af8)
-#define D3U_TBL_440AFC_32(s) ((s)->d3u_tbl_440afc)
-#define D3U_TBL_440AFC_8(s) ((unsigned int)(s)->d3u_tbl_440afc)
-#define D3U_TBL_440AFC_16(s) ((unsigned int)(s)->d3u_tbl_440afc)
-#define D3U_TBL_440B00_32(s) ((s)->d3u_tbl_440b00)
-#define D3U_TBL_440B00_8(s) ((unsigned int)(s)->d3u_tbl_440b00)
-#define D3U_TBL_440B00_16(s) ((unsigned int)(s)->d3u_tbl_440b00)
-#define D3U_TBL_440B04_32(s) ((s)->d3u_tbl_440b04)
-#define D3U_TBL_440B04_8(s) ((unsigned int)(s)->d3u_tbl_440b04)
-#define D3U_TBL_440B04_16(s) ((unsigned int)(s)->d3u_tbl_440b04)
-#define D3U_TBL_442D58_8(s) ((s)->d3u_tbl_442d58)
-#define D3U_TBL_442D58_16(s) ((unsigned char)(s)->d3u_tbl_442d58)
-#define D3U_TBL_442D58_32(s) ((unsigned char)(s)->d3u_tbl_442d58)
-#define D3U_TBL_443258_8(s, a)  ((unsigned char *)(s)->d3u_tbl_443258_raw)[(a)]
-#define D3U_TBL_443258_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_443258_raw + (a)))
-#define D3U_TBL_443258_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_443258_raw + (a)))
-#define D3U_TBL_44325C_32(s) ((s)->d3u_tbl_44325c)
-#define D3U_TBL_44325C_8(s) ((unsigned int)(s)->d3u_tbl_44325c)
-#define D3U_TBL_44325C_16(s) ((unsigned int)(s)->d3u_tbl_44325c)
-#define D3U_TBL_443260_8(s) ((s)->d3u_tbl_443260)
-#define D3U_TBL_443260_16(s) ((unsigned char)(s)->d3u_tbl_443260)
-#define D3U_TBL_443260_32(s) ((unsigned char)(s)->d3u_tbl_443260)
-#define D3U_TBL_443B60_8(s, a)  ((unsigned char *)(s)->d3u_tbl_443b60_raw)[(a)]
-#define D3U_TBL_443B60_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_443b60_raw + (a)))
-#define D3U_TBL_443B60_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_443b60_raw + (a)))
-#define D3U_TBL_443B64_32(s) ((s)->d3u_tbl_443b64)
-#define D3U_TBL_443B64_8(s) ((unsigned int)(s)->d3u_tbl_443b64)
-#define D3U_TBL_443B64_16(s) ((unsigned int)(s)->d3u_tbl_443b64)
-#define D3U_TBL_443CE8_8(s, a)  ((unsigned char *)(s)->d3u_tbl_443ce8_raw)[(a)]
-#define D3U_TBL_443CE8_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_443ce8_raw + (a)))
-#define D3U_TBL_443CE8_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_443ce8_raw + (a)))
-#define D3U_TBL_443CEC_8(s, a)  ((unsigned char *)(s)->d3u_tbl_443cec_raw)[(a)]
-#define D3U_TBL_443CEC_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_443cec_raw + (a)))
-#define D3U_TBL_443CEC_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_443cec_raw + (a)))
-#define D3U_TBL_443CF0_8(s, a)  ((unsigned char *)(s)->d3u_tbl_443cf0_raw)[(a)]
-#define D3U_TBL_443CF0_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_443cf0_raw + (a)))
-#define D3U_TBL_443CF0_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_443cf0_raw + (a)))
-#define D3U_TBL_443CF4_32(s) ((s)->d3u_tbl_443cf4)
-#define D3U_TBL_443CF4_8(s) ((unsigned int)(s)->d3u_tbl_443cf4)
-#define D3U_TBL_443CF4_16(s) ((unsigned int)(s)->d3u_tbl_443cf4)
-#define D3U_TBL_443CF8_32(s) ((s)->d3u_tbl_443cf8)
-#define D3U_TBL_443CF8_8(s) ((unsigned int)(s)->d3u_tbl_443cf8)
-#define D3U_TBL_443CF8_16(s) ((unsigned int)(s)->d3u_tbl_443cf8)
-#define D3U_TBL_443CFC_32(s) ((s)->d3u_tbl_443cfc)
-#define D3U_TBL_443CFC_8(s) ((unsigned int)(s)->d3u_tbl_443cfc)
-#define D3U_TBL_443CFC_16(s) ((unsigned int)(s)->d3u_tbl_443cfc)
-#define D3U_TBL_443D00_32(s) ((s)->d3u_tbl_443d00)
-#define D3U_TBL_443D00_8(s) ((unsigned int)(s)->d3u_tbl_443d00)
-#define D3U_TBL_443D00_16(s) ((unsigned int)(s)->d3u_tbl_443d00)
-#define D3U_TBL_443D04_32(s) ((s)->d3u_tbl_443d04)
-#define D3U_TBL_443D04_8(s) ((unsigned int)(s)->d3u_tbl_443d04)
-#define D3U_TBL_443D04_16(s) ((unsigned int)(s)->d3u_tbl_443d04)
-#define D3U_TBL_444188_8(s, a)  ((unsigned char *)(s)->d3u_tbl_444188_raw)[(a)]
-#define D3U_TBL_444188_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_444188_raw + (a)))
-#define D3U_TBL_444188_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_444188_raw + (a)))
-#define D3U_TBL_44418C_32(s) ((s)->d3u_tbl_44418c)
-#define D3U_TBL_44418C_8(s) ((unsigned int)(s)->d3u_tbl_44418c)
-#define D3U_TBL_44418C_16(s) ((unsigned int)(s)->d3u_tbl_44418c)
-#define D3U_TBL_444190_32(s) ((s)->d3u_tbl_444190)
-#define D3U_TBL_444190_8(s) ((unsigned int)(s)->d3u_tbl_444190)
-#define D3U_TBL_444190_16(s) ((unsigned int)(s)->d3u_tbl_444190)
-#define D3U_TBL_444194_32(s) ((s)->d3u_tbl_444194)
-#define D3U_TBL_444194_8(s) ((unsigned int)(s)->d3u_tbl_444194)
-#define D3U_TBL_444194_16(s) ((unsigned int)(s)->d3u_tbl_444194)
-#define D3U_TBL_444198_8(s, a)  ((unsigned char *)(s)->d3u_tbl_444198_raw)[(a)]
-#define D3U_TBL_444198_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_444198_raw + (a)))
-#define D3U_TBL_444198_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_444198_raw + (a)))
-#define D3U_TBL_4441B0_32(s) ((s)->d3u_tbl_4441b0)
-#define D3U_TBL_4441B0_8(s) ((unsigned int)(s)->d3u_tbl_4441b0)
-#define D3U_TBL_4441B0_16(s) ((unsigned int)(s)->d3u_tbl_4441b0)
-#define D3U_TBL_4441B4_32(s) ((s)->d3u_tbl_4441b4)
-#define D3U_TBL_4441B4_8(s) ((unsigned int)(s)->d3u_tbl_4441b4)
-#define D3U_TBL_4441B4_16(s) ((unsigned int)(s)->d3u_tbl_4441b4)
-#define D3U_TBL_4441B8_32(s) ((s)->d3u_tbl_4441b8)
-#define D3U_TBL_4441B8_8(s) ((unsigned int)(s)->d3u_tbl_4441b8)
-#define D3U_TBL_4441B8_16(s) ((unsigned int)(s)->d3u_tbl_4441b8)
-#define D3U_TBL_4441BC_32(s) ((s)->d3u_tbl_4441bc)
-#define D3U_TBL_4441BC_8(s) ((unsigned int)(s)->d3u_tbl_4441bc)
-#define D3U_TBL_4441BC_16(s) ((unsigned int)(s)->d3u_tbl_4441bc)
-#define D3U_TBL_4441C0_8(s, a)  ((unsigned char *)(s)->d3u_tbl_4441c0_raw)[(a)]
-#define D3U_TBL_4441C0_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_4441c0_raw + (a)))
-#define D3U_TBL_4441C0_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_4441c0_raw + (a)))
-#define D3U_TBL_4441C4_32(s) ((s)->d3u_tbl_4441c4)
-#define D3U_TBL_4441C4_8(s) ((unsigned int)(s)->d3u_tbl_4441c4)
-#define D3U_TBL_4441C4_16(s) ((unsigned int)(s)->d3u_tbl_4441c4)
-#define D3U_TBL_4441C8_32(s) ((s)->d3u_tbl_4441c8)
-#define D3U_TBL_4441C8_8(s) ((unsigned int)(s)->d3u_tbl_4441c8)
-#define D3U_TBL_4441C8_16(s) ((unsigned int)(s)->d3u_tbl_4441c8)
-#define D3U_TBL_4441CC_32(s) ((s)->d3u_tbl_4441cc)
-#define D3U_TBL_4441CC_8(s) ((unsigned int)(s)->d3u_tbl_4441cc)
-#define D3U_TBL_4441CC_16(s) ((unsigned int)(s)->d3u_tbl_4441cc)
-#define D3U_TBL_4441D0_32(s) ((s)->d3u_tbl_4441d0)
-#define D3U_TBL_4441D0_8(s) ((unsigned int)(s)->d3u_tbl_4441d0)
-#define D3U_TBL_4441D0_16(s) ((unsigned int)(s)->d3u_tbl_4441d0)
-#define D3U_TBL_4441D4_32(s) ((s)->d3u_tbl_4441d4)
-#define D3U_TBL_4441D4_8(s) ((unsigned int)(s)->d3u_tbl_4441d4)
-#define D3U_TBL_4441D4_16(s) ((unsigned int)(s)->d3u_tbl_4441d4)
-#define D3U_TBL_4441DC_32(s) ((s)->d3u_tbl_4441dc)
-#define D3U_TBL_4441DC_8(s) ((unsigned int)(s)->d3u_tbl_4441dc)
-#define D3U_TBL_4441DC_16(s) ((unsigned int)(s)->d3u_tbl_4441dc)
-#define D3U_TBL_4441E0_32(s) ((s)->d3u_tbl_4441e0)
-#define D3U_TBL_4441E0_8(s) ((unsigned int)(s)->d3u_tbl_4441e0)
-#define D3U_TBL_4441E0_16(s) ((unsigned int)(s)->d3u_tbl_4441e0)
-#define D3U_TBL_4441E4_32(s) ((s)->d3u_tbl_4441e4)
-#define D3U_TBL_4441E4_8(s) ((unsigned int)(s)->d3u_tbl_4441e4)
-#define D3U_TBL_4441E4_16(s) ((unsigned int)(s)->d3u_tbl_4441e4)
-#define D3U_RC_TOTAL_8(s, a)  ((unsigned char *)(s)->d3u_rc_total_raw)[(a)]
-#define D3U_RC_TOTAL_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_rc_total_raw + (a)))
-#define D3U_RC_TOTAL_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_rc_total_raw + (a)))
-#define D3U_RC_PROB_LO_32(s) ((s)->d3u_rc_prob_lo)
-#define D3U_RC_PROB_LO_8(s) ((unsigned int)(s)->d3u_rc_prob_lo)
-#define D3U_RC_PROB_LO_16(s) ((unsigned int)(s)->d3u_rc_prob_lo)
-#define D3U_RC_PROB_HI_32(s) ((s)->d3u_rc_prob_hi)
-#define D3U_RC_PROB_HI_8(s) ((unsigned int)(s)->d3u_rc_prob_hi)
-#define D3U_RC_PROB_HI_16(s) ((unsigned int)(s)->d3u_rc_prob_hi)
-#define D3U_TBL_4441F4_32(s) ((s)->d3u_tbl_4441f4)
-#define D3U_TBL_4441F4_8(s) ((unsigned int)(s)->d3u_tbl_4441f4)
-#define D3U_TBL_4441F4_16(s) ((unsigned int)(s)->d3u_tbl_4441f4)
-#define D3U_TBL_4441F8_32(s) ((s)->d3u_tbl_4441f8)
-#define D3U_TBL_4441F8_8(s) ((unsigned int)(s)->d3u_tbl_4441f8)
-#define D3U_TBL_4441F8_16(s) ((unsigned int)(s)->d3u_tbl_4441f8)
-#define D3U_TBL_4441FC_32(s) ((s)->d3u_tbl_4441fc)
-#define D3U_TBL_4441FC_8(s) ((unsigned int)(s)->d3u_tbl_4441fc)
-#define D3U_TBL_4441FC_16(s) ((unsigned int)(s)->d3u_tbl_4441fc)
-#define D3U_TBL_444200_32(s) ((s)->d3u_tbl_444200)
-#define D3U_TBL_444200_8(s) ((unsigned int)(s)->d3u_tbl_444200)
-#define D3U_TBL_444200_16(s) ((unsigned int)(s)->d3u_tbl_444200)
-#define D3U_TBL_444204_32(s) ((s)->d3u_tbl_444204)
-#define D3U_TBL_444204_8(s) ((unsigned int)(s)->d3u_tbl_444204)
-#define D3U_TBL_444204_16(s) ((unsigned int)(s)->d3u_tbl_444204)
-#define D3U_TBL_444208_32(s) ((s)->d3u_tbl_444208)
-#define D3U_TBL_444208_8(s) ((unsigned int)(s)->d3u_tbl_444208)
-#define D3U_TBL_444208_16(s) ((unsigned int)(s)->d3u_tbl_444208)
-#define D3U_TBL_44420C_32(s) ((s)->d3u_tbl_44420c)
-#define D3U_TBL_44420C_8(s) ((unsigned int)(s)->d3u_tbl_44420c)
-#define D3U_TBL_44420C_16(s) ((unsigned int)(s)->d3u_tbl_44420c)
-#define D3U_TBL_444210_32(s) ((s)->d3u_tbl_444210)
-#define D3U_TBL_444210_8(s) ((unsigned int)(s)->d3u_tbl_444210)
-#define D3U_TBL_444210_16(s) ((unsigned int)(s)->d3u_tbl_444210)
-#define D3U_TBL_444214_32(s) ((s)->d3u_tbl_444214)
-#define D3U_TBL_444214_8(s) ((unsigned int)(s)->d3u_tbl_444214)
-#define D3U_TBL_444214_16(s) ((unsigned int)(s)->d3u_tbl_444214)
-#define D3U_TBL_444218_32(s) ((s)->d3u_tbl_444218)
-#define D3U_TBL_444218_8(s) ((unsigned int)(s)->d3u_tbl_444218)
-#define D3U_TBL_444218_16(s) ((unsigned int)(s)->d3u_tbl_444218)
-#define D3U_TBL_44421C_32(s) ((s)->d3u_tbl_44421c)
-#define D3U_TBL_44421C_8(s) ((unsigned int)(s)->d3u_tbl_44421c)
-#define D3U_TBL_44421C_16(s) ((unsigned int)(s)->d3u_tbl_44421c)
-#define D3U_TBL_444220_32(s) ((s)->d3u_tbl_444220)
-#define D3U_TBL_444220_8(s) ((unsigned int)(s)->d3u_tbl_444220)
-#define D3U_TBL_444220_16(s) ((unsigned int)(s)->d3u_tbl_444220)
-#define D3U_TBL_444224_32(s) ((s)->d3u_tbl_444224)
-#define D3U_TBL_444224_8(s) ((unsigned int)(s)->d3u_tbl_444224)
-#define D3U_TBL_444224_16(s) ((unsigned int)(s)->d3u_tbl_444224)
-#define D3U_TBL_444228_32(s) ((s)->d3u_tbl_444228)
-#define D3U_TBL_444228_8(s) ((unsigned int)(s)->d3u_tbl_444228)
-#define D3U_TBL_444228_16(s) ((unsigned int)(s)->d3u_tbl_444228)
-#define D3U_CUM_TABLE_PTR_32(s) ((s)->d3u_cum_table_ptr)
-#define D3U_CUM_TABLE_PTR_8(s) ((unsigned int)(s)->d3u_cum_table_ptr)
-#define D3U_CUM_TABLE_PTR_16(s) ((unsigned int)(s)->d3u_cum_table_ptr)
-#define D3U_TBL_444230_32(s) ((s)->d3u_tbl_444230)
-#define D3U_TBL_444230_8(s) ((unsigned int)(s)->d3u_tbl_444230)
-#define D3U_TBL_444230_16(s) ((unsigned int)(s)->d3u_tbl_444230)
-#define D3U_TBL_444234_32(s) ((s)->d3u_tbl_444234)
-#define D3U_TBL_444234_8(s) ((unsigned int)(s)->d3u_tbl_444234)
-#define D3U_TBL_444234_16(s) ((unsigned int)(s)->d3u_tbl_444234)
-#define D3U_TBL_444238_32(s) ((s)->d3u_tbl_444238)
-#define D3U_TBL_444238_8(s) ((unsigned int)(s)->d3u_tbl_444238)
-#define D3U_TBL_444238_16(s) ((unsigned int)(s)->d3u_tbl_444238)
-#define D3U_TBL_44423C_32(s) ((s)->d3u_tbl_44423c)
-#define D3U_TBL_44423C_8(s) ((unsigned int)(s)->d3u_tbl_44423c)
-#define D3U_TBL_44423C_16(s) ((unsigned int)(s)->d3u_tbl_44423c)
-#define D3U_TBL_444240_32(s) ((s)->d3u_tbl_444240)
-#define D3U_TBL_444240_8(s) ((unsigned int)(s)->d3u_tbl_444240)
-#define D3U_TBL_444240_16(s) ((unsigned int)(s)->d3u_tbl_444240)
-#define D3U_TBL_444244_32(s) ((s)->d3u_tbl_444244)
-#define D3U_TBL_444244_8(s) ((unsigned int)(s)->d3u_tbl_444244)
-#define D3U_TBL_444244_16(s) ((unsigned int)(s)->d3u_tbl_444244)
-#define D3U_TBL_444248_32(s) ((s)->d3u_tbl_444248)
-#define D3U_TBL_444248_8(s) ((unsigned int)(s)->d3u_tbl_444248)
-#define D3U_TBL_444248_16(s) ((unsigned int)(s)->d3u_tbl_444248)
-#define D3U_TBL_44424C_32(s) ((s)->d3u_tbl_44424c)
-#define D3U_TBL_44424C_8(s) ((unsigned int)(s)->d3u_tbl_44424c)
-#define D3U_TBL_44424C_16(s) ((unsigned int)(s)->d3u_tbl_44424c)
-#define D3U_TBL_444250_32(s) ((s)->d3u_tbl_444250)
-#define D3U_TBL_444250_8(s) ((unsigned int)(s)->d3u_tbl_444250)
-#define D3U_TBL_444250_16(s) ((unsigned int)(s)->d3u_tbl_444250)
-#define D3U_PRIMER_TOTAL_32(s) ((s)->d3u_primer_total)
-#define D3U_PRIMER_TOTAL_8(s) ((unsigned int)(s)->d3u_primer_total)
-#define D3U_PRIMER_TOTAL_16(s) ((unsigned int)(s)->d3u_primer_total)
-#define D3U_TBL_444258_8(s, a)  ((unsigned char *)(s)->d3u_tbl_444258_raw)[(a)]
-#define D3U_TBL_444258_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_tbl_444258_raw + (a)))
-#define D3U_TBL_444258_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_tbl_444258_raw + (a)))
-#define D3U_TBL_44425C_32(s) ((s)->d3u_tbl_44425c)
-#define D3U_TBL_44425C_8(s) ((unsigned int)(s)->d3u_tbl_44425c)
-#define D3U_TBL_44425C_16(s) ((unsigned int)(s)->d3u_tbl_44425c)
-#define D3U_TBL_444260_32(s) ((s)->d3u_tbl_444260)
-#define D3U_TBL_444260_8(s) ((unsigned int)(s)->d3u_tbl_444260)
-#define D3U_TBL_444260_16(s) ((unsigned int)(s)->d3u_tbl_444260)
-#define D3U_TBL_444264_32(s) ((s)->d3u_tbl_444264)
-#define D3U_TBL_444264_8(s) ((unsigned int)(s)->d3u_tbl_444264)
-#define D3U_TBL_444264_16(s) ((unsigned int)(s)->d3u_tbl_444264)
-#define D3U_TBL_444268_32(s) ((s)->d3u_tbl_444268)
-#define D3U_TBL_444268_8(s) ((unsigned int)(s)->d3u_tbl_444268)
-#define D3U_TBL_444268_16(s) ((unsigned int)(s)->d3u_tbl_444268)
-#define D3U_TBL_44426C_32(s) ((s)->d3u_tbl_44426c)
-#define D3U_TBL_44426C_8(s) ((unsigned int)(s)->d3u_tbl_44426c)
-#define D3U_TBL_44426C_16(s) ((unsigned int)(s)->d3u_tbl_44426c)
-#define D3U_DICT_SIZE_32(s) ((s)->d3u_dict_size)
-#define D3U_DICT_SIZE_8(s) ((unsigned int)(s)->d3u_dict_size)
-#define D3U_DICT_SIZE_16(s) ((unsigned int)(s)->d3u_dict_size)
-#define D3U_DICT_CURSOR_32(s) ((s)->d3u_dict_cursor)
-#define D3U_DICT_CURSOR_8(s) ((unsigned int)(s)->d3u_dict_cursor)
-#define D3U_DICT_CURSOR_16(s) ((unsigned int)(s)->d3u_dict_cursor)
-#define D3U_DICT_MASK_32(s) ((s)->d3u_dict_mask)
-#define D3U_DICT_MASK_8(s) ((unsigned int)(s)->d3u_dict_mask)
-#define D3U_DICT_MASK_16(s) ((unsigned int)(s)->d3u_dict_mask)
-#define D3U_TBL_44427C_32(s) ((s)->d3u_tbl_44427c)
-#define D3U_TBL_44427C_8(s) ((unsigned int)(s)->d3u_tbl_44427c)
-#define D3U_TBL_44427C_16(s) ((unsigned int)(s)->d3u_tbl_44427c)
-#define D3U_TBL_444280_32(s) ((s)->d3u_tbl_444280)
-#define D3U_TBL_444280_8(s) ((unsigned int)(s)->d3u_tbl_444280)
-#define D3U_TBL_444280_16(s) ((unsigned int)(s)->d3u_tbl_444280)
-#define D3U_TBL_444284_8(s) ((s)->d3u_tbl_444284)
-#define D3U_TBL_444284_16(s) ((unsigned char)(s)->d3u_tbl_444284)
-#define D3U_TBL_444284_32(s) ((unsigned char)(s)->d3u_tbl_444284)
-#define D3U_TBL_444285_8(s) ((s)->d3u_tbl_444285)
-#define D3U_TBL_444285_16(s) ((unsigned char)(s)->d3u_tbl_444285)
-#define D3U_TBL_444285_32(s) ((unsigned char)(s)->d3u_tbl_444285)
-#define D3U_TBL_444286_8(s) ((s)->d3u_tbl_444286)
-#define D3U_TBL_444286_16(s) ((unsigned char)(s)->d3u_tbl_444286)
-#define D3U_TBL_444286_32(s) ((unsigned char)(s)->d3u_tbl_444286)
-#define D3U_TBL_444287_8(s) ((s)->d3u_tbl_444287)
-#define D3U_TBL_444287_16(s) ((unsigned char)(s)->d3u_tbl_444287)
-#define D3U_TBL_444287_32(s) ((unsigned char)(s)->d3u_tbl_444287)
-#define D3U_TBL_444288_8(s) ((s)->d3u_tbl_444288)
-#define D3U_TBL_444288_16(s) ((unsigned char)(s)->d3u_tbl_444288)
-#define D3U_TBL_444288_32(s) ((unsigned char)(s)->d3u_tbl_444288)
-#define D3U_TBL_444289_8(s) ((s)->d3u_tbl_444289)
-#define D3U_TBL_444289_16(s) ((unsigned char)(s)->d3u_tbl_444289)
-#define D3U_TBL_444289_32(s) ((unsigned char)(s)->d3u_tbl_444289)
-#define D3U_TBL_444C84_16(s) ((s)->d3u_tbl_444c84)
-#define D3U_TBL_444C84_8(s) ((unsigned short)(s)->d3u_tbl_444c84)
-#define D3U_TBL_444C84_32(s) ((unsigned short)(s)->d3u_tbl_444c84)
-#define D3U_FLAG_444E7E_8(s) ((s)->d3u_flag_444e7e)
-#define D3U_FLAG_444E7E_16(s) ((unsigned char)(s)->d3u_flag_444e7e)
-#define D3U_FLAG_444E7E_32(s) ((unsigned char)(s)->d3u_flag_444e7e)
-#define D3U_FLAG_444E7F_8(s) ((s)->d3u_flag_444e7f)
-#define D3U_FLAG_444E7F_16(s) ((unsigned char)(s)->d3u_flag_444e7f)
-#define D3U_FLAG_444E7F_32(s) ((unsigned char)(s)->d3u_flag_444e7f)
-#define D3U_FLAG_444E80_8(s) ((s)->d3u_flag_444e80)
-#define D3U_FLAG_444E80_16(s) ((unsigned char)(s)->d3u_flag_444e80)
-#define D3U_FLAG_444E80_32(s) ((unsigned char)(s)->d3u_flag_444e80)
-#define D3U_FLAG_444E81_8(s) ((s)->d3u_flag_444e81)
-#define D3U_FLAG_444E81_16(s) ((unsigned char)(s)->d3u_flag_444e81)
-#define D3U_FLAG_444E81_32(s) ((unsigned char)(s)->d3u_flag_444e81)
-#define D3U_FLAG_444E82_8(s) ((s)->d3u_flag_444e82)
-#define D3U_FLAG_444E82_16(s) ((unsigned char)(s)->d3u_flag_444e82)
-#define D3U_FLAG_444E82_32(s) ((unsigned char)(s)->d3u_flag_444e82)
-#define D3U_FLAG_444E99_8(s) ((s)->d3u_flag_444e99)
-#define D3U_FLAG_444E99_16(s) ((unsigned char)(s)->d3u_flag_444e99)
-#define D3U_FLAG_444E99_32(s) ((unsigned char)(s)->d3u_flag_444e99)
-#define D3U_FLAG_444E9A_8(s) ((s)->d3u_flag_444e9a)
-#define D3U_FLAG_444E9A_16(s) ((unsigned char)(s)->d3u_flag_444e9a)
-#define D3U_FLAG_444E9A_32(s) ((unsigned char)(s)->d3u_flag_444e9a)
-#define D3U_FLAG_444E9B_8(s) ((s)->d3u_flag_444e9b)
-#define D3U_FLAG_444E9B_16(s) ((unsigned char)(s)->d3u_flag_444e9b)
-#define D3U_FLAG_444E9B_32(s) ((unsigned char)(s)->d3u_flag_444e9b)
-#define D3U_FLAG_444E9C_8(s) ((s)->d3u_flag_444e9c)
-#define D3U_FLAG_444E9C_16(s) ((unsigned char)(s)->d3u_flag_444e9c)
-#define D3U_FLAG_444E9C_32(s) ((unsigned char)(s)->d3u_flag_444e9c)
-#define D3U_FLAG_444E9D_8(s) ((s)->d3u_flag_444e9d)
-#define D3U_FLAG_444E9D_16(s) ((unsigned char)(s)->d3u_flag_444e9d)
-#define D3U_FLAG_444E9D_32(s) ((unsigned char)(s)->d3u_flag_444e9d)
-#define D3U_FLAG_444E9E_8(s) ((s)->d3u_flag_444e9e)
-#define D3U_FLAG_444E9E_16(s) ((unsigned char)(s)->d3u_flag_444e9e)
-#define D3U_FLAG_444E9E_32(s) ((unsigned char)(s)->d3u_flag_444e9e)
-#define D3U_FLAG_444E9F_8(s) ((s)->d3u_flag_444e9f)
-#define D3U_FLAG_444E9F_16(s) ((unsigned char)(s)->d3u_flag_444e9f)
-#define D3U_FLAG_444E9F_32(s) ((unsigned char)(s)->d3u_flag_444e9f)
-#define D3U_FLAG_444EA0_8(s, a)  ((unsigned char *)(s)->d3u_flag_444ea0_raw)[(a)]
-#define D3U_FLAG_444EA0_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_flag_444ea0_raw + (a)))
-#define D3U_FLAG_444EA0_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_flag_444ea0_raw + (a)))
-#define D3U_FLAG_444EA1_8(s) ((s)->d3u_flag_444ea1)
-#define D3U_FLAG_444EA1_16(s) ((unsigned char)(s)->d3u_flag_444ea1)
-#define D3U_FLAG_444EA1_32(s) ((unsigned char)(s)->d3u_flag_444ea1)
-#define D3U_FLAG_444EA2_8(s) ((s)->d3u_flag_444ea2)
-#define D3U_FLAG_444EA2_16(s) ((unsigned char)(s)->d3u_flag_444ea2)
-#define D3U_FLAG_444EA2_32(s) ((unsigned char)(s)->d3u_flag_444ea2)
-#define D3U_FLAG_444EA3_8(s) ((s)->d3u_flag_444ea3)
-#define D3U_FLAG_444EA3_16(s) ((unsigned char)(s)->d3u_flag_444ea3)
-#define D3U_FLAG_444EA3_32(s) ((unsigned char)(s)->d3u_flag_444ea3)
-#define D3U_FLAG_444EA4_8(s) ((s)->d3u_flag_444ea4)
-#define D3U_FLAG_444EA4_16(s) ((unsigned char)(s)->d3u_flag_444ea4)
-#define D3U_FLAG_444EA4_32(s) ((unsigned char)(s)->d3u_flag_444ea4)
-#define D3U_FLAG_444EA5_8(s) ((s)->d3u_flag_444ea5)
-#define D3U_FLAG_444EA5_16(s) ((unsigned char)(s)->d3u_flag_444ea5)
-#define D3U_FLAG_444EA5_32(s) ((unsigned char)(s)->d3u_flag_444ea5)
-#define D3U_FLAG_444EA6_8(s) ((s)->d3u_flag_444ea6)
-#define D3U_FLAG_444EA6_16(s) ((unsigned char)(s)->d3u_flag_444ea6)
-#define D3U_FLAG_444EA6_32(s) ((unsigned char)(s)->d3u_flag_444ea6)
-#define D3U_FLAG_444EA7_8(s) ((s)->d3u_flag_444ea7)
-#define D3U_FLAG_444EA7_16(s) ((unsigned char)(s)->d3u_flag_444ea7)
-#define D3U_FLAG_444EA7_32(s) ((unsigned char)(s)->d3u_flag_444ea7)
-#define D3U_FLAG_444EA8_8(s) ((s)->d3u_flag_444ea8)
-#define D3U_FLAG_444EA8_16(s) ((unsigned char)(s)->d3u_flag_444ea8)
-#define D3U_FLAG_444EA8_32(s) ((unsigned char)(s)->d3u_flag_444ea8)
-#define D3U_FLAG_444EA9_8(s) ((s)->d3u_flag_444ea9)
-#define D3U_FLAG_444EA9_16(s) ((unsigned char)(s)->d3u_flag_444ea9)
-#define D3U_FLAG_444EA9_32(s) ((unsigned char)(s)->d3u_flag_444ea9)
-#define D3U_FLAG_444EAA_8(s) ((s)->d3u_flag_444eaa)
-#define D3U_FLAG_444EAA_16(s) ((unsigned char)(s)->d3u_flag_444eaa)
-#define D3U_FLAG_444EAA_32(s) ((unsigned char)(s)->d3u_flag_444eaa)
-#define D3U_FLAG_444EAB_8(s) ((s)->d3u_flag_444eab)
-#define D3U_FLAG_444EAB_16(s) ((unsigned char)(s)->d3u_flag_444eab)
-#define D3U_FLAG_444EAB_32(s) ((unsigned char)(s)->d3u_flag_444eab)
-#define D3U_FLAG_444EAC_8(s) ((s)->d3u_flag_444eac)
-#define D3U_FLAG_444EAC_16(s) ((unsigned char)(s)->d3u_flag_444eac)
-#define D3U_FLAG_444EAC_32(s) ((unsigned char)(s)->d3u_flag_444eac)
-#define D3U_FLAG_444EAD_8(s) ((s)->d3u_flag_444ead)
-#define D3U_FLAG_444EAD_16(s) ((unsigned char)(s)->d3u_flag_444ead)
-#define D3U_FLAG_444EAD_32(s) ((unsigned char)(s)->d3u_flag_444ead)
-#define D3U_FLAG_444EAE_8(s) ((s)->d3u_flag_444eae)
-#define D3U_FLAG_444EAE_16(s) ((unsigned char)(s)->d3u_flag_444eae)
-#define D3U_FLAG_444EAE_32(s) ((unsigned char)(s)->d3u_flag_444eae)
-#define D3U_FLAG_444EAF_8(s) ((s)->d3u_flag_444eaf)
-#define D3U_FLAG_444EAF_16(s) ((unsigned char)(s)->d3u_flag_444eaf)
-#define D3U_FLAG_444EAF_32(s) ((unsigned char)(s)->d3u_flag_444eaf)
-#define D3U_FLAG_444EB0_8(s, a)  ((unsigned char *)(s)->d3u_flag_444eb0_raw)[(a)]
-#define D3U_FLAG_444EB0_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_flag_444eb0_raw + (a)))
-#define D3U_FLAG_444EB0_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_flag_444eb0_raw + (a)))
-#define D3U_FLAG_444EB1_8(s) ((s)->d3u_flag_444eb1)
-#define D3U_FLAG_444EB1_16(s) ((unsigned char)(s)->d3u_flag_444eb1)
-#define D3U_FLAG_444EB1_32(s) ((unsigned char)(s)->d3u_flag_444eb1)
-#define D3U_FLAG_444EB2_8(s) ((s)->d3u_flag_444eb2)
-#define D3U_FLAG_444EB2_16(s) ((unsigned char)(s)->d3u_flag_444eb2)
-#define D3U_FLAG_444EB2_32(s) ((unsigned char)(s)->d3u_flag_444eb2)
-#define D3U_FLAG_444EB3_8(s) ((s)->d3u_flag_444eb3)
-#define D3U_FLAG_444EB3_16(s) ((unsigned char)(s)->d3u_flag_444eb3)
-#define D3U_FLAG_444EB3_32(s) ((unsigned char)(s)->d3u_flag_444eb3)
-#define D3U_FLAG_444EB4_8(s) ((s)->d3u_flag_444eb4)
-#define D3U_FLAG_444EB4_16(s) ((unsigned char)(s)->d3u_flag_444eb4)
-#define D3U_FLAG_444EB4_32(s) ((unsigned char)(s)->d3u_flag_444eb4)
-#define D3U_FLAG_444EB5_8(s) ((s)->d3u_flag_444eb5)
-#define D3U_FLAG_444EB5_16(s) ((unsigned char)(s)->d3u_flag_444eb5)
-#define D3U_FLAG_444EB5_32(s) ((unsigned char)(s)->d3u_flag_444eb5)
-#define D3U_FLAG_444EB6_8(s) ((s)->d3u_flag_444eb6)
-#define D3U_FLAG_444EB6_16(s) ((unsigned char)(s)->d3u_flag_444eb6)
-#define D3U_FLAG_444EB6_32(s) ((unsigned char)(s)->d3u_flag_444eb6)
-#define D3U_FLAG_444EB7_8(s) ((s)->d3u_flag_444eb7)
-#define D3U_FLAG_444EB7_16(s) ((unsigned char)(s)->d3u_flag_444eb7)
-#define D3U_FLAG_444EB7_32(s) ((unsigned char)(s)->d3u_flag_444eb7)
-#define D3U_FLAG_444EB8_8(s) ((s)->d3u_flag_444eb8)
-#define D3U_FLAG_444EB8_16(s) ((unsigned char)(s)->d3u_flag_444eb8)
-#define D3U_FLAG_444EB8_32(s) ((unsigned char)(s)->d3u_flag_444eb8)
-#define D3U_FLAG_444EB9_8(s) ((s)->d3u_flag_444eb9)
-#define D3U_FLAG_444EB9_16(s) ((unsigned char)(s)->d3u_flag_444eb9)
-#define D3U_FLAG_444EB9_32(s) ((unsigned char)(s)->d3u_flag_444eb9)
-#define D3U_FLAG_444EBA_8(s) ((s)->d3u_flag_444eba)
-#define D3U_FLAG_444EBA_16(s) ((unsigned char)(s)->d3u_flag_444eba)
-#define D3U_FLAG_444EBA_32(s) ((unsigned char)(s)->d3u_flag_444eba)
-#define D3U_OUT_FLUSH_THRESH_32(s) ((s)->d3u_out_flush_thresh)
-#define D3U_OUT_FLUSH_THRESH_8(s) ((unsigned int)(s)->d3u_out_flush_thresh)
-#define D3U_OUT_FLUSH_THRESH_16(s) ((unsigned int)(s)->d3u_out_flush_thresh)
-#define D3U_OUT_TOTAL_LEN_8(s, a)  ((unsigned char *)(s)->d3u_out_total_len_raw)[(a)]
-#define D3U_OUT_TOTAL_LEN_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_out_total_len_raw + (a)))
-#define D3U_OUT_TOTAL_LEN_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_out_total_len_raw + (a)))
-#define D3U_IN_POS_32(s) ((s)->d3u_in_pos)
-#define D3U_IN_POS_8(s) ((unsigned int)(s)->d3u_in_pos)
-#define D3U_IN_POS_16(s) ((unsigned int)(s)->d3u_in_pos)
-#define D3U_OUT_STAGED_LEN_32(s) ((s)->d3u_out_staged_len)
-#define D3U_OUT_STAGED_LEN_8(s) ((unsigned int)(s)->d3u_out_staged_len)
-#define D3U_OUT_STAGED_LEN_16(s) ((unsigned int)(s)->d3u_out_staged_len)
-#define D3U_IN_AVAIL_32(s) ((s)->d3u_in_avail)
-#define D3U_IN_AVAIL_8(s) ((unsigned int)(s)->d3u_in_avail)
-#define D3U_IN_AVAIL_16(s) ((unsigned int)(s)->d3u_in_avail)
-#define D3U_IN_ABS_POS_32(s) ((s)->d3u_in_abs_pos)
-#define D3U_IN_ABS_POS_8(s) ((unsigned int)(s)->d3u_in_abs_pos)
-#define D3U_IN_ABS_POS_16(s) ((unsigned int)(s)->d3u_in_abs_pos)
-#define D3U_OUT_TOTAL_POS_32(s) ((s)->d3u_out_total_pos)
-#define D3U_OUT_TOTAL_POS_8(s) ((unsigned int)(s)->d3u_out_total_pos)
-#define D3U_OUT_TOTAL_POS_16(s) ((unsigned int)(s)->d3u_out_total_pos)
-#define D3U_TBL_444EFC_32(s) ((s)->d3u_tbl_444efc)
-#define D3U_TBL_444EFC_8(s) ((unsigned int)(s)->d3u_tbl_444efc)
-#define D3U_TBL_444EFC_16(s) ((unsigned int)(s)->d3u_tbl_444efc)
-#define D3U_RC_SCALE_32(s) ((s)->d3u_rc_scale)
-#define D3U_RC_SCALE_8(s) ((unsigned int)(s)->d3u_rc_scale)
-#define D3U_RC_SCALE_16(s) ((unsigned int)(s)->d3u_rc_scale)
-#define D3U_RC_VALUE_8(s, a)  ((unsigned char *)(s)->d3u_rc_value_raw)[(a)]
-#define D3U_RC_VALUE_16(s, a) (*(unsigned short *)(void *)((unsigned char *)(s)->d3u_rc_value_raw + (a)))
-#define D3U_RC_VALUE_32(s, a) (*(unsigned int *)(void *)((unsigned char *)(s)->d3u_rc_value_raw + (a)))
-#define D3U_RC_RANGE_32(s) ((s)->d3u_rc_range)
-#define D3U_RC_RANGE_8(s) ((unsigned int)(s)->d3u_rc_range)
-#define D3U_RC_RANGE_16(s) ((unsigned int)(s)->d3u_rc_range)
-#define D3U_RC_CARRY_BYTE_8(s) ((s)->d3u_rc_carry_byte)
-#define D3U_RC_CARRY_BYTE_16(s) ((unsigned char)(s)->d3u_rc_carry_byte)
-#define D3U_RC_CARRY_BYTE_32(s) ((unsigned char)(s)->d3u_rc_carry_byte)
+#define D3U_TBL_436E40_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_436E40 + 0UL) + (a)))
+#define D3U_TBL_436E44_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_436E40 + 4UL) + (a)))
+#define D3U_POOL_CURSOR_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_436E40 + 8UL) + (a)))
+#define D3U_TBL_43D8B0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 0UL) + (a)))
+#define D3U_TBL_43D8B4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 4UL) + (a)))
+#define D3U_TBL_43D8B8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 8UL) + (a)))
+#define D3U_TBL_43D8BC_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 12UL) + (a)))
+#define D3U_TBL_43D8BC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 12UL) + (a)))
+#define D3U_TBL_43D8C0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 16UL) + (a)))
+#define D3U_TBL_43D8C4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 20UL) + (a)))
+#define D3U_TBL_43D8C8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 24UL) + (a)))
+#define D3U_TBL_43DCCC_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1052UL) + (a)))
+#define D3U_TBL_43DCCC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1052UL) + (a)))
+#define D3U_TBL_43DCD0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1056UL) + (a)))
+#define D3U_TBL_43DCD4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1060UL) + (a)))
+#define D3U_TBL_43DCD8_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1064UL) + (a)))
+#define D3U_TBL_43DCD8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1064UL) + (a)))
+#define D3U_TBL_43DCDC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1068UL) + (a)))
+#define D3U_TBL_43DCE0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43D8B0 + 1072UL) + (a)))
+#define D3U_TBL_43F4FC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 12UL) + (a)))
+#define D3U_TBL_43F500_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 16UL) + (a)))
+#define D3U_TBL_43F504_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 20UL) + (a)))
+#define D3U_TBL_43F508_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 24UL) + (a)))
+#define D3U_TBL_43F50C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 28UL) + (a)))
+#define D3U_TBL_43F510_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 32UL) + (a)))
+#define D3U_TBL_43F514_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 36UL) + (a)))
+#define D3U_TBL_43F518_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 40UL) + (a)))
+#define D3U_TBL_43F51C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 44UL) + (a)))
+#define D3U_TBL_43F520_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 48UL) + (a)))
+#define D3U_TBL_43F524_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 52UL) + (a)))
+#define D3U_TBL_43F528_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_43F4F0 + 56UL) + (a)))
+#define D3U_TBL_440AF0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_440708 + 1000UL) + (a)))
+#define D3U_TBL_440AF4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_440708 + 1004UL) + (a)))
+#define D3U_TBL_440AF8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_440708 + 1008UL) + (a)))
+#define D3U_TBL_440AFC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_440708 + 1012UL) + (a)))
+#define D3U_TBL_440B00_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_440708 + 1016UL) + (a)))
+#define D3U_TBL_440B04_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_440708 + 1020UL) + (a)))
+#define D3U_TBL_442D58_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_442D58 + 0UL) + (a)))
+#define D3U_TBL_443258_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_442D58 + 1280UL) + (a)))
+#define D3U_TBL_44325C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_442D58 + 1284UL) + (a)))
+#define D3U_TBL_443260_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_442D58 + 1288UL) + (a)))
+#define D3U_TBL_443B60_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 0UL) + (a)))
+#define D3U_TBL_443B64_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 4UL) + (a)))
+#define D3U_TBL_443CE8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 392UL) + (a)))
+#define D3U_TBL_443CEC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 396UL) + (a)))
+#define D3U_TBL_443CF0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 400UL) + (a)))
+#define D3U_TBL_443CF4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 404UL) + (a)))
+#define D3U_TBL_443CF8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 408UL) + (a)))
+#define D3U_TBL_443CFC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 412UL) + (a)))
+#define D3U_TBL_443D00_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 416UL) + (a)))
+#define D3U_TBL_443D04_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_443B60 + 420UL) + (a)))
+#define D3U_TBL_444188_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 128UL) + (a)))
+#define D3U_TBL_44418C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 132UL) + (a)))
+#define D3U_TBL_444190_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 136UL) + (a)))
+#define D3U_TBL_444194_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 140UL) + (a)))
+#define D3U_TBL_444198_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 144UL) + (a)))
+#define D3U_TBL_4441B0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 168UL) + (a)))
+#define D3U_TBL_4441B4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 172UL) + (a)))
+#define D3U_TBL_4441B8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 176UL) + (a)))
+#define D3U_TBL_4441BC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 180UL) + (a)))
+#define D3U_TBL_4441C0_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 184UL) + (a)))
+#define D3U_TBL_4441C0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 184UL) + (a)))
+#define D3U_TBL_4441C4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 188UL) + (a)))
+#define D3U_TBL_4441C8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 192UL) + (a)))
+#define D3U_TBL_4441CC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 196UL) + (a)))
+#define D3U_TBL_4441D0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 200UL) + (a)))
+#define D3U_TBL_4441D4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 204UL) + (a)))
+#define D3U_TBL_4441DC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 212UL) + (a)))
+#define D3U_TBL_4441E0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 216UL) + (a)))
+#define D3U_TBL_4441E4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 220UL) + (a)))
+#define D3U_RC_TOTAL_16(s, a) (*(unsigned short *)(void *)(((unsigned char *)(s)->fx_444108 + 224UL) + (a)))
+#define D3U_RC_TOTAL_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 224UL) + (a)))
+#define D3U_RC_PROB_LO_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 228UL) + (a)))
+#define D3U_RC_PROB_HI_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 232UL) + (a)))
+#define D3U_TBL_4441F4_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 236UL) + (a)))
+#define D3U_TBL_4441F8_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 240UL) + (a)))
+#define D3U_TBL_4441FC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 244UL) + (a)))
+#define D3U_TBL_444200_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 248UL) + (a)))
+#define D3U_TBL_444204_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 252UL) + (a)))
+#define D3U_TBL_444208_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 256UL) + (a)))
+#define D3U_TBL_44420C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 260UL) + (a)))
+#define D3U_TBL_444210_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 264UL) + (a)))
+#define D3U_TBL_444214_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 268UL) + (a)))
+#define D3U_TBL_444218_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 272UL) + (a)))
+#define D3U_TBL_44421C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 276UL) + (a)))
+#define D3U_TBL_444220_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 280UL) + (a)))
+#define D3U_TBL_444224_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 284UL) + (a)))
+#define D3U_TBL_444228_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 288UL) + (a)))
+#define D3U_CUM_TABLE_PTR_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 292UL) + (a)))
+#define D3U_TBL_444230_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 296UL) + (a)))
+#define D3U_TBL_444234_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 300UL) + (a)))
+#define D3U_TBL_444238_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 304UL) + (a)))
+#define D3U_TBL_44423C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 308UL) + (a)))
+#define D3U_TBL_444240_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 312UL) + (a)))
+#define D3U_TBL_444244_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 316UL) + (a)))
+#define D3U_TBL_444248_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 320UL) + (a)))
+#define D3U_TBL_44424C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 324UL) + (a)))
+#define D3U_TBL_444250_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 328UL) + (a)))
+#define D3U_PRIMER_TOTAL_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 332UL) + (a)))
+#define D3U_TBL_444258_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 336UL) + (a)))
+#define D3U_TBL_444258_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 336UL) + (a)))
+#define D3U_TBL_44425C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 340UL) + (a)))
+#define D3U_TBL_444260_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 344UL) + (a)))
+#define D3U_TBL_444264_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 348UL) + (a)))
+#define D3U_TBL_444268_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 352UL) + (a)))
+#define D3U_TBL_44426C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 356UL) + (a)))
+#define D3U_DICT_SIZE_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 360UL) + (a)))
+#define D3U_DICT_CURSOR_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 364UL) + (a)))
+#define D3U_DICT_MASK_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 368UL) + (a)))
+#define D3U_TBL_44427C_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 372UL) + (a)))
+#define D3U_TBL_444280_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444108 + 376UL) + (a)))
+#define D3U_TBL_444284_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 380UL) + (a)))
+#define D3U_TBL_444285_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 381UL) + (a)))
+#define D3U_TBL_444286_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 382UL) + (a)))
+#define D3U_TBL_444287_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 383UL) + (a)))
+#define D3U_TBL_444288_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 384UL) + (a)))
+#define D3U_TBL_444289_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444108 + 385UL) + (a)))
+#define D3U_TBL_444C84_16(s, a) (*(unsigned short *)(void *)(((unsigned char *)(s)->fx_444870 + 1044UL) + (a)))
+#define D3U_FLAG_444E7E_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1550UL) + (a)))
+#define D3U_FLAG_444E7F_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1551UL) + (a)))
+#define D3U_FLAG_444E80_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1552UL) + (a)))
+#define D3U_FLAG_444E81_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1553UL) + (a)))
+#define D3U_FLAG_444E82_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1554UL) + (a)))
+#define D3U_FLAG_444E99_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1577UL) + (a)))
+#define D3U_FLAG_444E9A_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1578UL) + (a)))
+#define D3U_FLAG_444E9B_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1579UL) + (a)))
+#define D3U_FLAG_444E9C_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1580UL) + (a)))
+#define D3U_FLAG_444E9D_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1581UL) + (a)))
+#define D3U_FLAG_444E9E_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1582UL) + (a)))
+#define D3U_FLAG_444E9F_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1583UL) + (a)))
+#define D3U_FLAG_444EA0_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1584UL) + (a)))
+#define D3U_FLAG_444EA1_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1585UL) + (a)))
+#define D3U_FLAG_444EA2_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1586UL) + (a)))
+#define D3U_FLAG_444EA3_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1587UL) + (a)))
+#define D3U_FLAG_444EA4_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1588UL) + (a)))
+#define D3U_FLAG_444EA5_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1589UL) + (a)))
+#define D3U_FLAG_444EA6_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1590UL) + (a)))
+#define D3U_FLAG_444EA7_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1591UL) + (a)))
+#define D3U_FLAG_444EA8_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1592UL) + (a)))
+#define D3U_FLAG_444EA9_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1593UL) + (a)))
+#define D3U_FLAG_444EAA_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1594UL) + (a)))
+#define D3U_FLAG_444EAB_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1595UL) + (a)))
+#define D3U_FLAG_444EAC_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1596UL) + (a)))
+#define D3U_FLAG_444EAD_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1597UL) + (a)))
+#define D3U_FLAG_444EAE_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1598UL) + (a)))
+#define D3U_FLAG_444EAF_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1599UL) + (a)))
+#define D3U_FLAG_444EB0_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1600UL) + (a)))
+#define D3U_FLAG_444EB0_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1600UL) + (a)))
+#define D3U_FLAG_444EB1_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1601UL) + (a)))
+#define D3U_FLAG_444EB2_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1602UL) + (a)))
+#define D3U_FLAG_444EB3_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1603UL) + (a)))
+#define D3U_FLAG_444EB4_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1604UL) + (a)))
+#define D3U_FLAG_444EB5_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1605UL) + (a)))
+#define D3U_FLAG_444EB6_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1606UL) + (a)))
+#define D3U_FLAG_444EB7_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1607UL) + (a)))
+#define D3U_FLAG_444EB8_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1608UL) + (a)))
+#define D3U_FLAG_444EB9_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1609UL) + (a)))
+#define D3U_FLAG_444EBA_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1610UL) + (a)))
+#define D3U_OUT_FLUSH_THRESH_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1648UL) + (a)))
+#define D3U_OUT_TOTAL_LEN_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 1652UL) + (a)))
+#define D3U_OUT_TOTAL_LEN_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1652UL) + (a)))
+#define D3U_IN_POS_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1656UL) + (a)))
+#define D3U_OUT_STAGED_LEN_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1660UL) + (a)))
+#define D3U_IN_AVAIL_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1664UL) + (a)))
+#define D3U_IN_ABS_POS_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1668UL) + (a)))
+#define D3U_OUT_TOTAL_POS_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1672UL) + (a)))
+#define D3U_TBL_444EFC_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 1676UL) + (a)))
+#define D3U_RC_SCALE_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 2176UL) + (a)))
+#define D3U_RC_VALUE_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 2180UL) + (a)))
+#define D3U_RC_RANGE_32(s, a) (*(unsigned int *)(void *)(((unsigned char *)(s)->fx_444870 + 2184UL) + (a)))
+#define D3U_RC_CARRY_BYTE_8(s, a) (*(unsigned char *)(void *)(((unsigned char *)(s)->fx_444870 + 2188UL) + (a)))
 
 #endif
