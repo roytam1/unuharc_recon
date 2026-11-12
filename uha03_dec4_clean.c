@@ -1455,58 +1455,56 @@ void d3uc_primer(dec3w_ctx *c)
     unsigned int t4 = 0;
     unsigned int t5 = 0;
     unsigned int t6 = 0;
-    /* push t1/t2/t3/t4/t5/t6 (frame only) */
-    /* mov t3,2 */ t3 = 2;
-    /* mov t0,t3 */ t0 = t3;
-    /* mov dword_4441E8,t3 */ D3U_RC_TOTAL_32(&c->st, 0) = t3;
+     t3 = 2;
+     t0 = t3;
+     D3U_RC_TOTAL_32(&c->st, 0) = t3;
     t0 = d3uc_rc_decode(c, t0 & 0xFFFFUL);
-    /* mov t3,t0 */ t3 = t0;
+     t3 = t0;
     D3U_FLAG_444EA0_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
-    /* xor t0,t0 */ t0 = 0;
+     t0 = 0;
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
-    /* mov dword_4441EC,t0 */ D3U_RC_PROB_LO_32(&c->st, 0) = t0;
-    /* xor t0,t0 */ t0 = 0;
+     D3U_RC_PROB_LO_32(&c->st, 0) = t0;
+     t0 = 0;
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
-    /* inc t0 */ t0 = (t0 + 1) & U32MASK;
-    /* mov dword_4441F0,t0 */ D3U_RC_PROB_HI_32(&c->st, 0) = t0;
-    /* mov t0,offset dword_4441E8 */ t0 = D3U_RC_TOTAL;
+     t0 = (t0 + 1) & U32MASK;
+     D3U_RC_PROB_HI_32(&c->st, 0) = t0;
+     t0 = D3U_RC_TOTAL;
     d3uc_rc_update(c, t0);
     if (D3U_FLAG_444EA0_8(&c->st, 0) != 0) goto loc_41BFC3;
-    /* mov t4,offset dword_4441E8 */ t4 = D3U_RC_TOTAL;
-    /* mov t6,2 */ t6 = 2;
-    /* xor t1,t1 */ t1 = 0;
+     t4 = D3U_RC_TOTAL;
+     t6 = 2;
+     t1 = 0;
 loc_41BF4D:
-    /* mov t2,800h */ t2 = 0x800U;
-    /* xor t3,t3 */ t3 = 0;
-    /* mov t0,t2 */ t0 = t2;
-    /* mov dword_4441E8,t2 */ D3U_RC_TOTAL_32(&c->st, 0) = t2;
+     t2 = 0x800U;
+     t3 = 0;
+     t0 = t2;
+     D3U_RC_TOTAL_32(&c->st, 0) = t2;
     t0 = d3uc_rc_decode(c, t0 & 0xFFFFUL);
     t3 = (t3 & ~0xFFFFUL) | (t0 & 0xFFFFUL);
-    /* mov dword_4441EC,t3 */ D3U_RC_PROB_LO_32(&c->st, 0) = t3;
-    /* lea t0,[t3+1] */ t0 = (t3 + 1) & U32MASK;
+     D3U_RC_PROB_LO_32(&c->st, 0) = t3;
+     t0 = (t3 + 1) & U32MASK;
     t2 = (t2 & ~0xFFUL) | (t1 & 0xFFUL);
-    /* mov dword_4441F0,t0 */ D3U_RC_PROB_HI_32(&c->st, 0) = t0;
-    /* mov t0,t4 */ t0 = t4;
-    /* shl t3,cl */ t3 = (t3 << (t2 & 31U)) & U32MASK;
+     D3U_RC_PROB_HI_32(&c->st, 0) = t0;
+     t0 = t4;
+     t3 = (t3 << (t2 & 31U)) & U32MASK;
     d3uc_rc_update(c, t0);
-    /* mov t5,dword_428EDC */ t5 = (unsigned long)D3U_PRIMER_ACCUMULATOR_32(&c->st, 0);
-    /* mov dword_4441E8,t6 */ D3U_RC_TOTAL_32(&c->st, 0) = t6;
-    /* add t5,t3 */ t5 = (t5 + t3) & U32MASK;
-    /* mov t0,t6 */ t0 = t6;
-    /* mov dword_428EDC,t5 */ D3U_PRIMER_ACCUMULATOR_32(&c->st, 0) = t5;
-    /* xor t3,t3 */ t3 = 0;
+     t5 = (unsigned long)D3U_PRIMER_ACCUMULATOR_32(&c->st, 0);
+     D3U_RC_TOTAL_32(&c->st, 0) = t6;
+     t5 = (t5 + t3) & U32MASK;
+     t0 = t6;
+     D3U_PRIMER_ACCUMULATOR_32(&c->st, 0) = t5;
+     t3 = 0;
     t0 = d3uc_rc_decode(c, t0 & 0xFFFFUL);
     t3 = (t3 & ~0xFFFFUL) | (t0 & 0xFFFFUL);
-    /* mov dword_4441EC,t3 */ D3U_RC_PROB_LO_32(&c->st, 0) = t3;
-    /* lea t0,[t3+1] */ t0 = (t3 + 1) & U32MASK;
-    /* mov dword_4441F0,t0 */ D3U_RC_PROB_HI_32(&c->st, 0) = t0;
-    /* mov t0,t4 */ t0 = t4;
-    /* add t1,0Bh */ t1 = (t1 + 0x0BUL) & U32MASK;
+     D3U_RC_PROB_LO_32(&c->st, 0) = t3;
+     t0 = (t3 + 1) & U32MASK;
+     D3U_RC_PROB_HI_32(&c->st, 0) = t0;
+     t0 = t4;
+     t1 = (t1 + 0x0BUL) & U32MASK;
     d3uc_rc_update(c, t0);
-    /* test t3,t3 */
     if (t3 != 0) goto loc_41BF4D;
-    /* mov t0,dword_428EDC */ t0 = (unsigned long)D3U_PRIMER_ACCUMULATOR_32(&c->st, 0);
-    /* mov dword_444254,t0 */ D3U_PRIMER_TOTAL_32(&c->st, 0) = t0;
+     t0 = (unsigned long)D3U_PRIMER_ACCUMULATOR_32(&c->st, 0);
+     D3U_PRIMER_TOTAL_32(&c->st, 0) = t0;
 loc_41BFC3:;
 }
 
@@ -1726,25 +1724,22 @@ void d3uc_rebuild_cum(dec3w_ctx *c)
     unsigned long t1 = 0;
     unsigned long t2 = 0;
     unsigned long t3 = 0;
-    /* push t1 */ /* push t2 */ /* push t3 */
     if (D3U_REBUILD_FLAG_8(&c->st, 0) != 0) {
-        /* mov t0,1 */ t0 = 1UL;
+         t0 = 1UL;
     /* loc_423101: */
     agn:
-        /* xor t3,t3 */ t3 = 0UL;
+         t3 = 0UL;
         t3 = (t3 & ~0xFFFFUL) | (t0 & 0xFFFFUL);
-        /* mov bx,word_42D272[t3*2] */ t1 = (t1 & ~0xFFFFUL) | (unsigned long)D3U_U16_DELTA_SRC_16(&c->st, (t3 & 0xFFFFUL) * 2UL);
-        /* mov cx,word_42D274[t3*2] */ t2 = (t2 & ~0xFFFFUL) | (unsigned long)D3U_U16_CUM_DST_16(&c->st, (t3 & 0xFFFFUL) * 2UL);
-        /* add t2,t1 */ t2 = (t2 + t1) & U32MASK;
-        /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-        /* mov word_42D274[t3*2],cx */ D3U_U16_CUM_DST_16(&c->st, (t3 & 0xFFFFUL) * 2UL) = (unsigned short)(t2 & 0xFFFFUL);
-        /* cmp ax,4000h */
+         t1 = (t1 & ~0xFFFFUL) | (unsigned long)D3U_U16_DELTA_SRC_16(&c->st, (t3 & 0xFFFFUL) * 2UL);
+         t2 = (t2 & ~0xFFFFUL) | (unsigned long)D3U_U16_CUM_DST_16(&c->st, (t3 & 0xFFFFUL) * 2UL);
+         t2 = (t2 + t1) & U32MASK;
+         t0 = (t0 + 1UL) & U32MASK;
+         D3U_U16_CUM_DST_16(&c->st, (t3 & 0xFFFFUL) * 2UL) = (unsigned short)(t2 & 0xFFFFUL);
         if ((t0 & 0xFFFFUL) < 0x4000UL) goto agn;
         t3 &= ~0xFFUL;
         D3U_REBUILD_FLAG_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
     }
     /* loc_42312F: */
-    /* pop t3 */ /* pop t2 */ /* pop t1 */
     /* retn */
 }
 /* sub_40CECC (0x0040CECC): pure load of dword_428F48 into t0.
@@ -1752,7 +1747,7 @@ void d3uc_rebuild_cum(dec3w_ctx *c)
  * at 0x413EBC (see d3uc_startup). */
 void d3uc_load_const(dec3w_ctx *c)
 {
-    /* mov t0,dword_428F48 */ (void)(unsigned long)D3U_CONST_428F48_32(&c->st, 0);
+     (void)(unsigned long)D3U_CONST_428F48_32(&c->st, 0);
     /* retn */
 }
 /* sub_421284 (0x00421284): word-pattern fill of t1*2 bytes at t3
@@ -1764,106 +1759,100 @@ void d3uc_fill16(dec3w_ctx *c, unsigned int t1, unsigned int t3, unsigned int t0
     unsigned int sv2 = 0;
     unsigned int t16 = 0;
     (void)t5;
-    /* push t2 */
-    /* push t4 */
-    /* mov t4,t0 */ t4 = t0;
-    /* mov t0,t3 */ t0 = t3;
-    /* test t1,t1 */
+     t4 = t0;
+     t0 = t3;
     if (t1 == 0) goto ddone;
-    /* mov t2,t1 */ t2 = t1;
-    /* mov t3,t4 */ t3 = t4;
+     t2 = t1;
+     t3 = t4;
     t16 = (unsigned int)(t3 & 0xFFFFU);
-    /* shl t3,10h */ t3 <<= 16;
+     t3 <<= 16;
     t3 = (unsigned int)((t3 & 0xFFFF0000U) | t16);
-    /* add t2,t2 */ t2 += t2;
-    /* cmp [t0],dl (prefetch read, flags discarded) */ (void)G8(t0);
+     t2 += t2;
+     (void)G8(t0);
     /* loc_4212A1: */
 dbyte:
     if ((t0 & 3U) == 0) goto ddword;
-    /* mov [t0],dl */ G8(t0) = (unsigned char)(t3 & 0xFFU);
-    /* inc t0 */ t0 += 1U;
+     G8(t0) = (unsigned char)(t3 & 0xFFU);
+     t0 += 1U;
     /* ror t3,8 */ t3 = (t3 >> 8) | (t3 << 24);
-    /* dec t2 */ t2 -= 1U;
+     t2 -= 1U;
     if (t2 != 0) goto dbyte;
     /* loc_4212AE: */
 ddword:
-    /* push t2 */ sv1 = t2;
-    /* shr t2,2 */ t2 >>= 2;
+     sv1 = t2;
+     t2 >>= 2;
     if (t2 == 0) goto dtailb;
     /* loc_4212B4: */
 dalign:
-    /* test al,1Fh */
     if ((t0 & 0x1FU) == 0) goto dblock;
-    /* mov [t0],t3 */ d3u_st32(c, (unsigned long)(t0), t3);
-    /* lea t0,[t0+4] */ t0 += 4U;
-    /* dec t2 */ t2 -= 1U;
+     d3u_st32(c, (unsigned long)(t0), t3);
+     t0 += 4U;
+     t2 -= 1U;
     if (t2 != 0) goto dalign;
     /* loc_4212C0: */
 dblock:
-    /* push t2 */ sv2 = t2;
-    /* shr t2,2 */ t2 >>= 2;
+     sv2 = t2;
+     t2 >>= 2;
     if (t2 == 0) goto drem;
-    /* dec t2 */ t2 -= 1U;
+     t2 -= 1U;
     if (t2 == 0) goto dfour;
     /* loc_4212C9: */
 dbig:
-    /* mov [t0],t3 */ d3u_st32(c, (unsigned long)(t0), t3);
-    /* mov [t0+4],t3 */ d3u_st32(c, (unsigned long)(t0 + 4U), t3);
-    /* dec t2 */ t2 -= 1U;
-    /* mov [t0+8],t3 */ d3u_st32(c, (unsigned long)(t0 + 8U), t3);
-    /* mov [t0+0Ch],t3 */ d3u_st32(c, (unsigned long)(t0 + 0x0CU), t3);
+     d3u_st32(c, (unsigned long)(t0), t3);
+     d3u_st32(c, (unsigned long)(t0 + 4U), t3);
+     t2 -= 1U;
+     d3u_st32(c, (unsigned long)(t0 + 8U), t3);
+     d3u_st32(c, (unsigned long)(t0 + 0x0CU), t3);
     if (t2 == 0) goto dstep;
-    /* cmp [t0+20h],dl (prefetch read, discarded) */ (void)G8(t0 + 0x20U);
-    /* mov [t0+10h],t3 */ d3u_st32(c, (unsigned long)(t0 + 0x10U), t3);
-    /* mov [t0+14h],t3 */ d3u_st32(c, (unsigned long)(t0 + 0x14U), t3);
-    /* dec t2 */ t2 -= 1U;
-    /* mov [t0+18h],t3 */ d3u_st32(c, (unsigned long)(t0 + 0x18U), t3);
-    /* mov [t0+1Ch],t3 */ d3u_st32(c, (unsigned long)(t0 + 0x1CU), t3);
-    /* lea t0,[t0+20h] */ t0 += 0x20U;
+     (void)G8(t0 + 0x20U);
+     d3u_st32(c, (unsigned long)(t0 + 0x10U), t3);
+     d3u_st32(c, (unsigned long)(t0 + 0x14U), t3);
+     t2 -= 1U;
+     d3u_st32(c, (unsigned long)(t0 + 0x18U), t3);
+     d3u_st32(c, (unsigned long)(t0 + 0x1CU), t3);
+     t0 += 0x20U;
     if (t2 != 0) goto dbig;
-    /* lea t0,[t0-10h] */ t0 -= 0x10U;
+     t0 -= 0x10U;
     /* loc_4212EF: */
 dstep:
-    /* lea t0,[t0+10h] */ t0 += 0x10U;
+     t0 += 0x10U;
     /* loc_4212F2: */
 dfour:
-    /* mov [t0],t3 */ d3u_st32(c, (unsigned long)(t0), t3);
-    /* mov [t0+4],t3 */ d3u_st32(c, (unsigned long)(t0 + 4U), t3);
-    /* mov [t0+8],t3 */ d3u_st32(c, (unsigned long)(t0 + 8U), t3);
-    /* mov [t0+0Ch],t3 */ d3u_st32(c, (unsigned long)(t0 + 0x0CU), t3);
-    /* lea t0,[t0+10h] */ t0 += 0x10U;
+     d3u_st32(c, (unsigned long)(t0), t3);
+     d3u_st32(c, (unsigned long)(t0 + 4U), t3);
+     d3u_st32(c, (unsigned long)(t0 + 8U), t3);
+     d3u_st32(c, (unsigned long)(t0 + 0x0CU), t3);
+     t0 += 0x10U;
     /* loc_421300: */
 drem:
-    /* pop t2 */ t2 = sv2;
-    /* and t2,3 */ t2 &= 3U;
+     t2 = sv2;
+     t2 &= 3U;
     if (t2 == 0) goto dtailb;
-    /* mov [t0],t3 */ d3u_st32(c, (unsigned long)(t0), t3);
-    /* lea t0,[t0+4] */ t0 += 4U;
-    /* dec t2 */ t2 -= 1U;
+     d3u_st32(c, (unsigned long)(t0), t3);
+     t0 += 4U;
+     t2 -= 1U;
     if (t2 == 0) goto dtailb;
-    /* mov [t0],t3 */ d3u_st32(c, (unsigned long)(t0), t3);
-    /* lea t0,[t0+4] */ t0 += 4U;
-    /* dec t2 */ t2 -= 1U;
+     d3u_st32(c, (unsigned long)(t0), t3);
+     t0 += 4U;
+     t2 -= 1U;
     if (t2 == 0) goto dtailb;
-    /* mov [t0],t3 */ d3u_st32(c, (unsigned long)(t0), t3);
-    /* lea t0,[t0+4] */ t0 += 4U;
+     d3u_st32(c, (unsigned long)(t0), t3);
+     t0 += 4U;
     /* loc_42131B: */
 dtailb:
-    /* pop t2 */ t2 = sv1;
-    /* and t2,3 */ t2 &= 3U;
+     t2 = sv1;
+     t2 &= 3U;
     if (t2 == 0) goto ddone;
-    /* mov [t0],dl */ G8(t0) = (unsigned char)(t3 & 0xFFU);
-    /* dec t2 */ t2 -= 1U;
+     G8(t0) = (unsigned char)(t3 & 0xFFU);
+     t2 -= 1U;
     if (t2 == 0) goto ddone;
-    /* mov [t0+1],dh */ G8(t0 + 1U) = (unsigned char)((t3 >> 8) & 0xFFU);
-    /* dec t2 */ t2 -= 1U;
+     G8(t0 + 1U) = (unsigned char)((t3 >> 8) & 0xFFU);
+     t2 -= 1U;
     if (t2 == 0) goto ddone;
     /* ror t3,8 */ t3 = (t3 >> 8) | (t3 << 24);
-    /* mov [t0+2],dh */ G8(t0 + 2U) = (unsigned char)((t3 >> 8) & 0xFFU);
+     G8(t0 + 2U) = (unsigned char)((t3 >> 8) & 0xFFU);
     /* loc_421332: */
 ddone:
-    /* pop t4 */
-    /* pop t2 */
     /* retn */
     ;
 }
@@ -1884,322 +1873,286 @@ int d3uc_startup(dec3w_ctx *c, unsigned int eax_in, unsigned int edx_in)
     unsigned int p = 0;
     t0 = (unsigned long)eax_in;
     t3 = (unsigned long)edx_in;
-    /* push t1 */ /* push t2 */ /* push t4 */
-    /* push t5 */ /* push t6 (callee-saved; C locals) */
-    /* mov t4,dword_444228 */ t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
-    /* cmp t3,16h */
-    /* jl loc_41384D (signed) */
+     t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
     if (((t3 & 0x80000000UL) != 0) || t3 < 0x16UL) goto failrng;
-    /* cmp t3,23h */
-    /* jle loc_41385D (signed) */
     if (((t3 & 0x80000000UL) != 0) || t3 > 0x23UL) goto failrng;
     goto ok;
 failrng:
     /* loc_41384D: */
-    /* mov t0,1 */ t0 = 1UL;
-    /* mov t4,dword_444228 */ t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
+     t0 = 1UL;
+     t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
     goto epi;
 ok:
     /* loc_41385D: */
     t0 = (t0 & ~0xFF00UL) | 0x0100UL;
-    /* sub t3,16h */ t3 = (t3 - 0x16UL) & U32MASK;
+     t3 = (t3 - 0x16UL) & U32MASK;
     D3U_TBL_42BC6C_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFUL);
     D3U_FLAG_444E99_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
     d3uc_rebuild_cum(c);
-    /* mov t1,dword_436E48 */ t1 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* mov t0,t3 */ t0 = t3;
-    /* add t1,16DB2h */ t1 = (t1 + 0x16DB2UL) & U32MASK;
-    /* sar t3,1Fh */ t3 = ((t3 & 0x80000000UL) != 0) ? 0xFFFFFFFFUL : 0UL;
-    /* mov dword_436E48,t1 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t1;
-    /* mov t1,0Eh */ t1 = 0x0EUL;
-    /* idiv t1 (div0/overflow fault impossible: t1 nonzero, tiny non-negative sign-extended dividend) */
+     t1 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     t0 = t3;
+     t1 = (t1 + 0x16DB2UL) & U32MASK;
+     t3 = ((t3 & 0x80000000UL) != 0) ? 0xFFFFFFFFUL : 0UL;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t1;
+     t1 = 0x0EUL;
     t_eax = t0; t0 = (t_eax / t1) & U32MASK; t3 = (t_eax % t1) & U32MASK;
-    /* add t3,0Ah */ t3 = (t3 + 0x0AUL) & U32MASK;
-    /* mov t0,1 */ t0 = 1UL;
+     t3 = (t3 + 0x0AUL) & U32MASK;
+     t0 = 1UL;
     t2 = (t2 & ~0xFFUL) | (t3 & 0xFFUL);
-    /* shl t0,cl (count masked to 0x1F) */ t0 = (t0 << (t2 & 31UL)) & U32MASK;
-    /* mov dword_444270,t0 */ D3U_DICT_SIZE_32(&c->st, 0) = (unsigned int)t0;
-    /* dec t0 */ t0 = (t0 - 1UL) & U32MASK;
-    /* mov t6,dword_436E48 */ t6 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* mov dword_444278,t0 */ D3U_DICT_MASK_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,dword_444270 */ t0 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
-    /* xor t2,t2 */ t2 = 0UL;
-    /* add t0,100h */ t0 = (t0 + 0x100UL) & U32MASK;
-    /* mov dword_444274,t2 */ D3U_DICT_CURSOR_32(&c->st, 0) = (unsigned int)t2;
-    /* add t6,t0 */ t6 = (t6 + t0) & U32MASK;
-    /* mov dword_444280,t2 */ D3U_TBL_444280_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_436E48,t6 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t6;
-    /* call sub_40C4B3 (carve dict+0x100) */
+     t0 = (t0 << (t2 & 31UL)) & U32MASK;
+     D3U_DICT_SIZE_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (t0 - 1UL) & U32MASK;
+     t6 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     D3U_DICT_MASK_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
+     t2 = 0UL;
+     t0 = (t0 + 0x100UL) & U32MASK;
+     D3U_DICT_CURSOR_32(&c->st, 0) = (unsigned int)t2;
+     t6 = (t6 + t0) & U32MASK;
+     D3U_TBL_444280_32(&c->st, 0) = (unsigned int)t2;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t6;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299B8,t0 */ D3U_BLK00_DICT_MASTER_32(&c->st, 0) = p;
+     D3U_BLK00_DICT_MASTER_32(&c->st, 0) = p;
     c->blk00_dict = d3u_ptr(c, (unsigned long)p); c->blk00_base = (unsigned long)p; c->blk00_size = (unsigned long)(D3U_DICT_SIZE_32(&c->st, 0) + 0x100UL);
-    /* test t0,t0 */ if (p == 0) goto afail;
+     if (p == 0) goto afail;
     t3 = (t3 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t3,80h */ t3 = (t3 + 0x80UL) & U32MASK;
-    /* mov t0,800000h */ t0 = 0x800000UL;
+     t3 = (t3 + 0x80UL) & U32MASK;
+     t0 = 0x800000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t3 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x800000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299BC,t0 */ D3U_BLK01_DICT_COPY_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_BLK01_DICT_COPY_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t1 = (t1 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t1,14h */ t1 = (t1 + 0x14UL) & U32MASK;
-    /* mov t0,140000h */ t0 = 0x140000UL;
+     t1 = (t1 + 0x14UL) & U32MASK;
+     t0 = 0x140000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t1 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x140000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299C0,t0 */ D3U_BLK02_MODEL_A_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_BLK02_MODEL_A_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t2 = (t2 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t2,20h */ t2 = (t2 + 0x20UL) & U32MASK;
-    /* mov t0,200000h */ t0 = 0x200000UL;
+     t2 = (t2 + 0x20UL) & U32MASK;
+     t0 = 0x200000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t2 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x200000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299C4,t0 */ D3U_BLK03_MODEL_A_FF_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_BLK03_MODEL_A_FF_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t5 = (t5 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t5,20h */ t5 = (t5 + 0x20UL) & U32MASK;
-    /* mov t0,200000h */ t0 = 0x200000UL;
+     t5 = (t5 + 0x20UL) & U32MASK;
+     t0 = 0x200000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t5 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x200000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299C8,t0 */ D3U_BLK04_MODEL_B_FF_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_BLK04_MODEL_B_FF_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(((unsigned long)D3U_POOL_CURSOR_16(&c->st, 2) + 4UL) & 0xFFFFUL);
-    /* mov t0,40000h */ t0 = 0x40000UL;
-    /* call sub_40C4B3 (carve 0x40000) */
+     t0 = 0x40000UL;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299CC,t0 */ D3U_TBL_4299CC_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299CC_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t3 = (t3 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t3,4 */ t3 = (t3 + 4UL) & U32MASK;
-    /* mov t0,40000h */ t0 = 0x40000UL;
+     t3 = (t3 + 4UL) & U32MASK;
+     t0 = 0x40000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t3 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x40000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299D0,t0 */ D3U_TBL_4299D0_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299D0_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t1 = (t1 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t1,8 */ t1 = (t1 + 8UL) & U32MASK;
-    /* mov t0,80000h */ t0 = 0x80000UL;
+     t1 = (t1 + 8UL) & U32MASK;
+     t0 = 0x80000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t1 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x80000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299D4,t0 */ D3U_TBL_4299D4_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299D4_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t2 = (t2 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t2,8 */ t2 = (t2 + 8UL) & U32MASK;
-    /* mov t0,80000h */ t0 = 0x80000UL;
+     t2 = (t2 + 8UL) & U32MASK;
+     t0 = 0x80000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t2 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x80000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299D8,t0 */ D3U_TBL_4299D8_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299D8_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t5 = (t5 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t5,4 */ t5 = (t5 + 4UL) & U32MASK;
-    /* mov t0,40000h */ t0 = 0x40000UL;
+     t5 = (t5 + 4UL) & U32MASK;
+     t0 = 0x40000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t5 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x40000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299DC,t0 */ D3U_TBL_4299DC_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299DC_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(((unsigned long)D3U_POOL_CURSOR_16(&c->st, 2) + 4UL) & 0xFFFFUL);
-    /* mov t0,40000h */ t0 = 0x40000UL;
-    /* call sub_40C4B3 (carve 0x40000) */
+     t0 = 0x40000UL;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299E0,t0 */ D3U_TBL_4299E0_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299E0_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t3 = (t3 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t3,4 */ t3 = (t3 + 4UL) & U32MASK;
-    /* mov t0,40000h */ t0 = 0x40000UL;
+     t3 = (t3 + 4UL) & U32MASK;
+     t0 = 0x40000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t3 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x40000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299E4,t0 */ D3U_TBL_4299E4_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299E4_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t1 = (t1 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t1,1Ch */ t1 = (t1 + 0x1CUL) & U32MASK;
-    /* mov t0,1C0000h */ t0 = 0x1C0000UL;
+     t1 = (t1 + 0x1CUL) & U32MASK;
+     t0 = 0x1C0000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t1 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x1C0000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299E8,t0 */ D3U_TBL_4299E8_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4299E8_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     t2 = (t2 & 0xFFFF0000UL) | (unsigned long)D3U_POOL_CURSOR_16(&c->st, 2);
-    /* add t2,4 */ t2 = (t2 + 4UL) & U32MASK;
-    /* mov t0,40000h */ t0 = 0x40000UL;
+     t2 = (t2 + 4UL) & U32MASK;
+     t0 = 0x40000UL;
     D3U_POOL_CURSOR_16(&c->st, 2) = (unsigned short)(t2 & 0xFFFFUL);
-    /* call sub_40C4B3 (carve 0x40000) */
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299EC,t0 */ D3U_TBL_4299EC_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* add dword_436E48,61600h */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_POOL_CURSOR_32(&c->st, 0) + 0x61600UL) & U32MASK);
-    /* mov t0,61600h */ t0 = 0x61600UL;
-    /* call sub_40C4B3 (carve 0x61600) */
+     D3U_TBL_4299EC_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_POOL_CURSOR_32(&c->st, 0) + 0x61600UL) & U32MASK);
+     t0 = 0x61600UL;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299F0,t0 */ D3U_BLK14_CTX_CODER_A_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* mov t3,dword_436E48 */ t3 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* add t3,61600h */ t3 = (t3 + 0x61600UL) & U32MASK;
-    /* mov t0,61600h */ t0 = 0x61600UL;
-    /* mov dword_436E48,t3 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t3;
-    /* call sub_40C4B3 (carve 0x61600) */
+     D3U_BLK14_CTX_CODER_A_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     t3 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     t3 = (t3 + 0x61600UL) & U32MASK;
+     t0 = 0x61600UL;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t3;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299F4,t0 */ D3U_BLK15_CTX_CODER_B_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* mov t1,dword_436E48 */ t1 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* add t1,0C000h */ t1 = (t1 + 0x0C000UL) & U32MASK;
-    /* mov t0,0C000h */ t0 = 0x0C000UL;
-    /* mov dword_436E48,t1 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t1;
-    /* call sub_40C4B3 (carve 0xC000) */
+     D3U_BLK15_CTX_CODER_B_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     t1 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     t1 = (t1 + 0x0C000UL) & U32MASK;
+     t0 = 0x0C000UL;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t1;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299F8,t0 */ D3U_TBL_4299F8_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* mov t2,dword_436E48 */ t2 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* add t2,5FAh */ t2 = (t2 + 0x5FAUL) & U32MASK;
-    /* mov t0,5FAh */ t0 = 0x5FAUL;
-    /* mov dword_436E48,t2 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t2;
-    /* call sub_40C4B3 (carve 0x5FA) */
+     D3U_TBL_4299F8_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     t2 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     t2 = (t2 + 0x5FAUL) & U32MASK;
+     t0 = 0x5FAUL;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t2;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4299FC,t0 */ D3U_BLK17_SMALL_B_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* mov t5,dword_436E48 */ t5 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* add t5,0C0h */ t5 = (t5 + 0x0C0UL) & U32MASK;
-    /* mov t0,0C0h */ t0 = 0x0C0UL;
-    /* mov dword_436E48,t5 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t5;
-    /* call sub_40C4B3 (carve 0xC0) */
+     D3U_BLK17_SMALL_B_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     t5 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     t5 = (t5 + 0x0C0UL) & U32MASK;
+     t0 = 0x0C0UL;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t5;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_429A00,t0 */ D3U_TBL_429A00_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* mov t6,dword_436E48 */ t6 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
-    /* add t6,0C0h */ t6 = (t6 + 0x0C0UL) & U32MASK;
-    /* mov t0,0C0h */ t0 = 0x0C0UL;
-    /* mov dword_436E48,t6 */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t6;
-    /* call sub_40C4B3 (carve 0xC0) */
+     D3U_TBL_429A00_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     t6 = (unsigned long)D3U_POOL_CURSOR_32(&c->st, 0);
+     t6 = (t6 + 0x0C0UL) & U32MASK;
+     t0 = 0x0C0UL;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)t6;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_429A04,t0 */ D3U_TBL_429A04_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
-    /* add dword_436E48,25800h */ D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_POOL_CURSOR_32(&c->st, 0) + 0x25800UL) & U32MASK);
-    /* mov t0,25800h */ t0 = 0x25800UL;
-    /* call sub_40C4B3 (carve 0x25800) */
+     D3U_TBL_429A04_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
+     D3U_POOL_CURSOR_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_POOL_CURSOR_32(&c->st, 0) + 0x25800UL) & U32MASK);
+     t0 = 0x25800UL;
     p = d3u_carve(c, (unsigned int)t0);
-    /* mov dword_4441BC,t0 */ D3U_TBL_4441BC_32(&c->st, 0) = p;
-    /* test t0,t0 */ if (p == 0) goto afail;
+     D3U_TBL_4441BC_32(&c->st, 0) = p;
+     if (p == 0) goto afail;
     /* loc_413D76: */
-    /* mov t1,dword_444270 */ t1 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
-    /* mov t0,dword_4299B8 */ t0 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* xor t3,t3 */ t3 = 0UL;
-    /* add t1,100h */ t1 = (t1 + 0x100UL) & U32MASK;
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
+     t0 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     t3 = 0UL;
+     t1 = (t1 + 0x100UL) & U32MASK;
     memset(c->blk00_dict, (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,800000h */ t1 = 0x800000UL;
-    /* mov t0,dword_4299BC */ t0 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
-    /* xor t3,t3 */ t3 = 0UL;
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x800000UL;
+     t0 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
+     t3 = 0UL;
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,140000h */ t1 = 0x140000UL;
-    /* mov t0,dword_4299C0 */ t0 = (unsigned long)(unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
-    /* xor t3,t3 */ t3 = 0UL;
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x140000UL;
+     t0 = (unsigned long)(unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
+     t3 = 0UL;
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,200000h */ t1 = 0x200000UL;
-    /* mov t3,0FFh */ t3 = 0xFFUL;
-    /* mov t0,dword_4299C4 */ t0 = (unsigned long)(unsigned long)D3U_BLK03_MODEL_A_FF_32(&c->st, 0);
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x200000UL;
+     t3 = 0xFFUL;
+     t0 = (unsigned long)(unsigned long)D3U_BLK03_MODEL_A_FF_32(&c->st, 0);
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,200000h */ t1 = 0x200000UL;
-    /* mov t3,0FFh */ t3 = 0xFFUL;
-    /* mov t0,dword_4299C8 */ t0 = (unsigned long)(unsigned long)D3U_BLK04_MODEL_B_FF_32(&c->st, 0);
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x200000UL;
+     t3 = 0xFFUL;
+     t0 = (unsigned long)(unsigned long)D3U_BLK04_MODEL_B_FF_32(&c->st, 0);
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,40000h */ t1 = 0x40000UL;
-    /* mov t0,dword_4299CC */ t0 = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
-    /* xor t3,t3 */ t3 = 0UL;
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x40000UL;
+     t0 = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
+     t3 = 0UL;
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,1F400h */ t1 = 0x1F400UL;
-    /* mov t0,dword_4299F0 */ t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* xor t3,t3 */ t3 = 0UL;
-    /* add t0,40600h */ t0 = (t0 + 0x40600UL) & U32MASK;
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x1F400UL;
+     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+     t3 = 0UL;
+     t0 = (t0 + 0x40600UL) & U32MASK;
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,1F400h */ t1 = 0x1F400UL;
-    /* mov t0,dword_4299F4 */ t0 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* xor t3,t3 */ t3 = 0UL;
-    /* add t0,40600h */ t0 = (t0 + 0x40600UL) & U32MASK;
-    /* call sub_40C9C0 (memset len=t1 dst=t0 fill=t3) */
+     t1 = 0x1F400UL;
+     t0 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+     t3 = 0UL;
+     t0 = (t0 + 0x40600UL) & U32MASK;
     memset(d3u_ptr(c, (unsigned long)t0), (int)(t3 & 0xFFUL), (size_t)t1);
-    /* mov t1,0FAh */ t1 = 0xFAUL;
-    /* mov t3,dword_4299FC */ t3 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    /* mov t0,1 */ t0 = 1UL;
-    /* add t3,406h */ t3 = (t3 + 0x406UL) & U32MASK;
+     t1 = 0xFAUL;
+     t3 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
+     t0 = 1UL;
+     t3 = (t3 + 0x406UL) & U32MASK;
     d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
-    /* mov t1,2FDh */ t1 = 0x2FDUL;
-    /* mov t3,offset word_44428A */ t3 = D3U_TBL_44428A;
-    /* mov t0,20h */ t0 = 0x20UL;
+     t1 = 0x2FDUL;
+     t3 = D3U_TBL_44428A;
+     t0 = 0x20UL;
     d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
-    /* mov t1,2FDh */ t1 = 0x2FDUL;
-    /* mov t3,offset word_444884 */ t3 = D3U_TBL_444884;
-    /* mov t0,10h */ t0 = 0x10UL;
-    /* mov t4,6 */ t4 = 6UL;
+     t1 = 0x2FDUL;
+     t3 = D3U_TBL_444884;
+     t0 = 0x10UL;
+     t4 = 6UL;
     d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
-    /* mov t1,8 */ t1 = 8UL;
-    /* mov t3,offset dword_444870 */ t3 = D3U_TBL_444870;
-    /* mov t0,0Ah */ t0 = 0x0AUL;
-    /* xor t2,t2 */ t2 = 0UL;
+     t1 = 8UL;
+     t3 = D3U_TBL_444870;
+     t0 = 0x0AUL;
+     t2 = 0UL;
     d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
-    /* mov t1,18h */ t1 = 0x18UL;
-    /* mov t3,offset word_444E4A */ t3 = D3U_TBL_444E4A;
-    /* mov t0,8 */ t0 = 8UL;
-    /* xor t5,t5 */ t5 = 0UL;
+     t1 = 0x18UL;
+     t3 = D3U_TBL_444E4A;
+     t0 = 8UL;
+     t5 = 0UL;
     d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
-    /* mov t3,0FFFFFFFFh */ t3 = 0xFFFFFFFFUL;
+     t3 = 0xFFFFFFFFUL;
     D3U_TBL_444C84_16(&c->st, 0) = (unsigned short)(t4 & 0xFFFFUL);
-    /* mov dword_444218,t2 */ D3U_TBL_444218_32(&c->st, 0) = (unsigned int)t2;
-    /* xor t1,t1 */ t1 = 0UL;
-    /* mov dword_444254,t3 */ D3U_PRIMER_TOTAL_32(&c->st, 0) = (unsigned int)t3;
-    /* mov dword_444244,t3 */ D3U_TBL_444244_32(&c->st, 0) = (unsigned int)t3;
-    /* mov dword_444228,t3 */ D3U_TBL_444228_32(&c->st, 0) = (unsigned int)t3;
+     D3U_TBL_444218_32(&c->st, 0) = (unsigned int)t2;
+     t1 = 0UL;
+     D3U_PRIMER_TOTAL_32(&c->st, 0) = (unsigned int)t3;
+     D3U_TBL_444244_32(&c->st, 0) = (unsigned int)t3;
+     D3U_TBL_444228_32(&c->st, 0) = (unsigned int)t3;
     d3uc_load_const(c);
     /* (t0 = dword_428F48 live-out of sub_40CECC) */ t0 = (unsigned long)(unsigned long)D3U_CONST_428F48_32(&c->st, 0);
     t1 = (t1 & ~0xFFUL) | ((t1 ^ t2) & 0xFFUL);
-    /* mov t4,dword_444228 */ t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
-    /* mov dword_44422C,t0 */ D3U_CUM_TABLE_PTR_32(&c->st, 0) = (unsigned int)t0;
-    /* mov dword_444230,t2 */ D3U_TBL_444230_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_44426C,t2 */ D3U_TBL_44426C_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_444250,t2 */ D3U_TBL_444250_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_444220,t2 */ D3U_TBL_444220_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_444264,t2 */ D3U_TBL_444264_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_444258,t2 */ D3U_TBL_444258_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_44425C,t2 */ D3U_TBL_44425C_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_444260,t2 */ D3U_TBL_444260_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_444268,t2 */ D3U_TBL_444268_32(&c->st, 0) = (unsigned int)t2;
+     t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
+     D3U_CUM_TABLE_PTR_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_444230_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_44426C_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_444250_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_444220_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_444264_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_444258_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_44425C_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_444260_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_444268_32(&c->st, 0) = (unsigned int)t2;
     D3U_FLAG_444EA0_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
-    /* mov dword_4441C0,t2 */ D3U_TBL_4441C0_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_4441D4,t2 */ D3U_TBL_4441D4_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_4441D0,t2 */ D3U_TBL_4441D0_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_440AF0,t5 */ D3U_TBL_440AF0_32(&c->st, 0) = (unsigned int)t5;
-    /* mov dword_440AF4,t5 */ D3U_TBL_440AF4_32(&c->st, 0) = (unsigned int)t5;
-    /* mov dword_4441B4,t5 */ D3U_TBL_4441B4_32(&c->st, 0) = (unsigned int)t5;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* mov dword_4441B0,t5 */ D3U_TBL_4441B0_32(&c->st, 0) = (unsigned int)t5;
+     D3U_TBL_4441C0_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_4441D4_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_4441D0_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_440AF0_32(&c->st, 0) = (unsigned int)t5;
+     D3U_TBL_440AF4_32(&c->st, 0) = (unsigned int)t5;
+     D3U_TBL_4441B4_32(&c->st, 0) = (unsigned int)t5;
+     t3 = 0UL;
+     D3U_TBL_4441B0_32(&c->st, 0) = (unsigned int)t5;
     t3 = (t3 & ~0xFFUL) | 7UL;
-    /* mov t0,dword_444EE4 */ t0 = (unsigned long)D3U_OUT_TOTAL_LEN_32(&c->st, 0);
+     t0 = (unsigned long)D3U_OUT_TOTAL_LEN_32(&c->st, 0);
     t1 = (t1 & ~0xFF00UL) | ((((t1 >> 8) & 0xFFUL) ^ ((t2 >> 8) & 0xFFUL)) << 8);
     D3U_FLAG_444EB6_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)((t1 >> 8) & 0xFFUL);
-    /* mov dword_4441CC,t0 */ D3U_TBL_4441CC_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_4441CC_32(&c->st, 0) = (unsigned int)t0;
     t3 = (t3 & ~0xFF00UL) | ((((t3 >> 8) & 0xFFUL) ^ ((t2 >> 8) & 0xFFUL)) << 8);
-    /* xor t0,t0 */ t0 = 0UL;
-    /* xor t1,t1 */ t1 = 0UL;
+     t0 = 0UL;
+     t1 = 0UL;
     D3U_FLAG_444EA5_8(&c->st, 0) = (unsigned char)((t3 >> 8) & 0xFFUL);
-    /* mov dword_440AF8,t0 */ D3U_TBL_440AF8_32(&c->st, 0) = (unsigned int)t0;
-    /* mov dword_440AFC,t0 */ D3U_TBL_440AFC_32(&c->st, 0) = (unsigned int)t0;
-    /* mov dword_440B00,t0 */ D3U_TBL_440B00_32(&c->st, 0) = (unsigned int)t0;
-    /* mov dword_440B04,t0 */ D3U_TBL_440B04_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_440AF8_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_440AFC_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_440B00_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_440B04_32(&c->st, 0) = (unsigned int)t0;
     t2 &= ~0xFFUL;
-    /* mov dword_4441B8,t0 */ D3U_TBL_4441B8_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_4441B8_32(&c->st, 0) = (unsigned int)t0;
     D3U_FLAG_444EA6_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
     D3U_FLAG_444EAB_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
@@ -2215,7 +2168,7 @@ ok:
     D3U_TBL_444287_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
     D3U_TBL_444288_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
     D3U_TBL_444289_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
-    /* xor t2,t2 */ t2 = 0UL;
+     t2 = 0UL;
     t1 = (t1 & ~0xFF00UL) | ((((t1 >> 8) & 0xFFUL) ^ ((t0 >> 8) & 0xFFUL)) << 8);
     t2 = (t2 & ~0xFFUL) | (((t2 & 0xFFUL) ^ (t0 & 0xFFUL)) & 0xFFUL);
     D3U_FLAG_444E9A_8(&c->st, 0) = (unsigned char)((t1 >> 8) & 0xFFUL);
@@ -2226,59 +2179,53 @@ ok:
     D3U_FLAG_444E80_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
     D3U_FLAG_444E81_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
     D3U_FLAG_444EAF_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
-    /* mov t0,0FFFFF800h */ t0 = 0xFFFFF800UL;
+     t0 = 0xFFFFF800UL;
     /* loc_413FF4: */
 lfill1:
-    /* mov t1,t0 */ t1 = t0;
-    /* mov t3,t0 */ t3 = t0;
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* neg t3 */ t3 = (0UL - t3) & U32MASK;
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-    /* mov dword_4398B0[t1*4],t3 */ D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL) = (unsigned int)t3;
-    /* test t0,t0 */
-    /* jl loc_413FF4 (signed) */ if ((t0 & 0x80000000UL) != 0) goto lfill1;
-    /* xor t0,t0 */ t0 = 0UL;
+     t1 = t0;
+     t3 = t0;
+     t1 &= 0xFFFUL;
+     t3 = (0UL - t3) & U32MASK;
+     t0 = (t0 + 1UL) & U32MASK;
+     D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL) = (unsigned int)t3;
+     if ((t0 & 0x80000000UL) != 0) goto lfill1;
+     t0 = 0UL;
     /* loc_41400E: */
 lfill2:
-    /* mov t3,t0 */ t3 = t0;
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov dword_4398B0[t3*4],t0 */ D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL) = (unsigned int)t0;
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-    /* cmp t0,800h */
-    /* jl loc_41400E (signed) */ if (((t0 & 0x80000000UL) != 0) || t0 < 0x800UL) goto lfill2;
+     t3 = t0;
+     t3 &= 0xFFFUL;
+     D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL) = (unsigned int)t0;
+     t0 = (t0 + 1UL) & U32MASK;
+     if (((t0 & 0x80000000UL) != 0) || t0 < 0x800UL) goto lfill2;
     if (D3U_CUM_TABLE_PTR_32(&c->st, 0) == 0) goto lskip;
     if (D3U_CONST_FLAG_428ED9_8(&c->st, 0) == 0) goto lskip;
-    /* xor t4,t4 */ t4 = 0UL;
-    /* xor t3,t3 */ t3 = 0UL;
+     t4 = 0UL;
+     t3 = 0UL;
     /* loc_41403B: */
 lscan:
-    /* mov t1,dword_44422C */ t1 = (unsigned long)D3U_CUM_TABLE_PTR_32(&c->st, 0);
-    /* add t1,t3 */ t1 = (t1 + t3) & U32MASK;
-    /* mov t0,[t1] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned int)t1));
-    /* sub t0,t4 */ t0 = (t0 - t4) & U32MASK;
-    /* cmp t0,0FB670h */
+     t1 = (unsigned long)D3U_CUM_TABLE_PTR_32(&c->st, 0);
+     t1 = (t1 + t3) & U32MASK;
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned int)t1));
+     t0 = (t0 - t4) & U32MASK;
     if (t0 == 0xFB670UL) goto lskip;
-    /* add t3,4 */ t3 = (t3 + 4UL) & U32MASK;
-    /* mov t4,[t1] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned int)t1));
+     t3 = (t3 + 4UL) & U32MASK;
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned int)t1));
     goto lscan;
     /* loc_414055: */
 lskip:
-    /* test t4,t4 */
     if (t4 != 0) goto lret0;
-    /* mov t0,0Ah */ t0 = 0x0AUL;
+     t0 = 0x0AUL;
     goto lset;
     /* loc_414060: */
 lret0:
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     /* loc_414062: */
 lset:
     D3U_FLAG_444EA2_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     /* loc_414069: */
 epi:
-    /* mov dword_444228,t4 */ D3U_TBL_444228_32(&c->st, 0) = (unsigned int)t4;
-    /* pop t6 */ /* pop t5 */ /* pop t4 */
-    /* pop t2 */ /* pop t1 (restore; no-op in C) */
+     D3U_TBL_444228_32(&c->st, 0) = (unsigned int)t4;
     /* retn */ return (int)(t0 & U32MASK);
 afail:
     /* alloc-fail shared tail: mov t0,2; mov t4,dword_444228;
@@ -2309,210 +2256,185 @@ unsigned int d3uc_decode_match(dec3w_ctx *c, unsigned int edi_in)
     unsigned char stk20 = 0;
     unsigned char stk1c = 0;
     r_edi = (unsigned long)edi_in;
-    /* push t1 (callee-saved, no C equivalent) */
-    /* push t2 (callee-saved, no C equivalent) */
-    /* push t3 (callee-saved, no C equivalent) */
-    /* push t4 (callee-saved, no C equivalent) */
-    /* push t5 (callee-saved, live entry value kept in r_edi) */
-    /* push t6 (callee-saved, no C equivalent) */
-    /* sub esp,24h (stack frame, locals above) */
-    /* mov t0,dword_444258 */ r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* mov t3,dword_444258 */ r_edx = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* shr t0,0Dh */ r_eax = (r_eax >> 13) & U32MASK;
-    /* xor t0,t3 */ r_eax = (r_eax ^ r_edx) & U32MASK;
-    /* and t0,3FFFFh */ r_eax &= 0x3FFFFUL;
-    /* mov t3,dword_4299C4 */ r_edx = (unsigned long)(unsigned long)D3U_BLK03_MODEL_A_FF_32(&c->st, 0);
-    /* mov [var_34],t0 */ stk34 = r_eax;
-    /* shl t0,3 */ r_eax = (r_eax << 3) & U32MASK;
-    /* mov t1,dword_44425C */ r_ebx = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
-    /* add t3,t0 */ r_edx = (r_edx + r_eax) & U32MASK;
-    /* mov t2,dword_444258 */ r_ecx = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* mov [var_38],t3 */ stk38 = r_edx;
-    /* mov t3,dword_44425C */ r_edx = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
-    /* mov t0,dword_444258 */ r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* shr t3,0Fh */ r_edx = (r_edx >> 15) & U32MASK;
-    /* shr t0,0Fh */ r_eax = (r_eax >> 15) & U32MASK;
-    /* xor t3,t1 */ r_edx = (r_edx ^ r_ebx) & U32MASK;
-    /* xor t0,t2 */ r_eax = (r_eax ^ r_ecx) & U32MASK;
-    /* shl t3,4 */ r_edx = (r_edx << 4) & U32MASK;
-    /* xor t3,t0 */ r_edx = (r_edx ^ r_eax) & U32MASK;
-    /* mov t0,dword_444260 */ r_eax = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
-    /* mov t4,dword_444260 */ r_esi = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
-    /* shr t0,0Fh */ r_eax = (r_eax >> 15) & U32MASK;
-    /* xor t0,t4 */ r_eax = (r_eax ^ r_esi) & U32MASK;
-    /* shl t0,6 */ r_eax = (r_eax << 6) & U32MASK;
-    /* xor t0,t3 */ r_eax = (r_eax ^ r_edx) & U32MASK;
-    /* and t0,3FFFFh */ r_eax &= 0x3FFFFUL;
+     r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     r_edx = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     r_eax = (r_eax >> 13) & U32MASK;
+     r_eax = (r_eax ^ r_edx) & U32MASK;
+     r_eax &= 0x3FFFFUL;
+     r_edx = (unsigned long)(unsigned long)D3U_BLK03_MODEL_A_FF_32(&c->st, 0);
+     stk34 = r_eax;
+     r_eax = (r_eax << 3) & U32MASK;
+     r_ebx = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
+     r_edx = (r_edx + r_eax) & U32MASK;
+     r_ecx = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     stk38 = r_edx;
+     r_edx = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
+     r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     r_edx = (r_edx >> 15) & U32MASK;
+     r_eax = (r_eax >> 15) & U32MASK;
+     r_edx = (r_edx ^ r_ebx) & U32MASK;
+     r_eax = (r_eax ^ r_ecx) & U32MASK;
+     r_edx = (r_edx << 4) & U32MASK;
+     r_edx = (r_edx ^ r_eax) & U32MASK;
+     r_eax = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
+     r_esi = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
+     r_eax = (r_eax >> 15) & U32MASK;
+     r_eax = (r_eax ^ r_esi) & U32MASK;
+     r_eax = (r_eax << 6) & U32MASK;
+     r_eax = (r_eax ^ r_edx) & U32MASK;
+     r_eax &= 0x3FFFFUL;
     r_ecx = (r_ecx & ~0xFFUL) | 2UL;
-    /* shl t0,3 */ r_eax = (r_eax << 3) & U32MASK;
-    /* mov t3,dword_4299C8 */ r_edx = (unsigned long)(unsigned long)D3U_BLK04_MODEL_B_FF_32(&c->st, 0);
-    /* add t0,4 */ r_eax = (r_eax + 4UL) & U32MASK;
+     r_eax = (r_eax << 3) & U32MASK;
+     r_edx = (unsigned long)(unsigned long)D3U_BLK04_MODEL_B_FF_32(&c->st, 0);
+     r_eax = (r_eax + 4UL) & U32MASK;
     stk1c = (unsigned char)(r_ecx & 0xFFUL);
-    /* add t3,t0 */ r_edx = (r_edx + r_eax) & U32MASK;
+     r_edx = (r_edx + r_eax) & U32MASK;
     r_eax &= ~0xFF00UL;
     r_ebx &= ~0xFF00UL;
     stk28 = (unsigned char)((r_eax >> 8) & 0xFFUL);
     stk24 = (unsigned char)((r_eax >> 8) & 0xFFUL);
-    /* mov t0,dword_444274 */ r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
     stk20 = (unsigned char)((r_ebx >> 8) & 0xFFUL);
-    /* mov [var_2C],t0 */ stk2c = r_eax;
-    /* cmp t0,40h */
-    if (r_eax >= 0x40UL) goto l_416086; /* jnb = unsigned >= */
-    /* mov t1,[var_2C] */ r_ebx = stk2c;
-    /* mov t0,dword_444270 */ r_eax = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
-    /* add t1,t0 */ r_ebx = (r_ebx + r_eax) & U32MASK;
-    /* mov [var_2C],t1 */ stk2c = r_ebx;
+     stk2c = r_eax;
+    if (r_eax >= 0x40UL) goto l_416086;
+     r_ebx = stk2c;
+     r_eax = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
+     r_ebx = (r_ebx + r_eax) & U32MASK;
+     stk2c = r_ebx;
 l_416086:
     /* loc_416086: */
-    /* mov t0,[var_2C] */ r_eax = stk2c;
-    /* dec t0 */ r_eax = (r_eax - 1UL) & U32MASK;
-    /* mov [var_3C],t0 */ stk3c = r_eax;
+     r_eax = stk2c;
+     r_eax = (r_eax - 1UL) & U32MASK;
+     stk3c = r_eax;
 l_41608E:
     /* loc_41608E: */
     r_ecx = (r_ecx & ~0xFF00UL) | ((unsigned long)stk1c << 8);
     r_ecx = (r_ecx & ~0xFF00UL) | (((((r_ecx >> 8) & 0xFFUL) - 1UL) & 0xFFUL) << 8);
-    /* mov t0,[t3] */ r_eax = (unsigned long)d3u_ld32(c, (unsigned long)((r_edx) & U32MASK));
+     r_eax = (unsigned long)d3u_ld32(c, (unsigned long)((r_edx) & U32MASK));
     stk1c = (unsigned char)((r_ecx >> 8) & 0xFFUL);
-    /* cmp t0,0FFFFFFFFh */
     if (r_eax == 0xFFFFFFFFUL) goto l_41616D;
-    /* mov t2,dword_444274 */ r_ecx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov t1,t0 */ r_ebx = r_eax;
-    /* mov t4,dword_444278 */ r_esi = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* sub t1,t2 */ r_ebx = (r_ebx - r_ecx) & U32MASK;
-    /* and t1,t4 */ r_ebx = (r_ebx & r_esi) & U32MASK;
-    /* cmp t1,140h */
-    if (r_ebx < 0x140UL) goto l_41616D; /* jb = unsigned < */
-    /* cmp t0,40h */
-    if (r_eax >= 0x40UL) goto l_4160CC; /* jnb = unsigned >= */
-    /* add t0,dword_444270 */ r_eax = (r_eax + (unsigned long)D3U_DICT_SIZE_32(&c->st, 0)) & U32MASK;
+     r_ecx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_ebx = r_eax;
+     r_esi = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_ebx = (r_ebx - r_ecx) & U32MASK;
+     r_ebx = (r_ebx & r_esi) & U32MASK;
+    if (r_ebx < 0x140UL) goto l_41616D;
+    if (r_eax >= 0x40UL) goto l_4160CC;
+     r_eax = (r_eax + (unsigned long)D3U_DICT_SIZE_32(&c->st, 0)) & U32MASK;
 l_4160CC:
     /* loc_4160CC: */
-    /* mov t4,[var_2C] */ r_esi = stk2c;
-    /* mov t1,dword_4299B8 */ r_ebx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* mov cl,[t4+t1-0Ch] */ r_ecx = (r_ecx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_esi + r_ebx - 0x0CUL) & U32MASK) - c->blk00_base];
-    /* cmp cl,[t1+t0-0Ch] */
+     r_esi = stk2c;
+     r_ebx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     r_ecx = (r_ecx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_esi + r_ebx - 0x0CUL) & U32MASK) - c->blk00_base];
     if ((r_ecx & 0xFFUL) != (unsigned long)c->blk00_dict[((r_ebx + r_eax - 0x0CUL) & U32MASK) - c->blk00_base]) goto l_41616D;
-    /* dec t0 */ r_eax = (r_eax - 1UL) & U32MASK;
-    /* lea t4,[t1+t0] */ r_esi = (r_ebx + r_eax) & U32MASK;
-    /* mov t0,[var_3C] */ r_eax = stk3c;
-    /* mov cl,40h */ r_ecx = (r_ecx & ~0xFFUL) | 0x40UL;
-    /* add t1,t0 */ r_ebx = (r_ebx + r_eax) & U32MASK;
+     r_eax = (r_eax - 1UL) & U32MASK;
+     r_esi = (r_ebx + r_eax) & U32MASK;
+     r_eax = stk3c;
+     r_ecx = (r_ecx & ~0xFFUL) | 0x40UL;
+     r_ebx = (r_ebx + r_eax) & U32MASK;
 l_4160EF:
     /* loc_4160EF: */
-    if ((r_ecx & 0xFFUL) < 8UL) goto l_41614C; /* jb = unsigned < */
-    /* mov al,[t1] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx) & U32MASK) - c->blk00_base];
-    /* cmp al,[t4] */
+    if ((r_ecx & 0xFFUL) < 8UL) goto l_41614C;
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx) & U32MASK) - c->blk00_base];
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-1] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 1UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 1UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-1] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 1UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-2] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 2UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 2UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-2] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 2UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-3] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 3UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 3UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-3] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 3UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-4] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 4UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 4UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-4] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 4UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-5] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 5UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 5UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-5] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 5UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-6] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 6UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 6UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-6] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 6UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-7] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 7UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 7UL) & U32MASK) - c->blk00_base];
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
-    /* cmp al,[t4-7] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_esi - 7UL) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* sub t1,8 */ r_ebx = (r_ebx - 8UL) & U32MASK;
-    /* sub t4,8 */ r_esi = (r_esi - 8UL) & U32MASK;
+     r_ebx = (r_ebx - 8UL) & U32MASK;
+     r_esi = (r_esi - 8UL) & U32MASK;
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
     if ((r_ecx & 0xFFUL) != 0UL) goto l_4160EF;
     goto l_41615D;
 l_41614C:
     /* loc_41614C: */
-    /* sub t4,t1 */ r_esi = (r_esi - r_ebx) & U32MASK;
-    /* mov al,[t1] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx) & U32MASK) - c->blk00_base];
+     r_esi = (r_esi - r_ebx) & U32MASK;
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx) & U32MASK) - c->blk00_base];
 l_416150:
     /* loc_416150: */
-    /* cmp al,[t1+t4] */
     if ((r_eax & 0xFFUL) != (unsigned long)c->blk00_dict[((r_ebx + r_esi) & U32MASK) - c->blk00_base]) goto l_41615D;
-    /* mov al,[t1-1] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 1UL) & U32MASK) - c->blk00_base];
-    /* dec t1 */ r_ebx = (r_ebx - 1UL) & U32MASK;
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_ebx - 1UL) & U32MASK) - c->blk00_base];
+     r_ebx = (r_ebx - 1UL) & U32MASK;
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
     if ((r_ecx & 0xFFUL) != 0UL) goto l_416150;
 l_41615D:
     /* loc_41615D: */
-    /* mov al,40h */ r_eax = (r_eax & ~0xFFUL) | 0x40UL;
+     r_eax = (r_eax & ~0xFFUL) | 0x40UL;
     r_eax = (r_eax & ~0xFFUL) | (((r_eax & 0xFFUL) - (r_ecx & 0xFFUL)) & 0xFFUL);
-    if ((r_eax & 0xFFUL) < (unsigned long)stk20) goto l_41616D; /* jb = unsigned < */
+    if ((r_eax & 0xFFUL) < (unsigned long)stk20) goto l_41616D;
     stk20 = (unsigned char)(r_eax & 0xFFUL);
-    /* mov t5,[t3] */ r_edi = (unsigned long)d3u_ld32(c, (unsigned long)((r_edx) & U32MASK));
+     r_edi = (unsigned long)d3u_ld32(c, (unsigned long)((r_edx) & U32MASK));
 l_41616D:
     /* loc_41616D: */
     if (stk1c == 0) goto l_416181;
-    /* sub t3,4 */ r_edx = (r_edx - 4UL) & U32MASK;
-    /* mov t0,[t3] */ r_eax = (unsigned long)d3u_ld32(c, (unsigned long)((r_edx) & U32MASK));
-    /* mov [t3+4],t0 */ d3u_st32(c, (unsigned long)((r_edx + 4UL) & U32MASK), (unsigned int)r_eax);
+     r_edx = (r_edx - 4UL) & U32MASK;
+     r_eax = (unsigned long)d3u_ld32(c, (unsigned long)((r_edx) & U32MASK));
+     d3u_st32(c, (unsigned long)((r_edx + 4UL) & U32MASK), (unsigned int)r_eax);
     goto l_41608E;
 l_416181:
     /* loc_416181: */
-    /* mov t0,dword_444274 */ r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
     r_ebx = (r_ebx & ~0xFF00UL) | ((unsigned long)stk20 << 8);
-    /* mov [t3],t0 */ d3u_st32(c, (unsigned long)((r_edx) & U32MASK), (unsigned int)r_eax);
-    if (((r_ebx >> 8) & 0xFFUL) < 0x0CUL) goto l_416196; /* jb = unsigned < */
-    /* mov [var_28],11h */ stk28 = 0x11;
+     d3u_st32(c, (unsigned long)((r_edx) & U32MASK), (unsigned int)r_eax);
+    if (((r_ebx >> 8) & 0xFFUL) < 0x0CUL) goto l_416196;
+     stk28 = 0x11;
 l_416196:
     /* loc_416196: */
     if (stk28 != 0) goto l_416262;
-    /* mov t0,dword_444274 */ r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov t3,dword_444244 */ r_edx = (unsigned long)D3U_TBL_444244_32(&c->st, 0);
-    /* mov t5,dword_444278 */ r_edi = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* sub t0,t3 */ r_eax = (r_eax - r_edx) & U32MASK;
-    /* and t5,t0 */ r_edi = (r_edi & r_eax) & U32MASK;
-    /* mov t1,dword_444274 */ r_ebx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov t0,t5 */ r_eax = r_edi;
-    /* mov t2,dword_444278 */ r_ecx = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* sub t0,t1 */ r_eax = (r_eax - r_ebx) & U32MASK;
-    /* and t0,t2 */ r_eax = (r_eax & r_ecx) & U32MASK;
-    /* cmp t0,104h */
-    if (r_eax < 0x104UL) goto l_41623C; /* jb = unsigned < */
-    /* lea t0,[t5-4] */ r_eax = (r_edi - 4UL) & U32MASK;
-    /* mov t3,dword_4299B8 */ r_edx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* and t0,t2 */ r_eax = (r_eax & r_ecx) & U32MASK;
-    /* add t0,t3 */ r_eax = (r_eax + r_edx) & U32MASK;
-    /* mov dl,[t0] */ r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax) & U32MASK) - c->blk00_base];
+     r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_edx = (unsigned long)D3U_TBL_444244_32(&c->st, 0);
+     r_edi = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_eax = (r_eax - r_edx) & U32MASK;
+     r_edi = (r_edi & r_eax) & U32MASK;
+     r_ebx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_eax = r_edi;
+     r_ecx = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_eax = (r_eax - r_ebx) & U32MASK;
+     r_eax = (r_eax & r_ecx) & U32MASK;
+    if (r_eax < 0x104UL) goto l_41623C;
+     r_eax = (r_edi - 4UL) & U32MASK;
+     r_edx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     r_eax = (r_eax & r_ecx) & U32MASK;
+     r_eax = (r_eax + r_edx) & U32MASK;
+     r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax) & U32MASK) - c->blk00_base];
     stk30 = (stk30 & ~0xFF000000UL) | ((r_edx & 0xFFUL) << 24);
-    /* mov dl,[t0+1] */ r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax + 1UL) & U32MASK) - c->blk00_base];
+     r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax + 1UL) & U32MASK) - c->blk00_base];
     stk30 = (stk30 & ~0x00FF0000UL) | ((r_edx & 0xFFUL) << 16);
-    /* mov dl,[t0+2] */ r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax + 2UL) & U32MASK) - c->blk00_base];
-    /* mov al,[t0+3] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax + 3UL) & U32MASK) - c->blk00_base];
+     r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax + 2UL) & U32MASK) - c->blk00_base];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_eax + 3UL) & U32MASK) - c->blk00_base];
     stk30 = (stk30 & ~0x0000FF00UL) | ((r_edx & 0xFFUL) << 8);
     stk30 = (stk30 & ~0x000000FFUL) | (r_eax & 0xFFUL);
-    /* mov t3,[var_30] */ r_edx = stk30;
-    /* mov t0,dword_444258 */ r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* and t3,0FFFFh */ r_edx &= 0xFFFFUL;
-    /* and t0,0FFFFh */ r_eax &= 0xFFFFUL;
-    /* cmp t3,t0 */
+     r_edx = stk30;
+     r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     r_edx &= 0xFFFFUL;
+     r_eax &= 0xFFFFUL;
     if (r_edx == r_eax) goto l_416232;
-    /* mov t0,[var_30] */ r_eax = stk30;
-    /* mov t3,dword_444258 */ r_edx = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     r_eax = stk30;
+     r_edx = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     r_eax &= ~0xFF00UL;
     r_edx &= ~0xFF00UL;
-    /* cmp t0,t3 */
     if (r_eax == r_edx) goto l_416232;
-    /* mov t3,[var_30] */ r_edx = stk30;
-    /* mov t0,dword_444258 */ r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     r_edx = stk30;
+     r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     r_edx &= ~0xFFUL;
     r_eax &= ~0xFFUL;
-    /* cmp t3,t0 */
     if (r_edx != r_eax) goto l_41623C;
 l_416232:
     /* loc_416232: */
@@ -2521,62 +2443,56 @@ l_416232:
 l_41623C:
     /* loc_41623C: */
     if (stk28 != 0) goto l_416262;
-    /* mov t0,[var_38] */ r_eax = stk38;
-    /* mov t6,dword_444258 */ r_ebp = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* cmp t6,[t0+4] */
+     r_eax = stk38;
+     r_ebp = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     if (r_ebp != (unsigned long)d3u_ld32(c, (unsigned long)((r_eax + 4UL) & U32MASK))) goto l_416258;
-    /* mov t5,[var_38] */ r_edi = stk38;
-    /* mov t5,[t5] */ r_edi = (unsigned long)d3u_ld32(c, (unsigned long)((r_edi) & U32MASK));
+     r_edi = stk38;
+     r_edi = (unsigned long)d3u_ld32(c, (unsigned long)((r_edi) & U32MASK));
 l_416258:
     /* loc_416258: */
-    /* cmp t5,0FFFFFFFFh */
     r_eax = (r_eax & ~0xFFUL) | ((r_edi != 0xFFFFFFFFUL) ? 1UL : 0UL);
     stk28 = (unsigned char)(r_eax & 0xFFUL);
 l_416262:
     /* loc_416262: */
-    /* mov t3,[var_38] */ r_edx = stk38;
-    /* mov t0,dword_444274 */ r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov [t3],t0 */ d3u_st32(c, (unsigned long)((r_edx) & U32MASK), (unsigned int)r_eax);
-    /* mov t0,dword_444258 */ r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    /* mov [t3+4],t0 */ d3u_st32(c, (unsigned long)((r_edx + 4UL) & U32MASK), (unsigned int)r_eax);
+     r_edx = stk38;
+     r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     d3u_st32(c, (unsigned long)((r_edx) & U32MASK), (unsigned int)r_eax);
+     r_eax = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
+     d3u_st32(c, (unsigned long)((r_edx + 4UL) & U32MASK), (unsigned int)r_eax);
     if (stk28 == 0) goto l_4164AB;
-    /* mov t3,dword_444274 */ r_edx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov t0,t5 */ r_eax = r_edi;
-    /* mov t1,dword_444278 */ r_ebx = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* sub t0,t3 */ r_eax = (r_eax - r_edx) & U32MASK;
-    /* and t0,t1 */ r_eax = (r_eax & r_ebx) & U32MASK;
-    /* cmp t0,100h */
-    if (r_eax < 0x100UL) goto l_4164AB; /* jb = unsigned < */
+     r_edx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_eax = r_edi;
+     r_ebx = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_eax = (r_eax - r_edx) & U32MASK;
+     r_eax = (r_eax & r_ebx) & U32MASK;
+    if (r_eax < 0x100UL) goto l_4164AB;
     r_ebx = (r_ebx & ~0xFFUL) | (unsigned long)stk28;
-    /* mov t2,[var_34] */ r_ecx = stk34;
-    /* mov t0,dword_4299CC */ r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
+     r_ecx = stk34;
+     r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
     r_ebx = (r_ebx & ~0xFFUL) | ((r_ebx - 1UL) & 0xFFUL);
-    /* add t0,t2 */ r_eax = (r_eax + r_ecx) & U32MASK;
+     r_eax = (r_eax + r_ecx) & U32MASK;
     stk28 = (unsigned char)(r_ebx & 0xFFUL);
-    /* cmp byte ptr [t0],0 */
     if (M8((r_eax) & U32MASK) != 0) goto l_4162C0;
     r_ecx = (r_ecx & ~0xFFUL) | (r_ebx & 0xFFUL);
-    /* add cl,18h */ r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx + 0x18UL) & 0xFFUL);
+     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx + 0x18UL) & 0xFFUL);
     stk28 = (unsigned char)(r_ecx & 0xFFUL);
 l_4162C0:
     /* loc_4162C0: */
-    /* mov t4,dword_444218 */ r_esi = (unsigned long)D3U_TBL_444218_32(&c->st, 0);
-    /* test t4,t4 */
+     r_esi = (unsigned long)D3U_TBL_444218_32(&c->st, 0);
     if (r_esi == 0) goto l_4162DA;
-    /* mov t0,dword_4299B8 */ r_eax = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* mov dl,[t4] */ r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_esi) & U32MASK) - c->blk00_base];
-    /* cmp dl,[t5+t0] */
+     r_eax = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     r_edx = (r_edx & ~0xFFUL) | (unsigned long)c->blk00_dict[((r_esi) & U32MASK) - c->blk00_base];
     if ((r_edx & 0xFFUL) == (unsigned long)c->blk00_dict[((r_edi + r_eax) & U32MASK) - c->blk00_base]) goto l_41648D;
 l_4162DA:
     /* loc_4162DA: */
-    /* xor t0,t0 */ r_eax = 0;
+     r_eax = 0;
     r_eax = (r_eax & ~0xFFUL) | (unsigned long)stk28;
     r_eax = (r_eax & ~0xFFUL) | d3uc_decode_length_sym(c, (unsigned int)(r_eax & 0xFFUL));
     if ((r_eax & 0xFFUL) != 1UL) goto l_41649D;
     r_eax = (r_eax & ~0xFF00UL) | ((unsigned long)stk24 << 8);
-    /* mov t1,dword_444220 */ r_ebx = (unsigned long)D3U_TBL_444220_32(&c->st, 0);
+     r_ebx = (unsigned long)D3U_TBL_444220_32(&c->st, 0);
     r_eax = (r_eax & ~0xFFUL) | (((((r_eax >> 8) & 0xFFUL) == 0) ? 1UL : 0UL));
-    /* shl t1,2 */ r_ebx = (r_ebx << 2) & U32MASK;
+     r_ebx = (r_ebx << 2) & U32MASK;
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(r_eax & 0xFFUL);
     if ((r_eax & 0xFFUL) == 0UL) goto l_416350;
     /* The quotient (count<<2)/period indexes a 16-entry table.  Count
@@ -2584,22 +2500,20 @@ l_4162DA:
      * same list update, and both halve together past 0x800.  Enumerating
      * the reachable (count,period) states gives quotient <= 10, so the
      * two reads stay in 0x429B98..0x429BA7 and 0x429BA8..0x429BB7. */
-    /* mov t2,dword_444250 */ r_ecx = (unsigned long)D3U_TBL_444250_32(&c->st, 0);
+     r_ecx = (unsigned long)D3U_TBL_444250_32(&c->st, 0);
     r_eax = (r_eax & ~0xFFUL) | 7UL;
-    /* test t2,t2 */
     if (r_ecx == 0) goto l_41632A;
-    /* mov t0,t1 */ r_eax = r_ebx;
-    /* xor t3,t3 */ r_edx = 0;
-    /* div t2 */ r_eax = (r_ebx / r_ecx) & U32MASK; r_edx = (r_ebx % r_ecx) & U32MASK; /* x86 div faults on div0/overflow: direct / % */
+     r_eax = r_ebx;
+     r_edx = 0;
+     r_eax = (r_ebx / r_ecx) & U32MASK; r_edx = (r_ebx % r_ecx) & U32MASK; /* x86 div faults on div0/overflow: direct / % */
     r_edx = (r_edx & ~0xFFUL) | (unsigned long)D3U_FLAG_444EA0_8(&c->st, 0);
-    /* mov al,byte_429BA8[t0] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)d3u_t429B98[0x10U + (r_eax & U32MASK)];
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)d3u_t429B98[0x10U + (r_eax & U32MASK)];
     r_eax = (r_eax & ~0xFFUL) | (((r_eax & 0xFFUL) - (r_edx & 0xFFUL)) & 0xFFUL);
     r_eax = (r_eax & ~0xFFUL) | (((r_eax & 0xFFUL) + 7UL) & 0xFFUL);
 l_41632A:
     /* loc_41632A: */
-    /* mov t3,dword_444264 */ r_edx = (unsigned long)D3U_TBL_444264_32(&c->st, 0);
-    /* cmp t3,dword_444250 */
-    if (r_edx <= (unsigned long)D3U_TBL_444250_32(&c->st, 0)) goto l_41633C; /* jbe = unsigned <= */
+     r_edx = (unsigned long)D3U_TBL_444264_32(&c->st, 0);
+    if (r_edx <= (unsigned long)D3U_TBL_444250_32(&c->st, 0)) goto l_41633C;
     r_eax = (r_eax & ~0xFFUL) | 0x1DUL;
     goto l_416347;
 l_41633C:
@@ -2612,137 +2526,119 @@ l_416347:
     goto l_41636A;
 l_416350:
     /* loc_416350: */
-    /* mov t6,dword_444250 */ r_ebp = (unsigned long)D3U_TBL_444250_32(&c->st, 0);
+     r_ebp = (unsigned long)D3U_TBL_444250_32(&c->st, 0);
     r_eax = (r_eax & ~0xFFUL) | 3UL;
-    /* test t6,t6 */
     if (r_ebp == 0) goto l_41636A;
-    /* mov t0,t1 */ r_eax = r_ebx;
-    /* xor t3,t3 */ r_edx = 0;
-    /* div t6 */ r_eax = (r_ebx / r_ebp) & U32MASK; r_edx = (r_ebx % r_ebp) & U32MASK; /* x86 div faults on div0/overflow: direct / % */
-    /* mov al,byte_429B98[t0] */ r_eax = (r_eax & ~0xFFUL) | (unsigned long)d3u_t429B98[r_eax & U32MASK];
+     r_eax = r_ebx;
+     r_edx = 0;
+     r_eax = (r_ebx / r_ebp) & U32MASK; r_edx = (r_ebx % r_ebp) & U32MASK; /* x86 div faults on div0/overflow: direct / % */
+     r_eax = (r_eax & ~0xFFUL) | (unsigned long)d3u_t429B98[r_eax & U32MASK];
     r_eax = (r_eax & ~0xFFUL) | (((r_eax & 0xFFUL) + 3UL) & 0xFFUL);
 l_41636A:
     /* loc_41636A: */
     r_eax = (r_eax & ~0xFF00UL) | ((r_eax & 0xFFUL) << 8);
     r_eax = (r_eax & ~0xFFUL) | ((r_eax - 1UL) & 0xFFUL);
-    if (((r_eax >> 8) & 0xFFUL) <= 7UL) goto l_41638D; /* jbe = unsigned <= */
+    if (((r_eax >> 8) & 0xFFUL) <= 7UL) goto l_41638D;
     r_eax = (r_eax & ~0xFF00UL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) << 8);
-    /* xor t3,t3 */ r_edx = 0;
+     r_edx = 0;
     r_edx = (r_edx & ~0xFFUL) | ((r_eax >> 8) & 0xFFUL);
-    /* mov byte_444E82[t3],al */ M8((D3U_FLAG_444E82 + r_edx) & U32MASK) = (unsigned char)(r_eax & 0xFFUL);
+     M8((D3U_FLAG_444E82 + r_edx) & U32MASK) = (unsigned char)(r_eax & 0xFFUL);
     r_eax = (r_eax & ~0xFF00UL) | (((((r_eax >> 8) & 0xFFUL) + 1UL) & 0xFFUL) << 8);
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((r_eax >> 8) & 0xFFUL);
     goto l_41636A;
 l_41638D:
     /* loc_41638D: */
     if (stk24 != 0) goto l_4163AB;
-    /* mov t3,[var_34] */ r_edx = stk34;
-    /* mov t0,dword_4299CC */ r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
-    /* add t0,t3 */ r_eax = (r_eax + r_edx) & U32MASK;
-    /* cmp byte ptr [t0],10h */
-    if (M8((r_eax) & U32MASK) < 0x10UL) goto l_4163AB; /* jb = unsigned < */
-    /* mov t4,1 */ r_esi = 1;
+     r_edx = stk34;
+     r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
+     r_eax = (r_eax + r_edx) & U32MASK;
+    if (M8((r_eax) & U32MASK) < 0x10UL) goto l_4163AB;
+     r_esi = 1;
     goto l_4163AD;
 l_4163AB:
     /* loc_4163AB: */
-    /* xor t4,t4 */ r_esi = 0;
+     r_esi = 0;
 l_4163AD:
     /* loc_4163AD: */
-    /* mov t1,30Ah */ r_ebx = 0x30AUL;
-    /* add t4,2FBh */ r_esi = (r_esi + 0x2FBUL) & U32MASK;
-    /* xor t3,t3 */ r_edx = 0;
-    /* mov t0,t4 */ r_eax = r_esi;
-    /* mov dword_44421C,t1 */ D3U_TBL_44421C_32(&c->st, 0) = (unsigned int)r_ebx;
+     r_ebx = 0x30AUL;
+     r_esi = (r_esi + 0x2FBUL) & U32MASK;
+     r_edx = 0;
+     r_eax = r_esi;
+     D3U_TBL_44421C_32(&c->st, 0) = (unsigned int)r_ebx;
     r_eax = (r_eax & ~0xFFUL) | d3uc_decode_offset_sym(c, (unsigned int)r_eax);
     r_ebx = (r_ebx & ~0xFFUL) | (r_eax & 0xFFUL);
     r_ecx = (r_ecx & ~0xFFUL) | (r_eax & 0xFFUL);
     r_edx = (r_edx & ~0xFFUL) | (r_eax & 0xFFUL);
-    /* mov t0,t4 */ r_eax = r_esi;
+     r_eax = r_esi;
     d3uc_ctx_model_update(c, (unsigned int)r_eax, (unsigned int)r_edx);
-    /* mov t4,[var_34] */ r_esi = stk34;
-    /* mov t0,dword_4299CC */ r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
-    /* mov t3,dword_444274 */ r_edx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* add t0,t4 */ r_eax = (r_eax + r_esi) & U32MASK;
-    /* sub t3,t5 */ r_edx = (r_edx - r_edi) & U32MASK;
-    /* mov [t0],bl */ M8((r_eax) & U32MASK) = (unsigned char)(r_ebx & 0xFFUL);
-    /* mov t0,dword_444278 */ r_eax = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* xor t6,t6 */ r_ebp = 0;
-    /* and t3,t0 */ r_edx = (r_edx & r_eax) & U32MASK;
-    /* mov dword_444218,t6 */ D3U_TBL_444218_32(&c->st, 0) = (unsigned int)r_ebp;
-    /* mov dword_444244,t3 */ D3U_TBL_444244_32(&c->st, 0) = (unsigned int)r_edx;
-    if ((r_ebx & 0xFFUL) < 7UL) goto l_416424; /* jb = unsigned < */
-    /* cmp bl,0FFh */
-    if ((r_ebx & 0xFFUL) >= 0xFFUL) goto l_416424; /* jnb = unsigned >= */
-    /* xor t0,t0 */ r_eax = 0;
+     r_esi = stk34;
+     r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
+     r_edx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_eax = (r_eax + r_esi) & U32MASK;
+     r_edx = (r_edx - r_edi) & U32MASK;
+     M8((r_eax) & U32MASK) = (unsigned char)(r_ebx & 0xFFUL);
+     r_eax = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_ebp = 0;
+     r_edx = (r_edx & r_eax) & U32MASK;
+     D3U_TBL_444218_32(&c->st, 0) = (unsigned int)r_ebp;
+     D3U_TBL_444244_32(&c->st, 0) = (unsigned int)r_edx;
+    if ((r_ebx & 0xFFUL) < 7UL) goto l_416424;
+    if ((r_ebx & 0xFFUL) >= 0xFFUL) goto l_416424;
+     r_eax = 0;
     r_eax = (r_eax & ~0xFFUL) | (r_ebx & 0xFFUL);
-    /* mov t3,dword_444278 */ r_edx = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* add t0,t5 */ r_eax = (r_eax + r_edi) & U32MASK;
-    /* and t0,t3 */ r_eax = (r_eax & r_edx) & U32MASK;
-    /* mov t3,dword_4299B8 */ r_edx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* add t3,t0 */ r_edx = (r_edx + r_eax) & U32MASK;
-    /* mov dword_444218,t3 */ D3U_TBL_444218_32(&c->st, 0) = (unsigned int)r_edx;
+     r_edx = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_eax = (r_eax + r_edi) & U32MASK;
+     r_eax = (r_eax & r_edx) & U32MASK;
+     r_edx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     r_edx = (r_edx + r_eax) & U32MASK;
+     D3U_TBL_444218_32(&c->st, 0) = (unsigned int)r_edx;
 l_416424:
     /* loc_416424: */
-    /* mov t0,dword_4299B8 */ r_eax = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* xor t1,t1 */ r_ebx = 0;
-    /* mov ch,[t5+t0] */ r_ecx = (r_ecx & ~0xFF00UL) | ((unsigned long)c->blk00_dict[((r_edi + r_eax) & U32MASK) - c->blk00_base] << 8);
+     r_eax = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     r_ebx = 0;
+     r_ecx = (r_ecx & ~0xFF00UL) | ((unsigned long)c->blk00_dict[((r_edi + r_eax) & U32MASK) - c->blk00_base] << 8);
     r_ebx = (r_ebx & ~0xFFUL) | ((r_ecx >> 8) & 0xFFUL);
-    /* mov t0,t1 */ r_eax = r_ebx;
-    /* xor t3,t3 */ r_edx = 0;
+     r_eax = r_ebx;
+     r_edx = 0;
     d3uc_emit_literal(c, (unsigned int)(r_eax & 0xFFUL));
     r_eax = (r_eax & ~0xFFUL) | ((((r_ecx & 0xFFUL) <= 8UL) ? 1UL : 0UL));
     r_edx = (r_edx & ~0xFFUL) | (r_eax & 0xFFUL);
-    /* mov t0,t1 */ r_eax = r_ebx;
+     r_eax = r_ebx;
     d3uc_update_match_chain(c, (unsigned int)r_eax, (unsigned int)r_edx);
-    /* mov t3,dword_4299B8 */ r_edx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-    /* mov t0,dword_444274 */ r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov [t3+t0],ch */ c->blk00_dict[((r_edx + r_eax) & U32MASK) - c->blk00_base] = (unsigned char)((r_ecx >> 8) & 0xFFUL);
-    /* cmp t0,100h */
-    if (r_eax >= 0x100UL) goto l_416466; /* jnb = unsigned >= */
-    /* add t0,dword_444270 */ r_eax = (r_eax + (unsigned long)D3U_DICT_SIZE_32(&c->st, 0)) & U32MASK;
-    /* mov [t3+t0],ch */ c->blk00_dict[((r_edx + r_eax) & U32MASK) - c->blk00_base] = (unsigned char)((r_ecx >> 8) & 0xFFUL);
+     r_edx = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+     r_eax = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     c->blk00_dict[((r_edx + r_eax) & U32MASK) - c->blk00_base] = (unsigned char)((r_ecx >> 8) & 0xFFUL);
+    if (r_eax >= 0x100UL) goto l_416466;
+     r_eax = (r_eax + (unsigned long)D3U_DICT_SIZE_32(&c->st, 0)) & U32MASK;
+     c->blk00_dict[((r_edx + r_eax) & U32MASK) - c->blk00_base] = (unsigned char)((r_ecx >> 8) & 0xFFUL);
 l_416466:
     /* loc_416466: */
-    /* mov t3,dword_444274 */ r_edx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov t0,dword_444278 */ r_eax = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    /* inc t3 */ r_edx = (r_edx + 1UL) & U32MASK;
-    /* inc t5 */ r_edi = (r_edi + 1UL) & U32MASK;
-    /* and t3,t0 */ r_edx = (r_edx & r_eax) & U32MASK;
-    /* and t5,t0 */ r_edi = (r_edi & r_eax) & U32MASK;
-    /* mov dword_444274,t3 */ D3U_DICT_CURSOR_32(&c->st, 0) = (unsigned int)r_edx;
+     r_edx = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+     r_eax = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+     r_edx = (r_edx + 1UL) & U32MASK;
+     r_edi = (r_edi + 1UL) & U32MASK;
+     r_edx = (r_edx & r_eax) & U32MASK;
+     r_edi = (r_edi & r_eax) & U32MASK;
+     D3U_DICT_CURSOR_32(&c->st, 0) = (unsigned int)r_edx;
     r_ecx = (r_ecx & ~0xFFUL) | ((r_ecx - 1UL) & 0xFFUL);
     if ((r_ecx & 0xFFUL) != 0UL) goto l_416424;
     r_eax = (r_eax & ~0xFFUL) | 1UL;
-    /* add esp,24h (stack release, no C equivalent) */
-    /* pop t6 (no C equivalent) */
-    /* pop t5 (no C equivalent) */
-    /* pop t4 (no C equivalent) */
-    /* pop t3 (no C equivalent) */
-    /* pop t2 (no C equivalent) */
-    /* pop t1 (no C equivalent) */
     /* retn */ return (r_eax & 0xFFUL);
 l_41648D:
     /* loc_41648D: */
-    /* xor t0,t0 */ r_eax = 0;
-    /* mov t3,2 */ r_edx = 2;
+     r_eax = 0;
+     r_edx = 2;
     r_eax = (r_eax & ~0xFFUL) | (unsigned long)stk28;
     (void)d3uc_update_len_model(c, (unsigned int)(r_eax & 0xFFUL), (unsigned int)r_edx);
 l_41649D:
     /* loc_41649D: */
-    /* mov t5,[var_34] */ r_edi = stk34;
-    /* mov t0,dword_4299CC */ r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
-    /* add t0,t5 */ r_eax = (r_eax + r_edi) & U32MASK;
-    /* mov byte ptr [t0],0 */ M8((r_eax) & U32MASK) = 0;
+     r_edi = stk34;
+     r_eax = (unsigned long)(unsigned long)D3U_TBL_4299CC_32(&c->st, 0);
+     r_eax = (r_eax + r_edi) & U32MASK;
+     M8((r_eax) & U32MASK) = 0;
 l_4164AB:
     /* loc_4164AB: */
     r_eax = (r_eax & ~0xFFUL) | 0UL;
-    /* add esp,24h (stack release, no C equivalent) */
-    /* pop t6 (no C equivalent) */
-    /* pop t5 (no C equivalent) */
-    /* pop t4 (no C equivalent) */
-    /* pop t3 (no C equivalent) */
-    /* pop t2 (no C equivalent) */
-    /* pop t1 (no C equivalent) */
     /* retn */ return (r_eax & 0xFFUL);
 }
 
@@ -2778,126 +2674,125 @@ unsigned long r = 0;
 t5 = (unsigned long)edi_in; /* entry t5 live */
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0)) & 0xFFUL);
 var_1C = (t0 & 0xFFUL) & 0xFFUL;
-t3 = (unsigned long)D3U_TBL_444258_32(&c->st, 0); /* mov t3,dword_444258 */
+t3 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
 t3 &= U32MASK; /* lane init */
 var_4C = 1UL;
-t0 = t3 & U32MASK; /* mov t0,t3 */
-D3U_TBL_444240_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444240,t0 */
-if ((unsigned long)D3U_FLAG_444EAF_8(&c->st, 0) != 2UL) goto L_41686F_b; /* cmp / jnz */
-t3 = ((t3 >> 8) & U32MASK); /* shr t3,8 */
-t0 = ((t0 >> 16) & U32MASK); /* shr t0,10h */
-t3 &= 0xFFUL; /* and t3,0FFh */
-t0 &= 0xFF00UL; /* and t0,0FF00h */
-t3 = (t3 + t0) & U32MASK; /* add t3,t0 */
-t0 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0); /* mov t0,dword_44425C */
-t0 = ((t0 << 8) & U32MASK); /* shl t0,8 */
-t0 &= 0xFF0000UL; /* and t0,0FF0000h */
-t3 = (t3 + t0) & U32MASK; /* add t3,t0 */
-t0 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0); /* mov t0,dword_44425C */
-t0 &= 0xFF000000UL; /* and t0,0FF000000h */
-t3 = (t3 + t0) & U32MASK; /* add t3,t0 */
-D3U_TBL_444240_32(&c->st, 0) = (unsigned int)(t3 & U32MASK); /* mov dword_444240,t3 */
-t0 = t3 & U32MASK; /* mov t0,t3 */
+t0 = t3 & U32MASK;
+D3U_TBL_444240_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+if ((unsigned long)D3U_FLAG_444EAF_8(&c->st, 0) != 2UL) goto L_41686F_b;
+t3 = ((t3 >> 8) & U32MASK);
+t0 = ((t0 >> 16) & U32MASK);
+t3 &= 0xFFUL;
+t0 &= 0xFF00UL;
+t3 = (t3 + t0) & U32MASK;
+t0 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
+t0 = ((t0 << 8) & U32MASK);
+t0 &= 0xFF0000UL;
+t3 = (t3 + t0) & U32MASK;
+t0 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
+t0 &= 0xFF000000UL;
+t3 = (t3 + t0) & U32MASK;
+D3U_TBL_444240_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
+t0 = t3 & U32MASK;
 L_41686F_b:;
-t0 = ((t0 >> 13) & U32MASK); /* shr t0,0Dh */
-t0 ^= t3; /* xor t0,t3 */
-t0 &= 0x7FFFUL; /* and t0,7FFFh */
-t6 = (unsigned long)(unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0); /* mov t6,dword_4299C0 */
-D3U_TBL_444224_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444224,t0 */
-t0 = t3 & U32MASK; /* mov t0,t3 */
-t4 = (unsigned long)D3U_TBL_444218_32(&c->st, 0); /* mov t4,dword_444218 */
-t0 &= 0xFFFFUL; /* and t0,0FFFFh */
-t3 &= 0xFFFF00FFUL; /* xor dh,dh (dh=0 lane-merge) */
+t0 = ((t0 >> 13) & U32MASK);
+t0 ^= t3;
+t0 &= 0x7FFFUL;
+t6 = (unsigned long)(unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
+D3U_TBL_444224_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 = t3 & U32MASK;
+t4 = (unsigned long)D3U_TBL_444218_32(&c->st, 0);
+t0 &= 0xFFFFUL;
+t3 &= 0xFFFF00FFUL;
 t3 = (t3 & ~0xFF00UL) | (((0UL) & 0xFFUL) << 8);
-D3U_TBL_444238_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444238,t0 */
+D3U_TBL_444238_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 D3U_FLAG_444EB0_32(&c->st, 0) = 0;
-D3U_FLAG_444EA0_8(&c->st, 0x15) = 0; /* mov [t0+15h],dh */
-D3U_FLAG_444EA0_8(&c->st, 0x0E) = 0; /* mov [t0+0Eh],dh */
-D3U_FLAG_444EA0_8(&c->st, 0x0C) = 0; /* mov [t0+0Ch],dh */
-D3U_FLAG_444EA0_8(&c->st, 0x01) = 0; /* mov [t0+1],dh */
-D3U_FLAG_444EA0_8(&c->st, 0x04) = 0; /* mov [t0+4],dh */
-D3U_FLAG_444EA0_8(&c->st, 0x0A) = 0; /* mov [t0+0Ah],dh */
-t0 = (unsigned long)D3U_TBL_444238_32(&c->st, 0); /* mov t0,dword_444238 */
+D3U_FLAG_444EA0_8(&c->st, 0x15) = 0;
+D3U_FLAG_444EA0_8(&c->st, 0x0E) = 0;
+D3U_FLAG_444EA0_8(&c->st, 0x0C) = 0;
+D3U_FLAG_444EA0_8(&c->st, 0x01) = 0;
+D3U_FLAG_444EA0_8(&c->st, 0x04) = 0;
+D3U_FLAG_444EA0_8(&c->st, 0x0A) = 0;
+t0 = (unsigned long)D3U_TBL_444238_32(&c->st, 0);
 goto L_4168EA;
 L_4168EA:;
-t3 = t0 & U32MASK; /* mov t3,t0 */
-t0 = ((t0 << 2) & U32MASK); /* shl t0,2 */
-t1 = 0UL; /* xor t1,t1 */
-t0 = (t0 + t3) & U32MASK; /* add t0,t3 */
-D3U_TBL_444204_32(&c->st, 0) = 0; /* mov dword_444204,t1 */
-t0 = ((t0 << 2) & U32MASK); /* shl t0,2 */
-D3U_TBL_44420C_32(&c->st, 0) = 0; /* mov dword_44420C,t1 */
-t6 = (t6 + t0) & U32MASK; /* add t6,t0 */
-if (t4 == 0UL) goto L_41691D; /* test t4,t4 / jz */
-D3U_TBL_444218_32(&c->st, 0) = 0; /* mov dword_444218,t1 */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t4)) & 0xFFUL); /* mov al,[t4] UNCERTAIN: t4 is arena-external pointer */
-t1 = (t1 & 0xFFFF00FFUL) | (1UL << 8); /* mov bh,1 lane-merge */
+t3 = t0 & U32MASK;
+t0 = ((t0 << 2) & U32MASK);
+t1 = 0UL;
+t0 = (t0 + t3) & U32MASK;
+D3U_TBL_444204_32(&c->st, 0) = 0;
+t0 = ((t0 << 2) & U32MASK);
+D3U_TBL_44420C_32(&c->st, 0) = 0;
+t6 = (t6 + t0) & U32MASK;
+if (t4 == 0UL) goto L_41691D;
+D3U_TBL_444218_32(&c->st, 0) = 0;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t4)) & 0xFFUL);
+t1 = (t1 & 0xFFFF00FFUL) | (1UL << 8);
 t1 = (t1 & ~0xFF00UL) | (((1UL) & 0xFFUL) << 8);
 D3U_FLAG_444E82_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(((t1 >> 8) & 0xFFUL) & 0xFFUL);
 L_41691D:;
-if (((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 1UL)) goto L_416931; /* cmp / ja (EBA>1 skips the EB9-gate block) */
+if (((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 1UL)) goto L_416931;
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB9_8(&c->st, 0)) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) - 2) & 0xFFUL)) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) > 2UL) goto L_416961; /* cmp / ja */
+if (((t0 & 0xFFUL) & 0xFFUL) > 2UL) goto L_416961;
 L_416931:;
-t1 &= 0xFFFFFF00UL; /* xor t1,t1(partial bl later) */
+t1 &= 0xFFFFFF00UL;
 t1 = 0UL;
 t1 = (t1 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB9_8(&c->st, 0)) & 0xFFUL);
 t1 &= 0xFFUL;
-if ((t1 & U32MASK) > 4UL) goto L_416952; /* cmp / ja */
-t0 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0); /* mov t0,dword_4441C0 */
-t3 = 0UL; /* xor t3,t3 */
-/* div t1 : x86 div faults if t1==0; direct / % */
+if ((t1 & U32MASK) > 4UL) goto L_416952;
+t0 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
+t3 = 0UL;
 q = t1 ? (t0 / t1) : 0UL; r = t1 ? (t0 % t1) : 0UL;
 t0 = q & U32MASK; t3 = r & U32MASK;
-t1 = ((t1 << 2) & U32MASK); /* shl t1,2 */
-t3 = (t3 + t1) & U32MASK; /* add t3,t1 */
-t1 = (t3 + 0xF8UL) & U32MASK; /* lea t1,[t3+0F8h] */
+t1 = ((t1 << 2) & U32MASK);
+t3 = (t3 + t1) & U32MASK;
+t1 = (t3 + 0xF8UL) & U32MASK;
 L_416952:;
-t0 = D3U_TBL_442528; /* mov t0,offset dword_442528 */
-t1 = ((t1 << 2) & U32MASK); /* shl t1,2 */
-t0 = (t0 + t1) & U32MASK; /* add t0,t1 */
-D3U_TBL_4441F8_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441F8,t0 */
+t0 = D3U_TBL_442528;
+t1 = ((t1 << 2) & U32MASK);
+t0 = (t0 + t1) & U32MASK;
+D3U_TBL_4441F8_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 L_416961:;
-if ((var_1C & 0xFFUL) == 0UL) goto L_41699F; /* cmp / jz */
-if ((unsigned long)D3U_FLAG_444EA6_8(&c->st, 0) == 0UL) goto L_41698B; /* cmp / jz */
-t3 = (unsigned long)D3U_TBL_443B60_32(&c->st, 0); /* mov t3,dword_443B60 */
-t0 = t3 & U32MASK; /* mov t0,t3 */
-t1 = (unsigned long)D3U_TBL_443B64_32(&c->st, 0); /* mov t1,dword_443B64 */
-t0 = ((t0 << 5) & U32MASK); /* shl t0,5 */
-t1 = ((t1 << 5) & U32MASK); /* shl t1,5 */
-t0 = (t0 - t3) & U32MASK; /* sub t0,t3 */
-if (!((t0 & U32MASK) < (t1 & U32MASK))) goto L_416998_set0; /* cmp (jb) */
+if ((var_1C & 0xFFUL) == 0UL) goto L_41699F;
+if ((unsigned long)D3U_FLAG_444EA6_8(&c->st, 0) == 0UL) goto L_41698B;
+t3 = (unsigned long)D3U_TBL_443B60_32(&c->st, 0);
+t0 = t3 & U32MASK;
+t1 = (unsigned long)D3U_TBL_443B64_32(&c->st, 0);
+t0 = ((t0 << 5) & U32MASK);
+t1 = ((t1 << 5) & U32MASK);
+t0 = (t0 - t3) & U32MASK;
+if (!((t0 & U32MASK) < (t1 & U32MASK))) goto L_416998_set0;
 goto L_416998_set1;
 L_41698B:;
-t0 = (unsigned long)D3U_TBL_443B60_32(&c->st, 0); /* mov t0,dword_443B60 */
-t3 = (unsigned long)D3U_TBL_443B64_32(&c->st, 0); /* mov t3,dword_443B64 */
-tmp = ((t0 & U32MASK) < (t3 & U32MASK)) ? 1UL : 0UL; /* cmp / setb */
+t0 = (unsigned long)D3U_TBL_443B60_32(&c->st, 0);
+t3 = (unsigned long)D3U_TBL_443B64_32(&c->st, 0);
+tmp = ((t0 & U32MASK) < (t3 & U32MASK)) ? 1UL : 0UL;
 goto L_416998_done;
 L_416998_set0:;
-tmp = 0UL; /* setb false path */
+tmp = 0UL;
 goto L_416998_done;
 L_416998_set1:;
-tmp = 1UL; /* setb true path */
+tmp = 1UL;
 goto L_416998_done;
 L_416998_done:;
 L_416998:;
 t0 = (t0 & ~0xFFUL) | ((tmp & 0xFFUL) & 0xFFUL);
 var_1C = (t0 & 0xFFUL) & 0xFFUL;
 L_41699F:;
-if ((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0) == 0UL) goto L_4169CF; /* cmp / jz */
-if (!((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 4UL)) goto L_4169BE; /* cmp / jbe */
-t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0); /* mov t0,dword_4441F8 */
-if (!((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) > 0x3FEUL)) goto L_4169BE; /* cmp / ja */
+if ((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0) == 0UL) goto L_4169CF;
+if (!((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 4UL)) goto L_4169BE;
+t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0);
+if (!((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) > 0x3FEUL)) goto L_4169BE;
 goto L_4169C5;
 L_4169BE:;
-t0 = 1UL; /* mov t0,1 */
+t0 = 1UL;
 goto L_4169C7;
 L_4169C5:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 L_4169C7:;
-if (t0 == 0UL) goto L_4169CF; /* test / jz */
+if (t0 == 0UL) goto L_4169CF;
 t0 = (t0 & ~0xFFUL) | ((1UL) & 0xFFUL);
 goto L_4169D1;
 L_4169CF:;
@@ -2905,295 +2800,291 @@ t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 L_4169D1:;
 t3 = (t3 & ~0xFF00UL) | ((((var_1C & 0xFFUL)) & 0xFFUL) << 8);
 var_3C = (t0 & 0xFFUL) & 0xFFUL;
-if ((((t3 >> 8) & 0xFFUL) & 0xFFUL) == 0UL) goto L_4169E5; /* test / jz */
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_4169E5; /* test / jz */
+if ((((t3 >> 8) & 0xFFUL) & 0xFFUL) == 0UL) goto L_4169E5;
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_4169E5;
 t0 = (t0 & ~0xFFUL) | ((1UL) & 0xFFUL);
 goto L_4169E7;
 L_4169E5:;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 L_4169E7:;
 var_48 = (t0 & 0xFFUL) & 0xFFUL;
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416A00; /* test / jz */
-t0 = (unsigned long)D3U_TBL_4441E0_32(&c->st, 0); /* mov t0,dword_4441E0 */
-if (!((t0 & U32MASK) < (unsigned long)D3U_TBL_444200_32(&c->st, 0))) goto L_416A00; /* cmp / jnb (unsigned <) */
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416A00;
+t0 = (unsigned long)D3U_TBL_4441E0_32(&c->st, 0);
+if (!((t0 & U32MASK) < (unsigned long)D3U_TBL_444200_32(&c->st, 0))) goto L_416A00;
 t0 = (t0 & ~0xFFUL) | ((1UL) & 0xFFUL);
 goto L_416A02;
 L_416A00:;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 L_416A02:;
-t4 = (unsigned long)D3U_TBL_444224_32(&c->st, 0); /* mov t4,dword_444224 */
+t4 = (unsigned long)D3U_TBL_444224_32(&c->st, 0);
 var_2C = (t0 & 0xFFUL) & 0xFFUL;
-if (!((t4 & U32MASK) < 0x40000UL)) goto L_416CE9; /* cmp / jnb */
-t0 = t4 & U32MASK; /* mov t0,t4 */
-t0 = ((t0 << 5) & U32MASK); /* shl t0,5 */
+if (!((t4 & U32MASK) < 0x40000UL)) goto L_416CE9;
+t0 = t4 & U32MASK;
+t0 = ((t0 << 5) & U32MASK);
 L_416A1D:;
-t1 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0); /* mov t1,dword_4299BC */
-t1 = (t1 + t0) & U32MASK; /* add t1,t0 */
-if ((unsigned long)M8((unsigned long)t1) == 0UL) goto L_416CC6; /* cmp / jz */
-t2 = (unsigned long)D3U_TBL_444240_32(&c->st, 0); /* mov t2,dword_444240 */
-if (t2 != (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)(t1 + 0x1C)))) goto L_416CC6; /* cmp / jnz */
-t0 = 0UL; /* xor t0,t0 */
-t2 = (t2 & 0xFFFFFF00UL) | 0xFFUL; /* mov ch,0FFh lane-merge */
+t1 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
+t1 = (t1 + t0) & U32MASK;
+if ((unsigned long)M8((unsigned long)t1) == 0UL) goto L_416CC6;
+t2 = (unsigned long)D3U_TBL_444240_32(&c->st, 0);
+if (t2 != (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)(t1 + 0x1C)))) goto L_416CC6;
+t0 = 0UL;
+t2 = (t2 & 0xFFFFFF00UL) | 0xFFUL;
 t2 = (t2 & ~0xFF00UL) | (((0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t1)) & 0xFFUL); /* mov al,[t1] lane-merge */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t1)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)(((t2 >> 8) & 0xFFUL) & 0xFFUL);
-D3U_TBL_444214_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444214,t0 */
-t0 = t1 & U32MASK; /* mov t0,t1 */
-t2 = (t1 + 0x0DUL) & U32MASK; /* lea t2,[t1+0Dh] */
+D3U_TBL_444214_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 = t1 & U32MASK;
+t2 = (t1 + 0x0DUL) & U32MASK;
 L_416A53:;
-t3 = 0UL; /* xor t3,t3 */
-t4 = (unsigned long)D3U_TBL_444214_32(&c->st, 0); /* mov t4,dword_444214 */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 1))) & 0xFFUL); /* mov dl,[t0+1] lane-merge */
+t3 = 0UL;
+t4 = (unsigned long)D3U_TBL_444214_32(&c->st, 0);
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 1))) & 0xFFUL);
 t3 &= 0xFFUL;
-t4 = (t4 + t3) & U32MASK; /* add t4,t3 */
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-D3U_TBL_444214_32(&c->st, 0) = (unsigned int)(t4 & U32MASK); /* mov dword_444214,t4 */
-if (t0 != t2) goto L_416A53; /* cmp / jnz */
-if ((unsigned long)D3U_TBL_44423C_32(&c->st, 0) != 0UL) goto L_416A9B; /* cmp / jnz */
-t0 = (unsigned long)D3U_TBL_444264_32(&c->st, 0); /* mov t0,dword_444264 */
-if (!((t0 & U32MASK) <= (unsigned long)D3U_TBL_444250_32(&c->st, 0))) goto L_416A9B; /* cmp / ja ( !(a>b) ) */
-if (!((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 1UL)) goto L_416A9B; /* cmp / jbe */
-t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0); /* mov t0,dword_4441F8 */
-if ((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) > 0x3FEUL) goto L_416CE9; /* cmp / ja */
+t4 = (t4 + t3) & U32MASK;
+t0 = (t0 + 1) & U32MASK;
+D3U_TBL_444214_32(&c->st, 0) = (unsigned int)(t4 & U32MASK);
+if (t0 != t2) goto L_416A53;
+if ((unsigned long)D3U_TBL_44423C_32(&c->st, 0) != 0UL) goto L_416A9B;
+t0 = (unsigned long)D3U_TBL_444264_32(&c->st, 0);
+if (!((t0 & U32MASK) <= (unsigned long)D3U_TBL_444250_32(&c->st, 0))) goto L_416A9B;
+if (!((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 1UL)) goto L_416A9B;
+t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0);
+if ((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) > 0x3FEUL) goto L_416CE9;
 L_416A9B:;
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 0x1B))) & 0xFFUL); /* mov al,[t1+1Bh] */
-t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) & 0x3FUL) & 0xFFUL); /* and al,3Fh */
-if (!(((t0 & 0xFFUL) & 0xFFUL) < 8UL)) goto L_416AE9; /* cmp / jnb (unsigned <8) */
-if ((unsigned long)M8((unsigned long)t6) == 0UL) goto L_416AE9; /* cmp / jz */
-t0 = (t0 & 0xFFUL) & 0xFFUL; /* and t0,0FFh */
-t3 = 0x3E0UL; /* mov t3,3E0h */
-t0 = ((t0 << 5) & U32MASK); /* shl t0,5 */
-t3 = (t3 - t0) & U32MASK; /* sub t3,t0 */
-t0 = 0UL; /* xor t0,t0 */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 1))) & 0xFFUL); /* mov al,[t6+1] lane-merge */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 0x1B))) & 0xFFUL);
+t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) & 0x3FUL) & 0xFFUL);
+if (!(((t0 & 0xFFUL) & 0xFFUL) < 8UL)) goto L_416AE9;
+if ((unsigned long)M8((unsigned long)t6) == 0UL) goto L_416AE9;
+t0 = (t0 & 0xFFUL) & 0xFFUL;
+t3 = 0x3E0UL;
+t0 = ((t0 << 5) & U32MASK);
+t3 = (t3 - t0) & U32MASK;
+t0 = 0UL;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 1))) & 0xFFUL);
 t0 &= 0xFFUL;
-t3 = (t3 * t0) & U32MASK; /* imul t3,t0 */
-t2 = 0UL; /* xor t2,t2 */
-t2 = (t2 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 0x12))) & 0xFFUL); /* mov cl,[t6+12h] lane-merge */
+t3 = (t3 * t0) & U32MASK;
+t2 = 0UL;
+t2 = (t2 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 0x12))) & 0xFFUL);
 t2 &= 0xFFUL;
-t0 = t3 & U32MASK; /* mov t0,t3 */
-t3 = ((((long)t0) < 0) ? U32MASK : 0UL); /* sar t3,1Fh (sign extend) */
-/* idiv t2 : signed div, faults if t2==0; direct / % */
+t0 = t3 & U32MASK;
+t3 = ((((long)t0) < 0) ? U32MASK : 0UL);
 if (t2 == 0UL) { t0 = 0UL; t3 = 0UL; } else { q = (unsigned long)(((long)t0) / (long)(long)t2); r = (unsigned long)(((long)t0) % (long)(long)t2); t0 = q & U32MASK; t3 = r & U32MASK; }
-t2 = t0 & U32MASK; /* mov t2,t0 */
-t0 = 0UL; /* xor t0,t0 */
-t4 = (unsigned long)D3U_TBL_444214_32(&c->st, 0); /* mov t4,dword_444214 */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 1))) & 0xFFUL); /* mov al,[t1+1] lane-merge */
+t2 = t0 & U32MASK;
+t0 = 0UL;
+t4 = (unsigned long)D3U_TBL_444214_32(&c->st, 0);
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 1))) & 0xFFUL);
 t0 &= 0xFFUL;
-t3 = 0UL; /* xor t3,t3 */
-t0 = ((t0 << 10) & U32MASK); /* shl t0,0Ah */
-/* div t4 : faults if t4==0; direct / % */
+t3 = 0UL;
+t0 = ((t0 << 10) & U32MASK);
 if (t4 == 0UL) { t0 = 0UL; } else { q = (t0 / t4) & U32MASK; r = (t0 % t4) & U32MASK; t0 = q; t3 = r; }
-if (!((t2 & U32MASK) > (t0 & U32MASK))) goto L_416AE9; /* cmp / ja (unsigned >) */
+if (!((t2 & U32MASK) > (t0 & U32MASK))) goto L_416AE9;
 goto L_416CE9;
 L_416AE9:;
-t3 = (t3 & ~0xFFUL) | ((1UL) & 0xFFUL); /* mov dl,1 lane-merge */
+t3 = (t3 & ~0xFFUL) | ((1UL) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | 0x01UL;
-t5 = 0UL; /* mov t5,esp (stack buf base; model v68 index 0) */
-t4 = 0x4137F0UL; /* mov t4,offset loc_4137F0 */
-t0 = (unsigned long)D3U_TBL_444214_32(&c->st, 0); /* mov t0,dword_444214 */
+t5 = 0UL;
+t4 = 0x4137F0UL;
+t0 = (unsigned long)D3U_TBL_444214_32(&c->st, 0);
 D3U_FLAG_444EB0_8(&c->st, 0) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
-D3U_TBL_444234_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444234,t0 */
-t3 = (t3 & ~0xFF00UL) | ((((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL) << 8); /* mov dh,byte_444EAA lane-merge */
+D3U_TBL_444234_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t3 = (t3 & ~0xFF00UL) | ((((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL) << 8);
 t3 = (t3 & 0xFFFF00FFUL) | ((((t3 >> 8) & 0xFFUL) & 0xFFUL) << 8);
     { unsigned int _k; static const unsigned char _b13[13] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
       for (_k = 0; _k < 13; _k++) v68[_k] = _b13[_k]; }
-    /* movsd x3 + movsb: 13 bytes from loc_4137F0 (file image: thirteen 0x01) to v68 */
-if (((((t3 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_416B52; /* test dh,dh / jz */
+if (((((t3 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_416B52;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
-t0 = (t0 & ~0xFF00UL) | ((((unsigned long)D3U_FLAG_444E82_8(&c->st, 0)) & 0xFFUL) << 8); /* mov ah,byte_444E82 (NO lane-merge after: native falls straight into mov [var_34],ah; a merge line here cleared ah and forced var_34=0) */
+t0 = (t0 & ~0xFF00UL) | ((((unsigned long)D3U_FLAG_444E82_8(&c->st, 0)) & 0xFFUL) << 8);
 var_34 = (((t0 >> 8) & 0xFFUL)) & 0xFFUL;
 L_416B1C:;
-t2 = 0UL; /* xor t2,t2 */
+t2 = 0UL;
 t2 = (t2 & ~0xFFUL) | (((t0 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t2 &= 0xFFUL;
-t3 = (t1 + t2) & U32MASK; /* lea t3,[t1+t2] */
-if ((unsigned long)M8((unsigned long)(t3 + 1)) == 0UL) goto L_416B52; /* cmp / jz */
-t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t3 + 0x0E))) & 0xFFUL) << 8); /* mov ah,[t3+0Eh] */
+t3 = (t1 + t2) & U32MASK;
+if ((unsigned long)M8((unsigned long)(t3 + 1)) == 0UL) goto L_416B52;
+t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t3 + 0x0E))) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | ((((t0 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-if (((((t0 >> 8) & 0xFFUL)) & 0xFFUL) != ((var_34) & 0xFFUL)) goto L_416B4C; /* cmp / jnz */
+if (((((t0 >> 8) & 0xFFUL)) & 0xFFUL) != ((var_34) & 0xFFUL)) goto L_416B4C;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | 0UL;
-if (t2 < 13UL) v68[t2] = 0; /* mov [esp+t2+var_68],al */
-t0 = 0UL; /* xor t0,t0 */
-t5 = (unsigned long)D3U_TBL_444234_32(&c->st, 0); /* mov t5,dword_444234 */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t3 + 1))) & 0xFFUL); /* mov al,[t3+1] lane-merge */
+if (t2 < 13UL) v68[t2] = 0;
+t0 = 0UL;
+t5 = (unsigned long)D3U_TBL_444234_32(&c->st, 0);
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t3 + 1))) & 0xFFUL);
 t0 &= 0xFFUL;
-t5 = (t5 - t0) & U32MASK; /* sub t5,t0 */
-D3U_TBL_444234_32(&c->st, 0) = (unsigned int)(t5 & U32MASK); /* mov dword_444234,t5 */
+t5 = (t5 - t0) & U32MASK;
+D3U_TBL_444234_32(&c->st, 0) = (unsigned int)(t5 & U32MASK);
 goto L_416B52;
 L_416B4C:;
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) < 0x0DUL) goto L_416B1C; /* cmp / jb (unsigned <) */
+if (((t0 & 0xFFUL) & 0xFFUL) < 0x0DUL) goto L_416B1C;
 L_416B52:;
-t0 = 0UL; /* xor t0,t0 */
-t3 = (unsigned long)D3U_TBL_444234_32(&c->st, 0); /* mov t3,dword_444234 */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t1)) & 0xFFUL); /* mov al,[t1] lane-merge */
+t0 = 0UL;
+t3 = (unsigned long)D3U_TBL_444234_32(&c->st, 0);
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t1)) & 0xFFUL);
 t0 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_416CE9; /* cmp / jnb (unsigned <) */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_416CE9;
 t0 = (t0 & ~0xFFUL) | (((var_48 & 0xFFUL)) & 0xFFUL);
 D3U_FLAG_444EB1_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 t0 = (t0 & ~0xFF00UL) | ((((var_2C & 0xFFUL)) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | ((((t0 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-if (((((t0 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_416B7D_z; /* test / setz below */
+if (((((t0 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_416B7D_z;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL); goto L_416B76_done;
 L_416B7D_z:;
 t0 = (t0 & ~0xFFUL) | ((1UL) & 0xFFUL);
 L_416B76_done:;
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EB0_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416CE9; /* test / jz */
-t2 = (unsigned long)D3U_TBL_444214_32(&c->st, 0); /* mov t2,dword_444214 */
-if (!((t2 & U32MASK) <= 8UL)) goto L_416BF4; /* cmp / ja (unsigned >8) */
-t0 = 0UL; /* xor t0,t0 */
-t4 = (unsigned long)M8((unsigned long)t1); /* movzx t4,byte ptr [t1] */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 1))) & 0xFFUL); /* mov al,[t1+1] lane-merge */
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416CE9;
+t2 = (unsigned long)D3U_TBL_444214_32(&c->st, 0);
+if (!((t2 & U32MASK) <= 8UL)) goto L_416BF4;
+t0 = 0UL;
+t4 = (unsigned long)M8((unsigned long)t1);
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 1))) & 0xFFUL);
 t0 &= 0xFFUL;
-t3 = (t4 + t0) & U32MASK; /* lea t3,[t4+t0] */
-if (t3 != t2) goto L_416BF4; /* cmp / jnz */
-t4 = (((long)t4) >> 1) & U32MASK; /* sar t4,1 */
-t0 = (((long)(t0 & U32MASK)) >> 1) & U32MASK; /* sar t0,1 */
-t4 = ((t4 << 2) & U32MASK); /* shl t4,2 */
-t0 = (t0 + t4) & U32MASK; /* add t0,t4 */
-t0 = (t0 + t0) & U32MASK; /* add t0,t0 */
-t0 = (t0 + D3U_TBL_444128) & U32MASK; /* add t0,offset dword_444128 */
+t3 = (t4 + t0) & U32MASK;
+if (t3 != t2) goto L_416BF4;
+t4 = (((long)t4) >> 1) & U32MASK;
+t0 = (((long)(t0 & U32MASK)) >> 1) & U32MASK;
+t4 = ((t4 << 2) & U32MASK);
+t0 = (t0 + t4) & U32MASK;
+t0 = (t0 + t0) & U32MASK;
+t0 = (t0 + D3U_TBL_444128) & U32MASK;
 t0 = (t0 & ~0xFFUL) | (d3uc_decode_bit_update(c, (unsigned int)t0) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416BCE; /* test / jz */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 0x0E))) & 0xFFUL); /* mov al,[t1+0Eh] */
-t1 &= 0xFFFF00FFUL; /* xor bl,bl lane-merge */
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416BCE;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 0x0E))) & 0xFFUL);
+t1 &= 0xFFFF00FFUL;
 t1 = (t1 & ~0xFFUL) | ((0UL) & 0xFFUL); t1 &= 0xFFFFFF00UL;
 var_28 = (t0 & 0xFFUL) & 0xFFUL;
 var_4C = ((t1 & 0xFFUL)) & 0xFFUL;
 D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)((t1 & 0xFFUL) & 0xFFUL);
 goto L_416CBA;
 L_416BCE:;
-t3 = (t3 & ~0xFF00UL) | (((0x0DUL) & 0xFFUL) << 8); /* mov dh,0Dh lane-merge */
+t3 = (t3 & ~0xFF00UL) | (((0x0DUL) & 0xFFUL) << 8);
 t3 = (t3 & 0xFFFF00FFUL) | (0x0DUL << 8);
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)(((t3 >> 8) & 0xFFUL) & 0xFFUL);
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((t0 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t3 &= 0xFFUL;
-t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t1 + 0x0E))) & 0xFFUL) << 8); /* mov ah,[t1+0Eh] */
+t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t1 + 0x0E))) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | ((((t0 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t3],ah */
+M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 goto L_416CBA;
 L_416BF4:;
-t0 = (unsigned long)D3U_TBL_444234_32(&c->st, 0); /* mov t0,dword_444234 */
-D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441E8,t0 */
-t0 &= 0xFFFFUL; /* mov ax,word ptr / and t0,0FFFFh */
+t0 = (unsigned long)D3U_TBL_444234_32(&c->st, 0);
+D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 &= 0xFFFFUL;
 t4 = (t4 & 0xFFFF0000UL) | (d3uc_rc_decode(c, (unsigned int)(t0 & 0xFFFFUL)) & 0xFFFFUL);
 t3 = (t3 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | 0UL;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
-D3U_RC_PROB_LO_32(&c->st, 0) = 0; /* mov dword_4441EC,t0 */
+D3U_RC_PROB_LO_32(&c->st, 0) = 0;
 L_416C1F:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB7_8(&c->st, 0)) & 0xFFUL);
 t0 &= 0xFFUL;
-    /* cmp [esp+t0+var_68],0 / jz (no t2>=13 clause: not in listing) */
     if (((unsigned long)v68[t0 & 0xFFUL]) == 0UL) goto L_416C93;
-t0 = (t0 + t1) & U32MASK; /* add t0,t1 */
-if ((unsigned long)M8((unsigned long)(t0 + 1)) != 0UL) goto L_416C3D; /* cmp / jnz */
+t0 = (t0 + t1) & U32MASK;
+if ((unsigned long)M8((unsigned long)(t0 + 1)) != 0UL) goto L_416C3D;
 D3U_FLAG_444EB7_8(&c->st, 0) = 0x0D;
 goto L_416CA7;
 L_416C3D:;
-t2 = 0UL; /* xor t2,t2 */
-t3 = (unsigned long)D3U_RC_PROB_LO_32(&c->st, 0); /* mov t3,dword_4441EC */
-t2 = (t2 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 1))) & 0xFFUL); /* mov cl,[t0+1] lane-merge */
+t2 = 0UL;
+t3 = (unsigned long)D3U_RC_PROB_LO_32(&c->st, 0);
+t2 = (t2 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 1))) & 0xFFUL);
 t2 &= 0xFFUL;
-t3 = (t3 + t2) & U32MASK; /* add t3,t2 */
-D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t3 & U32MASK); /* mov dword_4441F0,t3 */
-t3 = 0UL; /* xor t3,t3 */
-t2 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0); /* mov t2,dword_4441F0 */
-t3 = (t4 & 0xFFFFUL); /* mov dx,si lane-merge */
+t3 = (t3 + t2) & U32MASK;
+D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
+t3 = 0UL;
+t2 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0);
+t3 = (t4 & 0xFFFFUL);
 t3 &= 0xFFFFUL;
-if (!((t3 & U32MASK) < (t2 & U32MASK))) goto L_416C6E; /* cmp / jnb (unsigned <) */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 0x0E))) & 0xFFUL); /* mov al,[t0+0Eh] */
-t3 = (t3 & ~0xFFUL) | ((0UL) & 0xFFUL); /* xor dl,dl (native zeroes dl: var_4C=0 on this path) */
+if (!((t3 & U32MASK) < (t2 & U32MASK))) goto L_416C6E;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 0x0E))) & 0xFFUL);
+t3 = (t3 & ~0xFFUL) | ((0UL) & 0xFFUL);
 var_28 = (t0 & 0xFFUL) & 0xFFUL;
 var_4C = ((t3 & 0xFFUL)) & 0xFFUL;
 goto L_416CA7;
 L_416C6E:;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-t2 = 0UL; /* xor t2,t2 */
+t2 = 0UL;
 t2 = (t2 & ~0xFFUL) | (((t3 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t2 &= 0xFFUL;
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 0x0E))) & 0xFFUL); /* mov al,[t0+0Eh] */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 0x0E))) & 0xFFUL);
 t0 &= 0xFFUL;
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-M8((unsigned long)(D3U_FLAG_444E82 + (t2 & 0xFFUL))) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t2],al */
-t0 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0); /* mov t0,dword_4441F0 */
+M8((unsigned long)(D3U_FLAG_444E82 + (t2 & 0xFFUL))) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
+t0 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0);
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
-D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441EC,t0 */
+D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 L_416C93:;
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB7_8(&c->st, 0)) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) < 0x0DUL) goto L_416C1F; /* cmp / jb (unsigned <) */
+if (((t0 & 0xFFUL) & 0xFFUL) < 0x0DUL) goto L_416C1F;
 L_416CA7:;
-if ((unsigned long)D3U_FLAG_444EB7_8(&c->st, 0) != 0x0DUL) goto L_416CBA; /* cmp / jnz */
-t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0); /* mov t0,dword_4441E8 */
-D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441F0,t0 */
+if ((unsigned long)D3U_FLAG_444EB7_8(&c->st, 0) != 0x0DUL) goto L_416CBA;
+t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
+D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 L_416CBA:;
-t0 = D3U_RC_TOTAL; /* mov t0,offset dword_4441E8 */
+t0 = D3U_RC_TOTAL;
 d3uc_rc_update(c, D3U_RC_TOTAL);
 goto L_416CE9;
 L_416CC6:;
-t5 = (unsigned long)D3U_TBL_444224_32(&c->st, 0); /* mov t5,dword_444224 */
-t5 = (t5 + 0x8000UL) & U32MASK; /* add t5,8000h */
-t0 = (t0 + 0x100000UL) & U32MASK; /* add t0,100000h */
-D3U_TBL_444224_32(&c->st, 0) = (unsigned int)(t5 & U32MASK); /* mov dword_444224,t5 */
-if ((t5 & U32MASK) < 0x40000UL) goto L_416A1D; /* cmp / jb (unsigned <) */
+t5 = (unsigned long)D3U_TBL_444224_32(&c->st, 0);
+t5 = (t5 + 0x8000UL) & U32MASK;
+t0 = (t0 + 0x100000UL) & U32MASK;
+D3U_TBL_444224_32(&c->st, 0) = (unsigned int)(t5 & U32MASK);
+if ((t5 & U32MASK) < 0x40000UL) goto L_416A1D;
 L_416CE9:;
-if ((var_4C & 0xFFUL) == 0UL) goto L_4173C0; /* cmp / jz */
-if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) == 0UL) goto L_416D04; /* cmp / jz */
+if ((var_4C & 0xFFUL) == 0UL) goto L_4173C0;
+if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) == 0UL) goto L_416D04;
 t0 = d3uc_lookup_model_entry(c);
 goto L_416D06;
 L_416D04:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 L_416D06:;
-t2 = (t2 & ~0xFF00UL) | (((1UL) & 0xFFUL) << 8); /* mov ch,1 lane-merge */
+t2 = (t2 & ~0xFF00UL) | (((1UL) & 0xFFUL) << 8);
 t2 = (t2 & 0xFFFF00FFUL) | (1UL << 8);
-var_50 = t0 & U32MASK; /* mov [var_50],t0 */
+var_50 = t0 & U32MASK;
 t3 = (t3 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | 0UL;
 var_30 = (((t2 >> 8) & 0xFFUL)) & 0xFFUL;
 var_40 = ((t3 & 0xFFUL)) & 0xFFUL;
-if (t0 == 0UL) goto L_416D21; /* test / jz */
+if (t0 == 0UL) goto L_416D21;
 D3U_TBL_44423C_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_TBL_44423C_32(&c->st, 0) + 2UL) & U32MASK);
 L_416D21:;
-t5 = var_50 & U32MASK; /* mov t5,[var_50] */
-if (t5 == 0UL) goto L_416D5E; /* test / jz */
-t3 = 0UL; /* xor t3,t3 */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t5 + 1))) & 0xFFUL); /* mov dl,[t5+1] lane-merge */
+t5 = var_50 & U32MASK;
+if (t5 == 0UL) goto L_416D5E;
+t3 = 0UL;
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t5 + 1))) & 0xFFUL);
 t3 &= 0xFFUL;
-t1 = (t3 * 4UL) & U32MASK; /* lea t1,[t3*4] */
-t1 = (t1 + t3) & U32MASK; /* add t1,t3 */
-t3 = 0UL; /* xor t3,t3 */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t5)) & 0xFFUL); /* mov dl,[t5] lane-merge */
+t1 = (t3 * 4UL) & U32MASK;
+t1 = (t1 + t3) & U32MASK;
+t3 = 0UL;
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t5)) & 0xFFUL);
 t3 &= 0xFFUL;
-t0 = (t3 * 4UL) & U32MASK; /* lea t0,[t3*4] */
-t0 = (t0 - t3) & U32MASK; /* sub t0,t3 */
-if (!((long)(t0 & U32MASK) < (long)(t1 & U32MASK))) goto L_416D58; /* cmp / jge (SIGNED <) */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t5 + 3))) & 0xFFUL); /* mov al,[t5+3] */
-t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) & 0x7FUL) & 0xFFUL); /* and al,7Fh */
-if (((t0 & 0xFFUL) & 0xFFUL) > 2UL) goto L_416D58; /* cmp / ja (unsigned >) */
-t0 = 1UL; /* mov t0,1 */
+t0 = (t3 * 4UL) & U32MASK;
+t0 = (t0 - t3) & U32MASK;
+if (!((long)(t0 & U32MASK) < (long)(t1 & U32MASK))) goto L_416D58;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t5 + 3))) & 0xFFUL);
+t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) & 0x7FUL) & 0xFFUL);
+if (((t0 & 0xFFUL) & 0xFFUL) > 2UL) goto L_416D58;
+t0 = 1UL;
 goto L_416D5A;
 L_416D58:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 L_416D5A:;
-if (t0 == 0UL) goto L_416D62; /* test / jz */
+if (t0 == 0UL) goto L_416D62;
 L_416D5E:;
 t0 = (t0 & ~0xFFUL) | ((1UL) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
@@ -3204,188 +3095,186 @@ t0 = (t0 & 0xFFFFFF00UL) | 0UL;
 L_416D64:;
 D3U_FLAG_444EAC_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 L_416D69:;
-if ((unsigned long)D3U_FLAG_444EAC_8(&c->st, 0) == 0UL) goto L_416D7D_chk; /* cmp / jnz inverted */
+if ((unsigned long)D3U_FLAG_444EAC_8(&c->st, 0) == 0UL) goto L_416D7D_chk;
 goto L_416D7D;
 L_416D7D_chk:;
-if ((var_40 & 0xFFUL) == 0UL) goto L_416FDA; /* cmp / jz */
+if ((var_40 & 0xFFUL) == 0UL) goto L_416FDA;
 L_416D7D:;
-t1 = (t1 & ~0xFF00UL) | (((0UL) & 0xFFUL) << 8); /* xor bh,bh lane-merge */
+t1 = (t1 & ~0xFF00UL) | (((0UL) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | 0UL;
-t0 = (unsigned long)D3U_TBL_44424C_32(&c->st, 0); /* mov t0,dword_44424C */
+t0 = (unsigned long)D3U_TBL_44424C_32(&c->st, 0);
 var_30 = (((t1 >> 8) & 0xFFUL)) & 0xFFUL;
-if (t0 == 0UL) goto L_416DAB; /* test / jz */
-if ((unsigned long)M8((unsigned long)(t6 + 0x11)) == 0UL) goto L_416DAB; /* cmp / jz */
-if (!((unsigned long)D3U_TBL_444208_32(&c->st, 0) < 0xFFFFUL)) goto L_416DB2; /* cmp / jnb (unsigned <) */
-t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0); /* mov t0,dword_4441F8 */
-if ((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) > 0x3FEUL) goto L_416DB2; /* cmp / ja (unsigned >) */
+if (t0 == 0UL) goto L_416DAB;
+if ((unsigned long)M8((unsigned long)(t6 + 0x11)) == 0UL) goto L_416DAB;
+if (!((unsigned long)D3U_TBL_444208_32(&c->st, 0) < 0xFFFFUL)) goto L_416DB2;
+t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0);
+if ((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) > 0x3FEUL) goto L_416DB2;
 L_416DAB:;
-t0 = 1UL; /* mov t0,1 */
+t0 = 1UL;
 goto L_416DB4;
 L_416DB2:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 L_416DB4:;
-if (t0 == 0UL) goto L_416DBE_z; /* test / setnz */
+if (t0 == 0UL) goto L_416DBE_z;
 t0 = (t0 & ~0xFFUL) | ((1UL) & 0xFFUL); goto L_416DB9_done;
 L_416DBE_z:;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 L_416DB9_done:;
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EAC_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416FDA; /* test / jz */
-if ((unsigned long)M8((unsigned long)t6) == 0UL) goto L_416FDA; /* cmp / jz */
-t5 = 0UL; /* lea t5,[var_58] (stack buf base) */
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416FDA;
+if ((unsigned long)M8((unsigned long)t6) == 0UL) goto L_416FDA;
+t5 = 0UL;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | 0UL;
-t4 = 0x4137FDUL; /* mov t4,(loc_4137FC+1) */
+t4 = 0x4137FDUL;
 var_38 = (t0 & 0xFFUL) & 0xFFUL;
     { unsigned int _k; static const unsigned char _b8[8] = {0xA5,0xA5,0x88,0x44,0x24,0x24,0x8A,0x45};
       for (_k = 0; _k < 8; _k++) v58[_k] = _b8[_k]; }
-    /* movsd x2: 8 bytes from (file image) to v58 */
 var_44 = (t0 & 0xFFUL) & 0xFFUL;
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 0x12))) & 0xFFUL); /* mov al,[t6+12h] */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 0x12))) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 var_24 = (t0 & 0xFFUL) & 0xFFUL;
 L_416DEC:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((var_38 & 0xFFUL)) & 0xFFUL);
 t0 &= 0xFFUL;
-if ((unsigned long)M8((unsigned long)(t0 + t6 + 1)) == 0UL) goto L_416E46; /* cmp / jz */
+if ((unsigned long)M8((unsigned long)(t0 + t6 + 1)) == 0UL) goto L_416E46;
 t3 = (t3 & ~0xFF00UL) | ((((var_44 & 0xFFUL)) & 0xFFUL) << 8);
 t3 = (t3 & ~0xFF00UL) | (((((((t3 >> 8) & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL) << 8);
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 var_44 = ((t3 >> 8) & 0xFFUL) & 0xFFUL;
 L_416E05:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_416E37; /* cmp / jnb (unsigned <) */
-t1 = 0UL; /* xor t1,t1 */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_416E37;
+t1 = 0UL;
 t1 = (t1 & ~0xFFUL) | (((var_38 & 0xFFUL)) & 0xFFUL);
 t1 &= 0xFFUL;
-t2 = t0 & U32MASK; /* mov t2,t0 */
-t3 = (t1 + t6) & U32MASK; /* lea t3,[t1+t6] */
-t2 = (t2 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t2 & 0xFFUL)))) & 0xFFUL); /* mov cl,byte_444E82[t2] */
+t2 = t0 & U32MASK;
+t3 = (t1 + t6) & U32MASK;
+t2 = (t2 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t2 & 0xFFUL)))) & 0xFFUL);
 t2 = (t2 & 0xFFFFFF00UL) | ((t2 & 0xFFUL) & 0xFFUL);
-t2 = (t2 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t3 + 9))) & 0xFFUL) << 8); /* mov ch,[t3+9] */
+t2 = (t2 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t3 + 9))) & 0xFFUL) << 8);
 t2 = (t2 & 0xFFFF00FFUL) | ((((t2 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-if ((((t2 & 0xFFUL)) & 0xFFUL) != ((((t2 >> 8) & 0xFFUL)) & 0xFFUL)) goto L_416E05; /* cmp / jnz */
+t0 = (t0 + 1) & U32MASK;
+if ((((t2 & 0xFFUL)) & 0xFFUL) != ((((t2 >> 8) & 0xFFUL)) & 0xFFUL)) goto L_416E05;
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | 0UL;
-if (t1 < 8UL) v58[t1] = 0; /* mov [esp+t1+var_58],al */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t3 + 1))) & 0xFFUL); /* mov al,[t3+1] */
+if (t1 < 8UL) v58[t1] = 0;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t3 + 1))) & 0xFFUL);
 t0 &= 0xFFUL;
 var_24 = ((var_24 - ((t0 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
 L_416E37:;
 t3 = (t3 & ~0xFFUL) | (((var_38 & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 var_38 = (t3 & 0xFFUL) & 0xFFUL;
-if (((t3 & 0xFFUL) & 0xFFUL) < 8UL) goto L_416DEC; /* cmp / jb (unsigned <) */
+if (((t3 & 0xFFUL) & 0xFFUL) < 8UL) goto L_416DEC;
 L_416E46:;
-t1 = (t1 & ~0xFFUL) | ((0xFFUL) & 0xFFUL); /* mov bl,0FFh */
+t1 = (t1 & ~0xFFUL) | ((0xFFUL) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | 0xFFUL;
-t0 = 0UL; /* xor t0,t0 */
-t3 = 0UL; /* xor t3,t3 */
+t0 = 0UL;
+t3 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((var_24 & 0xFFUL)) & 0xFFUL);
 t0 &= 0xFFUL;
 t3 = (t3 & ~0xFFUL) | (((var_24 & 0xFFUL)) & 0xFFUL);
 t3 &= 0xFFUL;
-D3U_TBL_444248_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444248,t0 */
-t0 = 0UL; /* xor t0,t0 */
+D3U_TBL_444248_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 = 0UL;
 D3U_FLAG_444EB8_8(&c->st, 0) = (unsigned char)((t1 & 0xFFUL) & 0xFFUL);
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t6)) & 0xFFUL); /* mov al,[t6+0] lane-merge */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t6)) & 0xFFUL);
 t0 &= 0xFFUL;
-t3 = ((t3 << 2) & U32MASK); /* shl t3,2 */
-t1 = (t0 + t0 * 4UL) & U32MASK; /* lea t1,[t0+t0*4] */
-if (!((t3 & U32MASK) > (t1 & U32MASK))) goto L_416FDA; /* cmp / jle (unsigned >) */
-t3 = 0UL; /* xor t3,t3 */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 0x11))) & 0xFFUL); /* mov dl,[t6+11h] lane-merge */
+t3 = ((t3 << 2) & U32MASK);
+t1 = (t0 + t0 * 4UL) & U32MASK;
+if (!((t3 & U32MASK) > (t1 & U32MASK))) goto L_416FDA;
+t3 = 0UL;
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 0x11))) & 0xFFUL);
 t3 &= 0xFFUL;
-t2 = (unsigned long)D3U_TBL_44424C_32(&c->st, 0); /* mov t2,dword_44424C */
-t3 = ((t3 << 2) & U32MASK); /* shl t3,2 */
-t3 = (t3 + t2) & U32MASK; /* add t3,t2 */
-if (!((t3 & U32MASK) < 0x10UL)) goto L_416FDA; /* cmp / jnb (unsigned <) */
+t2 = (unsigned long)D3U_TBL_44424C_32(&c->st, 0);
+t3 = ((t3 << 2) & U32MASK);
+t3 = (t3 + t2) & U32MASK;
+if (!((t3 & U32MASK) < 0x10UL)) goto L_416FDA;
 t3 = (t3 & ~0xFFUL) | (((var_48 & 0xFFUL)) & 0xFFUL);
 t1 = (t1 & ~0xFF00UL) | ((((var_2C & 0xFFUL)) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
 D3U_FLAG_444EB5_8(&c->st, 0) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) != 0UL) goto L_416FDA; /* test / jnz */
-if (!((var_24 & 0xFFUL) > 0x10UL)) goto L_416EA8_chk; /* cmp / ja */
+if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) != 0UL) goto L_416FDA;
+if (!((var_24 & 0xFFUL) > 0x10UL)) goto L_416EA8_chk;
 goto L_416F11;
 L_416EA8_chk:;
 t2 = (t2 & ~0xFF00UL) | ((((var_44 & 0xFFUL)) & 0xFFUL) << 8);
-if (((((t2 >> 8) & 0xFFUL)) & 0xFFUL) != 1UL) goto L_416F11; /* cmp / jnz */
-t0 = (((long)(t0 & U32MASK)) >> 2) & U32MASK; /* sar t0,2 */
-t3 = (t0 * 4UL) & U32MASK; /* lea t3,[t0*4] */
-t0 = 0UL; /* xor t0,t0 */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 1))) & 0xFFUL); /* mov al,[t6+1] lane-merge */
+if (((((t2 >> 8) & 0xFFUL)) & 0xFFUL) != 1UL) goto L_416F11;
+t0 = (((long)(t0 & U32MASK)) >> 2) & U32MASK;
+t3 = (t0 * 4UL) & U32MASK;
+t0 = 0UL;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 1))) & 0xFFUL);
 t0 &= 0xFFUL;
-t0 = (((long)(t0 & U32MASK)) >> 2) & U32MASK; /* sar t0,2 */
-t0 = (t0 + t3) & U32MASK; /* add t0,t3 */
-t0 = (t0 + t0) & U32MASK; /* add t0,t0 */
-t0 = (t0 + D3U_TBL_444108) & U32MASK; /* add t0,offset dword_444108 */
+t0 = (((long)(t0 & U32MASK)) >> 2) & U32MASK;
+t0 = (t0 + t3) & U32MASK;
+t0 = (t0 + t0) & U32MASK;
+t0 = (t0 + D3U_TBL_444108) & U32MASK;
 t0 = (t0 & ~0xFFUL) | (d3uc_decode_bit_update(c, (unsigned int)t0) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416EEB; /* test / jz */
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_416EEB;
 var_4C = (((t1 >> 8) & 0xFFUL)) & 0xFFUL;
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 9))) & 0xFFUL); /* mov al,[t6+9] */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t6 + 9))) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EB8_8(&c->st, 0) = (unsigned char)(((t1 >> 8) & 0xFFUL) & 0xFFUL);
 var_28 = (t0 & 0xFFUL) & 0xFFUL;
 goto L_416FD0;
 L_416EEB:;
-t0 = (t0 & ~0xFF00UL) | (((8UL) & 0xFFUL) << 8); /* mov ah,8 lane-merge */
+t0 = (t0 & ~0xFF00UL) | (((8UL) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | (8UL << 8);
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 D3U_FLAG_444EB8_8(&c->st, 0) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 t3 = (t3 & ~0xFFUL) | (((t0 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t3 &= 0xFFUL;
-t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t6 + 9))) & 0xFFUL) << 8); /* mov ah,[t6+9] */
+t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t6 + 9))) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | ((((t0 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t3],ah */
+M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) + (((t2 >> 8) & 0xFFUL) & 0xFFUL)) & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 goto L_416FD0;
 L_416F11:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((var_24 & 0xFFUL)) & 0xFFUL);
 t0 &= 0xFFUL;
-D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441E8,t0 */
-t0 = 0UL; /* xor t0,t0 */
+D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((var_24 & 0xFFUL)) & 0xFFUL);
 t0 &= 0xFFUL;
-t4 = 0UL; /* xor t4,t4 */
+t4 = 0UL;
 t2 = (t2 & 0xFFFF0000UL) | (d3uc_rc_decode(c, (unsigned int)(t0 & 0xFFFFUL)) & 0xFFFFUL);
 t0 = (t0 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | 0UL;
-D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t4 & U32MASK); /* mov dword_4441EC,t4 */
+D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t4 & U32MASK);
 D3U_FLAG_444EB8_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 L_416F38:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB8_8(&c->st, 0)) & 0xFFUL);
 t0 &= 0xFFUL;
-    /* cmp [esp+t0+var_58],0 / jz (no t0>=8 clause: not in listing) */
     if (((unsigned long)v58[t0 & 0xFFUL]) == 0UL) goto L_416FA9;
-t0 = (t0 + t6) & U32MASK; /* add t0,t6 */
-if ((unsigned long)M8((unsigned long)(t0 + 1)) != 0UL) goto L_416F57; /* cmp / jnz */
+t0 = (t0 + t6) & U32MASK;
+if ((unsigned long)M8((unsigned long)(t0 + 1)) != 0UL) goto L_416F57;
 D3U_FLAG_444EB8_8(&c->st, 0) = 8;
 goto L_416FBD;
 L_416F57:;
-t1 = 0UL; /* xor t1,t1 */
-t3 = (unsigned long)D3U_RC_PROB_LO_32(&c->st, 0); /* mov t3,dword_4441EC */
-t1 = (t1 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 1))) & 0xFFUL); /* mov bl,[t0+1] lane-merge */
+t1 = 0UL;
+t3 = (unsigned long)D3U_RC_PROB_LO_32(&c->st, 0);
+t1 = (t1 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 1))) & 0xFFUL);
 t1 &= 0xFFUL;
-t3 = (t3 + t1) & U32MASK; /* add t3,t1 */
-D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t3 & U32MASK); /* mov dword_4441F0,t3 */
-t3 = 0UL; /* xor t3,t3 */
-t5 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0); /* mov t5,dword_4441F0 */
-t3 = (t2 & 0xFFFFUL); /* mov dx,cx lane-merge */
+t3 = (t3 + t1) & U32MASK;
+D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
+t3 = 0UL;
+t5 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0);
+t3 = (t2 & 0xFFFFUL);
 t3 &= 0xFFFFUL;
-if (!((t3 & U32MASK) < (t5 & U32MASK))) goto L_416F88; /* cmp / jnb (unsigned <) */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 9))) & 0xFFUL); /* mov al,[t0+9] */
+if (!((t3 & U32MASK) < (t5 & U32MASK))) goto L_416F88;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 9))) & 0xFFUL);
 t0 &= 0xFFUL; /* lane-keep al (dropped spurious t3 zeroing: no native insn between and ; it broke xor dl,cl) */
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) ^ (t2 & 0xFFUL)) & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
@@ -3395,214 +3284,214 @@ goto L_416FBD;
 L_416F88:;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-t1 = 0UL; /* xor t1,t1 */
-D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t5 & U32MASK); /* mov dword_4441EC,t5 */
+t1 = 0UL;
+D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t5 & U32MASK);
 t1 = (t1 & ~0xFFUL) | (((t3 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t1 &= 0xFFUL;
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 9))) & 0xFFUL); /* mov al,[t0+9] */
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 9))) & 0xFFUL);
 t0 &= 0xFFUL;
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-M8((unsigned long)(D3U_FLAG_444E82 + (t1 & 0xFFUL))) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t1],al */
+M8((unsigned long)(D3U_FLAG_444E82 + (t1 & 0xFFUL))) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
 L_416FA9:;
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB8_8(&c->st, 0)) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 D3U_FLAG_444EB8_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) < 8UL) goto L_416F38; /* cmp / jb (unsigned <) */
+if (((t0 & 0xFFUL) & 0xFFUL) < 8UL) goto L_416F38;
 L_416FBD:;
-if ((unsigned long)D3U_FLAG_444EB8_8(&c->st, 0) != 8UL) goto L_416FD0; /* cmp / jnz */
-t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0); /* mov t0,dword_4441E8 */
-D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441F0,t0 */
+if ((unsigned long)D3U_FLAG_444EB8_8(&c->st, 0) != 8UL) goto L_416FD0;
+t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
+D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 L_416FD0:;
-t0 = D3U_RC_TOTAL; /* mov t0,offset dword_4441E8 */
+t0 = D3U_RC_TOTAL;
 d3uc_rc_update(c, D3U_RC_TOTAL);
 L_416FDA:;
 t1 = (t1 & ~0xFF00UL) | ((((var_40 & 0xFFUL)) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) != 0UL) goto L_41717D; /* test / jnz */
+if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) != 0UL) goto L_41717D;
 t0 = (t0 & ~0xFFUL) | (((var_4C & 0xFFUL)) & 0xFFUL);
 D3U_FLAG_444EA1_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
-if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_41716B; /* test / jz */
-if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) != 0UL) goto L_417006; /* cmp / jnz */
+if (((t0 & 0xFFUL) & 0xFFUL) == 0UL) goto L_41716B;
+if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) != 0UL) goto L_417006;
 D3U_FLAG_444EA1_8(&c->st, 0) = (unsigned char)(((t1 >> 8) & 0xFFUL) & 0xFFUL);
 L_417006:;
 var_40 = 1UL;
-if (var_50 == 0UL) goto L_41716B; /* cmp / jz */
-t3 = (unsigned long)D3U_TBL_44423C_32(&c->st, 0); /* mov t3,dword_44423C */
-t1 = var_50 & U32MASK; /* mov t1,[var_50] */
-t3 = ((t3 >> 2) & U32MASK); /* shr t3,2 */
-t0 = 0UL; /* xor t0,t0 */
-D3U_TBL_44423C_32(&c->st, 0) = (unsigned int)(t3 & U32MASK); /* mov dword_44423C,t3 */
+if (var_50 == 0UL) goto L_41716B;
+t3 = (unsigned long)D3U_TBL_44423C_32(&c->st, 0);
+t1 = var_50 & U32MASK;
+t3 = ((t3 >> 2) & U32MASK);
+t0 = 0UL;
+D3U_TBL_44423C_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
 L_41702B:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_41704F; /* cmp / jnb (unsigned <) */
-t3 = t0 & U32MASK; /* mov t3,t0 */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)))) & 0xFFUL); /* mov dl,byte_444E82[t3] */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_41704F;
+t3 = t0 & U32MASK;
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)))) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t1 + 2))) & 0xFFUL) << 8); /* mov dh,[t1+2] */
+t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t1 + 2))) & 0xFFUL) << 8);
 t3 = (t3 & 0xFFFF00FFUL) | ((((t3 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-if ((((t3 & 0xFFUL)) & 0xFFUL) != ((((t3 >> 8) & 0xFFUL)) & 0xFFUL)) goto L_41702B; /* cmp / jnz */
-t1 = (t1 & ~0xFFUL) | ((0UL) & 0xFFUL); /* xor bl,bl lane-merge */
+t0 = (t0 + 1) & U32MASK;
+if ((((t3 & 0xFFUL)) & 0xFFUL) != ((((t3 >> 8) & 0xFFUL)) & 0xFFUL)) goto L_41702B;
+t1 = (t1 & ~0xFFUL) | ((0UL) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | 0UL;
 D3U_FLAG_444EA1_8(&c->st, 0) = (unsigned char)((t1 & 0xFFUL) & 0xFFUL);
 L_41704F:;
-if ((unsigned long)D3U_FLAG_444EA1_8(&c->st, 0) == 0UL) goto L_41716B; /* cmp / jz */
+if ((unsigned long)D3U_FLAG_444EA1_8(&c->st, 0) == 0UL) goto L_41716B;
 t0 = (t0 & ~0xFFUL) | (((var_48 & 0xFFUL)) & 0xFFUL);
 t2 = (t2 & ~0xFFUL) | (((var_2C & 0xFFUL)) & 0xFFUL);
 D3U_FLAG_444EB2_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
-if ((((t2 & 0xFFUL)) & 0xFFUL) != 0UL) goto L_41716B; /* test / jnz */
-t1 = (unsigned long)D3U_TBL_44427C_32(&c->st, 0); /* mov t1,dword_44427C */
-if (t1 == 0UL) goto L_417082; /* test / jz */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t1)) & 0xFFUL); /* mov dl,[t1] */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 1))) & 0xFFUL); /* mov al,[t1+1] */
+if ((((t2 & 0xFFUL)) & 0xFFUL) != 0UL) goto L_41716B;
+t1 = (unsigned long)D3U_TBL_44427C_32(&c->st, 0);
+if (t1 == 0UL) goto L_417082;
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t1)) & 0xFFUL);
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t1 + 1))) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL); t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 goto L_41708F;
 L_417082:;
-t3 = var_50 & U32MASK; /* mov t3,[var_50] */
-t0 = var_50 & U32MASK; /* mov t0,[var_50] */
-t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t3)) & 0xFFUL); /* mov dl,[t3] */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t0 + 1)) & 0xFFUL); /* mov al,[t0+1] */
+t3 = var_50 & U32MASK;
+t0 = var_50 & U32MASK;
+t3 = (t3 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t3)) & 0xFFUL);
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)t0 + 1)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL); t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 L_41708F:;
-t1 = 0UL; /* xor t1,t1 */
+t1 = 0UL;
 t1 = (t1 & ~0xFFUL) | ((((t3 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
 t1 &= 0xFFUL;
-t0 &= 0xFFUL; /* and t0,0FFh */
-t2 = (t1 + t0) & U32MASK; /* lea t2,[t1+t0] */
-D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t2 & U32MASK); /* mov dword_4441E8,t2 */
-t0 = 0UL; /* xor t0,t0 */
+t0 &= 0xFFUL;
+t2 = (t1 + t0) & U32MASK;
+D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t2 & U32MASK);
+t0 = 0UL;
 t0 = (D3U_RC_TOTAL_32(&c->st, 0) & 0xFFFFUL);
 t0 = d3uc_rc_decode(c, (unsigned int)(t0 & 0xFFFFUL));
-t0 &= 0xFFFFUL; /* and t0,0FFFFh */
-if (!((t0 & U32MASK) < (t1 & U32MASK))) goto L_417110; /* cmp / jge (SIGNED >=, treated unsigned here per rule: jge is signed; keep signed) */
-if ((unsigned long)D3U_FLAG_444EA4_8(&c->st, 0) == 0UL) goto L_4170EC; /* cmp / jz */
-t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0); /* mov t0,dword_4441F8 */
-t1 = (unsigned long)D3U_TBL_444208_32(&c->st, 0); /* mov t1,dword_444208 */
-t4 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)); /* mov t4,[t0] */
-t4 = (t4 + t1) & U32MASK; /* add t4,t1 */
-t5 = (t1 + t1) & U32MASK; /* lea t5,[t1+t1] */
-d3u_st32(c, (unsigned long)((unsigned long)t0), (unsigned int)(t4 & U32MASK)); /* mov [t0],t4 */
-D3U_TBL_444208_32(&c->st, 0) = (unsigned int)(t5 & U32MASK); /* mov dword_444208,t5 */
-if (!((t5 & U32MASK) > 0xFFFFUL)) goto L_4170EC; /* cmp / jbe (unsigned <=) */
-D3U_TBL_444208_32(&c->st, 0) = 0xFFFF; /* mov dword_444208,0FFFFh */
+t0 &= 0xFFFFUL;
+if (!((t0 & U32MASK) < (t1 & U32MASK))) goto L_417110;
+if ((unsigned long)D3U_FLAG_444EA4_8(&c->st, 0) == 0UL) goto L_4170EC;
+t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0);
+t1 = (unsigned long)D3U_TBL_444208_32(&c->st, 0);
+t4 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0));
+t4 = (t4 + t1) & U32MASK;
+t5 = (t1 + t1) & U32MASK;
+d3u_st32(c, (unsigned long)((unsigned long)t0), (unsigned int)(t4 & U32MASK));
+D3U_TBL_444208_32(&c->st, 0) = (unsigned int)(t5 & U32MASK);
+if (!((t5 & U32MASK) > 0xFFFFUL)) goto L_4170EC;
+D3U_TBL_444208_32(&c->st, 0) = 0xFFFF;
 L_4170EC:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | ((((t3 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
 t0 &= 0xFFUL;
-D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441F0,t0 */
-t0 = var_50 & U32MASK; /* mov t0,[var_50] */
-t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 2))) & 0xFFUL); /* mov al,[t0+2] */
+D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 = var_50 & U32MASK;
+t0 = (t0 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(t0 + 2))) & 0xFFUL);
 t0 &= 0xFFUL;
-t2 = 0UL; /* xor t2,t2 */
+t2 = 0UL;
 var_28 = (t0 & 0xFFUL) & 0xFFUL;
-t0 = (t0 & ~0xFF00UL) | (((0UL) & 0xFFUL) << 8); /* xor ah,ah lane-merge */
+t0 = (t0 & ~0xFF00UL) | (((0UL) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | 0UL;
-D3U_RC_PROB_LO_32(&c->st, 0) = 0; /* mov dword_4441EC,t2 */
+D3U_RC_PROB_LO_32(&c->st, 0) = 0;
 var_4C = (((t0 >> 8) & 0xFFUL)) & 0xFFUL;
 goto L_417161;
 L_417110:;
-if ((unsigned long)D3U_FLAG_444EA4_8(&c->st, 0) == 0UL) goto L_417131; /* cmp / jz */
-t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0); /* mov t0,dword_4441F8 */
-d3u_st32(c, (unsigned long)((unsigned long)t0), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) >> 1) & U32MASK)); /* shr dword ptr [t0],1 */
-t0 = (unsigned long)D3U_TBL_444208_32(&c->st, 0); /* mov t0,dword_444208 */
-t0 = ((t0 >> 1) & U32MASK); /* shr t0,1 */
-t0 = (t0 + 0xFFUL) & U32MASK; /* add t0,0FFh */
-D3U_TBL_444208_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444208,t0 */
+if ((unsigned long)D3U_FLAG_444EA4_8(&c->st, 0) == 0UL) goto L_417131;
+t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0);
+d3u_st32(c, (unsigned long)((unsigned long)t0), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) >> 1) & U32MASK));
+t0 = (unsigned long)D3U_TBL_444208_32(&c->st, 0);
+t0 = ((t0 >> 1) & U32MASK);
+t0 = (t0 + 0xFFUL) & U32MASK;
+D3U_TBL_444208_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 L_417131:;
-t0 = 0UL; /* xor t0,t0 */
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | ((((t3 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
 t0 &= 0xFFUL;
-D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441EC,t0 */
-t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0); /* mov t0,dword_4441E8 */
-t3 = 0UL; /* xor t3,t3 */
-D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_4441F0,t0 */
+D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
+t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
+t3 = 0UL;
+D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
-t1 = var_50 & U32MASK; /* mov t1,[var_50] */
+t1 = var_50 & U32MASK;
 t3 = (t3 & ~0xFFUL) | (((t0 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t3 &= 0xFFUL;
-t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t1 + 2))) & 0xFFUL) << 8); /* mov ah,[t1+2] */
+t0 = (t0 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(t1 + 2))) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | ((((t0 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t3],ah */
+M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t0 >> 8) & 0xFFUL) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) + 1) & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 L_417161:;
-t0 = D3U_RC_TOTAL; /* mov t0,offset dword_4441E8 */
+t0 = D3U_RC_TOTAL;
 d3uc_rc_update(c, D3U_RC_TOTAL);
 L_41716B:;
-if ((var_4C & 0xFFUL) == 0UL) goto L_41717D; /* cmp / jz */
-if ((var_30 & 0xFFUL) != 0UL) goto L_416D69; /* cmp / jnz (loop iff !=0) */
+if ((var_4C & 0xFFUL) == 0UL) goto L_41717D;
+if ((var_30 & 0xFFUL) != 0UL) goto L_416D69;
 goto L_41717D;
 L_41717D:;
-if ((var_4C & 0xFFUL) == 0UL) goto L_4173C0; /* cmp / jz */
-t2 = 0x201UL; /* mov t2,201h */
-t4 = 0x300UL; /* mov t4,300h */
+if ((var_4C & 0xFFUL) == 0UL) goto L_4173C0;
+t2 = 0x201UL;
+t4 = 0x300UL;
 t0 = (t0 & ~0xFFUL) | (((var_48 & 0xFFUL)) & 0xFFUL);
 t1 = (t1 & ~0xFF00UL) | ((((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0)) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
 D3U_FLAG_444EAE_8(&c->st, 0) = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
-if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417208; /* test / jz */
-if (!((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 1UL)) goto L_417208; /* cmp / jbe */
-t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0); /* mov t0,dword_4441F8 */
-if ((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) == 0UL) goto L_417208; /* cmp / jz */
-t0 = 0UL; /* xor t0,t0 */
-t3 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0); /* mov t3,dword_444274 */
+if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417208;
+if (!((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0) > 1UL)) goto L_417208;
+t0 = (unsigned long)D3U_TBL_4441F8_32(&c->st, 0);
+if ((unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)t0)) == 0UL) goto L_417208;
+t0 = 0UL;
+t3 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
 t0 = (t0 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0)) & 0xFFUL);
 t0 &= 0xFFUL;
-t6 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0); /* mov t6,dword_444278 */
-t3 = (t3 - t0) & U32MASK; /* sub t3,t0 */
-t0 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0); /* mov t0,dword_4299B8 */
-t3 &= t6; /* and t3,t6 */
-t1 = (t1 & ~0xFFUL) | (((unsigned long)c->blk00_dict[((unsigned long)(t3 + t0)) - c->blk00_base]) & 0xFFUL); /* mov bl,[t3+t0] */
+t6 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+t3 = (t3 - t0) & U32MASK;
+t0 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+t3 &= t6;
+t1 = (t1 & ~0xFFUL) | (((unsigned long)c->blk00_dict[((unsigned long)(t3 + t0)) - c->blk00_base]) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFUL) & 0xFFUL);
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EBA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-t5 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0); /* mov t5,dword_444274 */
-t3 = (t3 + t3) & U32MASK; /* add t3,t3 */
-t5 = (t5 - t3) & U32MASK; /* sub t5,t3 */
-t3 = t5 & U32MASK; /* mov t3,t5 */
-t3 &= (t6 & U32MASK); /* and t3,dword_444278 */
-t6 = ((t1 & 0xFFUL) & 0xFFUL); /* movzx t6,bl */
-t1 = (t1 & ~0xFF00UL) | ((((unsigned long)c->blk00_dict[((unsigned long)(t3 + t0)) - c->blk00_base]) & 0xFFUL) << 8); /* mov bh,[t3+t0] */
+t5 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+t3 = (t3 + t3) & U32MASK;
+t5 = (t5 - t3) & U32MASK;
+t3 = t5 & U32MASK;
+t3 &= (t6 & U32MASK);
+t6 = ((t1 & 0xFFUL) & 0xFFUL);
+t1 = (t1 & ~0xFF00UL) | ((((unsigned long)c->blk00_dict[((unsigned long)(t3 + t0)) - c->blk00_base]) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t6 = (t6 + 0x100UL) & U32MASK; /* add t6,100h */
-if ((((t1 & 0xFFUL)) & 0xFFUL) != ((((t1 >> 8) & 0xFFUL)) & 0xFFUL)) goto L_417243; /* cmp / jnz */
-t2 = 0x202UL; /* mov t2,202h */
+t6 = (t6 + 0x100UL) & U32MASK;
+if ((((t1 & 0xFFUL)) & 0xFFUL) != ((((t1 >> 8) & 0xFFUL)) & 0xFFUL)) goto L_417243;
+t2 = 0x202UL;
 goto L_417243;
 L_417208:;
-t0 = (unsigned long)D3U_TBL_444240_32(&c->st, 0); /* mov t0,dword_444240 */
+t0 = (unsigned long)D3U_TBL_444240_32(&c->st, 0);
 t1 = (t1 & ~0xFFUL) | (((t0 & 0xFFUL)) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFUL) & 0xFFUL);
-t0 = ((t0 >> 8) & U32MASK); /* shr t0,8 */
-t6 = ((t1 & 0xFFUL) & 0xFFUL); /* movzx t6,bl */
-if ((((t1 & 0xFFUL)) & 0xFFUL) == ((t0) & 0xFFUL)) goto L_41721D_inc; /* cmp / jnz inverted */
+t0 = ((t0 >> 8) & U32MASK);
+t6 = ((t1 & 0xFFUL) & 0xFFUL);
+if ((((t1 & 0xFFUL)) & 0xFFUL) == ((t0) & 0xFFUL)) goto L_41721D_inc;
 goto L_41721E;
 L_41721D_inc:;
-t2 = (t2 + 1) & U32MASK; /* inc t2 */
+t2 = (t2 + 1) & U32MASK;
 L_41721E:;
-if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) != 0UL) goto L_417243; /* cmp / jnz */
-t0 = (unsigned long)D3U_TBL_444240_32(&c->st, 0); /* mov t0,dword_444240 */
-t0 = ((t0 >> 8) & U32MASK); /* shr t0,8 */
-t0 &= 0xFFUL; /* and t0,0FFh */
-if ((unsigned long)d3u_t42C6A6[(unsigned int)(t0 & 0xFFUL)] == 0UL) goto L_417243; /* cmp / jz */
-t6 = (t6 + 0x100UL) & U32MASK; /* add t6,100h */
+if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) != 0UL) goto L_417243;
+t0 = (unsigned long)D3U_TBL_444240_32(&c->st, 0);
+t0 = ((t0 >> 8) & U32MASK);
+t0 &= 0xFFUL;
+if ((unsigned long)d3u_t42C6A6[(unsigned int)(t0 & 0xFFUL)] == 0UL) goto L_417243;
+t6 = (t6 + 0x100UL) & U32MASK;
 L_417243:;
-if ((var_3C & 0xFFUL) == 0UL) goto L_417263; /* cmp / jz */
-t2 = (unsigned long)D3U_TBL_4441C4_32(&c->st, 0); /* mov t2,dword_4441C4 */
-t4 = (unsigned long)D3U_FLAG_444EA9_8(&c->st, 0); /* movzx t4,byte_444EA9 */
+if ((var_3C & 0xFFUL) == 0UL) goto L_417263;
+t2 = (unsigned long)D3U_TBL_4441C4_32(&c->st, 0);
+t4 = (unsigned long)D3U_FLAG_444EA9_8(&c->st, 0);
 t1 = (t1 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444E9D_8(&c->st, 0)) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFUL) & 0xFFUL);
-t4 = (t4 + 0x300UL) & U32MASK; /* add t4,300h */
+t4 = (t4 + 0x300UL) & U32MASK;
 L_417263:;
-if ((var_3C & 0xFFUL) == 0UL) goto L_417277; /* cmp / jz */
-if ((unsigned long)D3U_FLAG_444EA8_8(&c->st, 0) == 0UL) goto L_417277; /* cmp / jz */
+if ((var_3C & 0xFFUL) == 0UL) goto L_417277;
+if ((unsigned long)D3U_FLAG_444EA8_8(&c->st, 0) == 0UL) goto L_417277;
 t1 = (t1 & ~0xFF00UL) | (((1UL) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | (1UL << 8);
 goto L_417279;
@@ -3612,42 +3501,42 @@ t1 = (t1 & 0xFFFF00FFUL) | 0UL;
 L_417279:;
 t3 = (t3 & ~0xFF00UL) | ((((var_1C & 0xFFUL)) & 0xFFUL) << 8);
 var_20 = (((t1 >> 8) & 0xFFUL)) & 0xFFUL;
-if (((((t3 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417348; /* test / jz */
-t0 = 0UL; /* xor t0,t0 */
-if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_4172AE; /* test / jz */
+if (((((t3 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417348;
+t0 = 0UL;
+if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_4172AE;
 L_41728F:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4172CD; /* cmp / jnb via jnb */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4172CD;
 t3 = (t3 & ~0xFFUL) | ((((t1 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
-t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t0 & 0xFFUL)))) & 0xFFUL) << 8); /* mov dh,byte_444E82[t0] */
+t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t0 & 0xFFUL)))) & 0xFFUL) << 8);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL); t3 = (t3 & 0xFFFF00FFUL) | ((((t3 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
+t0 = (t0 + 1) & U32MASK;
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) - ((t3 >> 8) & 0xFFUL)) & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-M8((unsigned long)(D3U_FLAG_444E81 + (t0 & 0xFFUL))) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL); /* mov byte_444E81[t0],dl */
+M8((unsigned long)(D3U_FLAG_444E81 + (t0 & 0xFFUL))) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
 goto L_41728F;
 L_4172AE:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4172CD; /* cmp / jnb (unsigned <) */
-t3 = t0 & U32MASK; /* mov t3,t0 */
-t1 = (t1 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)))) & 0xFFUL) << 8); /* mov bh,byte_444E82[t3] */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4172CD;
+t3 = t0 & U32MASK;
+t1 = (t1 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)))) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
 t1 = (t1 & ~0xFF00UL) | (((((((t1 >> 8) & 0xFFUL) - (t1 & 0xFFUL)) & 0xFFUL)) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t1 >> 8) & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t3],bh */
+t0 = (t0 + 1) & U32MASK;
+M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t1 >> 8) & 0xFFUL) & 0xFFUL);
 goto L_4172AE;
 L_4172CD:;
-t3 = t4 & U32MASK; /* mov t3,t4 */
-t0 = t2 & U32MASK; /* mov t0,t2 */
+t3 = t4 & U32MASK;
+t0 = t2 & U32MASK;
 t1 = (t1 & ~0xFF00UL) | ((((var_20 & 0xFFUL)) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
 t0 = (t0 & ~0xFFUL) | (d3uc_decode_offset_ctx(c, (unsigned int)t0, (unsigned int)t3) & 0xFFUL);
-if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_4172E8; /* test / jz */
+if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_4172E8;
 t0 = (t0 & ~0xFF00UL) | (((((t1 & 0xFFUL) & 0xFFUL)) & 0xFFUL) << 8);
 t0 = (t0 & ~0xFF00UL) | (((((((t0 >> 8) & 0xFFUL) - ((t0 & 0xFFUL) & 0xFFUL)) & 0xFFUL)) & 0xFFUL) << 8);
 t0 = (t0 & 0xFFFF00FFUL) | ((((t0 >> 8) & 0xFFUL) & 0xFFUL) << 8);
@@ -3660,49 +3549,49 @@ var_28 = (t0 & 0xFFUL) & 0xFFUL;
 L_4172EE:;
 t2 = (t2 & ~0xFFUL) | (((var_20 & 0xFFUL)) & 0xFFUL);
 t2 = (t2 & 0xFFFFFF00UL) | ((t2 & 0xFFUL) & 0xFFUL);
-t0 = 0UL; /* xor t0,t0 */
-if ((((t2 & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417317; /* test / jz */
+t0 = 0UL;
+if ((((t2 & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417317;
 L_4172F8:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_417336; /* cmp / jnb (unsigned <) */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_417336;
 t3 = (t3 & ~0xFFUL) | ((((t1 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
-t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t0 & 0xFFUL)))) & 0xFFUL) << 8); /* mov dh,byte_444E82[t0] */
+t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t0 & 0xFFUL)))) & 0xFFUL) << 8);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL); t3 = (t3 & 0xFFFF00FFUL) | ((((t3 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 (via ) */
+t0 = (t0 + 1) & U32MASK;
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) - ((t3 >> 8) & 0xFFUL)) & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-M8((unsigned long)(D3U_FLAG_444E81 + (t0 & 0xFFUL))) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL); /* mov byte_444E81[t0],dl */
+M8((unsigned long)(D3U_FLAG_444E81 + (t0 & 0xFFUL))) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
 goto L_4172F8;
 L_417317:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_417336; /* cmp / jnb (unsigned <) */
-t3 = t0 & U32MASK; /* mov t3,t0 */
-t2 = (t2 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)))) & 0xFFUL) << 8); /* mov ch,byte_444E82[t3] */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_417336;
+t3 = t0 & U32MASK;
+t2 = (t2 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)))) & 0xFFUL) << 8);
 t2 = (t2 & 0xFFFF00FFUL) | ((((t2 >> 8) & 0xFFUL) & 0xFFUL) << 8);
 t2 = (t2 & ~0xFF00UL) | (((((((t2 >> 8) & 0xFFUL) + (t1 & 0xFFUL)) & 0xFFUL)) & 0xFFUL) << 8);
 t2 = (t2 & 0xFFFF00FFUL) | ((((t2 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t2 >> 8) & 0xFFUL) & 0xFFUL); /* mov byte_444E82[t3],ch */
+t0 = (t0 + 1) & U32MASK;
+M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)(((t2 >> 8) & 0xFFUL) & 0xFFUL);
 goto L_417317;
 L_417336:;
-t3 = 0x2FDUL; /* mov t3,2FDh */
-t1 = 0UL; /* xor t1,t1 */
-t0 = t6 & U32MASK; /* mov t0,t6 */
+t3 = 0x2FDUL;
+t1 = 0UL;
+t0 = t6 & U32MASK;
 t1 = (t1 & ~0xFFUL) | (((var_28 & 0xFFUL)) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFUL) & 0xFFUL); /* lane-merge (split bl) */
 t1 &= 0xFFUL;
 goto L_4173BB;
 L_417348:;
-t3 = 0x2FDUL; /* mov t3,2FDh */
-t0 = t6 & U32MASK; /* mov t0,t6 */
+t3 = 0x2FDUL;
+t0 = t6 & U32MASK;
 t0 = (t0 & ~0xFFUL) | (d3uc_decode_offset_ctx(c, (unsigned int)t0, (unsigned int)t3) & 0xFFUL);
 var_28 = (t0 & 0xFFUL) & 0xFFUL;
-if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) == 0UL) goto L_4173C0; /* cmp / jz */
-if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_41736B; /* test / jz */
+if ((unsigned long)D3U_FLAG_444EA0_8(&c->st, 0) == 0UL) goto L_4173C0;
+if (((((t1 >> 8) & 0xFFUL)) & 0xFFUL) == 0UL) goto L_41736B;
 t1 = (t1 & ~0xFF00UL) | (((((t1 & 0xFFUL) & 0xFFUL)) & 0xFFUL) << 8);
 t1 = (t1 & ~0xFF00UL) | (((((((t1 >> 8) & 0xFFUL) - ((t0 & 0xFFUL) & 0xFFUL)) & 0xFFUL)) & 0xFFUL) << 8);
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
@@ -3713,131 +3602,131 @@ t1 = (t1 & ~0xFF00UL) | (((((((t1 >> 8) & 0xFFUL) - ((t1 & 0xFFUL) & 0xFFUL)) & 
 t1 = (t1 & 0xFFFF00FFUL) | ((((t1 >> 8) & 0xFFUL) & 0xFFUL) << 8);
 L_41736F:;
 t3 = (t3 & ~0xFFUL) | (((var_20 & 0xFFUL)) & 0xFFUL);
-t0 = 0UL; /* xor t0,t0 */
-if ((((t3 & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417398; /* test / jz */
+t0 = 0UL;
+if ((((t3 & 0xFFUL)) & 0xFFUL) == 0UL) goto L_417398;
 L_417379:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4173AF; /* cmp / jnb (unsigned <) */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4173AF;
 t3 = (t3 & ~0xFFUL) | ((((t1 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
-t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t0 & 0xFFUL)))) & 0xFFUL) << 8); /* mov dh,byte_444E82[t0] */
+t3 = (t3 & ~0xFF00UL) | ((((unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t0 & 0xFFUL)))) & 0xFFUL) << 8);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL); t3 = (t3 & 0xFFFF00FFUL) | ((((t3 >> 8) & 0xFFUL) & 0xFFUL) << 8);
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
+t0 = (t0 + 1) & U32MASK;
 t3 = (t3 & ~0xFFUL) | (((((t3 & 0xFFUL) - ((t3 >> 8) & 0xFFUL)) & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL);
-M8((unsigned long)(D3U_FLAG_444E81 + (t0 & 0xFFUL))) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL); /* mov byte_444E81[t0],dl */
+M8((unsigned long)(D3U_FLAG_444E81 + (t0 & 0xFFUL))) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
 goto L_417379;
 L_417398:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4173AF; /* cmp / jnb (unsigned <) */
-t3 = t0 & U32MASK; /* mov t3,t0 */
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-tmp = (unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))); /* sub byte_444E82[t3],bl */
+if (!((t0 & U32MASK) < (t3 & U32MASK))) goto L_4173AF;
+t3 = t0 & U32MASK;
+t0 = (t0 + 1) & U32MASK;
+tmp = (unsigned long)M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL)));
 tmp = ((tmp - ((t1 & 0xFFUL) & 0xFFUL)) & 0xFFUL);
 M8((unsigned long)(D3U_FLAG_444E82 + (t3 & 0xFFUL))) = (unsigned char)tmp;
 goto L_417398;
 L_4173AF:;
 t1 = (t1 & ~0xFFUL) | (((((t1 >> 8) & 0xFFUL) & 0xFFUL)) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFUL) & 0xFFUL);
-t1 &= 0xFFUL; /* and t1,0FFh */
-t3 = t4 & U32MASK; /* mov t3,t4 */
-t0 = t2 & U32MASK; /* mov t0,t2 */
+t1 &= 0xFFUL;
+t3 = t4 & U32MASK;
+t0 = t2 & U32MASK;
 L_4173BB:;
 d3uc_update_ctx_counter(c, (unsigned int)t0, (unsigned int)t3, (unsigned int)t1);
 L_4173C0:;
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t3 = (t3 & ~0xFFUL) | (((var_28 & 0xFFUL)) & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFUL) & 0xFFUL); /* lane-merge (split dl) */
 t3 &= 0xFFUL;
-t0 = t3 & U32MASK; /* mov t0,t3 */
+t0 = t3 & U32MASK;
 d3uc_update_order_model_a(c, (unsigned int)t0);
-if ((unsigned long)D3U_FLAG_444EAC_8(&c->st, 0) == 0UL) goto L_4173DD; /* cmp / jz */
-t0 = t3 & U32MASK; /* mov t0,t3 */
+if ((unsigned long)D3U_FLAG_444EAC_8(&c->st, 0) == 0UL) goto L_4173DD;
+t0 = t3 & U32MASK;
 d3uc_update_order_model_b(c, (unsigned int)t0);
 L_4173DD:;
-if ((unsigned long)D3U_FLAG_444EA1_8(&c->st, 0) == 0UL) goto L_4173F1; /* cmp / jz */
-t0 = 0UL; /* xor t0,t0 */
+if ((unsigned long)D3U_FLAG_444EA1_8(&c->st, 0) == 0UL) goto L_4173F1;
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((var_28 & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL); /* lane-merge (split al) */
 t0 &= 0xFFUL;
 d3uc_update_model_8way(c, (unsigned int)t0);
 L_4173F1:;
-if ((var_48 & 0xFFUL) == 0UL) goto L_417464; /* cmp / jz */
+if ((var_48 & 0xFFUL) == 0UL) goto L_417464;
 t0 = (t0 & ~0xFFUL) | (((var_28 & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & ~0xFFUL) | (((((t0 & 0xFFUL) - (unsigned long)D3U_FLAG_444E9D_8(&c->st, 0)) & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
-if ((unsigned long)D3U_FLAG_444EA8_8(&c->st, 0) == 0UL) goto L_41740D; /* cmp / jz */
+if ((unsigned long)D3U_FLAG_444EA8_8(&c->st, 0) == 0UL) goto L_41740D;
 t0 = (t0 & ~0xFFUL) | ((((0UL - (t0 & 0xFFUL)) & 0xFFUL)) & 0xFFUL);
 t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFUL) & 0xFFUL);
 L_41740D:;
 t3 = (t3 & ~0xFFUL) | ((0UL) & 0xFFUL);
-t1 = 0UL; /* xor t1,t1 */
+t1 = 0UL;
 D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t3 & 0xFFUL) & 0xFFUL);
-t3 = 0UL; /* xor t3,t3 */
+t3 = 0UL;
 t1 = (t1 & ~0xFFUL) | (((t0 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t1 &= 0xFFUL;
 t3 = (t3 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0)) & 0xFFUL);
 t3 &= 0xFFUL;
-t0 = (unsigned long)D3U_TBL_4441C4_32(&c->st, 0); /* mov t0,dword_4441C4 */
-t3 = (t3 + 0x300UL) & U32MASK; /* add t3,300h */
+t0 = (unsigned long)D3U_TBL_4441C4_32(&c->st, 0);
+t3 = (t3 + 0x300UL) & U32MASK;
 d3uc_update_ctx_ema(c, (unsigned int)t3, (unsigned int)t1);
-if ((unsigned long)D3U_FLAG_444EAE_8(&c->st, 0) == 0UL) goto L_417445; /* cmp / jz */
-t0 = (unsigned long)D3U_TBL_44420C_32(&c->st, 0); /* mov t0,dword_44420C */
-D3U_TBL_444204_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_TBL_444204_32(&c->st, 0) + t0) & U32MASK); /* add dword_444204,t0 */
+if ((unsigned long)D3U_FLAG_444EAE_8(&c->st, 0) == 0UL) goto L_417445;
+t0 = (unsigned long)D3U_TBL_44420C_32(&c->st, 0);
+D3U_TBL_444204_32(&c->st, 0) = (unsigned int)(((unsigned long)D3U_TBL_444204_32(&c->st, 0) + t0) & U32MASK);
 L_417445:;
-t3 = (unsigned long)D3U_TBL_444200_32(&c->st, 0); /* mov t3,dword_444200 */
-t0 = t3 & U32MASK; /* mov t0,t3 */
-t0 = ((t0 << 5) & U32MASK); /* shl t0,5 */
-t0 = (t0 - t3) & U32MASK; /* sub t0,t3 */
-t3 = t0 & U32MASK; /* mov t3,t0 */
-t0 = (unsigned long)D3U_TBL_444204_32(&c->st, 0); /* mov t0,dword_444204 */
-t3 = ((t3 >> 5) & U32MASK); /* shr t3,5 */
-t3 = (t3 + t0) & U32MASK; /* add t3,t0 */
-D3U_TBL_444200_32(&c->st, 0) = (unsigned int)(t3 & U32MASK); /* mov dword_444200,t3 */
+t3 = (unsigned long)D3U_TBL_444200_32(&c->st, 0);
+t0 = t3 & U32MASK;
+t0 = ((t0 << 5) & U32MASK);
+t0 = (t0 - t3) & U32MASK;
+t3 = t0 & U32MASK;
+t0 = (unsigned long)D3U_TBL_444204_32(&c->st, 0);
+t3 = ((t3 >> 5) & U32MASK);
+t3 = (t3 + t0) & U32MASK;
+D3U_TBL_444200_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
 L_417464:;
 t1 = (t1 & ~0xFFUL) | (((unsigned long)D3U_FLAG_444EB3_8(&c->st, 0)) & 0xFFUL);
 t1 = (t1 & ~0xFFUL) | (((((t1 & 0xFFUL) - 1) & 0xFFUL)) & 0xFFUL);
 D3U_FLAG_444EB3_8(&c->st, 0) = (unsigned char)((t1 & 0xFFUL) & 0xFFUL);
-if ((((t1 & 0xFFUL)) & 0xFFUL) == 0xFFUL) goto L_4174A0; /* cmp / jz (==0FFh after dec) */
-t0 = 0UL; /* xor t0,t0 */
+if ((((t1 & 0xFFUL)) & 0xFFUL) == 0xFFUL) goto L_4174A0;
+t0 = 0UL;
 t0 = (t0 & ~0xFFUL) | (((t1 & 0xFFUL) & 0xFFUL) & 0xFFUL);
 t0 &= 0xFFUL;
-t1 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)(D3U_TBL_441F08 + (t0 & 0xFFUL) * 4UL))); /* mov t1,dword_441F08[t0*4] static array */
-D3U_TBL_44421C_32(&c->st, 0) = (unsigned int)(t1 & U32MASK); /* mov dword_44421C,t1 */
-t1 = 0UL; /* xor t1,t1 */
-t1 = (t1 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(D3U_TBL_4441D8 + (t0 & 0xFFUL)))) & 0xFFUL); /* mov bl,byte_4441D8[t0] static array */
+t1 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)(D3U_TBL_441F08 + (t0 & 0xFFUL) * 4UL)));
+D3U_TBL_44421C_32(&c->st, 0) = (unsigned int)(t1 & U32MASK);
+t1 = 0UL;
+t1 = (t1 & ~0xFFUL) | (((unsigned long)M8((unsigned long)(D3U_TBL_4441D8 + (t0 & 0xFFUL)))) & 0xFFUL);
 t1 &= 0xFFUL;
-t3 = t1 & U32MASK; /* mov t3,t1 */
-t0 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)(D3U_TBL_442018 + (t0 & 0xFFUL) * 4UL))); /* mov t0,dword_442018[t0*4] static array */
+t3 = t1 & U32MASK;
+t0 = (unsigned long)d3u_ld32(c, (unsigned long)((unsigned long)(D3U_TBL_442018 + (t0 & 0xFFUL) * 4UL)));
 d3uc_ctx_model_update(c, (unsigned int)(t0 & U32MASK), (unsigned int)(t3 & U32MASK));
 goto L_417464;
 L_4174A0:;
-t1 = 0UL; /* xor t1,t1 */
+t1 = 0UL;
 t1 = (t1 & ~0xFFUL) | (((var_28 & 0xFFUL)) & 0xFFUL);
 t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFUL) & 0xFFUL); /* lane-merge (split bl) */
 t1 &= 0xFFUL;
-t0 = t1 & U32MASK; /* mov t0,t1 */
-t3 = 1UL; /* mov t3,1 */
+t0 = t1 & U32MASK;
+t3 = 1UL;
 d3uc_emit_literal(c, (unsigned int)(t0 & U32MASK));
-t0 = t1 & U32MASK; /* mov t0,t1 */
+t0 = t1 & U32MASK;
 d3uc_update_match_chain(c, (unsigned int)(t0 & U32MASK), 1);
-t3 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0); /* mov t3,dword_4299B8 */
-t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0); /* mov t0,dword_444274 */
-c->blk00_dict[((unsigned long)(t3 + (t0 & U32MASK))) - c->blk00_base] = (unsigned char)((t1 & 0xFFUL) & 0xFFUL); /* mov [t3+t0],bl */
-if (!((t0 & U32MASK) < 0x100UL)) goto L_4174DC; /* cmp / jnb (unsigned <) */
-t0 = (t0 + (unsigned long)D3U_DICT_SIZE_32(&c->st, 0)) & U32MASK; /* add t0,dword_444270 */
-t3 = (t3 + t0) & U32MASK; /* add t3,t0 */
+t3 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+c->blk00_dict[((unsigned long)(t3 + (t0 & U32MASK))) - c->blk00_base] = (unsigned char)((t1 & 0xFFUL) & 0xFFUL);
+if (!((t0 & U32MASK) < 0x100UL)) goto L_4174DC;
+t0 = (t0 + (unsigned long)D3U_DICT_SIZE_32(&c->st, 0)) & U32MASK;
+t3 = (t3 + t0) & U32MASK;
 t0 = (t0 & ~0xFFUL) | (((var_28 & 0xFFUL)) & 0xFFUL);
-c->blk00_dict[((unsigned long)t3) - c->blk00_base] = (unsigned char)((t0 & 0xFFUL) & 0xFFUL); /* mov [t3],al */
+c->blk00_dict[((unsigned long)t3) - c->blk00_base] = (unsigned char)((t0 & 0xFFUL) & 0xFFUL);
 L_4174DC:;
-t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0); /* mov t0,dword_444274 */
-t3 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0); /* mov t3,dword_444278 */
-t0 = (t0 + 1) & U32MASK; /* inc t0 */
-t0 &= t3; /* and t0,t3 */
-D3U_DICT_CURSOR_32(&c->st, 0) = (unsigned int)(t0 & U32MASK); /* mov dword_444274,t0 */
+t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
+t3 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
+t0 = (t0 + 1) & U32MASK;
+t0 &= t3;
+D3U_DICT_CURSOR_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
 }
 
 /* ---- length/offset coders (from draft_l3.c) ---- */
@@ -3852,149 +3741,100 @@ void d3uc_emit_literal(dec3w_ctx *c, unsigned int sym)
     unsigned long t2 = 0;
     unsigned long t3 = 0;
     unsigned long t4 = 0;
-    /* push t1/t2/t3/t4 (frame only) */
     t3 = (t3 & ~0xFFUL) | (sym & 0xFFUL);
     t0 = (sym & 0xFFUL);
     t0 = (t0 & ~0xFF00UL) | (((unsigned long)D3U_FLAG_444EA7_8(&c->st, 0) & 0xFFUL) << 8);
     t3 = (t3 & ~0xFFUL) | ((~(t3 & 0xFFUL)) & 0xFFUL);
     if (((t0 >> 8) & 0xFFUL) != 1UL) goto l_416562;
-    /* mov t0,dword_444EF8 */
     t0 = (unsigned long)D3U_OUT_TOTAL_POS_32(&c->st, 0);
     t3 = t3 & ~0xFF00UL;
-    /* mov t4,dword_444228 */
     t4 = (unsigned long)D3U_TBL_444228_32(&c->st, 0);
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)((t3 >> 8) & 0xFFUL);
-    /* cmp t0,t4 */
     if (t0 < t4) goto l_41652a;
-    /* cmp dl,0FEh */
     if ((t3 & 0xFFUL) != 0xFEUL) goto l_4164fa;
-    /* mov t0,0FEh */
     t0 = 0xFEUL;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 l_4164fa:
-    /* xor t0,t0 */
     t0 = 0;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
-    /* xor t0,t0 */
     t0 = 0;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
-    /* mov t0,3 */
     t0 = 3;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
-    /* mov t0,3 */
     t0 = 3;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
 l_41651c:
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 l_41652a:
-    /* xor t1,t1 */
     t1 = 0;
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAD_8(&c->st, 0) & 0xFFUL);
-    /* sub t1,0A6h */
     t1 = (t1 - 0xA6UL) & U32MASK;
-    /* lea t0,ds:0[t1*4] */
     t0 = (t1 * 4UL) & U32MASK;
-    /* sub t0,t1 */
     t0 = (t0 - t1) & U32MASK;
-    /* shl t0,2 */
     t0 = (t0 << 2) & U32MASK;
-    /* sub t0,t1 */
     t0 = (t0 - t1) & U32MASK;
-    /* mov t1,t0 */
     t1 = t0;
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
-    /* mov al,byte_42C492[t1+t0] */
     t0 = (t0 & ~0xFFUL) | ((unsigned long)d3u_t42BD70[(1826UL + t1 + (t0 & 0xFFUL)) & U32MASK] & 0xFFUL);
-    /* and t0,0FFh */
     t0 &= 0xFFUL;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 l_416562:
-    /* mov t0,dword_444EF8 */
     t0 = (unsigned long)D3U_OUT_TOTAL_POS_32(&c->st, 0);
-    /* cmp t0,dword_444228 */
     if (t0 < (unsigned long)D3U_TBL_444228_32(&c->st, 0)) goto l_416580;
-    /* cmp dl,0FEh */
     if ((t3 & 0xFFUL) != 0xFEUL) goto l_416580;
     D3U_FLAG_444EA7_8(&c->st, 0) = 1;
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 l_416580:
-    /* mov t0,dword_444EF8 */
     t0 = (unsigned long)D3U_OUT_TOTAL_POS_32(&c->st, 0);
-    /* cmp t0,dword_428EDC */
     if (t0 >= (unsigned long)(unsigned long)D3U_PRIMER_ACCUMULATOR_32(&c->st, 0)) goto l_41651c;
-    /* cmp dl,80h */
     if ((t3 & 0xFFUL) >= 0x80UL) goto l_41659b;
     if (D3U_FLAG_444EA7_8(&c->st, 0) == 0) goto l_41651c;
 l_41659b:
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
-    /* mov al,byte_42C438[t0] */
     t0 = (t0 & ~0xFFUL) | ((unsigned long)d3u_t42C438[(unsigned int)(t0 & 0xFFUL)] & 0xFFUL);
-    /* cmp al,0C8h */
     if ((t0 & 0xFFUL) >= 0xC8UL) goto l_41661f;
-    /* cmp al,64h */
     if ((t0 & 0xFFUL) != 0x64UL) goto l_4165c4;
     t0 = (t0 & ~0xFF00UL) | (1UL << 8);
     D3U_FLAG_444EAD_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFUL);
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 l_4165c4:
-    /* cmp al,63h */
     if ((t0 & 0xFFUL) != 0x63UL) goto l_4165d4;
-    /* mov byte_444EA7,20h */
     D3U_FLAG_444EA7_8(&c->st, 0) = 0x20;
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 l_4165d4:
-    /* xor t1,t1 */
     t1 = 0;
     t1 = (t1 & ~0xFFUL) | (t0 & 0xFFUL);
     t2 = (t2 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EA7_8(&c->st, 0) & 0xFFUL);
-    /* mov t3,off_42BDDC[t1*4] */
     t3 = (unsigned long)d3u_t42BDDC[(unsigned int)(t1 & 0xFFUL)];
-    /* mov bl,byte_42BF6C[t1] */
     t1 = (t1 & ~0xFFUL) | ((unsigned long)d3u_t42BF6C[(unsigned int)(t1 & 0xFFUL)] & 0xFFUL);
     if ((t2 & 0xFFUL) == 0) goto l_41660a;
-    /* mov al,[t3] */
     t0 = (t0 & ~0xFFUL) | ((unsigned long)M8(t3 & U32MASK) & 0xFFUL);
     t0 = (t0 & ~0xFFUL) | ((~(t0 & 0xFFUL)) & 0xFFUL);
-    /* inc t3 */
     t3 = (t3 + 1UL) & U32MASK;
-    /* sub al,20h */
     t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) - 0x20UL) & 0xFFUL);
-    /* and t0,0FFh */
     t0 &= 0xFFUL;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
     t2 = t2 & ~0xFF00UL;
     t1 = (t1 & ~0xFFUL) | (((t1 & 0xFFUL) - 1UL) & 0xFFUL);
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)((t2 >> 8) & 0xFFUL);
 l_41660a:
-    /* mov al,[t3] */
     t0 = (t0 & ~0xFFUL) | ((unsigned long)M8(t3 & U32MASK) & 0xFFUL);
     t0 = (t0 & ~0xFFUL) | ((~(t0 & 0xFFUL)) & 0xFFUL);
-    /* and t0,0FFh */
     t0 &= 0xFFUL;
-    /* inc t3 */
     t3 = (t3 + 1UL) & U32MASK;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
     t1 = (t1 & ~0xFFUL) | (((t1 & 0xFFUL) - 1UL) & 0xFFUL);
@@ -4004,13 +3844,11 @@ l_41661f:
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EA7_8(&c->st, 0) & 0xFFUL);
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
     t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) - (t1 & 0xFFUL)) & 0xFFUL);
-    /* and t0,0FFh */
     t0 &= 0xFFUL;
     t1 = t1 & ~0xFF00UL;
     d3uc_put_byte(c, (unsigned int)(t0 & U32MASK));
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)((t1 >> 8) & 0xFFUL);
 l_41663b:
-    /* pop t4/t3/t2/t1 */
     /* retn */
     return;
 }
@@ -4028,97 +3866,61 @@ unsigned int d3uc_decode_length_sym(dec3w_ctx *c, unsigned int al_in)
     unsigned long t3 = 0;
     unsigned long t4 = 0;
     unsigned long t6 = 0;
-    /* push t1/t2/t3/t4/t6 (frame only) */
-    /* mov t6,offset dword_4441E8 */
     t6 = D3U_RC_TOTAL;
     t0 = (t0 & ~0xFFUL) | (al_in & 0xFFUL); /* entry al live */
     t2 = (t2 & ~0xFFUL) | (t0 & 0xFFUL);
 l_41664c:
-    /* xor t0,t0 */
     t0 = 0;
-    /* xor t3,t3 */
     t3 = 0;
     t0 = (t0 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EB6_8(&c->st, 0) & 0xFFUL);
     t3 = (t3 & ~0xFFUL) | (t2 & 0xFFUL);
-    /* add t0,t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* shl t0,3 */
     t0 = (t0 << 3) & U32MASK;
-    /* add t0,offset dword_443B68 */
     t0 = (t0 + D3U_TBL_443B68) & U32MASK;
-    /* lea t3,[t0+6] */
     t3 = (t0 + 6UL) & U32MASK;
-    /* xor t0,t0 */
     t0 = 0;
-    /* mov ax,[t3] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t3 & U32MASK)) & 0xFFFFUL);
-    /* mov dword_4441E8,t0 */
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)D3U_RC_TOTAL_16(&c->st, 0) & 0xFFFFUL);
     t1 = (t1 & ~0xFFUL) | 3UL;
     t0 = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3uc_rc_decode)(c, (unsigned int)(t0 & 0xFFFFUL));
 l_41667d:
     t1 = (t1 & ~0xFFUL) | (((t1 & 0xFFUL) - 1UL) & 0xFFUL);
-    /* mov si,[t3-2] */
     t4 = (t4 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 - 2UL) & U32MASK)) & 0xFFFFUL);
-    /* sub t3,2 */
     t3 = (t3 - 2UL) & U32MASK;
     if ((t0 & 0xFFFFUL) >= (t4 & 0xFFFFUL)) goto l_41668f;
     if ((t1 & 0xFFUL) != 0) goto l_41667d;
 l_41668f:
-    /* xor t0,t0 */
     t0 = 0;
-    /* mov ax,[t3] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t3 & U32MASK)) & 0xFFFFUL);
-    /* mov dword_4441EC,t0 */
     D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* xor t0,t0 */
     t0 = 0;
-    /* mov ax,[t3+2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + 2UL) & U32MASK)) & 0xFFFFUL);
-    /* mov dword_4441F0,t0 */
     D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov t0,t6 */
     t0 = t6;
     d3uc_rc_update(c, (unsigned int)(t0 & U32MASK));
     if ((t1 & 0xFFUL) != 0) goto l_41675d;
-    /* mov t3,0Ah */
     t3 = 0x0AUL;
-    /* mov t0,t3 */
     t0 = t3;
-    /* mov dword_4441E8,t3 */
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
     t0 = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3uc_rc_decode)(c, (unsigned int)(t0 & 0xFFFFUL));
-    /* mov t3,t0 */
     t3 = t0;
-    /* xor t0,t0 */
     t0 = 0;
-    /* xor t1,t1 */
     t1 = 0;
     t0 = (t0 & ~0xFFUL) | (t3 & 0xFFUL);
     t1 = (t1 & ~0xFFUL) | (t3 & 0xFFUL);
-    /* mov dword_4441EC,t0 */
     D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* lea t0,[t1+1] */
     t0 = (t1 + 1UL) & U32MASK;
-    /* mov dword_4441F0,t0 */
     D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov t0,t6 */
     t0 = t6;
     d3uc_rc_update(c, (unsigned int)(t0 & U32MASK));
     if ((t3 & 0xFFUL) == ((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0) & 0xFFUL)) goto l_41664c;
     D3U_FLAG_444EA9_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
-    /* mov t0,dword_429DE0[t1*4] */
     t0 = (unsigned long)d3u_t429DE0[(unsigned int)(t1 & 0xFFUL)];
-    /* mov t4,dword_429DB8[t1*4] */
     t4 = (unsigned long)d3u_t429DB8[(unsigned int)(t1 & 0xFFUL)];
-    /* mov dword_4441C4,t0 */
     D3U_TBL_4441C4_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov al,byte_429E30[t1] */
     t0 = (t0 & ~0xFFUL) | ((unsigned long)d3u_t429E30[(unsigned int)(t1 & 0xFFUL)] & 0xFFUL);
-    /* mov dword_4441C8,t4 */
     D3U_TBL_4441C8_32(&c->st, 0) = (unsigned int)(t4 & U32MASK);
     D3U_FLAG_444E9E_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
     if ((t3 & 0xFFUL) == 5UL) goto l_416723;
@@ -4131,10 +3933,8 @@ l_416727:
 l_416729:
     D3U_FLAG_444EA6_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
     t3 = t3 & ~0xFFUL;
-    /* xor t1,t1 */
     t1 = 0;
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
-    /* mov dword_4441D0,t1 */
     D3U_TBL_4441D0_32(&c->st, 0) = (unsigned int)(t1 & U32MASK);
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0) & 0xFFUL);
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
@@ -4142,15 +3942,12 @@ l_416729:
     d3uc_init_hash_buckets(c);
     goto l_41664c;
 l_41675d:
-    /* xor t3,t3 */
     t3 = 0;
-    /* xor t0,t0 */
     t0 = 0;
     t3 = (t3 & ~0xFFUL) | (t1 & 0xFFUL);
     t0 = (t0 & ~0xFFUL) | (t2 & 0xFFUL);
     d3uc_update_len_model(c, (unsigned int)(t0 & U32MASK), (unsigned int)(t3 & U32MASK));
     t0 = (t0 & ~0xFFUL) | (t1 & 0xFFUL);
-    /* pop t6/t4/t3/t2/t1 */
     /* retn */
     return (t0 & 0xFFUL);
 }
@@ -4181,683 +3978,401 @@ unsigned int d3uc_decode_offset_sym(dec3w_ctx *c, unsigned int x)
     unsigned long cw[256] = {0};
     unsigned long ta = 0;
     unsigned long ti = 0;
-    /* push t1/t2/t3/t4/t5/t6; sub esp,0ACh (frame only) */
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) & 0xFFUL);
-    /* mov [var_34],t0 */
     v34 = (unsigned long)x & U32MASK;
-    /* mov t4,t0 */
     t4 = (unsigned long)x & U32MASK;
-    /* mov t0,dword_4299F0 */
     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* shl t4,9 */
     t4 = (t4 << 9) & U32MASK;
-    /* add t4,t0 */
     t4 = (t4 + t0) & U32MASK;
-    /* mov t6,[var_34] */
     t6 = v34;
     t2 = t2 & ~0xFFUL;
-    /* mov ax,[t4] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t4 & U32MASK)) & 0xFFFFUL);
-    /* shl t6,8 */
     t6 = (t6 << 8) & U32MASK;
-    /* mov [var_20],t0 */
     v20 = t0;
-    /* xor t0,t0 */
     t0 = 0;
 l_4177fd:
-    /* xor t3,t3 */
     t3 = 0;
     t3 = (t3 & ~0xFFUL) | (t1 & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_417833;
-    /* xor t3,t3 */
     t3 = 0;
-    /* mov dl,byte_444E82[t0] */
     t3 = (t3 & ~0xFFUL) | ((unsigned long)M8((D3U_FLAG_444E82 + (t0 & U32MASK)) & U32MASK) & 0xFFUL);
-    /* add t3,t6 */
     t3 = (t3 + t6) & U32MASK;
-    /* lea t5,ds:0[t3*2] */
     t5 = (t3 * 2UL) & U32MASK;
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* mov dx,[t3+t5] */
     t3 = (t3 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + t5) & U32MASK)) & 0xFFFFUL);
-    /* mov t5,[var_20] */
     t5 = v20;
-    /* sub t5,t3 */
     t5 = (t5 - t3) & U32MASK;
-    /* inc t0 */
     t0 = (t0 + 1UL) & U32MASK;
-    /* mov [var_20],t5 */
     v20 = t5;
     goto l_4177fd;
 l_417833:
-    /* mov t3,[var_20] */
     t3 = v20;
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
     if ((t3 & 0xFFFFUL) != 0) goto l_417948;
-    /* mov t0,dword_44421C */
     t0 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
-    /* mov [var_34],t0 */
     v34 = t0;
-    /* mov t4,t0 */
     t4 = t0;
-    /* mov t0,dword_4299F0 */
     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* shl t4,9 */
     t4 = (t4 << 9) & U32MASK;
-    /* add t4,t0 */
     t4 = (t4 + t0) & U32MASK;
-    /* mov t6,[var_34] */
     t6 = v34;
-    /* mov ax,[t4] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t4 & U32MASK)) & 0xFFFFUL);
-    /* shl t6,8 */
     t6 = (t6 << 8) & U32MASK;
-    /* mov [var_20],t0 */
     v20 = t0;
-    /* xor t0,t0 */
     t0 = 0;
 l_417877:
-    /* xor t3,t3 */
     t3 = 0;
     t3 = (t3 & ~0xFFUL) | (t1 & 0xFFUL);
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_4178b3;
-    /* xor t3,t3 */
     t3 = 0;
-    /* mov dl,byte_444E82[t0] */
     t3 = (t3 & ~0xFFUL) | ((unsigned long)M8((D3U_FLAG_444E82 + (t0 & U32MASK)) & U32MASK) & 0xFFUL);
-    /* add t3,t6 */
     t3 = (t3 + t6) & U32MASK;
-    /* lea t2,ds:0[t3*2] */
     t2 = (t3 * 2UL) & U32MASK;
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* mov dx,[t2+t3] */
     t3 = (t3 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t2 + t3) & U32MASK)) & 0xFFFFUL);
-    /* mov t2,[var_20] */
     t2 = v20;
-    /* sub t2,t3 */
     t2 = (t2 - t3) & U32MASK;
-    /* inc t0 */
     t0 = (t0 + 1UL) & U32MASK;
-    /* mov [var_20],t2 */
     v20 = t2;
     goto l_417877;
 l_4178b3:
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | (v20 & 0xFFFFUL);
-    /* mov dword_4441E8,t0 */
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)D3U_RC_TOTAL_16(&c->st, 0) & 0xFFFFUL);
     t0 = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3uc_rc_decode)(c, (unsigned int)(t0 & 0xFFFFUL));
-    /* mov [var_24],t0 */
     v24 = t0;
 l_4178d6:
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) & 0xFFUL);
     if ((t1 & 0xFFUL) == 0) goto l_417c80;
-    /* mov bh,80h */
     t1 = (t1 & ~0xFF00UL) | (0x80UL << 8);
-    /* mov t3,[var_34] */
     t3 = v34;
-    /* mov [var_38],t4 */
     v38 = t4;
-    /* xor t0,t0 */
     t0 = 0;
-    /* shl t3,8 */
     t3 = (t3 << 8) & U32MASK;
-    /* xor t2,t2 */
     t2 = 0;
-    /* mov [var_30],t3 */
     v30 = t3;
-    /* xor t3,t3 */
     t3 = 0;
 l_417904:
-    /* movzx t5,bl */
     t5 = t1 & 0xFFUL;
-    /* cmp t0,t5 */
     if (t0 >= t5) goto l_417bb6;
-    /* movzx t5,byte_444E82[t0] */
     t5 = (unsigned long)M8((D3U_FLAG_444E82 + (t0 & U32MASK)) & U32MASK) & 0xFFUL;
-    /* add t5,t5 */
     t5 = (t5 + t5) & U32MASK;
-    /* add t5,t4 */
     t5 = (t5 + t4) & U32MASK;
-    /* mov t6,[var_30] */
     t6 = v30;
-    /* mov [esp+t3+var_C4],t5 */
     ta = (t3 >> 2) & U32MASK;
     ti = 0;
     c4[ta & 0xFFUL] = t5;
-    /* movzx t5,byte_444E82[t0] */
     t5 = (unsigned long)M8((D3U_FLAG_444E82 + (t0 & U32MASK)) & U32MASK) & 0xFFUL;
-    /* add t5,t6 */
     t5 = (t5 + t6) & U32MASK;
-    /* mov t6,dword_4299F4 */
     t6 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* add t5,t5 */
     t5 = (t5 + t5) & U32MASK;
-    /* add t2,2 */
     t2 = (t2 + 2UL) & U32MASK;
-    /* add t5,t6 */
     t5 = (t5 + t6) & U32MASK;
-    /* add t3,4 */
     t3 = (t3 + 4UL) & U32MASK;
-    /* inc t0 */
     t0 = (t0 + 1UL) & U32MASK;
-    /* mov di,[t5] */
     t5 = (t5 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t5 & U32MASK)) & 0xFFFFUL);
-    /* mov [esp+t2+var_6A],di */
     ti = (t2 >> 1) & U32MASK;
     cw[(ti - 1UL) & 0xFFUL] = t5 & 0xFFFFUL;
     goto l_417904;
 l_417948:
-    /* mov t0,[var_34] */
     t0 = v34;
-    /* mov t3,dword_4299FC */
     t3 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    /* mov ax,[t3+t0*2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* xor t3,t3 */
     t3 = 0;
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
     t3 = (t3 & ~0xFFFFUL) | (v20 & 0xFFFFUL);
-    /* add t3,t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov dword_4441E8,t3 */
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)D3U_RC_TOTAL_16(&c->st, 0) & 0xFFFFUL);
-    /* mov t5,[var_20] */
     t5 = v20;
     t0 = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3uc_rc_decode)(c, (unsigned int)(t0 & 0xFFFFUL));
-    /* mov [var_24],t0 */
     v24 = t0;
     if ((t0 & 0xFFFFUL) < (t5 & 0xFFFFUL)) goto l_4178d6;
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | (t5 & 0xFFFFUL);
-    /* mov dword_4441EC,t0 */
     D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov t0,dword_4441E8 */
     t0 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
-    /* mov t3,dword_4441EC */
     t3 = (unsigned long)D3U_RC_PROB_LO_32(&c->st, 0);
-    /* mov dword_4441F0,t0 */
     D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* sub t0,t3 */
     t0 = (t0 - t3) & U32MASK;
-    /* mov t4,dword_4441E8 */
     t4 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
-    /* shl t0,0Eh */
     t0 = (t0 << 14) & U32MASK;
-    /* xor t3,t3 */
     t3 = 0;
-    /* div t4 */
     t0 = (t4 == 0) ? 0 : (t0 / t4) & U32MASK;
     t3 = 0;
-    /* mov ax,word_42D274[t0*2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* mov t5,dword_4441F4 */
     t5 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
-    /* add t5,t0 */
     t5 = (t5 + t0) & U32MASK;
-    /* mov t0,offset dword_4441E8 */
     t0 = D3U_RC_TOTAL;
-    /* mov dword_4441F4,t5 */
     D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)(t5 & U32MASK);
     d3uc_rc_update(c, (unsigned int)(t0 & U32MASK));
-    /* mov t0,[var_34] */
     t0 = v34;
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* shl t0,9 */
     t0 = (t0 << 9) & U32MASK;
-    /* add t3,t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov t0,dword_44421C */
     t0 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
-    /* mov [var_28],t3 */
     v28 = t3;
-    /* mov t3,dword_4299F0 */
     t3 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* shl t0,9 */
     t0 = (t0 << 9) & U32MASK;
-    /* mov ax,[t3+t0] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0) & U32MASK)) & 0xFFFFUL);
-    /* mov t4,dword_44421C */
     t4 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
     t1 = t1 & ~0xFF00UL;
-    /* mov dword_4441E8,t0 */
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* shl t4,8 */
     t4 = (t4 << 8) & U32MASK;
 l_417a22:
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) & 0xFFUL);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
-    /* mov t3,[var_28] */
     t3 = v28;
-    /* add t0,t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* add t0,t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* cmp word ptr [t0],0 */
     t3 = (t3 & ~0xFFUL) | ((d3u_ld16(c, (unsigned long)(t0 & U32MASK)) != 0) ? 1UL : 0UL);
-    /* xor t0,t0 */
     t0 = 0;
     v1c = t3 & 0xFFUL;
     if ((t3 & 0xFFUL) != 0) goto l_417a6c;
 l_417a4b:
-    /* xor t3,t3 */
     t3 = 0;
     t3 = (t3 & ~0xFFUL) | (t1 & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_417a6c;
-    /* mov t3,t0 */
     t3 = t0;
-    /* mov ch,byte_444E82[t3] */
     t2 = (t2 & ~0xFF00UL) | ((((unsigned long)M8((D3U_FLAG_444E82 + (t3 & U32MASK)) & U32MASK) & 0xFFUL)) << 8);
-    /* inc t0 */
     t0 = (t0 + 1UL) & U32MASK;
     t3 = (t3 & ~0xFFUL) | ((((t1 >> 8) & 0xFFUL) == ((t2 >> 8) & 0xFFUL)) ? 1UL : 0UL);
     v1c = t3 & 0xFFUL;
     if ((t3 & 0xFFUL) == 0) goto l_417a4b;
 l_417a6c:
     if ((v1c & 0xFFUL) == 0) goto l_417a99;
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* add t0,t4 */
     t0 = (t0 + t4) & U32MASK;
-    /* mov ax,[t3+t0*2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* mov t5,dword_4441E8 */
     t5 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
-    /* sub t5,t0 */
     t5 = (t5 - t0) & U32MASK;
-    /* mov dword_4441E8,t5 */
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)(t5 & U32MASK);
 l_417a99:
     t1 = (t1 & ~0xFF00UL) | ((((t1 >> 8) & 0xFFUL) + 1UL & 0xFFUL) << 8);
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
     if (((t1 >> 8) & 0xFFUL) != 0) goto l_417a22;
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)D3U_RC_TOTAL_16(&c->st, 0) & 0xFFFFUL);
     t0 = ((unsigned int (*)(dec3w_ctx *, unsigned int))d3uc_rc_decode)(c, (unsigned int)(t0 & 0xFFFFUL));
-    /* mov t5,t0 */
     t5 = t0;
-    /* mov t0,dword_44421C */
     t0 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
-    /* mov t6,[var_28] */
     t6 = v28;
-    /* shl t0,8 */
     t0 = (t0 << 8) & U32MASK;
-    /* xor t4,t4 */
     t4 = 0;
-    /* mov [var_2C],t0 */
     v2c = t0;
 l_417ace:
     t2 = (t2 & ~0xFFUL) | (((t2 & 0xFFUL) - 1UL) & 0xFFUL);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | (t2 & 0xFFUL);
-    /* add t0,t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* add t0,t6 */
     t0 = (t0 + t6) & U32MASK;
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) & 0xFFUL);
-    /* cmp word ptr [t0],0 */
     t3 = (t3 & ~0xFFUL) | ((d3u_ld16(c, (unsigned long)(t0 & U32MASK)) == 0) ? 1UL : 0UL);
     t1 = (t1 & ~0xFF00UL) | ((t3 & 0xFFUL) << 8);
-    /* xor t0,t0 */
     t0 = 0;
     if ((t3 & 0xFFUL) == 0) goto l_417b09;
 l_417aed:
-    /* xor t3,t3 */
     t3 = 0;
     t3 = (t3 & ~0xFFUL) | (t1 & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_417b09;
-    /* mov t3,t0 */
     t3 = t0;
-    /* mov bh,byte_444E82[t3] */
     t1 = (t1 & ~0xFF00UL) | ((((unsigned long)M8((D3U_FLAG_444E82 + (t3 & U32MASK)) & U32MASK) & 0xFFUL)) << 8);
-    /* inc t0 */
     t0 = (t0 + 1UL) & U32MASK;
     t3 = (t3 & ~0xFFUL) | (((t2 & 0xFFUL) != ((t1 >> 8) & 0xFFUL)) ? 1UL : 0UL);
     t1 = (t1 & ~0xFF00UL) | ((t3 & 0xFFUL) << 8);
     if ((t3 & 0xFFUL) != 0) goto l_417aed;
 l_417b09:
     if (((t1 >> 8) & 0xFFUL) == 0) goto l_417b24;
-    /* xor t0,t0 */
     t0 = 0;
-    /* mov t3,[var_2C] */
     t3 = v2c;
     t0 = (t0 & ~0xFFUL) | (t2 & 0xFFUL);
-    /* add t0,t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* add si,[t3+t0*2] */
     t4 = (t4 + ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL)) & U32MASK;
 l_417b24:
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
     if ((t4 & 0xFFFFUL) <= (t5 & 0xFFFFUL)) goto l_417ace;
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | (t4 & 0xFFFFUL);
-    /* xor t3,t3 */
     t3 = 0;
-    /* mov dword_4441F0,t0 */
     D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov t0,dword_44421C */
     t0 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
     t3 = (t3 & ~0xFFUL) | (t2 & 0xFFUL);
-    /* shl t0,8 */
     t0 = (t0 << 8) & U32MASK;
-    /* add t0,t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* add t0,t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* add t0,t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* xor t3,t3 */
     t3 = 0;
-    /* mov dx,[t0] */
     t3 = (t3 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t0 & U32MASK)) & 0xFFFFUL);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | (t4 & 0xFFFFUL);
-    /* sub t0,t3 */
     t0 = (t0 - t3) & U32MASK;
-    /* mov dword_4441EC,t0 */
     D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov t0,dword_4441F0 */
     t0 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0);
-    /* mov t4,dword_4441EC */
     t4 = (unsigned long)D3U_RC_PROB_LO_32(&c->st, 0);
-    /* mov t5,dword_4441E8 */
     t5 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
-    /* sub t0,t4 */
     t0 = (t0 - t4) & U32MASK;
-    /* xor t3,t3 */
     t3 = 0;
-    /* shl t0,0Eh */
     t0 = (t0 << 14) & U32MASK;
-    /* div t5 */
     t0 = (t5 == 0) ? 0 : (t0 / t5) & U32MASK;
     t3 = 0;
-    /* mov ax,word_42D274[t0*2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* mov t6,dword_4441F4 */
     t6 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
-    /* add t6,t0 */
     t6 = (t6 + t0) & U32MASK;
-    /* mov t0,offset dword_4441E8 */
     t0 = D3U_RC_TOTAL;
-    /* mov dword_4441F4,t6 */
     D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)(t6 & U32MASK);
     d3uc_rc_update(c, (unsigned int)(t0 & U32MASK));
     t0 = (t0 & ~0xFFUL) | (t2 & 0xFFUL);
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) & 0xFFUL);
-    /* add esp,0ACh */
-    /* pop t6/t5/t4/t3/t2/t1 */
     /* retn */
     return (t0 & 0xFFUL);
 l_417bb6:
-    /* mov t0,[var_24] */
     t0 = v24;
-    /* sub [var_20],t0 */
     v20 = (v20 - t0) & U32MASK;
 l_417bc4:
-    /* xor t5,t5 */
     t5 = 0;
-    /* xor t0,t0 */
     t0 = 0;
-    /* xor t2,t2 */
     t2 = 0;
-    /* xor t3,t3 */
     t3 = 0;
 l_417bcc:
-    /* movzx t6,bl */
     t6 = t1 & 0xFFUL;
-    /* cmp t0,t6 */
     if (t0 >= t6) goto l_417bef;
-    /* movzx t6,bh */
     t6 = (t1 >> 8) & 0xFFUL;
-    /* add t6,t6 */
     t6 = (t6 + t6) & U32MASK;
-    /* add t6,t4 */
     t6 = (t6 + t4) & U32MASK;
-    /* cmp t6,[esp+t2+var_C4] */
     ta = (t2 >> 2) & U32MASK;
     if (t6 <= c4[ta & 0xFFUL]) goto l_417be6;
-    /* movzx t6,[esp+t3+var_68] */
     ti = (t3 >> 1) & U32MASK;
     t6 = cw[ti & 0xFFUL] & 0xFFFFUL;
-    /* add t5,t6 */
     t5 = (t5 + t6) & U32MASK;
 l_417be6:
-    /* add t2,4 */
     t2 = (t2 + 4UL) & U32MASK;
-    /* add t3,2 */
     t3 = (t3 + 2UL) & U32MASK;
-    /* inc t0 */
     t0 = (t0 + 1UL) & U32MASK;
     goto l_417bcc;
 l_417bef:
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
-    /* xor t3,t3 */
     t3 = 0;
-    /* mov dx,[t4+t0*2] */
     t3 = (t3 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t4 + (t0 & 0xFFUL) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | (v20 & 0xFFFFUL);
-    /* add t0,t5 */
     t0 = (t0 + t5) & U32MASK;
-    /* cmp t3,t0 */
     if ((t3 & 0xFFFFUL) >= (t0 & 0xFFFFUL)) goto l_417c4e;
-    /* xor t3,t3 */
     t3 = 0;
-    /* xor t0,t0 */
     t0 = 0;
 l_417c0d:
-    /* xor t2,t2 */
     t2 = 0;
     t2 = (t2 & ~0xFFUL) | (t1 & 0xFFUL);
-    /* cmp t3,t2 */
     if (t3 >= t2) goto l_417c31;
-    /* xor t2,t2 */
     t2 = 0;
     t2 = (t2 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
-    /* add t2,t2 */
     t2 = (t2 + t2) & U32MASK;
-    /* mov t6,[esp+t0+var_C4] */
     ta = (t0 >> 2) & U32MASK;
     t6 = c4[ta & 0xFFUL];
-    /* add t2,t4 */
     t2 = (t2 + t4) & U32MASK;
-    /* cmp t2,t6 */
     if (t2 <= t6) goto l_417c2b;
-    /* mov [esp+t0+var_C4],0FFFFFFFFh */
     c4[ta & 0xFFUL] = 0xFFFFFFFFUL;
 l_417c2b:
-    /* add t0,4 */
     t0 = (t0 + 4UL) & U32MASK;
-    /* inc t3 */
     t3 = (t3 + 1UL) & U32MASK;
     goto l_417c0d;
 l_417c31:
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
-    /* add t0,t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* add t4,t0 */
     t4 = (t4 + t0) & U32MASK;
-    /* mov ax,[t4] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t4 & U32MASK)) & 0xFFFFUL);
-    /* mov t3,[var_20] */
     t3 = v20;
-    /* sub t0,t5 */
     t0 = (t0 - t5) & U32MASK;
-    /* sub t3,t0 */
     t3 = (t3 - t0) & U32MASK;
-    /* mov [var_20],t3 */
     v20 = t3;
 l_417c4e:
     t1 = (t1 & ~0xFF00UL) | ((((t1 >> 8) & 0xFFUL) >> 1) << 8);
     if (((t1 >> 8) & 0xFFUL) != 0) goto l_417bc4;
-    /* mov t0,[var_24] */
     t0 = v24;
-    /* mov t2,[var_20] */
     t2 = v20;
-    /* mov t5,[var_38] */
     t5 = v38;
-    /* add t2,t0 */
     t2 = (t2 + t0) & U32MASK;
-    /* mov t0,t4 */
     t0 = t4;
-    /* sub t0,t5 */
     t0 = (t0 - t5) & U32MASK;
-    /* sar t0,1 */
     t0 = ((unsigned long)(((int)(t0 & U32MASK)) >> 1)) & U32MASK;
     t1 = (t1 & ~0xFF00UL) | ((t0 & 0xFFUL) << 8);
-    /* mov [var_20],t2 */
     v20 = t2;
     goto l_417ce0;
 l_417c80:
-    /* mov t3,[var_24] */
     t3 = v24;
-    /* mov t5,[var_20] */
     t5 = v20;
-    /* mov al,80h */
     t0 = (t0 & ~0xFFUL) | 0x80UL;
-    /* sub t5,t3 */
     t5 = (t5 - t3) & U32MASK;
-    /* mov t2,t4 */
     t2 = t4;
-    /* mov [var_20],t5 */
     v20 = t5;
 l_417c9b:
-    /* xor t3,t3 */
     t3 = 0;
     t3 = (t3 & ~0xFFUL) | (t0 & 0xFFUL);
-    /* add t3,t3 */
     t3 = (t3 + t3) & U32MASK;
-    /* add t3,t4 */
     t3 = (t3 + t4) & U32MASK;
-    /* mov di,[t3] */
     t5 = (t5 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)(t3 & U32MASK)) & 0xFFFFUL);
     if ((t5 & 0xFFFFUL) >= (v20 & 0xFFFFUL)) goto l_417cbb;
-    /* mov t4,t3 */
     t4 = t3;
-    /* mov t3,t5 */
     t3 = t5;
-    /* sub [var_20],t3 */
     v20 = (v20 - t3) & U32MASK;
 l_417cbb:
     t0 = (t0 & ~0xFFUL) | (((t0 & 0xFFUL) >> 1) & 0xFFUL);
     if ((t0 & 0xFFUL) != 0) goto l_417c9b;
-    /* mov t0,[var_24] */
     t0 = v24;
-    /* mov t3,[var_20] */
     t3 = v20;
-    /* add t3,t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov t0,t4 */
     t0 = t4;
-    /* sub t0,t2 */
     t0 = (t0 - t2) & U32MASK;
-    /* sar t0,1 */
     t0 = ((unsigned long)(((int)(t0 & U32MASK)) >> 1)) & U32MASK;
     t1 = (t1 & ~0xFF00UL) | ((t0 & 0xFFUL) << 8);
-    /* mov [var_20],t3 */
     v20 = t3;
 l_417ce0:
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
-    /* xor t0,t0 */
     t0 = 0;
     t0 = (t0 & ~0xFFFFUL) | (v20 & 0xFFFFUL);
-    /* xor t3,t3 */
     t3 = 0;
-    /* mov dword_4441F0,t0 */
     D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)(t0 & U32MASK);
-    /* mov t0,[var_34] */
     t0 = v34;
     t3 = (t3 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
-    /* shl t0,8 */
     t0 = (t0 << 8) & U32MASK;
-    /* add t0,t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_4299F4 */
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* mov ax,[t3+t0*2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((t3 + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* xor t3,t3 */
     t3 = 0;
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
     t3 = (t3 & ~0xFFFFUL) | (v20 & 0xFFFFUL);
-    /* sub t3,t0 */
     t3 = (t3 - t0) & U32MASK;
-    /* mov t0,dword_4441F0 */
     t0 = (unsigned long)D3U_RC_PROB_HI_32(&c->st, 0);
-    /* mov t2,dword_4441E8 */
     t2 = (unsigned long)D3U_RC_TOTAL_32(&c->st, 0);
-    /* sub t0,t3 */
     t0 = (t0 - t3) & U32MASK;
-    /* mov dword_4441EC,t3 */
     D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)(t3 & U32MASK);
-    /* shl t0,0Eh */
     t0 = (t0 << 14) & U32MASK;
-    /* xor t3,t3 */
     t3 = 0;
-    /* div t2 */
     t0 = (t2 == 0) ? 0 : (t0 / t2) & U32MASK;
     t3 = 0;
-    /* mov ax,word_42D274[t0*2] */
     t0 = (t0 & ~0xFFFFUL) | ((unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + (t0 & U32MASK) * 2UL) & U32MASK)) & 0xFFFFUL);
-    /* mov t4,dword_4441F4 */
     t4 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
-    /* and t0,0FFFFh */
     t0 &= 0xFFFFUL;
-    /* add t4,t0 */
     t4 = (t4 + t0) & U32MASK;
-    /* mov t0,offset dword_4441E8 */
     t0 = D3U_RC_TOTAL;
-    /* mov dword_4441F4,t4 */
     D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)(t4 & U32MASK);
     d3uc_rc_update(c, (unsigned int)(t0 & U32MASK));
     t0 = (t0 & ~0xFFUL) | ((t1 >> 8) & 0xFFUL);
     t1 = (t1 & ~0xFFUL) | ((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0) & 0xFFUL);
-    /* add esp,0ACh */
-    /* pop t6/t5/t4/t3/t2/t1 */
     /* retn */
     return (t0 & 0xFFUL);
 }
@@ -4870,22 +4385,13 @@ void d3uc_refill_input(dec3w_ctx *c)
     unsigned int t0 = 0;
     unsigned int t3 = 0;
     unsigned int cb = 0;
-    /* push t3 */
-    /* mov t0, dword_444EF4 */
     t0 = D3U_IN_ABS_POS_32(&c->st, 0);
-    /* xor t3, t3 */
     t3 = 0;
-    /* mov dword_436E40, t0 */
     D3U_TBL_436E40_32(&c->st, 0) = t0;
-    /* mov dword_444EE8, t3 */
     D3U_IN_POS_32(&c->st, 0) = t3;
-    /* mov t0, dword_444EF8 */
     t0 = D3U_OUT_TOTAL_POS_32(&c->st, 0);
-    /* mov t3, dword_444EFC */
     t3 = D3U_TBL_444EFC_32(&c->st, 0);
-    /* mov dword_436E44, t0 */
     D3U_TBL_436E44_32(&c->st, 0) = t0;
-    /* mov t0, dword_42C9A8 */
     t0 = (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0);
     cb = (unsigned long)D3U_TBL_42CBB0_32(&c->st, 0);
     (void)cb;
@@ -4893,13 +4399,10 @@ void d3uc_refill_input(dec3w_ctx *c)
     { unsigned int _room = ((t0 & U32MASK) >= (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0)) ? 0x100000U - ((t0 & U32MASK) - (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0)) : 0U;
       unsigned int _n = (t3 & U32MASK) < _room ? (t3 & U32MASK) : _room;
       t0 = (c->rcb != 0 && _n != 0) ? (unsigned int)c->rcb(c->rctx, d3u_ptr(c, (t0 & U32MASK)), _n) : 0U; }
-    /* mov dword_444EF0, t0 */
     D3U_IN_AVAIL_32(&c->st, 0) = t0;
-    /* test t0, t0 */
     if (t0 != 0) goto loc_41E1BD;
     D3U_STATUS_ERR_32(&c->st, 0) = 3;
 loc_41E1BD:
-    /* pop t3 */
     /* retn */
     ;
 }
@@ -4908,33 +4411,19 @@ unsigned int d3uc_get_byte(dec3w_ctx *c)
     unsigned int t0 = 0;
     unsigned int t1 = 0;
     unsigned int t3 = 0;
-    /* push t1 */
-    /* push t3 */
-    /* mov t0, dword_444EE8 */
     t0 = D3U_IN_POS_32(&c->st, 0);
-    /* cmp t0, dword_444EF0 */
     if (t0 != D3U_IN_AVAIL_32(&c->st, 0)) goto loc_41E2C4;
     d3uc_refill_input(c);
 loc_41E2C4:
-    /* mov t1, dword_444EF4 */
     t1 = D3U_IN_ABS_POS_32(&c->st, 0);
-    /* inc t1 */
     t1 = (t1 + 1) & U32MASK;
-    /* mov t0, dword_444EE8 */
     t0 = D3U_IN_POS_32(&c->st, 0);
-    /* mov dword_444EF4, t1 */
     D3U_IN_ABS_POS_32(&c->st, 0) = t1;
-    /* lea t1, [t0+1] */
     t1 = (t0 + 1) & U32MASK;
-    /* mov t3, dword_42C9A8 */
     t3 = (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0);
-    /* mov dword_444EE8, t1 */
     D3U_IN_POS_32(&c->st, 0) = t1;
-    /* mov al, [t3+t0] */
     /* framework-owned host read through the input base (lane-merge into al) */
-    t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + t0) & U32MASK); /* mov al,[t3+t0] (arena: t3=input base) */
-    /* pop t3 */
-    /* pop t1 */
+    t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + t0) & U32MASK);
     /* retn */
     return t0 & U32MASK;
 }
@@ -4947,55 +4436,31 @@ void d3uc_fill_input(dec3w_ctx *c, unsigned int eax_v)
     unsigned int t4 = 0;
     unsigned int t5 = 0;
     unsigned int cb = 0;
-    /* push t1/t2/t3/t4/t5 */
-    /* mov t2, dword_444EF0 */
     t2 = D3U_IN_AVAIL_32(&c->st, 0);
-    /* mov t4, t0 */
     t4 = eax_v;
     t0 = eax_v;
-    /* mov t3, dword_444EE8 */
     t3 = D3U_IN_POS_32(&c->st, 0);
-    /* mov t5, t2 */
     t5 = t2;
-    /* sub t5, t3 */
     t5 = (t5 - t3) & U32MASK;
-    /* cmp t5, t0 */
     if (t5 >= t0) goto loc_41E23B;
-    /* mov t0, dword_42C9A8 */
     t0 = (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0);
-    /* mov t1, t5 */
     t1 = t5;
-    /* mov t2, t5 */
     t2 = t5;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov t5, 3 */
     t5 = 3;
     d3uc_memmove(c, t0, t3, t1);
-    /* mov t0, dword_444EF4 */
     t0 = D3U_IN_ABS_POS_32(&c->st, 0);
-    /* xor t1, t1 */
     t1 = 0;
-    /* mov dword_436E40, t0 */
     D3U_TBL_436E40_32(&c->st, 0) = t0;
-    /* mov t0, dword_444EF8 */
     t0 = D3U_OUT_TOTAL_POS_32(&c->st, 0);
-    /* mov dword_444EE8, t1 */
     D3U_IN_POS_32(&c->st, 0) = t1;
-    /* mov dword_436E44, t0 */
     D3U_TBL_436E44_32(&c->st, 0) = t0;
 loc_41E20C:
-    /* mov t3, dword_444EFC */
     t3 = D3U_TBL_444EFC_32(&c->st, 0);
-    /* mov t0, dword_42C9A8 */
     t0 = (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0);
-    /* mov t1, t2 */
     t1 = t2;
-    /* sub t3, t2 */
     t3 = (t3 - t2) & U32MASK;
-    /* add t0, t2 */
     t0 = (t0 + t2) & U32MASK;
-    /* mov dword_444EF0, t2 */
     D3U_IN_AVAIL_32(&c->st, 0) = t2;
     cb = (unsigned long)D3U_TBL_42CBB0_32(&c->st, 0);
     (void)cb;
@@ -5003,21 +4468,14 @@ loc_41E20C:
     { unsigned int _room = ((t0 & U32MASK) >= (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0)) ? 0x100000U - ((t0 & U32MASK) - (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0)) : 0U;
       unsigned int _n = (t3 & U32MASK) < _room ? (t3 & U32MASK) : _room;
       t0 = (c->rcb != 0 && _n != 0) ? (unsigned int)c->rcb(c->rctx, d3u_ptr(c, (t0 & U32MASK)), _n) : 0U; }
-    /* mov t2, t0 */
     t2 = t0;
-    /* test t0, t0 */
     if (t0 != 0) goto loc_41E235;
-    /* mov dword_42C9A0, t5 */
     D3U_STATUS_ERR_32(&c->st, 0) = t5;
 loc_41E235:
-    /* add t2, t1 */
     t2 = (t2 + t1) & U32MASK;
-    /* cmp t2, t4 */
     if (t2 < t4) goto loc_41E20C;
 loc_41E23B:
-    /* mov dword_444EF0, t2 */
     D3U_IN_AVAIL_32(&c->st, 0) = t2;
-    /* pop t5/t4/t3/t2/t1 */
     /* retn */
     ;
 }
@@ -5031,81 +4489,47 @@ unsigned int d3uc_rc_decode(dec3w_ctx *c, unsigned int total)
     unsigned int t3 = 0;
     unsigned int t4 = 0;
     unsigned int t5 = 0;
-    /* push t1/t2/t3/t4/t5 */
-    /* mov t1, dword_4450F4 */
     t1 = D3U_RC_VALUE_32(&c->st, 0);
-    /* mov t2, dword_4450F8 */
     t2 = D3U_RC_RANGE_32(&c->st, 0);
-    /* mov t4, t0 */
     t4 = total;
-    /* cmp t2, 800000h */
     if (t2 > 0x800000UL) goto loc_4231F0;
 loc_4231A3:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (unsigned int)D3U_RC_CARRY_BYTE_8(&c->st, 0);
-    /* mov t3, t0 */
     t3 = t0;
-    /* shl t3, 7 */
     t3 = (t3 << 7) & U32MASK;
-    /* shl t1, 8 */
     t1 = (t1 << 8) & U32MASK;
-    /* and t3, 0FFh */
     t3 &= 0xFFU;
-    /* or t1, t3 */
     t1 |= t3;
-    /* mov dword_4450F8, t2 */
     D3U_RC_RANGE_32(&c->st, 0) = t2;
-    /* mov dword_4450F4, t1 */
     D3U_RC_VALUE_32(&c->st, 0) = t1;
     t0 = d3uc_get_byte(c);
-    /* mov t2, dword_4450F8 */
     t2 = D3U_RC_RANGE_32(&c->st, 0);
-    /* mov t1, dword_4450F4 */
     t1 = D3U_RC_VALUE_32(&c->st, 0);
     D3U_RC_CARRY_BYTE_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* sar t0, 1 */
     t0 = (unsigned int)(((int)t0) >> 1);
-    /* shl t2, 8 */
     t2 = (t2 << 8) & U32MASK;
-    /* or t1, t0 */
     t1 |= t0;
-    /* cmp t2, 800000h */
     if (t2 <= 0x800000UL) goto loc_4231A3;
 loc_4231F0:
-    /* and t4, 0FFFFh */
     t4 &= 0xFFFFU;
-    /* mov t0, t2 */
     t0 = t2;
-    /* xor t3, t3 */
     t3 = 0;
-    /* div t4 */
     /* x86 div faults on div0/overflow: direct / % below */
     t0 = t2 / t4;
     t3 = t2 % t4;
-    /* mov dword_4450F0, t0 */
     D3U_RC_SCALE_32(&c->st, 0) = t0;
-    /* xor t3, t3 */
     t3 = 0;
-    /* mov t5, dword_4450F0 */
     t5 = D3U_RC_SCALE_32(&c->st, 0);
-    /* mov t0, t1 */
     t0 = t1;
-    /* div t5 */
     /* x86 div faults on div0 (quotient 0 when range < total); remainder dropped */
     t0 = t1 / t5;
-    /* cmp t0, t4 */
     if (t0 < t4) goto loc_423214;
-    /* lea t0, [t4-1] */
     t0 = (t4 - 1) & U32MASK;
 loc_423214:
-    /* mov dword_4450F8, t2 */
     D3U_RC_RANGE_32(&c->st, 0) = t2;
-    /* mov dword_4450F4, t1 */
     D3U_RC_VALUE_32(&c->st, 0) = t1;
-    /* pop t5/t4/t3/t2/t1 */
     /* retn */
     return t0 & U32MASK;
 }
@@ -5117,41 +4541,24 @@ void d3uc_rc_update(dec3w_ctx *c, unsigned int p)
     unsigned int t3 = 0;
     unsigned int t4 = 0;
     unsigned int t6 = 0;
-    /* push t1/t2/t3/t4/t6 */
-    /* mov t3, dword_4450F0 */
     t3 = D3U_RC_SCALE_32(&c->st, 0);
-    /* imul t3, [t0+4] */
     t3 = (t3 * d3u_ld32(c, (unsigned long)(p + 4))) & U32MASK;
-    /* mov t2, dword_4450F4 */
     t2 = D3U_RC_VALUE_32(&c->st, 0);
-    /* mov t4, [t0] */
     t4 = d3u_ld32(c, (unsigned long)(p + 0));
-    /* sub t2, t3 */
     t2 = (t2 - t3) & U32MASK;
-    /* mov t1, [t0+8] */
     t1 = d3u_ld32(c, (unsigned long)(p + 8));
-    /* mov dword_4450F4, t2 */
     D3U_RC_VALUE_32(&c->st, 0) = t2;
-    /* cmp t1, t4 */
     if (t1 >= t4) goto loc_42317C;
-    /* mov t3, t1 */
     t3 = t1;
-    /* mov t6, [t0+4] */
     t6 = d3u_ld32(c, (unsigned long)(p + 4));
-    /* mov t0, dword_4450F0 */
     t0 = D3U_RC_SCALE_32(&c->st, 0);
-    /* sub t3, t6 */
     t3 = (t3 - t6) & U32MASK;
-    /* imul t0, t3 */
     t0 = (t0 * t3) & U32MASK;
-    /* mov dword_4450F8, t0 */
     D3U_RC_RANGE_32(&c->st, 0) = t0;
     goto loc_423182;
 loc_42317C:
-    /* sub dword_4450F8, t3 */
     D3U_RC_RANGE_32(&c->st, 0) = (D3U_RC_RANGE_32(&c->st, 0) - t3) & U32MASK;
 loc_423182:
-    /* pop t6/t4/t3/t2/t1 */
     /* retn */
     ;
 }
@@ -5159,22 +4566,15 @@ void d3uc_rc_init(dec3w_ctx *c)
 {
     unsigned int t0 = 0;
     unsigned int t3 = 0;
-    /* push t3 */
     t0 = d3uc_get_byte(c);
     /* first byte discarded; only the second byte seeds the coder */
     t0 = d3uc_get_byte(c);
     D3U_RC_CARRY_BYTE_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov t3, 80h */
     t3 = 0x80U;
-    /* sar t0, 1 */
     t0 = (unsigned int)(((int)t0) >> 1);
-    /* mov dword_4450F8, t3 */
     D3U_RC_RANGE_32(&c->st, 0) = t3;
-    /* mov dword_4450F4, t0 */
     D3U_RC_VALUE_32(&c->st, 0) = t0;
-    /* pop t3 */
     /* retn */
 }
 void d3uc_rc_reset(dec3w_ctx *c)
@@ -5182,24 +4582,17 @@ void d3uc_rc_reset(dec3w_ctx *c)
     unsigned int t0 = 0;
     unsigned int t1 = 0;
     unsigned int t3 = 0;
-    /* push t1/t3 */
-    /* mov t1, 80000000h */
     t1 = 0x80000000UL;
-    /* xor t3, t3 */
     t3 = 0;
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)D3U_OUT_TOTAL_LEN_8(&c->st, 0);
-    /* mov dword_4450F4, t3 */
     D3U_RC_VALUE_32(&c->st, 0) = t3;
     /* intermediate store; overwritten below, kept for faithfulness */
     D3U_RC_CARRY_BYTE_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
-    /* mov dword_4450F8, t1 */
     D3U_RC_RANGE_32(&c->st, 0) = t1;
     t0 = (t0 & 0xFFFF00FFUL) | (((~(t0 >> 8)) & 0xFFU) << 8);
-    /* mov dword_4450F0, t3 */
     D3U_RC_SCALE_32(&c->st, 0) = t3;
     D3U_RC_CARRY_BYTE_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFU);
-    /* pop t3/t1 */
     /* retn */
 }
 /* sub_414EC0: entry t0 = context id, dl = symbol. */
@@ -5215,115 +4608,71 @@ void d3uc_ctx_model_update(dec3w_ctx *c, unsigned int eax_v, unsigned int edx_v)
     unsigned int v1c = 0;
     unsigned int v18 = 0;
     unsigned int adr = 0;
-    /* push t1/t2/t4/t5/t6; sub esp, 8 */
-    /* mov [var_1C], t0 */
     v1c = eax_v;
-    /* xor t1, t1 */
     t1 = 0;
-    /* shl t0, 8 */
     t0 = (eax_v << 8) & U32MASK;
     t1 = (t1 & 0xFFFFFF00UL) | (edx_v & 0xFFU);
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* mov t6, dword_4299F4 */
     t6 = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* add t0, t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* lea t2, [t0+t6] */
     t2 = (t0 + t6) & U32MASK;
-    /* mov t0, [var_1C] */
     t0 = v1c;
-    /* add t0, t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* mov di, [t2] */
     t5 = (t5 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(t2));
-    /* mov si, word_44428A[t0] */
     t4 = (t4 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)((D3U_TBL_44428A + t0) & U32MASK));
     if ((t5 & 0xFFFFU) != 0) goto loc_414F6C;
-    /* mov di, word_444884[t0] */
     t5 = (t5 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)((D3U_TBL_444884 + t0) & U32MASK));
-    /* mov [var_18], t5 */
     /* upper 16 = entry t5 (unknown); only the low 16 is read below */
     v18 = t5 & 0xFFFFU;
-    /* mov t5, dword_4299FC */
     t5 = (unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    /* add t0, t5 */
     t0 = (t0 + t5) & U32MASK;
-    /* add [t0], si */
     d3u_st16(c, (unsigned long)(t0), (unsigned short)(((unsigned int)d3u_ld16(c, (unsigned long)(t0)) + (t4 & 0xFFFFU)) & 0xFFFFU));
-    /* mov t0, dword_44421C */
     t0 = D3U_TBL_44421C_32(&c->st, 0);
-    /* shl t0, 8 */
     t0 = (t0 << 8) & U32MASK;
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* mov t1, [var_18] */
     t1 = v18;
-    /* add [t6+t0*2], bx */
     adr = (t6 + (t0 << 1)) & U32MASK;
     d3u_st16(c, (unsigned long)(adr), (unsigned short)(((unsigned int)d3u_ld16(c, (unsigned long)(adr)) + (t1 & 0xFFFFU)) & 0xFFFFU));
-    /* mov t6, dword_44421C */
     t6 = D3U_TBL_44421C_32(&c->st, 0);
-    /* mov t0, dword_4299F0 */
     t0 = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* shl t6, 9 */
     t6 = (t6 << 9) & U32MASK;
-    /* add t6, t0 */
     t6 = (t6 + t0) & U32MASK;
     t0 = (t0 & 0xFFFFFF00UL) | (edx_v & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | (((t0 & 0xFFU) + 1) & 0xFFU);
     if ((t0 & 0xFFU) == 0) goto loc_414F4D;
-    /* mov t5, [var_18] */
     t5 = v18;
 loc_414F3A:
-    /* xor t1, t1 */
     t1 = 0;
     t1 = t0 & 0xFFU;
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | (((0U - ((t0 >> 8) & 0xFFU)) & 0xFFU) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | (((((t0 >> 8) & 0xFFU) & (t0 & 0xFFU))) << 8);
-    /* add [t6+t1*2], di */
     adr = (t6 + (t1 << 1)) & U32MASK;
     d3u_st16(c, (unsigned long)(adr), (unsigned short)(((unsigned int)d3u_ld16(c, (unsigned long)(adr)) + (t5 & 0xFFFFU)) & 0xFFFFU));
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) + ((t0 >> 8) & 0xFFU))) & 0xFFU);
     if ((t0 & 0xFFU) != 0) goto loc_414F3A;
 loc_414F4D:
-    /* mov t0, [var_18] */
     t0 = v18;
-    /* mov bx, [t6+0] */
     t1 = (t1 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(t6));
-    /* add t1, t0 */
     t1 = (t1 + t0) & U32MASK;
-    /* mov [t6+0], bx */
     d3u_st16(c, (unsigned long)(t6), (unsigned short)(t1 & 0xFFFFU));
-    /* cmp bx, 4000h */
     if ((t1 & 0xFFFFU) < 0x4000U) goto loc_414F6C;
-    /* mov t0, dword_44421C */
     t0 = D3U_TBL_44421C_32(&c->st, 0);
     d3uc_fold_ctx_block(c, t0);
 loc_414F6C:
-    /* mov t6, [var_1C] */
     t6 = v1c;
-    /* cmp t6, 200h */
     if (t6 == 0x200U) goto loc_414FCB;
-    /* add [t2], si */
     d3u_st16(c, (unsigned long)(t2), (unsigned short)(((unsigned int)d3u_ld16(c, (unsigned long)(t2)) + (t4 & 0xFFFFU)) & 0xFFFFU));
-    /* mov t0, t6 */
     t0 = t6;
-    /* mov t2, dword_4299F0 */
     t2 = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* shl t0, 9 */
     t0 = (t0 << 9) & U32MASK;
-    /* add t2, t0 */
     t2 = (t2 + t0) & U32MASK;
     t3 = edx_v;
     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFU) + 1) & 0xFFU);
     if ((t3 & 0xFFU) == 0) goto loc_414F9B;
 loc_414F8B:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t3 & 0xFFU;
-    /* add [t2+t0*2], si */
     adr = (t2 + (t0 << 1)) & U32MASK;
     d3u_st16(c, (unsigned long)(adr), (unsigned short)(((unsigned int)d3u_ld16(c, (unsigned long)(adr)) + (t4 & 0xFFFFU)) & 0xFFFFU));
     t0 = (0U - (t0 & 0xFFU)) & 0xFFU;
@@ -5331,36 +4680,22 @@ loc_414F8B:
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) + (t0 & 0xFFU))) & 0xFFU);
     if ((t3 & 0xFFU) != 0) goto loc_414F8B;
 loc_414F9B:
-    /* mov t0, [var_1C] */
     t0 = v1c;
-    /* mov t1, dword_4299FC */
     t1 = (unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    /* add t0, t0 */
     t0 = (t0 + t0) & U32MASK;
-    /* mov di, [t2] */
     t5 = (t5 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(t2));
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* xor t1, t1 */
     t1 = 0;
-    /* add t5, t4 */
     t5 = (t5 + t4) & U32MASK;
-    /* mov bx, [t0] */
     t1 = (unsigned int)d3u_ld16(c, (unsigned long)(t0));
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t5 & 0xFFFFU;
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* mov [t2], di */
     d3u_st16(c, (unsigned long)(t2), (unsigned short)(t5 & 0xFFFFU));
-    /* cmp t0, 4000h */
     if ((int)t0 < 0x4000) goto loc_414FCB;
-    /* mov t0, [var_1C] */
     t0 = v1c;
     d3uc_fold_ctx_block(c, t0);
 loc_414FCB:
-    /* add esp, 8; pop t6/t5/t4/t2/t1 */
     /* retn */
     ;
 }
@@ -5373,74 +4708,43 @@ void d3uc_update_len_model(dec3w_ctx *c, unsigned int eax_v, unsigned int edx_v)
     unsigned int t3 = 0;
     unsigned int t4 = 0;
     unsigned int adr = 0;
-    /* push t1/t2/t4 */
-    /* xor t1, t1 */
     t1 = 0;
     t1 = eax_v & 0xFFU;
     t3 = edx_v;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (unsigned int)D3U_FLAG_444EB6_8(&c->st, 0);
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* shl t0, 3 */
     t0 = (t0 << 3) & U32MASK;
-    /* add t0, offset dword_443B68 */
     t0 = (t0 + D3U_TBL_443B68) & U32MASK;
     if ((t3 & 0xFFU) != 1) goto loc_414FFB;
-    /* xor t1, t1 */
     t1 = 0;
     t1 = t3 & 0xFFU;
-    /* add word ptr [t0+t1*2+2], 40h */
     adr = (t0 + (t1 << 1) + 2) & U32MASK;
     d3u_st16(c, (unsigned long)(adr), (unsigned short)(((unsigned int)d3u_ld16(c, (unsigned long)(adr)) + 0x40U) & 0xFFFFU));
 loc_414FFB:
-    /* mov si, [t0+6] */
     /* t4 high = entry garbage; only low 16 observed below */
     t4 = (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 6) & U32MASK));
-    /* add t4, 40h */
     t4 = (t4 + 0x40U) & U32MASK;
-    /* mov [t0+6], si */
     d3u_st16(c, (unsigned long)((t0 + 6) & U32MASK), (unsigned short)(t4 & 0xFFFFU));
-    /* cmp si, 4000h */
     if ((t4 & 0xFFFFU) < 0x4000U) goto loc_41503F;
-    /* xor t1, t1 */
     t1 = 0;
-    /* xor t2, t2 */
     t2 = 0;
-    /* mov bx, [t0+4] */
     t1 = (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 4) & U32MASK));
-    /* mov cx, [t0+2] */
     t2 = (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 2) & U32MASK));
-    /* mov t4, t1 */
     t4 = t1;
-    /* sub t4, t2 */
     t4 = (t4 - t2) & U32MASK;
-    /* lea t2, [t4+1] */
     t2 = (t4 + 1) & U32MASK;
-    /* sar t2, 1 */
     t2 = (unsigned int)(((int)t2) >> 1);
-    /* mov t4, t2 */
     t4 = t2;
-    /* xor t2, t2 */
     t2 = 0;
-    /* mov cx, [t0+6] */
     t2 = (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 6) & U32MASK));
-    /* sub t2, t1 */
     t2 = (t2 - t1) & U32MASK;
-    /* inc t2 */
     t2 = (t2 + 1) & U32MASK;
-    /* mov bx, [t0+2] */
     t1 = (t1 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 2) & U32MASK));
-    /* sar t2, 1 */
     t2 = (unsigned int)(((int)t2) >> 1);
-    /* add t4, t1 */
     t4 = (t4 + t1) & U32MASK;
-    /* add t2, t4 */
     t2 = (t2 + t4) & U32MASK;
-    /* mov [t0+4], si */
     d3u_st16(c, (unsigned long)((t0 + 4) & U32MASK), (unsigned short)(t4 & 0xFFFFU));
-    /* mov [t0+6], cx */
     d3u_st16(c, (unsigned long)((t0 + 6) & U32MASK), (unsigned short)(t2 & 0xFFFFU));
 loc_41503F:
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB6_8(&c->st, 0);
@@ -5449,7 +4753,6 @@ loc_41503F:
     t0 = (t0 & 0xFFFFFF00UL) | (((t0 & 0xFFU) - 1) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFU) & 7U);
     D3U_FLAG_444EB6_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
-    /* pop t4/t2/t1 */
     /* retn */
 }
 /* sub_4153C0: entry al = symbol. Pure 8-way model update; no coder calls. */
@@ -5462,210 +4765,137 @@ void d3uc_update_model_8way(dec3w_ctx *c, unsigned int eax_v)
     unsigned int t4 = 0;
     unsigned int t5 = 0;
     unsigned int t6 = 0;
-    /* push t1/t2/t3/t4/t5/t6 */
-    /* mov t4, dword_44427C */
     t4 = D3U_TBL_44427C_32(&c->st, 0);
-    /* mov t6, dword_444204 */
     t6 = D3U_TBL_444204_32(&c->st, 0);
     /* t2 high = entry garbage; only cl/ch lanes observed below */
     t2 = eax_v & 0xFFU;
 loc_4153D6:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (t2 >> 8) & 0xFFU;
-    /* mov t5, dword_443CE8[t0*4] */
     t5 = D3U_TBL_443CE8_32(&c->st, (t0 << 2));
-    /* mov t1, dword_4299D0[t0*4] */
     t1 = D3U_TBL_4299D0_32(&c->st, (t0 << 2));
-    /* shl t5, 2 */
     t5 = (t5 << 2) & U32MASK;
-    /* add t1, t5 */
     t1 = (t1 + t5) & U32MASK;
-    /* mov ah, [t1+1] */
     t0 = (t0 & 0xFFFF00FFUL) | (((unsigned int)M8((t1 + 1) & U32MASK)) << 8);
     if (((t0 >> 8) & 0xFFU) == 0) goto loc_415506;
     if (((t2 >> 8) & 0xFFU) != (unsigned int)D3U_FLAG_444EA3_8(&c->st, 0)) goto loc_41547F;
     if (D3U_FLAG_444EB2_8(&c->st, 0) == 0) goto loc_415445;
-    /* cmp cl, [t1+2] */
     if ((t2 & 0xFFU) != (unsigned int)M8((t1 + 2) & U32MASK)) goto loc_415420;
     t0 &= 0xFFFF00FFUL;
     D3U_FLAG_444EAE_8(&c->st, 0) = 0;
-    /* xor t0, t0 */
     t0 = 0;
-    /* mov al, [t1] */
     t0 = (unsigned int)M8(t1);
     goto loc_415425;
 loc_415420:
-    /* xor t0, t0 */
     t0 = 0;
-    /* mov al, [t1+1] */
     t0 = (unsigned int)M8((t1 + 1) & U32MASK);
 loc_415425:
-    /* xor t3, t3 */
     t3 = 0;
-    /* movzx t5, byte ptr [t1] */
     t5 = (unsigned int)M8(t1);
-    /* mov dl, [t1+1] */
     t3 = (unsigned int)M8((t1 + 1) & U32MASK);
-    /* shl t0, 0Eh */
     t0 = (t0 << 14) & U32MASK;
-    /* add t5, t3 */
     t5 = (t5 + t3) & U32MASK;
-    /* xor t3, t3 */
     t3 = 0;
-    /* div t5 */
     /* x86 div faults on div0 (both counts zero); direct / % below */
     t0 = t0 / t5;
     /* remainder in t3 discarded by the original */
-    /* mov ax, word_42D274[t0*2] */
     t0 = (t0 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + (t0 << 1)) & U32MASK));
-    /* and t0, 0FFFFh */
     t0 &= 0xFFFFU;
-    /* add t6, t0 */
     t6 = (t6 + t0) & U32MASK;
     /* loc_415445: falls through below */
 loc_415445:
-    /* test t4, t4 */
     if (t4 == 0) goto loc_41547F;
-    /* cmp cl, [t1+2] */
     if ((t2 & 0xFFU) != (unsigned int)M8((t1 + 2) & U32MASK)) goto loc_415452;
-    /* inc byte ptr [t4] */
     M8(t4) = (unsigned char)(((unsigned int)M8(t4) + 1) & 0xFFU);
     goto loc_415455;
 loc_415452:
-    /* inc byte ptr [t4+1] */
     M8((t4 + 1) & U32MASK) = (unsigned char)(((unsigned int)M8((t4 + 1) & U32MASK) + 1) & 0xFFU);
 loc_415455:
-    /* mov dh, [t4] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8(t4)) << 8);
-    /* mov t0, t4 */
     t0 = t4;
-    /* cmp dh, 0FEh */
     if (((t3 >> 8) & 0xFFU) >= 0xFEU) goto loc_415464;
-    /* cmp byte ptr [t4+1], 0FEh */
     if ((unsigned int)M8((t4 + 1) & U32MASK) < 0xFEU) goto loc_41547F;
 loc_415464:
-    /* mov dh, [t4] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8(t4)) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
-    /* mov [t4], dh */
     M8(t4) = (unsigned char)((t3 >> 8) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | ((t3 >> 8) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFU) >> 1) & 0xFFU);
-    /* mov [t4], dl */
     M8(t4) = (unsigned char)(t3 & 0xFFU);
-    /* mov dh, [t4+1] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8((t4 + 1) & U32MASK)) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
-    /* mov [t4+1], dh */
     M8((t4 + 1) & U32MASK) = (unsigned char)((t3 >> 8) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | ((t3 >> 8) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFU) >> 1) & 0xFFU);
-    /* mov [t4+1], dl */
     M8((t4 + 1) & U32MASK) = (unsigned char)(t3 & 0xFFU);
 loc_41547F:
-    /* mov dh, [t1+3] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8((t1 + 3) & U32MASK)) << 8);
-    /* and dh, 7Fh */
     t3 = (t3 & 0xFFFF00FFUL) | ((((t3 >> 8) & 0xFFU) & 0x7FU) << 8);
-    /* mov al, [t1+2] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 2) & U32MASK);
-    /* mov [t1+3], dh */
     M8((t1 + 3) & U32MASK) = (unsigned char)((t3 >> 8) & 0xFFU);
     if ((t2 & 0xFFU) != (t0 & 0xFFU)) goto loc_4154C4;
-    /* mov dl, [t1] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8(t1);
-    /* cmp dl, 0FEh */
     if ((t3 & 0xFFU) < 0xFEU) goto loc_4154B1;
     t3 = (t3 & 0xFFFF00FFUL) | ((t3 & 0xFFU) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
     t0 = (t0 & 0xFFFFFF00UL) | ((t3 >> 8) & 0xFFU);
-    /* mov [t1], dh */
     M8(t1) = (unsigned char)((t3 >> 8) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | (((t0 & 0xFFU) >> 1) & 0xFFU);
-    /* mov [t1], al */
     M8(t1) = (unsigned char)(t0 & 0xFFU);
-    /* mov ah, [t1+1] */
     t0 = (t0 & 0xFFFF00FFUL) | (((unsigned int)M8((t1 + 1) & U32MASK)) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | (((((t0 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
     t3 = (t3 & 0xFFFFFF00UL) | ((t0 >> 8) & 0xFFU);
-    /* mov [t1+1], ah */
     M8((t1 + 1) & U32MASK) = (unsigned char)((t0 >> 8) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFU) >> 1) & 0xFFU);
-    /* mov [t1+1], dl */
     M8((t1 + 1) & U32MASK) = (unsigned char)(t3 & 0xFFU);
 loc_4154B1:
-    /* mov dh, [t1] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8(t1)) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
-    /* mov al, [t1+3] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 3) & U32MASK);
-    /* mov [t1], dh */
     M8(t1) = (unsigned char)((t3 >> 8) & 0xFFU);
-    /* cmp al, 7Fh */
     if ((t0 & 0xFFU) >= 0x7FU) goto loc_415513;
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | (((((t0 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
     goto loc_415510;
 loc_4154C4:
-    /* cmp byte ptr [t1+1], 0FEh */
     if ((unsigned int)M8((t1 + 1) & U32MASK) < 0xFEU) goto loc_4154E5;
-    /* mov dl, [t1] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8(t1);
-    /* mov al, [t1+1] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 1) & U32MASK);
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) + 1)) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) + 1)) & 0xFFU);
-    /* mov [t1], dl */
     M8(t1) = (unsigned char)(t3 & 0xFFU);
-    /* mov [t1+1], al */
     M8((t1 + 1) & U32MASK) = (unsigned char)(t0 & 0xFFU);
     t3 = (t3 & 0xFFFF00FFUL) | ((t3 & 0xFFU) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) >> 1)) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | (((((t0 >> 8) & 0xFFU) >> 1)) << 8);
-    /* mov [t1], dh */
     M8(t1) = (unsigned char)((t3 >> 8) & 0xFFU);
-    /* mov [t1+1], ah */
     M8((t1 + 1) & U32MASK) = (unsigned char)((t0 >> 8) & 0xFFU);
 loc_4154E5:
-    /* inc byte ptr [t1+1] */
     M8((t1 + 1) & U32MASK) = (unsigned char)(((unsigned int)M8((t1 + 1) & U32MASK) + 1) & 0xFFU);
-    /* mov dh, [t1+3] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8((t1 + 3) & U32MASK)) << 8);
     if (((t3 >> 8) & 0xFFU) >= 2U) goto loc_4154F9;
-    /* mov byte ptr [t1+3], 0 */
     M8((t1 + 3) & U32MASK) = 0;
-    /* mov [t1+2], cl */
     M8((t1 + 2) & U32MASK) = (unsigned char)(t2 & 0xFFU);
     goto loc_415500;
 loc_4154F9:
     t0 = (t0 & 0xFFFFFF00UL) | ((t3 >> 8) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | (((t0 & 0xFFU) >> 1) & 0xFFU);
-    /* mov [t1+3], al */
     M8((t1 + 3) & U32MASK) = (unsigned char)(t0 & 0xFFU);
 loc_415500:
-    /* add byte ptr [t1+3], 80h */
     M8((t1 + 3) & U32MASK) = (unsigned char)(((unsigned int)M8((t1 + 3) & U32MASK) + 0x80U) & 0xFFU);
     goto loc_415513;
 loc_415506:
-    /* mov byte ptr [t1], 2 */
     M8(t1) = 2;
-    /* mov byte ptr [t1+1], 2 */
     M8((t1 + 1) & U32MASK) = 2;
-    /* mov [t1+2], cl */
     M8((t1 + 2) & U32MASK) = (unsigned char)(t2 & 0xFFU);
 loc_415510:
-    /* mov [t1+3], ah */
     M8((t1 + 3) & U32MASK) = (unsigned char)((t0 >> 8) & 0xFFU);
 loc_415513:
     t2 = (t2 & 0xFFFF00FFUL) | (((((t2 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
     if (((t2 >> 8) & 0xFFU) < 8U) goto loc_4153D6;
-    /* mov dword_444204, t6 */
     D3U_TBL_444204_32(&c->st, 0) = t6;
-    /* mov dword_44427C, t4 */
     D3U_TBL_44427C_32(&c->st, 0) = t4;
-    /* pop t6/t5/t4/t3/t2/t1 */
     /* retn */
 }
 /* sub_415534: entry al = symbol. Order-model update; calls sub_40C9C0. */
@@ -5679,341 +4909,214 @@ void d3uc_update_order_model_a(dec3w_ctx *c, unsigned int eax_v)
     unsigned int t5 = 0;
     unsigned int t6 = 0;
     unsigned int adr = 0;
-    /* push t1/t2/t3/t4/t5/t6 */
     /* t2 high = entry garbage; only cl/ch lanes observed below */
     t2 = (unsigned int)D3U_FLAG_444EB7_8(&c->st, 0);
     t2 = (t2 & 0xFFFF00FFUL) | ((eax_v & 0xFFU) << 8);
-    /* mov t3, dword_444224 */
     t3 = D3U_TBL_444224_32(&c->st, 0);
-    /* cmp t3, 40000h */
     if (t3 >= 0x40000UL) goto loc_415762;
-    /* mov t1, t3 */
     t1 = t3;
-    /* mov t0, dword_4299BC */
     t0 = (unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
-    /* shl t1, 5 */
     t1 = (t1 << 5) & U32MASK;
-    /* add t1, t0 */
     t1 = (t1 + t0) & U32MASK;
-    /* cmp cl, 0FFh */
     if ((t2 & 0xFFU) != 0xFFU) goto loc_415578;
     t2 &= 0xFFFFFF00UL;
 loc_415567:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* cmp ch, [t1+t0+0Eh] */
     if (((t2 >> 8) & 0xFFU) == (unsigned int)M8((t1 + t0 + 0x0E) & U32MASK)) goto loc_415578;
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) + 1)) & 0xFFU);
     if ((t2 & 0xFFU) < 0x0DU) goto loc_415567;
 loc_415578:
     if (D3U_FLAG_444EB0_8(&c->st, 0) == 0) goto loc_4155A8;
     if ((t2 & 0xFFU) >= 0x0DU) goto loc_4155A8;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* mov al, [t1+t0+1] */
     t0 = (unsigned int)M8((t1 + t0 + 1) & U32MASK);
-    /* mov t4, t0 */
     t4 = t0;
-    /* and t4, 0FFh */
     t4 &= 0xFFU;
-    /* xor t0, t0 */
     t0 = 0;
-    /* sar t4, 6 */
     t4 = (unsigned int)(((int)t4) >> 6);
-    /* mov al, [t1] */
     t0 = (unsigned int)M8(t1);
-    /* cmp t4, t0 */
     if ((int)t4 <= (int)t0) goto loc_4155A8;
     D3U_TBL_444264_32(&c->st, 0) = (D3U_TBL_444264_32(&c->st, 0) + 4) & U32MASK;
 loc_4155A8:
     if (D3U_FLAG_444EB1_8(&c->st, 0) == 0) goto loc_415605;
     if ((t2 & 0xFFU) >= 0x0DU) goto loc_4155D9;
     t3 &= 0xFFFFFF00UL;
-    /* xor t0, t0 */
     t0 = 0;
     D3U_FLAG_444EB5_8(&c->st, 0) = 0;
     t0 = t2 & 0xFFU;
     D3U_FLAG_444EB2_8(&c->st, 0) = 0;
     D3U_FLAG_444EAE_8(&c->st, 0) = 0;
-    /* mov al, [t1+t0+1] */
     t0 = (unsigned int)M8((t1 + t0 + 1) & U32MASK);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
     goto loc_4155DD;
 loc_4155D9:
-    /* xor t0, t0 */
     t0 = 0;
-    /* mov al, [t1] */
     t0 = (unsigned int)M8(t1);
 loc_4155DD:
-    /* mov t5, dword_444234 */
     t5 = D3U_TBL_444234_32(&c->st, 0);
-    /* shl t0, 0Eh */
     t0 = (t0 << 14) & U32MASK;
-    /* xor t3, t3 */
     t3 = 0;
-    /* div t5 */
     /* x86 div faults on div0; direct / % below; remainder discarded */
     t0 = t0 / t5;
-    /* mov ax, word_42D274[t0*2] */
     t0 = (t0 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + (t0 << 1)) & U32MASK));
-    /* mov t6, dword_444204 */
     t6 = D3U_TBL_444204_32(&c->st, 0);
-    /* and t0, 0FFFFh */
     t0 &= 0xFFFFU;
-    /* add t6, t0 */
     t6 = (t6 + t0) & U32MASK;
-    /* mov dword_444204, t6 */
     D3U_TBL_444204_32(&c->st, 0) = t6;
 loc_415605:
-    /* xor t0, t0 */
     t0 = 0;
-    /* mov al, [t1] */
     t0 = (unsigned int)M8(t1);
-    /* mov al, byte_429BB8[t0] */
     t0 = (unsigned int)d3u_t429BB8[(unsigned int)(t0 & 0xFFU)];
-    /* mov t3, dword_444214 */
     t3 = D3U_TBL_444214_32(&c->st, 0);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* cmp t0, t3 */
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 < t3) ? 1U : 0U);
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
     if ((t2 & 0xFFU) >= 0x0DU) goto loc_415660;
-    /* movzx t4, cl */
     t4 = t2 & 0xFFU;
-    /* mov al, [t1+1Bh] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 0x1B) & U32MASK);
-    /* movzx t5, byte ptr [t4+t1+1] */
     t5 = (unsigned int)M8((t4 + t1 + 1) & U32MASK);
-    /* movzx t4, byte ptr [t1+1] */
     t4 = (unsigned int)M8((t1 + 1) & U32MASK);
-    /* inc t5 */
     t5 = (t5 + 1) & U32MASK;
-    /* sar t4, 1 */
     t4 = (unsigned int)(((int)t4) >> 1);
-    /* and al, 0C0h */
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFU) & 0xC0U);
-    /* cmp t5, t4 */
     if ((int)t5 >= (int)t4) goto loc_415646;
-    /* add al, 40h */
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) + 0x40U)) & 0xFFU);
     if ((t0 & 0xFFU) != 0) goto loc_415655;
     t0 = (t0 & 0xFFFF00FFUL) | (1U << 8);
     goto loc_415655;
 loc_415646:
-    /* movzx t4, al */
     t4 = t0 & 0xFFU;
-    /* mov t3, t4 */
     t3 = t4;
-    /* sar t3, 1 */
     t3 = (unsigned int)(((int)t3) >> 1);
-    /* and t3, 0C0h */
     t3 &= 0xC0U;
     t0 = (t0 & 0xFFFFFF00UL) | (t3 & 0xFFU);
 loc_415655:
-    /* mov dl, [t1+1Bh] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 0x1B) & U32MASK);
-    /* and dl, 3Fh */
     t3 = (t3 & 0xFFFFFF00UL) | ((t3 & 0xFFU) & 0x3FU);
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) | (t0 & 0xFFU))) & 0xFFU);
-    /* mov [t1+1Bh], dl */
     M8((t1 + 0x1B) & U32MASK) = (unsigned char)(t3 & 0xFFU);
 loc_415660:
     if (((t0 >> 8) & 0xFFU) == 0) goto loc_41567C;
-    /* lea t0, [t1+0Dh] */
     t0 = (t1 + 0x0D) & U32MASK;
-    /* lea t4, [t1-1] */
     t4 = (t1 - 1) & U32MASK;
 loc_41566A:
-    /* mov dl, [t0] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8(t0);
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) + 1)) & 0xFFU);
-    /* mov [t0], dl */
     M8(t0) = (unsigned char)(t3 & 0xFFU);
     t3 = (t3 & 0xFFFF00FFUL) | ((t3 & 0xFFU) << 8);
-    /* dec t0 */
     t0 = (t0 - 1) & U32MASK;
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) >> 1)) << 8);
-    /* mov [t0+1], dh */
     M8((t0 + 1) & U32MASK) = (unsigned char)((t3 >> 8) & 0xFFU);
-    /* cmp t0, t4 */
     if (t0 != t4) goto loc_41566A;
 loc_41567C:
     if ((t2 & 0xFFU) >= 0x0DU) goto loc_41569F;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* add byte ptr [t1+t0+1], 2 */
     adr = (t1 + t0 + 1) & U32MASK;
     M8(adr) = (unsigned char)(((unsigned int)M8(adr) + 2) & 0xFFU);
-    /* mov al, [t1+1Bh] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 0x1B) & U32MASK);
-    /* and al, 3Fh */
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFU) & 0x3FU);
-    /* cmp al, 3Fh */
     if ((t0 & 0xFFU) >= 0x3FU) goto loc_415696;
-    /* inc byte ptr [t1+1Bh] */
     M8((t1 + 0x1B) & U32MASK) = (unsigned char)(((unsigned int)M8((t1 + 0x1B) & U32MASK) + 1) & 0xFFU);
 loc_415696:
     D3U_TBL_444220_32(&c->st, 0) = (D3U_TBL_444220_32(&c->st, 0) + 5) & U32MASK;
     goto loc_4156E5;
 loc_41569F:
-    /* mov al, [t1] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8(t1);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) + 2)) & 0xFFU);
     t2 &= 0xFFFFFF00UL;
-    /* mov [t1], al */
     M8(t1) = (unsigned char)(t0 & 0xFFU);
 loc_4156A7:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* cmp byte ptr [t1+t0+1], 0 */
     if (M8((t1 + t0 + 1) & U32MASK) == 0) goto loc_4156B9;
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) + 1)) & 0xFFU);
     if ((t2 & 0xFFU) < 0x0CU) goto loc_4156A7;
 loc_4156B9:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* cmp byte ptr [t0+1], 6 */
     if ((unsigned int)M8((t0 + 1) & U32MASK) >= 6U) goto loc_4156CC;
-    /* mov byte ptr [t0+1], 2 */
     M8((t0 + 1) & U32MASK) = 2;
-    /* mov [t0+0Eh], ch */
     M8((t0 + 0x0E) & U32MASK) = (unsigned char)((t2 >> 8) & 0xFFU);
 loc_4156CC:
-    /* mov al, [t1+1Bh] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 0x1B) & U32MASK);
-    /* and al, 3Fh */
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFU) & 0x3FU);
-    /* movzx t4, al */
     t4 = t0 & 0xFFU;
-    /* mov al, [t1+1Bh] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 0x1B) & U32MASK);
-    /* sar t4, 1 */
     t4 = (unsigned int)(((int)t4) >> 1);
-    /* and al, 0C0h */
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 & 0xFFU) & 0xC0U);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* add t0, t4 */
     t0 = (t0 + t4) & U32MASK;
-    /* mov [t1+1Bh], al */
     M8((t1 + 0x1B) & U32MASK) = (unsigned char)(t0 & 0xFFU);
 loc_4156E5:
     if ((t2 & 0xFFU) == 0) goto loc_41570F;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* mov dl, [t0+1] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t0 + 1) & U32MASK);
-    /* mov ch, [t0] */
     t2 = (t2 & 0xFFFF00FFUL) | (((unsigned int)M8(t0)) << 8);
     if ((t3 & 0xFFU) < ((t2 >> 8) & 0xFFU)) goto loc_41570F;
     t3 = (t3 & 0xFFFF00FFUL) | (((t2 >> 8) & 0xFFU) << 8);
-    /* mov [t0], dl */
     M8(t0) = (unsigned char)(t3 & 0xFFU);
-    /* mov dl, [t0+0Eh] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t0 + 0x0E) & U32MASK);
-    /* mov ch, [t0+0Dh] */
     t2 = (t2 & 0xFFFF00FFUL) | (((unsigned int)M8((t0 + 0x0D) & U32MASK)) << 8);
-    /* mov [t0+0Dh], dl */
     M8((t0 + 0x0D) & U32MASK) = (unsigned char)(t3 & 0xFFU);
-    /* mov [t0+1], dh */
     M8((t0 + 1) & U32MASK) = (unsigned char)((t3 >> 8) & 0xFFU);
-    /* mov [t0+0Eh], ch */
     M8((t0 + 0x0E) & U32MASK) = (unsigned char)((t2 >> 8) & 0xFFU);
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) - 1)) & 0xFFU);
     goto loc_4156E5;
 loc_41570F:
-    /* mov t5, dword_444250 */
     t5 = D3U_TBL_444250_32(&c->st, 0);
-    /* add t5, 2 */
     t5 = (t5 + 2) & U32MASK;
     D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)(t2 & 0xFFU);
-    /* mov dword_444250, t5 */
     D3U_TBL_444250_32(&c->st, 0) = t5;
-    /* cmp t5, 800h */
     if (t5 <= 0x800U) goto loc_4157F0;
-    /* mov t3, dword_444220 */
     t3 = D3U_TBL_444220_32(&c->st, 0);
-    /* mov t0, t5 */
     t0 = t5;
-    /* mov t1, dword_444264 */
     t1 = D3U_TBL_444264_32(&c->st, 0);
-    /* shr t0, 1 */
     t0 >>= 1;
-    /* shr t3, 1 */
     t3 >>= 1;
-    /* shr t1, 1 */
     t1 >>= 1;
-    /* mov dword_444250, t0 */
     D3U_TBL_444250_32(&c->st, 0) = t0;
-    /* mov dword_444220, t3 */
     D3U_TBL_444220_32(&c->st, 0) = t3;
-    /* mov dword_444264, t1 */
     D3U_TBL_444264_32(&c->st, 0) = t1;
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB7_8(&c->st, 0);
-    /* pop t6/t5/t4/t3/t2/t1 */
     /* retn (early) */
     return;
 loc_415762:
-    /* lea t1, [t3-40000h] */
     t1 = (t3 - 0x40000UL) & U32MASK;
-    /* mov t4, t1 */
     t4 = t1;
-    /* mov t0, dword_4299BC */
     t0 = (unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
-    /* shl t4, 5 */
     t4 = (t4 << 5) & U32MASK;
-    /* add t4, t0 */
     t4 = (t4 + t0) & U32MASK;
     t0 &= 0xFFFF00FFUL;
-    /* mov dword_444224, t1 */
     D3U_TBL_444224_32(&c->st, 0) = t1;
     t0 &= 0xFFFFFF00UL;
-    /* mov dh, 3Fh */
     t3 = (t3 & 0xFFFF00FFUL) | (0x3FU << 8);
 loc_415780:
-    /* xor t1, t1 */
     t1 = 0;
     t1 = t0 & 0xFFU;
-    /* shl t1, 14h */
     t1 = (t1 << 20) & U32MASK;
-    /* add t1, t4 */
     t1 = (t1 + t4) & U32MASK;
-    /* mov dl, [t1] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8(t1);
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB7_8(&c->st, 0);
     if ((t3 & 0xFFU) != 0) goto loc_415799;
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
     goto loc_4157C4;
 loc_415799:
-    /* mov dl, [t1+1Bh] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t1 + 0x1B) & U32MASK);
-    /* xor t1, t1 */
     t1 = 0;
     t1 = (t0 >> 8) & 0xFFU;
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) & ((t3 >> 8) & 0xFFU))) & 0xFFU);
-    /* shl t1, 14h */
     t1 = (t1 << 20) & U32MASK;
-    /* movzx t5, dl */
     t5 = t3 & 0xFFU;
-    /* mov dl, [t4+t1+1Bh] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t4 + t1 + 0x1B) & U32MASK);
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) & ((t3 >> 8) & 0xFFU))) & 0xFFU);
-    /* xor t1, t1 */
     t1 = 0;
     t1 = t3 & 0xFFU;
-    /* cmp t5, t1 */
     if ((int)t5 >= (int)t1) goto loc_4157B8;
     t0 = (t0 & 0xFFFF00FFUL) | ((t0 & 0xFFU) << 8);
 loc_4157B8:
@@ -6022,32 +5125,20 @@ loc_4157B8:
     if ((t0 & 0xFFU) < 8U) goto loc_415780;
 loc_4157C4:
     t0 = (t0 & 0xFFFFFF00UL) | ((t0 >> 8) & 0xFFU);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* shl t0, 14h */
     t0 = (t0 << 20) & U32MASK;
-    /* mov t1, 20h */
     t1 = 0x20U;
-    /* add t4, t0 */
     t4 = (t4 + t0) & U32MASK;
-    /* xor t3, t3 */
     t3 = 0;
-    /* mov t0, t4 */
     t0 = t4;
     d3uc_fill(c, t1, t0, t3);
-    /* mov byte ptr [t4], 1 */
     M8(t4) = 1;
-    /* mov byte ptr [t4+1], 1 */
     M8((t4 + 1) & U32MASK) = 1;
-    /* mov t0, dword_444240 */
     t0 = D3U_TBL_444240_32(&c->st, 0);
-    /* mov [t4+0Eh], ch */
     M8((t4 + 0x0E) & U32MASK) = (unsigned char)((t2 >> 8) & 0xFFU);
-    /* mov [t4+1Ch], t0 */
     d3u_st32(c, (unsigned long)((t4 + 0x1C) & U32MASK), t0);
 loc_4157F0:
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB7_8(&c->st, 0);
-    /* pop t6/t5/t4/t3/t2/t1 */
     /* retn */
     ;
 }
@@ -6062,257 +5153,160 @@ void d3uc_update_order_model_b(dec3w_ctx *c, unsigned int eax_v)
     unsigned int t5 = 0;
     unsigned int t6 = 0;
     unsigned int adr = 0;
-    /* push t1/t2/t3/t4/t5/t6 */
     /* t2 high = entry garbage; only cl/ch lanes observed below */
     t2 = (unsigned int)D3U_FLAG_444EB8_8(&c->st, 0);
     t2 = (t2 & 0xFFFF00FFUL) | ((eax_v & 0xFFU) << 8);
-    /* mov t1, dword_444238 */
     t1 = D3U_TBL_444238_32(&c->st, 0);
-    /* lea t0, [t1*4] */
     t0 = (t1 << 2) & U32MASK;
-    /* add t0, t1 */
     t0 = (t0 + t1) & U32MASK;
-    /* mov t4, dword_4299C0 */
     t4 = (unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
-    /* shl t0, 2 */
     t0 = (t0 << 2) & U32MASK;
-    /* add t4, t0 */
     t4 = (t4 + t0) & U32MASK;
-    /* cmp byte ptr [t4], 0 */
     if (M8(t4) == 0) goto loc_4159CA;
-    /* cmp cl, 0FFh */
     if ((t2 & 0xFFU) != 0xFFU) goto loc_415849;
     t2 &= 0xFFFFFF00UL;
 loc_415838:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* cmp ch, [t4+t0+9] */
     if (((t2 >> 8) & 0xFFU) == (unsigned int)M8((t4 + t0 + 9) & U32MASK)) goto loc_415849;
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) + 1)) & 0xFFU);
     if ((t2 & 0xFFU) < 8U) goto loc_415838;
 loc_415849:
     if (D3U_FLAG_444EB5_8(&c->st, 0) == 0) goto loc_4158A0;
     if ((t2 & 0xFFU) >= 8U) goto loc_415874;
-    /* xor t0, t0 */
     t0 = 0;
     t1 &= 0xFFFFFF00UL;
     t0 = t2 & 0xFFU;
     D3U_FLAG_444EB2_8(&c->st, 0) = (unsigned char)(t1 & 0xFFU);
     D3U_FLAG_444EAE_8(&c->st, 0) = (unsigned char)(t1 & 0xFFU);
-    /* mov al, [t4+t0+1] */
     t0 = (unsigned int)M8((t4 + t0 + 1) & U32MASK);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
     goto loc_415878;
 loc_415874:
-    /* xor t0, t0 */
     t0 = 0;
-    /* mov al, [t4] */
     t0 = (unsigned int)M8(t4);
 loc_415878:
-    /* mov t1, dword_444248 */
     t1 = D3U_TBL_444248_32(&c->st, 0);
-    /* shl t0, 0Eh */
     t0 = (t0 << 14) & U32MASK;
-    /* xor t3, t3 */
     t3 = 0;
-    /* div t1 */
     /* x86 div faults on div0; direct / % below; remainder discarded */
     t0 = t0 / t1;
-    /* mov ax, word_42D274[t0*2] */
     t0 = (t0 & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + (t0 << 1)) & U32MASK));
-    /* mov t5, dword_444204 */
     t5 = D3U_TBL_444204_32(&c->st, 0);
-    /* and t0, 0FFFFh */
     t0 &= 0xFFFFU;
-    /* add t5, t0 */
     t5 = (t5 + t0) & U32MASK;
-    /* mov dword_444204, t5 */
     D3U_TBL_444204_32(&c->st, 0) = t5;
 loc_4158A0:
-    /* xor t1, t1 */
     t1 = 0;
-    /* mov bl, [t4] */
     t1 = (unsigned int)M8(t4);
-    /* mov al, [t4+12h] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8((t4 + 0x12) & U32MASK);
-    /* cmp al, byte_429CB8[t1] */
     if ((t0 & 0xFFU) <= (unsigned int)d3u_t429CB8[(unsigned int)(t1 & 0xFFUL)]) goto loc_4158D4;
-    /* lea t0, [t4+8] */
     t0 = (t4 + 8) & U32MASK;
-    /* mov byte ptr [t4+12h], 0 */
     M8((t4 + 0x12) & U32MASK) = 0;
-    /* lea t1, [t4-1] */
     t1 = (t4 - 1) & U32MASK;
 loc_4158B9:
-    /* mov dl, [t0] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8(t0);
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) + 1)) & 0xFFU);
-    /* mov [t0], dl */
     M8(t0) = (unsigned char)(t3 & 0xFFU);
     t3 = (t3 & 0xFFFF00FFUL) | ((t3 & 0xFFU) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | (((((t3 >> 8) & 0xFFU) >> 1)) << 8);
-    /* mov [t0], dh */
     M8(t0) = (unsigned char)((t3 >> 8) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | ((t3 >> 8) & 0xFFU);
-    /* mov dh, [t4+12h] */
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)M8((t4 + 0x12) & U32MASK)) << 8);
     t3 = (t3 & 0xFFFF00FFUL) | ((((((t3 >> 8) & 0xFFU) + (t3 & 0xFFU)) & 0xFFU)) << 8);
-    /* dec t0 */
     t0 = (t0 - 1) & U32MASK;
-    /* mov [t4+12h], dh */
     M8((t4 + 0x12) & U32MASK) = (unsigned char)((t3 >> 8) & 0xFFU);
-    /* cmp t0, t1 */
     if (t0 != t1) goto loc_4158B9;
 loc_4158D4:
-    /* add byte ptr [t4+12h], 4 */
     M8((t4 + 0x12) & U32MASK) = (unsigned char)(((unsigned int)M8((t4 + 0x12) & U32MASK) + 4) & 0xFFU);
     if ((t2 & 0xFFU) >= 8U) goto loc_415910;
-    /* mov t1, dword_44424C */
     t1 = D3U_TBL_44424C_32(&c->st, 0);
-    /* lea t0, [t1*4] */
     t0 = (t1 << 2) & U32MASK;
-    /* sub t0, t1 */
     t0 = (t0 - t1) & U32MASK;
-    /* shr t0, 2 */
     t0 >>= 2;
-    /* mov dword_44424C, t0 */
     D3U_TBL_44424C_32(&c->st, 0) = t0;
-    /* xor t0, t0 */
     t0 = 0;
-    /* mov al, [t4+11h] */
     t0 = (unsigned int)M8((t4 + 0x11) & U32MASK);
-    /* sar t0, 1 */
     t0 = (unsigned int)(((int)t0) >> 1);
-    /* mov [t4+11h], al */
     M8((t4 + 0x11) & U32MASK) = (unsigned char)(t0 & 0xFFU);
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* add byte ptr [t4+t0+1], 4 */
     adr = (t4 + t0 + 1) & U32MASK;
     M8(adr) = (unsigned char)(((unsigned int)M8(adr) + 4) & 0xFFU);
     D3U_TBL_444220_32(&c->st, 0) = (D3U_TBL_444220_32(&c->st, 0) + 5) & U32MASK;
     goto loc_41595B;
 loc_415910:
-    /* mov t6, dword_44424C */
     t6 = D3U_TBL_44424C_32(&c->st, 0);
-    /* mov bh, [t4+11h] */
     t1 = (t1 & 0xFFFF00FFUL) | (((unsigned int)M8((t4 + 0x11) & U32MASK)) << 8);
-    /* mov al, [t4] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)M8(t4);
     t2 &= 0xFFFFFF00UL;
-    /* inc t6 */
     t6 = (t6 + 1) & U32MASK;
     t1 = (t1 & 0xFFFF00FFUL) | (((((t1 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) + 4)) & 0xFFU);
-    /* mov [t4+11h], bh */
     M8((t4 + 0x11) & U32MASK) = (unsigned char)((t1 >> 8) & 0xFFU);
-    /* mov dword_44424C, t6 */
     D3U_TBL_44424C_32(&c->st, 0) = t6;
-    /* mov [t4], al */
     M8(t4) = (unsigned char)(t0 & 0xFFU);
 loc_41592D:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* cmp byte ptr [t4+t0+1], 0 */
     if (M8((t4 + t0 + 1) & U32MASK) == 0) goto loc_41593F;
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) + 1)) & 0xFFU);
     if ((t2 & 0xFFU) < 7U) goto loc_41592D;
 loc_41593F:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* add t0, t4 */
     t0 = (t0 + t4) & U32MASK;
-    /* mov bl, [t0+1] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)M8((t0 + 1) & U32MASK);
     if ((t1 & 0xFFU) >= 0x0CU) goto loc_41595B;
     t3 = (t3 & 0xFFFFFF00UL) | 4U;
     t3 = (t3 & 0xFFFFFF00UL) | ((((t3 & 0xFFU) - (t1 & 0xFFU))) & 0xFFU);
-    /* add [t4+12h], dl */
     M8((t4 + 0x12) & U32MASK) = (unsigned char)(((unsigned int)M8((t4 + 0x12) & U32MASK) + (t3 & 0xFFU)) & 0xFFU);
-    /* mov byte ptr [t0+1], 4 */
     M8((t0 + 1) & U32MASK) = 4;
-    /* mov [t0+9], ch */
     M8((t0 + 9) & U32MASK) = (unsigned char)((t2 >> 8) & 0xFFU);
 loc_41595B:
     if ((t2 & 0xFFU) == 0) goto loc_415985;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = t2 & 0xFFU;
-    /* add t0, t4 */
     t0 = (t0 + t4) & U32MASK;
-    /* mov dl, [t0+1] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t0 + 1) & U32MASK);
-    /* mov bl, [t0] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)M8(t0);
     if ((t3 & 0xFFU) < (t1 & 0xFFU)) goto loc_415985;
     t3 = (t3 & 0xFFFF00FFUL) | ((t1 & 0xFFU) << 8);
-    /* mov [t0], dl */
     M8(t0) = (unsigned char)(t3 & 0xFFU);
-    /* mov dl, [t0+9] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)M8((t0 + 9) & U32MASK);
-    /* mov bl, [t0+8] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)M8((t0 + 8) & U32MASK);
-    /* mov [t0+8], dl */
     M8((t0 + 8) & U32MASK) = (unsigned char)(t3 & 0xFFU);
-    /* mov [t0+1], dh */
     M8((t0 + 1) & U32MASK) = (unsigned char)((t3 >> 8) & 0xFFU);
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) - 1)) & 0xFFU);
-    /* mov [t0+9], bl */
     M8((t0 + 9) & U32MASK) = (unsigned char)(t1 & 0xFFU);
     goto loc_41595B;
 loc_415985:
-    /* mov t3, dword_444250 */
     t3 = D3U_TBL_444250_32(&c->st, 0);
-    /* add t3, 2 */
     t3 = (t3 + 2) & U32MASK;
     D3U_FLAG_444EB8_8(&c->st, 0) = (unsigned char)(t2 & 0xFFU);
-    /* mov dword_444250, t3 */
     D3U_TBL_444250_32(&c->st, 0) = t3;
-    /* cmp t3, 800h */
     if (t3 <= 0x800U) goto loc_4159E6;
-    /* mov t5, dword_444220 */
     t5 = D3U_TBL_444220_32(&c->st, 0);
-    /* mov t4, t3 */
     t4 = t3;
-    /* mov t6, dword_444264 */
     t6 = D3U_TBL_444264_32(&c->st, 0);
-    /* shr t4, 1 */
     t4 >>= 1;
-    /* shr t5, 1 */
     t5 >>= 1;
-    /* shr t6, 1 */
     t6 >>= 1;
-    /* mov dword_444250, t4 */
     D3U_TBL_444250_32(&c->st, 0) = t4;
-    /* mov dword_444220, t5 */
     D3U_TBL_444220_32(&c->st, 0) = t5;
-    /* mov dword_444264, t6 */
     D3U_TBL_444264_32(&c->st, 0) = t6;
     goto loc_4159E6;
 loc_4159CA:
-    /* mov t1, 14h */
     t1 = 0x14U;
-    /* mov t0, t4 */
     t0 = t4;
-    /* xor t3, t3 */
     t3 = 0;
     d3uc_fill(c, t1, t0, t3);
-    /* mov byte ptr [t4], 3 */
     M8(t4) = 3;
-    /* mov byte ptr [t4+1], 3 */
     M8((t4 + 1) & U32MASK) = 3;
-    /* mov byte ptr [t4+12h], 6 */
     M8((t4 + 0x12) & U32MASK) = 6;
-    /* mov [t4+9], ch */
     M8((t4 + 9) & U32MASK) = (unsigned char)((t2 >> 8) & 0xFFU);
 loc_4159E6:
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB8_8(&c->st, 0);
-    /* pop t6/t5/t4/t3/t2/t1 */
     /* retn */
     ;
 }
@@ -6328,207 +5322,126 @@ void d3uc_update_match_chain(dec3w_ctx *c, unsigned int eax_v, unsigned int edx_
     unsigned int t4 = 0;
     unsigned int t5 = 0;
     unsigned int t6 = 0;
-    /* push t1/t2/t4/t5/t6 */
-    /* mov t5, dword_444210 */
     t5 = D3U_TBL_444210_32(&c->st, 0);
     /* t1 high-16 = entry garbage; only bl/bh lanes observed below */
     t1 = (t1 & 0xFFFF00FFUL) | ((eax_v & 0xFFU) << 8);
     t3 = edx_v;
     if ((t3 & 0xFFU) == 0) goto loc_415AA4;
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)D3U_TBL_4441C0_8(&c->st, 0);
-    /* xor t0, t0 */
     t0 = 0;
     t1 = (t1 & 0xFFFFFF00UL) | ((t1 & 0xFFU) & 1U);
-    /* mov t3, offset byte_444E7E */
     t3 = D3U_FLAG_444E7E;
     t0 = t1 & 0xFFU;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov cl, [t3] */
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)M8(t3);
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) + (t2 & 0xFFU))) & 0xFFU);
-    /* and cl, 0Fh */
     t2 = (t2 & 0xFFFFFF00UL) | ((t2 & 0xFFU) & 0x0FU);
-    /* add t0, offset byte_444E80 */
     t0 = (t0 + D3U_FLAG_444E80) & U32MASK;
-    /* mov [t3], cl */
     M8(t3) = (unsigned char)(t2 & 0xFFU);
-    /* mov cl, [t0] */
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)M8(t0);
     t2 = (t2 & 0xFFFFFF00UL) | ((((t2 & 0xFFU) + (t2 & 0xFFU))) & 0xFFU);
-    /* and cl, 0Fh */
     t2 = (t2 & 0xFFFFFF00UL) | ((t2 & 0xFFU) & 0x0FU);
-    /* mov [t0], cl */
     M8(t0) = (unsigned char)(t2 & 0xFFU);
     t2 &= 0xFFFFFF00UL;
     D3U_FLAG_444EAF_8(&c->st, 0) = 0;
-    /* cmp bh, 80h */
     if (((t1 >> 8) & 0xFFU) < 0x80U) goto loc_415AA4;
-    /* cmp bh, 0FFh */
     if (((t1 >> 8) & 0xFFU) != 0xFFU) goto loc_415A6F;
-    /* inc byte ptr [t0] */
     M8(t0) = (unsigned char)(((unsigned int)M8(t0) + 1) & 0xFFU);
     t3 = (t3 & 0xFFFFFF00UL) | ((((t1 & 0xFFU) == 0)) ? 1U : 0U);
-    /* and t3, 0FFh */
     t3 &= 0xFFU;
-    /* mov bl, byte_444E7E[t3] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_FLAG_444E7E + t3) & U32MASK);
-    /* cmp bl, 0Fh */
     if ((t1 & 0xFFU) != 0x0FU) goto loc_415AA4;
-    /* cmp bl, [t0] */
     if ((t1 & 0xFFU) != (unsigned int)M8(t0)) goto loc_415AA4;
     D3U_FLAG_444EAF_8(&c->st, 0) = 2;
     goto loc_415AA4;
 loc_415A6F:
-    /* cmp bh, 0DFh */
     if (((t1 >> 8) & 0xFFU) <= 0xDFU) goto loc_415A7E;
-    /* cmp bh, 0F2h */
     if (((t1 >> 8) & 0xFFU) < 0xF2U) goto loc_415AA4;
-    /* cmp bh, 0F6h */
     if (((t1 >> 8) & 0xFFU) > 0xF6U) goto loc_415AA4;
 loc_415A7E:
-    /* mov ch, [t3] */
     t2 = (t2 & 0xFFFF00FFUL) | (((unsigned int)M8(t3)) << 8);
     t2 = (t2 & 0xFFFF00FFUL) | (((((t2 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
-    /* mov [t3], ch */
     M8(t3) = (unsigned char)((t2 >> 8) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t1 & 0xFFU) == 0)) ? 1U : 0U);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov bl, byte_444E80[t0] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_FLAG_444E80 + t0) & U32MASK);
-    /* cmp bl, 0Fh */
     if ((t1 & 0xFFU) != 0x0FU) goto loc_415AA4;
     if (((t2 >> 8) & 0xFFU) != (t1 & 0xFFU)) goto loc_415AA4;
     D3U_FLAG_444EAF_8(&c->st, 0) = 1;
 loc_415AA4:
     if (((t1 >> 8) & 0xFFU) == 0) goto loc_415BE2;
-    /* cmp bh, 0FFh */
     if (((t1 >> 8) & 0xFFU) == 0xFFU) goto loc_415BE2;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (t1 >> 8) & 0xFFU;
-    /* lea t3, [t0*4] */
     t3 = (t0 << 2) & U32MASK;
-    /* mov t0, dword_444274 */
     t0 = D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov t2, dword_443360[t3] */
     t2 = D3U_TBL_443360_32(&c->st, t3);
-    /* mov t4, dword_444278 */
     t4 = D3U_DICT_MASK_32(&c->st, 0);
-    /* sub t0, t2 */
     t0 = (t0 - t2) & U32MASK;
-    /* and t0, t4 */
     t0 &= t4;
-    /* cmp t0, 100h */
     if (t0 < 0x100U) goto loc_415B1D;
     t0 = (t0 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) - 1)) & 0xFFU);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* lea t3, [t0*4] */
     t3 = (t0 << 2) & U32MASK;
-    /* mov t0, dword_444274 */
     t0 = D3U_DICT_CURSOR_32(&c->st, 0);
-    /* sub t0, dword_443360[t3] */
     t0 = (t0 - D3U_TBL_443360_32(&c->st, t3)) & U32MASK;
-    /* and t0, t4 */
     t0 &= t4;
-    /* cmp t0, 100h */
     if (t0 < 0x100U) goto loc_415B1D;
     t0 = (t0 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFU);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFU) + 1)) & 0xFFU);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* lea t3, [t0*4] */
     t3 = (t0 << 2) & U32MASK;
-    /* mov t0, dword_444274 */
     t0 = D3U_DICT_CURSOR_32(&c->st, 0);
-    /* sub t0, dword_443360[t3] */
     t0 = (t0 - D3U_TBL_443360_32(&c->st, t3)) & U32MASK;
-    /* and t0, t4 */
     t0 &= t4;
 loc_415B1D:
-    /* test t0, t0 */
     if (t0 == 0) goto loc_415BCC;
-    /* cmp t0, 100h */
     if (t0 >= 0x100U) goto loc_415BCC;
-    /* lea t6, [t0*4] */
     t6 = (t0 << 2) & U32MASK;
-    /* mov t2, ss:dword_442128[t6] */
     t2 = (unsigned long)D3U_TBL_442128_32(&c->st, t6);
-    /* xor t3, t3 */
     t3 = 0;
-    /* inc t2 */
     t2 = (t2 + 1) & U32MASK;
     t3 = (unsigned int)D3U_FLAG_444EBA_8(&c->st, 0);
-    /* mov ss:dword_442128[t6], t2 */
     D3U_TBL_442128_32(&c->st, t6) = t2;
-    /* cmp t0, t3 */
     if (t0 == t3) goto loc_415BA5;
-    /* mov bl, byte_442D58[t0] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_TBL_442D58 + t0) & U32MASK);
 loc_415B56:
-    /* xor t3, t3 */
     t3 = 0;
     t3 = t1 & 0xFFU;
-    /* mov t2, ss:dword_442128[t6] */
     t2 = (unsigned long)D3U_TBL_442128_32(&c->st, t6);
-    /* cmp t2, dword_442128[t3*4] */
     if (t2 < (unsigned long)D3U_TBL_442128_32(&c->st, (t3 << 2))) goto loc_415BA5;
-    /* mov cl, byte_442D58[t3] */
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_TBL_442D58 + t3) & U32MASK);
-    /* mov byte_442D58[t0], cl */
     G8((D3U_TBL_442D58 + t0) & U32MASK) = (unsigned char)(t2 & 0xFFU);
-    /* mov cl, byte_443260[t0] */
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_TBL_443260 + t0) & U32MASK);
-    /* mov byte_443260[t3], cl */
     G8((D3U_TBL_443260 + t3) & U32MASK) = (unsigned char)(t2 & 0xFFU);
-    /* mov byte_442D58[t3], al */
     G8((D3U_TBL_442D58 + t3) & U32MASK) = (unsigned char)(t0 & 0xFFU);
-    /* mov byte_443260[t0], bl */
     G8((D3U_TBL_443260 + t0) & U32MASK) = (unsigned char)(t1 & 0xFFU);
-    /* mov bl, byte_442D58[t0] */
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_TBL_442D58 + t0) & U32MASK);
     if ((t1 & 0xFFU) != 0) goto loc_415B56;
     D3U_FLAG_444EBA_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
     if ((t0 & 0xFFU) <= 1U) goto loc_415BA5;
     D3U_FLAG_444EB9_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
 loc_415BA5:
-    /* inc t5 */
     t5 = (t5 + 1) & U32MASK;
-    /* cmp t5, 100h */
     if (t5 <= 0x100U) goto loc_415BCC;
-    /* xor t5, t5 */
     t5 = 0;
-    /* xor t0, t0 */
     t0 = 0;
 loc_415BB2:
-    /* mov t6, dword_442128[t0] */
     t6 = (unsigned long)D3U_TBL_442128_32(&c->st, t0);
-    /* shr t6, 1 */
     t6 >>= 1;
-    /* add t0, 4 */
     t0 = (t0 + 4) & U32MASK;
-    /* add t5, t6 */
     t5 = (t5 + t6) & U32MASK;
-    /* mov dword_442124[t0], t6 */
     D3U_TBL_442124_32(&c->st, t0) = t6;
-    /* cmp t0, 400h */
     if (t0 != 0x400U) goto loc_415BB2;
 loc_415BCC:
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (t1 >> 8) & 0xFFU;
-    /* lea t3, [t0*4] */
     t3 = (t0 << 2) & U32MASK;
-    /* mov t0, dword_444274 */
     t0 = D3U_DICT_CURSOR_32(&c->st, 0);
-    /* mov dword_443360[t3], t0 */
     D3U_TBL_443360_32(&c->st, t3) = t0;
 loc_415BE2:
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
     if ((t0 & 0xFFU) == 0) goto loc_415D79;
     t0 = (t0 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFU);
@@ -6538,7 +5451,6 @@ loc_415BE2:
     if ((t3 & 0xFFU) == 0) goto loc_415C0B;
     t0 = (t0 & 0xFFFFFF00UL) | (((0U - (t0 & 0xFFU))) & 0xFFU);
 loc_415C0B:
-    /* cmp al, 80h */
     if ((t0 & 0xFFU) < 0x80U) goto loc_415C20;
     t3 = (t3 & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444EA8_8(&c->st, 0)) << 8);
     t0 = (t0 & 0xFFFF00FFUL) | ((((((t3 >> 8) & 0xFFU) == 0)) ? 1U : 0U) << 8);
@@ -6546,280 +5458,169 @@ loc_415C0B:
 loc_415C20:
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
     if ((t1 & 0xFFU) != 1U) goto loc_415C70;
-    /* mov t3, dword_4441C4 */
     t3 = D3U_TBL_4441C4_32(&c->st, 0);
-    /* sub t3, 203h */
     t3 = (t3 - 0x203U) & U32MASK;
-    /* and t3, 0Fh */
     t3 &= 0x0FU;
-    /* mov dl, byte_429E44[t3] */
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)d3u_t429E44[(unsigned int)(t3 & 0x0FU)];
-    /* and t3, 0FFh */
     t3 &= 0xFFU;
-    /* shl t3, 4 */
     t3 = (t3 << 4) & U32MASK;
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov al, byte_429E54[t0] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(t0 & 0xFFUL)];
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* add t0, t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* add t0, 203h */
     t0 = (t0 + 0x203U) & U32MASK;
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
-    /* mov dword_4441C4, t0 */
     D3U_TBL_4441C4_32(&c->st, 0) = t0;
     goto loc_415D79;
 loc_415C70:
-    /* mov t3, dword_4441D0 */
     t3 = D3U_TBL_4441D0_32(&c->st, 0);
-    /* shl t3, 4 */
     t3 = (t3 << 4) & U32MASK;
     if ((t1 & 0xFFU) != 2U) goto loc_415CA7;
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov al, byte_429E54[t0] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(t0 & 0xFFUL)];
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* add t3, 223h */
     t3 = (t3 + 0x223U) & U32MASK;
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
-    /* mov dword_4441C4, t3 */
     D3U_TBL_4441C4_32(&c->st, 0) = t3;
     goto loc_415D79;
 loc_415CA7:
     if ((t1 & 0xFFU) != 3U) goto loc_415D43;
     if (D3U_FLAG_444E9B_8(&c->st, 0) == 0) goto loc_415CEF;
-    /* mov t3, dword_444258 */
     t3 = D3U_TBL_444258_32(&c->st, 0);
-    /* xor t0, t0 */
     t0 = 0;
-    /* shr t3, 10h */
     t3 >>= 16;
     t0 = (t1 >> 8) & 0xFFU;
-    /* sub t0, t3 */
     t0 = (t0 - t3) & U32MASK;
     t0 = (t0 & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444E9F_8(&c->st, 0)) << 8);
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFU);
     if (((t0 >> 8) & 0xFFU) == 0) goto loc_415CDA;
     t0 = (t0 & 0xFFFFFF00UL) | (((0U - (t0 & 0xFFU))) & 0xFFU);
 loc_415CDA:
-    /* cmp al, 80h */
     if ((t0 & 0xFFU) < 0x80U) goto loc_415CEF;
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA8_8(&c->st, 0);
     t0 = (t0 & 0xFFFF00FFUL) | (((((t1 & 0xFFU) == 0)) ? 1U : 0U) << 8);
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFU);
 loc_415CEF:
-    /* xor t2, t2 */
     t2 = 0;
     t2 = (unsigned int)D3U_FLAG_444E9C_8(&c->st, 0);
-    /* mov ah, byte_444284[t2] */
     t0 = (t0 & 0xFFFF00FFUL) | (((unsigned int)G8((D3U_TBL_444284 + t2) & U32MASK)) << 8);
-    /* lea t3, [t2*4] */
     t3 = (t2 << 2) & U32MASK;
     if (((t1 >> 8) & 0xFFU) != ((t0 >> 8) & 0xFFU)) goto loc_415D10;
-    /* inc dword_440AF0[t3] */
     D3U_TBL_440AF0_32(&c->st, t3) = ((unsigned long)D3U_TBL_440AF0_32(&c->st, t3) + 1) & U32MASK;
     goto loc_415D16;
 loc_415D10:
-    /* shr dword_440AF0[t3], 1 */
     D3U_TBL_440AF0_32(&c->st, t3) = (unsigned long)D3U_TBL_440AF0_32(&c->st, t3) >> 1;
 loc_415D16:
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov al, byte_429F54[t0] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)d3u_t429F54[(unsigned int)(t0 & 0xFFUL)];
-    /* mov t3, dword_4441D0 */
     t3 = D3U_TBL_4441D0_32(&c->st, 0);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* shl t3, 5 */
     t3 = (t3 << 5) & U32MASK;
-    /* add t0, t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* add t0, 243h */
     t0 = (t0 + 0x243U) & U32MASK;
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
-    /* mov dword_4441C4, t0 */
     D3U_TBL_4441C4_32(&c->st, 0) = t0;
     goto loc_415D79;
 loc_415D43:
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
     if ((t1 & 0xFFU) != 4U) goto loc_415D6C;
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov al, byte_429E54[t0] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(t0 & 0xFFUL)];
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* add t0, t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* add t0, 2A3h */
     t0 = (t0 + 0x2A3U) & U32MASK;
-    /* mov dword_4441C4, t0 */
     D3U_TBL_4441C4_32(&c->st, 0) = t0;
     goto loc_415D79;
 loc_415D6C:
-    /* xor t3, t3 */
     t3 = 0;
     t3 = t0 & 0xFFU;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (t1 >> 8) & 0xFFU;
     d3uc_walk_hash_chain(c, t0, t3);
 loc_415D79:
-    /* mov t6, dword_4441C0 */
     t6 = D3U_TBL_4441C0_32(&c->st, 0);
-    /* mov t5, dword_444210 */
     t5 = D3U_TBL_444210_32(&c->st, 0);
-    /* inc t6 */
     t6 = (t6 + 1) & U32MASK;
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA0_8(&c->st, 0);
-    /* mov dword_4441C0, t6 */
     D3U_TBL_4441C0_32(&c->st, 0) = t6;
     if ((t3 & 0xFFU) != 0) goto loc_415DF2;
     if (((t1 >> 8) & 0xFFU) < 4U) goto loc_415DF2;
     if (((t1 >> 8) & 0xFFU) > 6U) goto loc_415DF2;
-    /* cmp byte ptr dword_444258, 0DFh */
     if (D3U_TBL_444258_8(&c->st, 0) == 0xDFU) goto loc_415E38;
-    /* mov t3, dword_444260 */
     t3 = D3U_TBL_444260_32(&c->st, 0);
-    /* mov t0, dword_44425C */
     t0 = D3U_TBL_44425C_32(&c->st, 0);
-    /* shl t3, 8 */
     t3 = (t3 << 8) & U32MASK;
-    /* shr t0, 18h */
     t0 >>= 24;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov t0, dword_44425C */
     t0 = D3U_TBL_44425C_32(&c->st, 0);
-    /* mov dword_444260, t3 */
     D3U_TBL_444260_32(&c->st, 0) = t3;
-    /* mov t3, dword_444258 */
     t3 = D3U_TBL_444258_32(&c->st, 0);
-    /* shl t0, 8 */
     t0 = (t0 << 8) & U32MASK;
-    /* shr t3, 18h */
     t3 >>= 24;
-    /* add t0, t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* mov dword_44425C, t0 */
     D3U_TBL_44425C_32(&c->st, 0) = t0;
-    /* mov t0, dword_444258 */
     t0 = D3U_TBL_444258_32(&c->st, 0);
-    /* shl t0, 8 */
     t0 = (t0 << 8) & U32MASK;
-    /* add t0, 0DFh */
     t0 = (t0 + 0xDFU) & U32MASK;
-    /* mov dword_444258, t0 */
     D3U_TBL_444258_32(&c->st, 0) = t0;
     goto loc_415E38;
 loc_415DF2:
-    /* mov t3, dword_444260 */
     t3 = D3U_TBL_444260_32(&c->st, 0);
-    /* mov t0, dword_44425C */
     t0 = D3U_TBL_44425C_32(&c->st, 0);
-    /* shl t3, 8 */
     t3 = (t3 << 8) & U32MASK;
-    /* shr t0, 18h */
     t0 >>= 24;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov t0, dword_44425C */
     t0 = D3U_TBL_44425C_32(&c->st, 0);
-    /* mov dword_444260, t3 */
     D3U_TBL_444260_32(&c->st, 0) = t3;
-    /* mov t3, dword_444258 */
     t3 = D3U_TBL_444258_32(&c->st, 0);
-    /* shl t0, 8 */
     t0 = (t0 << 8) & U32MASK;
-    /* shr t3, 18h */
     t3 >>= 24;
-    /* add t0, t3 */
     t0 = (t0 + t3) & U32MASK;
-    /* mov t3, dword_444258 */
     t3 = D3U_TBL_444258_32(&c->st, 0);
-    /* mov dword_44425C, t0 */
     D3U_TBL_44425C_32(&c->st, 0) = t0;
-    /* xor t0, t0 */
     t0 = 0;
-    /* shl t3, 8 */
     t3 = (t3 << 8) & U32MASK;
     t0 = (t1 >> 8) & 0xFFU;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov dword_444258, t3 */
     D3U_TBL_444258_32(&c->st, 0) = t3;
 loc_415E38:
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
     if ((t1 & 0xFFU) == 0) goto loc_415F5D;
-    /* mov t0, dword_4441C0 */
     t0 = D3U_TBL_4441C0_32(&c->st, 0);
-    /* mov t1, dword_4441C8 */
     t1 = D3U_TBL_4441C8_32(&c->st, 0);
-    /* xor t3, t3 */
     t3 = 0;
-    /* div t1 */
     /* x86 div faults on div0; direct / % below */
     t3 = t0 % t1;
     t0 = t0 / t1;
-    /* mov t6, dword_4441D0 */
     t6 = D3U_TBL_4441D0_32(&c->st, 0);
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444E9E_8(&c->st, 0);
-    /* mov t0, dword_444258 */
     t0 = D3U_TBL_444258_32(&c->st, 0);
     t1 = (t1 & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444EA9_8(&c->st, 0)) << 8);
-    /* shr t0, cl */
     /* x86 masks the count to 5 bits; direct shift below */
     t0 >>= ((t2 & 0xFFU) & 31U);
-    /* mov dword_4441D0, t3 */
     D3U_TBL_4441D0_32(&c->st, 0) = t3;
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
     if (((t1 >> 8) & 0xFFU) != 3U) goto loc_415F53;
-    /* mov t2, 6 */
     t2 = 6;
-    /* mov t0, dword_4441C0 */
     t0 = D3U_TBL_4441C0_32(&c->st, 0);
-    /* xor t3, t3 */
     t3 = 0;
-    /* div t2 */
     /* x86 div: divisor is 6 (nonzero); direct / % below */
     t3 = t0 % 6U;
     t0 = t0 / 6U;
     D3U_FLAG_444E9C_8(&c->st, 0) = (unsigned char)(t3 & 0xFFU);
-    /* xor t3, t3 */
     t3 = 0;
     t3 = (unsigned int)D3U_FLAG_444E9C_8(&c->st, 0);
-    /* cmp dword_440AF0[t3*4], 8 */
-    /* setnbe al */
     t0 = (t0 & 0xFFFFFF00UL) | ((D3U_TBL_440AF0_32(&c->st, (t3 << 2)) > 8U) ? 1U : 0U);
-    /* mov t2, dword_444258 */
     t2 = D3U_TBL_444258_32(&c->st, 0);
-    /* movzx t4, byte ptr dword_444258 */
     t4 = (unsigned int)D3U_TBL_444258_8(&c->st, 0);
-    /* shr t2, 18h */
     t2 >>= 24;
-    /* sub t4, t2 */
     t4 = (t4 - t2) & U32MASK;
-    /* xor t2, t2 */
     t2 = 0;
     t2 = (unsigned int)D3U_FLAG_444E9D_8(&c->st, 0);
-    /* add t2, t4 */
     t2 = (t2 + t4) & U32MASK;
     t1 = (t1 & 0xFFFFFF00UL) | (t0 & 0xFFU);
-    /* mov byte_444284[t3], cl */
     G8((D3U_TBL_444284 + t3) & U32MASK) = (unsigned char)(t2 & 0xFFU);
     if ((t0 & 0xFFU) == 0) goto loc_415EE4;
     if (D3U_TBL_4441B4_32(&c->st, 0) >= 5U) goto loc_415EE4;
@@ -6832,52 +5633,35 @@ loc_415EE6:
     if ((t0 & 0xFFU) == 0) goto loc_415F22;
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA8_8(&c->st, 0);
     D3U_FLAG_444E9F_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
-    /* mov t0, t6 */
     t0 = t6;
-    /* shl t0, 5 */
     t0 = (t0 << 5) & U32MASK;
-    /* add t0, 253h */
     t0 = (t0 + 0x253U) & U32MASK;
-    /* mov dword_4441C4, t0 */
     D3U_TBL_4441C4_32(&c->st, 0) = t0;
-    /* xor t0, t0 */
     t0 = 0;
     t0 = (unsigned int)D3U_FLAG_444E9C_8(&c->st, 0);
     t2 &= 0xFFFF00FFUL;
-    /* mov al, byte_444284[t0] */
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned int)G8((D3U_TBL_444284 + (t0 & 0xFFU)) & U32MASK);
     D3U_FLAG_444EA8_8(&c->st, 0) = 0;
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(t0 & 0xFFU);
 loc_415F22:
     if ((t1 & 0xFFU) == 0) goto loc_415F39;
-    /* mov t0, dword_4441B4 */
     t0 = D3U_TBL_4441B4_32(&c->st, 0);
-    /* inc t0 */
     t0 = (t0 + 1) & U32MASK;
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
-    /* mov dword_4441B4, t0 */
     D3U_TBL_4441B4_32(&c->st, 0) = t0;
     goto loc_415F5D;
 loc_415F39:
-    /* xor t6, t6 */
     t6 = 0;
-    /* mov dword_444210, t5 */
     D3U_TBL_444210_32(&c->st, 0) = t5;
-    /* mov dword_4441B4, t6 */
     D3U_TBL_4441B4_32(&c->st, 0) = t6;
-    /* mov t5, dword_444210 */
     t5 = D3U_TBL_444210_32(&c->st, 0);
-    /* pop t6/t5/t4/t2/t1 */
     /* retn (early) */
     return;
 loc_415F53:
     if (((t1 >> 8) & 0xFFU) < 5U) goto loc_415F5D;
     d3uc_update_hash_bucket(c);
 loc_415F5D:
-    /* mov t5, dword_444210 */
     t5 = D3U_TBL_444210_32(&c->st, 0);
-    /* pop t6/t5/t4/t2/t1 */
     /* retn */
     ;
 }
@@ -6890,85 +5674,49 @@ void d3uc_update_ctx_counter(dec3w_ctx *c, unsigned int eax_v, unsigned int edx_
     unsigned int t3 = 0;
     unsigned int t4 = 0;
     unsigned int t5 = 0;
-    /* push t2/t4/t5 */
-    /* mov t4, t0 */
     t4 = eax_v;
-    /* mov t2, t3 */
     t2 = edx_v;
-    /* xor t3, t3 */
     t3 = 0;
-    /* mov dword_4441F4, t3 */
     D3U_TBL_4441F4_32(&c->st, 0) = t3;
     t3 = ebx_v & 0xFFU;
     t1 = ebx_v;
-    /* mov dword_44421C, t2 */
     D3U_TBL_44421C_32(&c->st, 0) = t2;
     d3uc_update_ctx_coder(c, t4, t3);
-    /* xor t3, t3 */
     t3 = 0;
     t3 = (unsigned int)D3U_FLAG_444EB3_8(&c->st, 0);
-    /* mov t5, dword_44421C */
     t5 = D3U_TBL_44421C_32(&c->st, 0);
     /* t0 high lanes = entry garbage; only ah observed below */
     t0 = (t0 & 0xFFFF00FFUL) | ((t3 & 0xFFU) << 8);
-    /* mov dword_441F08[t3*4], t5 */
     D3U_TBL_441F08_32(&c->st, (t3 << 2)) = t5;
-    /* mov dword_442018[t3*4], t4 */
     D3U_TBL_442018_32(&c->st, (t3 << 2)) = t4;
     t0 = (t0 & 0xFFFF00FFUL) | (((((t0 >> 8) & 0xFFU) + 1) & 0xFFU) << 8);
-    /* mov byte_4441D8[t3], bl */
     G8((D3U_TBL_4441D8 + t3) & U32MASK) = (unsigned char)(t1 & 0xFFU);
     D3U_FLAG_444EB3_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFU);
-    /* cmp t2, 2FDh */
     t0 = (t0 & 0xFFFFFF00UL) | ((t2 == 0x2FDU) ? 1U : 0U);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov t3, dword_443258[t0*4] */
     t3 = D3U_TBL_443258_32(&c->st, (t0 << 2));
-    /* mov t0, t3 */
     t0 = t3;
-    /* shl t0, 5 */
     t0 = (t0 << 5) & U32MASK;
-    /* sub t0, t3 */
     t0 = (t0 - t3) & U32MASK;
-    /* mov t3, dword_4441F4 */
     t3 = D3U_TBL_4441F4_32(&c->st, 0);
-    /* shr t0, 5 */
     t0 >>= 5;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* cmp t2, 2FDh */
     t0 = (t0 & 0xFFFFFF00UL) | ((t2 == 0x2FDU) ? 1U : 0U);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov dword_443258[t0*4], t3 */
     D3U_TBL_443258_32(&c->st, (t0 << 2)) = t3;
-    /* cmp t2, 2FDh */
     t0 = (t0 & 0xFFFFFF00UL) | ((t2 == 0x2FDU) ? 1U : 0U);
-    /* xor t3, t3 */
     t3 = 0;
     t3 = t0 & 0xFFU;
-    /* mov t3, dword_443B60[t3*4] */
     t3 = D3U_TBL_443B60_32(&c->st, (t3 << 2));
-    /* mov t0, t3 */
     t0 = t3;
-    /* shl t0, 5 */
     t0 = (t0 << 5) & U32MASK;
-    /* sub t0, t3 */
     t0 = (t0 - t3) & U32MASK;
-    /* mov t3, dword_4441F4 */
     t3 = D3U_TBL_4441F4_32(&c->st, 0);
-    /* shr t0, 5 */
     t0 >>= 5;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* cmp t2, 2FDh */
     t0 = (t0 & 0xFFFFFF00UL) | ((t2 == 0x2FDU) ? 1U : 0U);
-    /* and t0, 0FFh */
     t0 &= 0xFFU;
-    /* mov dword_443B60[t0*4], t3 */
     D3U_TBL_443B60_32(&c->st, (t0 << 2)) = t3;
-    /* pop t5/t4/t2 */
     /* retn */
 }
 /* sub_418620: entry t3 = ctx id, bl = symbol. Coder-agnostic. */
@@ -6977,40 +5725,25 @@ void d3uc_update_ctx_ema(dec3w_ctx *c, unsigned int edx_v, unsigned int ebx_v)
     unsigned int t0 = 0;
     unsigned int t2 = 0;
     unsigned int t3 = 0;
-    /* push t2 */
-    /* mov dword_44421C, t3 */
     D3U_TBL_44421C_32(&c->st, 0) = edx_v;
-    /* xor t3, t3 */
     t3 = 0;
-    /* xor t2, t2 */
     t2 = 0;
     t3 = ebx_v & 0xFFU;
-    /* mov dword_4441F4, t2 */
     D3U_TBL_4441F4_32(&c->st, 0) = t2;
     /* 0x00418633 call sub_417D74.
      * eax_in is the dispatcher-leftover d3u_ld32(c, (unsigned long)(0x4441C4)): native 418620 never
      * writes t0, so 417d74 receives the caller's t0 (set at 0x00417421).
      * Passing 0 here starved the db3 loop and overheated the E1E0 EMA. */
     d3uc_update_ctx_coder(c, (D3U_TBL_4441C4_32(&c->st, 0) & U32MASK), t3);
-    /* mov t3, dword_4441E0 */
     t3 = D3U_TBL_4441E0_32(&c->st, 0);
-    /* mov t0, t3 */
     t0 = t3;
-    /* shl t0, 5 */
     t0 = (t0 << 5) & U32MASK;
-    /* sub t0, t3 */
     t0 = (t0 - t3) & U32MASK;
-    /* mov t3, t0 */
     t3 = t0;
-    /* mov t0, dword_4441F4 */
     t0 = D3U_TBL_4441F4_32(&c->st, 0);
-    /* shr t3, 5 */
     t3 >>= 5;
-    /* add t3, t0 */
     t3 = (t3 + t0) & U32MASK;
-    /* mov dword_4441E0, t3 */
     D3U_TBL_4441E0_32(&c->st, 0) = t3;
-    /* pop t2 */
     /* retn */
 }
 
@@ -7038,26 +5771,26 @@ void d3uc_fold_ctx_block(dec3w_ctx *c, unsigned int eax_in)
     t6 = 0;
     t1 = (t1 + t0) & U32MASK;
     t3 = (t3 << 8) & U32MASK;
-    t5 = (t1 + 0x200UL) & U32MASK; /* lea t5,[t1+200h] */
+    t5 = (t1 + 0x200UL) & U32MASK;
 l_414d9d:
     t2 = (unsigned long)d3u_ld32(c, (unsigned long)(t1));
     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
-    t2 = (t2 + 0x10001UL) & U32MASK; /* add t2,10001h */
-    t0 = (t0 + 0x10001UL) & U32MASK; /* add t0,10001h */
-    t2 &= 0xFFFEFFFEUL; /* and t2,0FFFEFFFEh */
-    t0 &= 0xFFFEFFFEUL; /* and t0,0FFFEFFFEh */
+    t2 = (t2 + 0x10001UL) & U32MASK;
+    t0 = (t0 + 0x10001UL) & U32MASK;
+    t2 &= 0xFFFEFFFEUL;
+    t0 &= 0xFFFEFFFEUL;
     t2 >>= 1;
     t0 >>= 1;
-    t1 = (t1 + 0x10UL) & U32MASK; /* add t1,10h */
+    t1 = (t1 + 0x10UL) & U32MASK;
     t4 = (t2 + t0) & U32MASK;
     d3u_st32(c, (unsigned long)((t1 - 0xCUL) & U32MASK), (unsigned int)t0);
-    d3u_st32(c, (unsigned long)((t1 - 0x10UL) & U32MASK), (unsigned int)t2); /* mov [t1-10h],t2 */
+    d3u_st32(c, (unsigned long)((t1 - 0x10UL) & U32MASK), (unsigned int)t2);
     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 - 4UL) & U32MASK));
     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 - 8UL) & U32MASK));
-    t0 = (t0 + 0x10001UL) & U32MASK; /* add t0,10001h */
-    t2 = (t2 + 0x10001UL) & U32MASK; /* add t2,10001h */
-    t0 &= 0xFFFEFFFEUL; /* and t0,0FFFEFFFEh */
-    t2 &= 0xFFFEFFFEUL; /* and t2,0FFFEFFFEh */
+    t0 = (t0 + 0x10001UL) & U32MASK;
+    t2 = (t2 + 0x10001UL) & U32MASK;
+    t0 &= 0xFFFEFFFEUL;
+    t2 &= 0xFFFEFFFEUL;
     t0 >>= 1;
     t2 >>= 1;
     t6 = (t6 + t4) & U32MASK;
@@ -7065,14 +5798,14 @@ l_414d9d:
     d3u_st32(c, (unsigned long)((t1 - 4UL) & U32MASK), (unsigned int)t0);
     t6 = (t6 + t4) & U32MASK;
     d3u_st32(c, (unsigned long)((t1 - 8UL) & U32MASK), (unsigned int)t2);
-    /* cmp t1,t5 */ if (t1 != t5) goto l_414d9d;
-    t2 = 0x1FEUL; /* mov t2,1FEh */
-    t1 = (t3 * 2UL) & U32MASK; /* lea t1,[t3*2] (t1=a1*512) */
+     if (t1 != t5) goto l_414d9d;
+    t2 = 0x1FEUL;
+    t1 = (t3 * 2UL) & U32MASK;
     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
     t5 = (t1 + 2UL) & U32MASK;
     t4 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    t5 = (t5 + t0) & U32MASK; /* add t5,t0 (dst=heapF0+a1*512+2) */
-    t4 = (t4 + t1) & U32MASK; /* add t4,t1 (src=heapF4+a1*512) */
+    t5 = (t5 + t0) & U32MASK;
+    t4 = (t4 + t1) & U32MASK;
     ;
     t0 = t2;
     t2 = (t2 - t5) & U32MASK;
@@ -7080,30 +5813,27 @@ l_414d9d:
     t2 &= 3UL;
     t0 = (t0 - t2) & U32MASK;
     if ((int)(t0 & U32MASK) > 0) { /* signed */
-        /* rep movsb */
         while (t2 != 0) { M8(t5) = M8(t4); t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
         t2 = t0;
         t0 &= 3UL;
         t2 >>= 2;
-        /* rep movsd */
         while (t2 != 0) { d3u_st32(c, (unsigned long)(t5), d3u_ld32(c, (unsigned long)(t4))); t4 = (t4 + 4UL) & U32MASK; t5 = (t5 + 4UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
     }
 l_414e31:
     t2 = (t2 + t0) & U32MASK;
-    /* rep movsb */
     while (t2 != 0) { M8(t5) = M8(t4); t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
     t2 = t6;
     t0 = t6;
-    t2 &= 0xFFFFUL; /* and t2,0FFFFh */
-    t0 >>= 16; /* shr t0,10h */
+    t2 &= 0xFFFFUL;
+    t0 >>= 16;
     t0 = (t0 + t2) & U32MASK;
     t2 = t0;
     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
     d3u_st16(c, (unsigned long)((t1 + t0) & U32MASK), (unsigned short)(t2 & 0xFFFFUL));
-    t1 = (t1 & 0xFFFF00FFUL) | 0x100UL; /* mov bh,1 (lane) */
+    t1 = (t1 & 0xFFFF00FFUL) | 0x100UL;
 l_414e51:
     t1 = (t1 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFUL);
-    t3 &= 0xFFFFFF00UL; /* mov dl,0 (high lanes keep (a1<<8)&~FFh) */
+    t3 &= 0xFFFFFF00UL;
     t1 = (t1 & 0xFFFFFF00UL) | ((((t1 & 0xFFUL) + ((t1 >> 8) & 0xFFUL))) & 0xFFUL);
     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFUL) - (t1 & 0xFFUL)) & 0xFFUL);
     t2 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
@@ -7126,13 +5856,13 @@ l_414e68:
     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFUL) - (t1 & 0xFFUL)) & 0xFFUL);
     if ((t3 & 0xFFUL) != 0UL) goto l_414e68;
     t1 = (t1 & 0xFFFF00FFUL) | (((((t1 >> 8) & 0xFFUL) * 2UL) & 0xFFUL) << 8);
-    /* cmp bh,80h */ if (((t1 >> 8) & 0xFFUL) < 0x80UL) goto l_414e51; /* unsigned */
+     if (((t1 >> 8) & 0xFFUL) < 0x80UL) goto l_414e51; /* unsigned */
     t3 = a1;
-    /* cmp t3,2FDh */ if (t3 >= 0x2FDUL) goto l_414eb3; /* unsigned */
+     if (t3 >= 0x2FDUL) goto l_414eb3; /* unsigned */
     t0 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
     t5 = (t5 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t0 + t3 * 2UL) & U32MASK));
     t5 = (t5 & 0xFFFF0000UL) | ((t5 & 0xFFFFUL) >> 2);
-    t1 = t5; /* mov t1,t5 (full) */
+    t1 = t5;
     d3u_st16(c, (unsigned long)((t0 + t3 * 2UL) & U32MASK), (unsigned short)(t5 & 0xFFFFUL));
     t1 = (t1 + 1UL) & U32MASK;
     d3u_st16(c, (unsigned long)((t0 + t3 * 2UL) & U32MASK), (unsigned short)(t1 & 0xFFFFUL));
@@ -7169,20 +5899,20 @@ l_4142ce:
     t1 = t6;
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)c->blk00_dict[((t1 + t3) & U32MASK) - c->blk00_base];
     t3 = (t3 + 1UL) & U32MASK;
-    stk[t0] = (unsigned char)(t1 & 0xFFUL); /* mov [esp+t0+var_12C],bl */
+    stk[t0] = (unsigned char)(t1 & 0xFFUL);
     t1 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
     t0 = (t0 + 1UL) & U32MASK;
     t3 &= t1;
-    /* cmp t0,100h */ if (t0 < 0x100UL) goto l_4142ce; /* unsigned */
+     if (t0 < 0x100UL) goto l_4142ce; /* unsigned */
     t3 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
     t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
-    t3 = (t3 - 0x140UL) & U32MASK; /* sub t3,140h */
-    t0 = (t0 + 0x140UL) & U32MASK; /* add t0,140h */
+    t3 = (t3 - 0x140UL) & U32MASK;
+    t0 = (t0 + 0x140UL) & U32MASK;
     t3 >>= 1;
     t0 &= t1;
     t5 = (t0 + t3) & U32MASK;
     t5 &= t1;
-    /* cmp t3,dword_4441C0 */ if (t3 > (unsigned long)D3U_TBL_4441C0_32(&c->st, 0)) { /* unsigned */
+     if (t3 > (unsigned long)D3U_TBL_4441C0_32(&c->st, 0)) { /* unsigned */
     t5 = 0;
     }
 l_414310:
@@ -7190,7 +5920,7 @@ l_414310:
     t3 &= 0xFFFFFF00UL;
     v28 = t0;
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
-    /* cmp t5,t2 */ if (t5 == t2) goto l_414463;
+     if (t5 == t2) goto l_414463;
 l_41432d:
     t1 = t6;
     t2 = (t0 + 1UL) & U32MASK;
@@ -7206,14 +5936,14 @@ l_41432d:
     D3U_FLAG_444EA7_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
     t1 = 0;
     t1 = (unsigned long)D3U_FLAG_444EAD_8(&c->st, 0);
-    t1 = (t1 - 0xA6UL) & U32MASK; /* sub t1,0A6h */
-    t1 = (t1 * 11UL) & U32MASK; /* imul t1,0Bh (mod 2^32) */
+    t1 = (t1 - 0xA6UL) & U32MASK;
+    t1 = (t1 * 11UL) & U32MASK;
     t0 = 0;
     t0 = t3 & 0xFFUL;
     t0 = (unsigned long)d3u_t42BD70[(1826UL + t1 + t0) & U32MASK];
     goto l_41443b;
 l_41437d:
-    /* cmp dl,80h */ if ((t3 & 0xFFUL) >= 0x80UL) goto l_41438a; /* unsigned */
+     if ((t3 & 0xFFUL) >= 0x80UL) goto l_41438a; /* unsigned */
     if (((t3 >> 8) & 0xFFUL) == 0UL) goto l_414439;
 l_41438a:
     t1 = 0;
@@ -7222,14 +5952,14 @@ l_41438a:
     t2 = (t0 + 1UL) & U32MASK;
     t3 = (t3 & 0xFFFF00FFUL) | ((unsigned long)d3u_t42C438[(unsigned int)(t1 & 0xFFUL)] << 8);
     t2 &= t4;
-    /* cmp dh,0C8h */ if (((t3 >> 8) & 0xFFUL) >= 0xC8UL) goto l_414420; /* unsigned */
-    /* cmp dh,64h */ if (((t3 >> 8) & 0xFFUL) != 0x64UL) goto l_4143bf;
+     if (((t3 >> 8) & 0xFFUL) >= 0xC8UL) goto l_414420; /* unsigned */
+     if (((t3 >> 8) & 0xFFUL) != 0x64UL) goto l_4143bf;
     D3U_FLAG_444EA7_8(&c->st, 0) = 1;
     D3U_FLAG_444EAD_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
     goto l_414448;
 l_4143bf:
-    /* cmp dh,63h */ if (((t3 >> 8) & 0xFFUL) != 0x63UL) goto l_4143d0;
-    D3U_FLAG_444EA7_8(&c->st, 0) = 0x20; /* mov byte_444EA7,20h */
+     if (((t3 >> 8) & 0xFFUL) != 0x63UL) goto l_4143d0;
+    D3U_FLAG_444EA7_8(&c->st, 0) = 0x20;
     goto l_414448;
 l_4143d0:
     t1 = 0;
@@ -7240,7 +5970,7 @@ l_4143d0:
     t4 = t3;
     t1 = (t1 & 0xFFFF00FFUL) | ((unsigned long)M8(t4) << 8);
     t0 = (t0 + t6) & U32MASK;
-    t1 = (t1 & 0xFFFF00FFUL) | (((((t1 >> 8) & 0xFFUL) + 0x20UL) & 0xFFUL) << 8); /* add bh,20h */
+    t1 = (t1 & 0xFFFF00FFUL) | (((((t1 >> 8) & 0xFFUL) + 0x20UL) & 0xFFUL) << 8);
     t3 = (t3 + 1UL) & U32MASK;
     c->blk00_dict[t0 - c->blk00_base] = (unsigned char)((t1 >> 8) & 0xFFUL);
     t0 = t2;
@@ -7257,7 +5987,7 @@ l_414404:
     c->blk00_dict[((t4 + t0 - 1UL) & U32MASK) - c->blk00_base] = (unsigned char)((t1 >> 8) & 0xFFUL);
     t0 &= t2;
     t3 = (t3 + 1UL) & U32MASK;
-    /* cmp t5,t0 */ if (t5 == t0) goto l_414448;
+     if (t5 == t0) goto l_414448;
     t1 = (t1 & 0xFFFFFF00UL) | ((t1 - 1UL) & 0xFFUL);
     if ((t1 & 0xFFUL) != 0UL) goto l_414404;
     goto l_414448;
@@ -7278,12 +6008,12 @@ l_41443b:
     c->blk00_dict[t3 - c->blk00_base] = (unsigned char)(t0 & 0xFFUL);
     t0 = t2;
 l_414448:
-    /* cmp t5,t0 */ if (t5 == t0) goto l_414463;
+     if (t5 == t0) goto l_414463;
     t4 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
     t5 = (t5 + 1UL) & U32MASK;
     t3 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
     t5 &= t4;
-    /* cmp t5,t3 */ if (t5 != t3) goto l_41432d;
+     if (t5 != t3) goto l_41432d;
 l_414463:
     t3 = (unsigned long)D3U_TBL_444280_32(&c->st, 0);
     t1 &= 0xFFFF00FFUL;
@@ -7299,18 +6029,18 @@ l_414463:
     t3 = 0;
 l_414495:
     t1 = t0;
-    t1 &= 0xFFUL; /* and t1,0FFh */
+    t1 &= 0xFFUL;
     t2 = (t0 + t6) & U32MASK;
     D3U_TBL_443D08_32(&c->st, t1 * 4UL) = (unsigned int)t5;
-    t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)stk[t3]; /* mov bl,[esp+t3+var_12C] */
+    t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)stk[t3];
     t0 = (t0 + t5) & U32MASK;
     c->blk00_dict[t2 - c->blk00_base] = (unsigned char)(t1 & 0xFFUL);
     t1 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
     t3 = (t3 + t5) & U32MASK;
     t0 &= t1;
-    /* cmp t3,100h */ if (t3 < 0x100UL) goto l_414495; /* unsigned */
+     if (t3 < 0x100UL) goto l_414495; /* unsigned */
     t0 = v28;
-    t3 = 0x40UL; /* mov t3,40h */
+    t3 = 0x40UL;
     D3U_BLK00_DICT_MASTER_32(&c->st, 0) = (unsigned int)t6;
 l_4144d2:
     t2 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
@@ -7321,11 +6051,11 @@ l_4144d2:
     c->blk00_dict[((t4 + t0) & U32MASK) - c->blk00_base] = 0;
     t3 = (t3 - 1UL) & U32MASK;
     if (t3 != 0UL) goto l_4144d2;
-    t2 = 0x100UL; /* mov t2,100h */
+    t2 = 0x100UL;
     t5 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
-    t1 = 0x200000UL; /* mov t1,200000h */
+    t1 = 0x200000UL;
     t5 = (t5 + t6) & U32MASK;
-    t3 = 0xFFUL; /* mov t3,0FFh */
+    t3 = 0xFFUL;
     ;
     /* t4 is stale = t6 here (no t4 write since zero loop); 256B copy t4->t5 */
     t0 = t2;
@@ -7334,28 +6064,25 @@ l_4144d2:
     t2 &= 3UL;
     t0 = (t0 - t2) & U32MASK;
     if ((int)(t0 & U32MASK) > 0) { /* signed */
-        /* rep movsb */
         while (t2 != 0) { c->blk00_dict[t5 - c->blk00_base] = c->blk00_dict[t4 - c->blk00_base]; t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
         t2 = t0;
         t0 &= 3UL;
         t2 >>= 2;
-        /* rep movsd */
         while (t2 != 0) { (*(unsigned int *)(void *)(c->blk00_dict + (t5 - c->blk00_base))) = (*(unsigned int *)(void *)(c->blk00_dict + (t4 - c->blk00_base))); t4 = (t4 + 4UL) & U32MASK; t5 = (t5 + 4UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
     }
 l_41451b:
     t2 = (t2 + t0) & U32MASK;
-    /* rep movsb */
     while (t2 != 0) { c->blk00_dict[t5 - c->blk00_base] = c->blk00_dict[t4 - c->blk00_base]; t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
     d3uc_rescale_blk01_model(c);
     d3uc_rescale_blk02_model(c);
     t0 = (unsigned long)(unsigned long)D3U_BLK03_MODEL_A_FF_32(&c->st, 0);
-    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* call sub_40C9C0: len=200000h dst=4299C4 fill=FFh */
+    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
     t4 = 0;
-    t1 = 0x200000UL; /* mov t1,200000h */
-    t3 = 0xFFUL; /* mov t3,0FFh */
+    t1 = 0x200000UL;
+    t3 = 0xFFUL;
     t0 = (unsigned long)(unsigned long)D3U_BLK04_MODEL_B_FF_32(&c->st, 0);
-    t2 &= 0xFFFFFF00UL; /* xor cl,cl (t2==0 here) */
-    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* call sub_40C9C0: len=200000h dst=4299C8 fill=FFh */
+    t2 &= 0xFFFFFF00UL;
+    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
     t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
     t3 = (unsigned long)D3U_DICT_SIZE_32(&c->st, 0);
     D3U_TBL_444258_32(&c->st, 0) = (unsigned int)t4;
@@ -7369,45 +6096,45 @@ l_41451b:
     t4 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
     t0 = (t0 - t2) & U32MASK;
     t0 &= t4;
-    /* cmp t0,8000h */ if (t0 > 0x8000UL) { /* unsigned */
+     if (t0 > 0x8000UL) { /* unsigned */
     t4 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
     t5 = (unsigned long)D3U_DICT_MASK_32(&c->st, 0);
-    t4 = (t4 + 0xFFFF8000UL) & U32MASK; /* add t4,0FFFF8000h (-8000h) */
+    t4 = (t4 + 0xFFFF8000UL) & U32MASK;
     t6 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
     t4 &= t5;
     goto l_4145b7;
     }
-    t4 = 0xFFFFFFFFUL; /* mov t4,0FFFFFFFFh */
+    t4 = 0xFFFFFFFFUL;
     t6 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
 l_4145b7:
     t0 = (unsigned long)D3U_DICT_CURSOR_32(&c->st, 0);
     D3U_BLK00_DICT_MASTER_32(&c->st, 0) = (unsigned int)t6;
-    /* cmp t2,t0 */ if (t2 == t0) goto l_414769;
+     if (t2 == t0) goto l_414769;
     t0 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     t3 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     t0 = (t0 >> 13) & U32MASK;
     t0 ^= t3;
-    t0 &= 0x3FFFFUL; /* and t0,3FFFFh */
+    t0 &= 0x3FFFFUL;
     t3 = (unsigned long)(unsigned long)D3U_BLK03_MODEL_A_FF_32(&c->st, 0);
     t0 = (t0 << 3) & U32MASK;
     t3 = (t3 + t0) & U32MASK;
     t0 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
     t1 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
-    t0 = (t0 >> 15) & U32MASK; /* shr t0,0Fh */
+    t0 = (t0 >> 15) & U32MASK;
     t1 ^= t0;
     t0 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     t5 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    t0 = (t0 >> 15) & U32MASK; /* shr t0,0Fh */
+    t0 = (t0 >> 15) & U32MASK;
     t1 = (t1 << 4) & U32MASK;
     t0 ^= t5;
     t1 ^= t0;
     t0 = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
     t5 = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
-    t0 = (t0 >> 15) & U32MASK; /* shr t0,0Fh */
+    t0 = (t0 >> 15) & U32MASK;
     t0 ^= t5;
     t0 = (t0 << 6) & U32MASK;
     t1 ^= t0;
-    t1 &= 0x3FFFFUL; /* and t1,3FFFFh */
+    t1 &= 0x3FFFFUL;
     t0 = (t1 * 8UL) & U32MASK;
     t1 = (unsigned long)(unsigned long)D3U_BLK04_MODEL_B_FF_32(&c->st, 0);
     t0 = (t0 + 4UL) & U32MASK;
@@ -7418,31 +6145,31 @@ l_4145b7:
     t0 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     d3u_st32(c, (unsigned long)(t3), (unsigned int)t2);
     d3u_st32(c, (unsigned long)((t3 + 4UL) & U32MASK), (unsigned int)t0);
-    /* cmp t2,t4 */ if (t2 != t4) goto l_414657;
-    t4 = 0xFFFFFFFFUL; /* mov t4,0FFFFFFFFh */
+     if (t2 != t4) goto l_414657;
+    t4 = 0xFFFFFFFFUL;
 l_414657:
-    /* cmp t4,0FFFFFFFFh */ if (t4 != 0xFFFFFFFFUL) goto l_414711;
+     if (t4 != 0xFFFFFFFFUL) goto l_414711;
     t0 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     t3 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     D3U_TBL_444240_32(&c->st, 0) = (unsigned int)t0;
     t0 = (t0 >> 13) & U32MASK;
     t0 ^= t3;
-    t0 &= 0x7FFFUL; /* and t0,7FFFh */
+    t0 &= 0x7FFFUL;
     D3U_TBL_444240_32(&c->st, 0) = (unsigned int)t3;
     D3U_TBL_444224_32(&c->st, 0) = (unsigned int)t0;
-    /* cmp t0,40000h */ if (t0 >= 0x40000UL) goto l_4146f6; /* unsigned; DEAD: t0<=7FFFh after and */
+     if (t0 >= 0x40000UL) goto l_4146f6; /* unsigned; DEAD: t0<=7FFFh after and */
     t0 = (t0 << 5) & U32MASK;
 l_41468f:
     t3 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
     t3 = (t3 + t0) & U32MASK;
-    /* cmp byte ptr [t3],0 */ if (M8(t3) == 0) goto l_4146d7;
+     if (M8(t3) == 0) goto l_4146d7;
     t5 = (unsigned long)D3U_TBL_444240_32(&c->st, 0);
-    /* cmp t5,[t3+1Ch] */ if (t5 != (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK))) goto l_4146d7;
+     if (t5 != (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK))) goto l_4146d7;
     t0 = 0;
-    t1 = (t1 & 0xFFFF00FFUL) | 0xFF00UL; /* mov bh,0FFh (lane) */
-    t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8(t3); /* mov al,[t3] (bh=FFh lane kept) */
-    D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)((t1 >> 8) & 0xFFUL); /* mov byte_444EB7,bh (=FFh) */
-    D3U_TBL_444214_32(&c->st, 0) = (unsigned int)t0; /* mov dword_444214,t0 (t0=FF00h|byte) */
+    t1 = (t1 & 0xFFFF00FFUL) | 0xFF00UL;
+    t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8(t3);
+    D3U_FLAG_444EB7_8(&c->st, 0) = (unsigned char)((t1 >> 8) & 0xFFUL);
+    D3U_TBL_444214_32(&c->st, 0) = (unsigned int)t0;
     t0 = t3;
     t1 = (t3 + 0xDUL) & U32MASK;
 l_4146bd:
@@ -7452,37 +6179,37 @@ l_4146bd:
     t5 = (t5 + t3) & U32MASK;
     t0 = (t0 + 1UL) & U32MASK;
     D3U_TBL_444214_32(&c->st, 0) = (unsigned int)t5;
-    /* cmp t0,t1 */ if (t0 == t1) goto l_4146f6;
+     if (t0 == t1) goto l_4146f6;
     goto l_4146bd;
 l_4146d7:
     t5 = (unsigned long)D3U_TBL_444224_32(&c->st, 0);
-    t5 = (t5 + 0x8000UL) & U32MASK; /* add t5,8000h */
-    t0 = (t0 + 0x100000UL) & U32MASK; /* add t0,100000h */
+    t5 = (t5 + 0x8000UL) & U32MASK;
+    t0 = (t0 + 0x100000UL) & U32MASK;
     D3U_TBL_444224_32(&c->st, 0) = (unsigned int)t5;
-    /* cmp t5,40000h */ if (t5 < 0x40000UL) goto l_41468f; /* unsigned */
+     if (t5 < 0x40000UL) goto l_41468f; /* unsigned */
 l_4146f6:
     t0 = t6;
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)c->blk00_dict[((t2 + t0) & U32MASK) - c->blk00_base];
-    t0 &= 0xFFUL; /* and t0,0FFh */
+    t0 &= 0xFFUL;
     D3U_BLK00_DICT_MASTER_32(&c->st, 0) = (unsigned int)t6;
-    d3uc_update_order_model_a(c, (unsigned int)t0); /* call sub_415534 (al in) */
+    d3uc_update_order_model_a(c, (unsigned int)t0);
 l_414711:
     t0 = (unsigned long)D3U_TBL_444260_32(&c->st, 0);
     t3 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
     t0 = (t0 << 8) & U32MASK;
-    t3 = (t3 >> 24) & U32MASK; /* shr t3,18h */
+    t3 = (t3 >> 24) & U32MASK;
     t0 = (t0 + t3) & U32MASK;
     t3 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
     D3U_TBL_444260_32(&c->st, 0) = (unsigned int)t0;
     t0 = (unsigned long)D3U_TBL_44425C_32(&c->st, 0);
-    t3 = (t3 >> 24) & U32MASK; /* shr t3,18h */
+    t3 = (t3 >> 24) & U32MASK;
     t0 = (t0 << 8) & U32MASK;
     t0 = (t0 + t3) & U32MASK;
     D3U_TBL_44425C_32(&c->st, 0) = (unsigned int)t0;
     t0 = t6;
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)c->blk00_dict[((t2 + t0) & U32MASK) - c->blk00_base];
     t3 = (unsigned long)D3U_TBL_444258_32(&c->st, 0);
-    t0 &= 0xFFUL; /* and t0,0FFh */
+    t0 &= 0xFFUL;
     t3 = (t3 << 8) & U32MASK;
     t2 = (t2 + 1UL) & U32MASK;
     t3 = (t3 + t0) & U32MASK;
@@ -7496,20 +6223,20 @@ l_414769:
     t0 = v2c;
     D3U_TBL_444220_32(&c->st, 0) = (unsigned int)t0;
     t0 = v20;
-    t1 = 0x400UL; /* mov t1,400h */
+    t1 = 0x400UL;
     D3U_TBL_444264_32(&c->st, 0) = (unsigned int)t0;
     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
     t3 = 0;
-    t0 = (t0 + 0x5F600UL) & U32MASK; /* add t0,5F600h */
-    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* call sub_40C9C0: len=400h dst=4299F0+5F600h fill=0 */
-    t1 = 0x400UL; /* mov t1,400h */
+    t0 = (t0 + 0x5F600UL) & U32MASK;
+    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
+    t1 = 0x400UL;
     t0 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
     t3 = 0;
-    t0 = (t0 + 0x5F600UL) & U32MASK; /* add t0,5F600h */
-    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* call sub_40C9C0: len=400h dst=4299F4+5F600h fill=0 */
+    t0 = (t0 + 0x5F600UL) & U32MASK;
+    d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
     t0 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    d3u_st16(c, (unsigned long)((t0 + 0x5F6UL) & U32MASK), (unsigned short)1); /* mov word ptr [t0+5F6h],1 */
-    d3u_st16(c, (unsigned long)((t0 + 0x5F8UL) & U32MASK), (unsigned short)1); /* mov word ptr [t0+5F8h],1 */
+    d3u_st16(c, (unsigned long)((t0 + 0x5F6UL) & U32MASK), (unsigned short)1);
+    d3u_st16(c, (unsigned long)((t0 + 0x5F8UL) & U32MASK), (unsigned short)1);
     if (D3U_FLAG_444E99_8(&c->st, 0) != 1) goto l_4147e0;
     t0 = (unsigned long)D3U_TBL_444268_32(&c->st, 0);
     goto l_4147e5;
@@ -7518,7 +6245,7 @@ l_4147e0:
 l_4147e5:
     t6 = (unsigned long)(unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
     D3U_TBL_444230_32(&c->st, 0) = (unsigned int)t0;
-    t3 = 0xFFFFFFFFUL; /* mov t3,0FFFFFFFFh */
+    t3 = 0xFFFFFFFFUL;
     t2 = (t2 & 0xFFFFFF00UL) | 1UL;
     D3U_PRIMER_TOTAL_32(&c->st, 0) = (unsigned int)t3;
     D3U_FLAG_444EA0_8(&c->st, 0) = (unsigned char)(t2 & 0xFFUL);
@@ -7603,65 +6330,65 @@ void d3uc_topup_model_reinit(dec3w_ctx *c)
     unsigned long t6 = 0;
     unsigned long v1c = 0;
     t6 = (unsigned long)D3U_TBL_44426C_32(&c->st, 0);
-    t1 = 0x20UL; /* mov t1,20h */
+    t1 = 0x20UL;
     t3 = 1;
-    t0 = D3U_TBL_444108; /* mov t0,offset dword_444108 */
+    t0 = D3U_TBL_444108;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=20h dst=444108h fill=1 */
-    t1 = 0x20UL; /* mov t1,20h */
+    t1 = 0x20UL;
     t3 = 1;
-    t0 = D3U_TBL_444128; /* mov t0,offset dword_444128 */
+    t0 = D3U_TBL_444128;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=20h dst=444128h fill=1 */
-    t1 = 0x40UL; /* mov t1,40h */
+    t1 = 0x40UL;
     t3 = 1;
-    t0 = D3U_TBL_444148; /* mov t0,offset dword_444148 */
+    t0 = D3U_TBL_444148;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40h dst=444148h fill=1 */
-    t1 = 0x40000UL; /* mov t1,40000h */
+    t1 = 0x40000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299D0_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40000h dst=4299D0 fill=0 */
-    t1 = 0x80000UL; /* mov t1,80000h */
+    t1 = 0x80000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299D4_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=80000h dst=4299D4 fill=0 */
-    t1 = 0x80000UL; /* mov t1,80000h */
+    t1 = 0x80000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299D8_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=80000h dst=4299D8 fill=0 */
-    t1 = 0x40000UL; /* mov t1,40000h */
+    t1 = 0x40000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299DC_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40000h dst=4299DC fill=0 */
-    t1 = 0x40000UL; /* mov t1,40000h */
+    t1 = 0x40000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299E0_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40000h dst=4299E0 fill=0 */
-    t1 = 0x40000UL; /* mov t1,40000h */
+    t1 = 0x40000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299E4_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40000h dst=4299E4 fill=0 */
-    t1 = 0x1C0000UL; /* mov t1,1C0000h */
+    t1 = 0x1C0000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299E8_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=1C0000h dst=4299E8 fill=0 */
-    t1 = 0x40000UL; /* mov t1,40000h */
+    t1 = 0x40000UL;
     t0 = (unsigned long)(unsigned long)D3U_TBL_4299EC_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40000h dst=4299EC fill=0 */
-    t1 = 0x40600UL; /* mov t1,40600h */
+    t1 = 0x40600UL;
     t0 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40600h dst=4299F0 fill=0 */
-    t1 = 0x40600UL; /* mov t1,40600h */
+    t1 = 0x40600UL;
     t0 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=40600h dst=4299F4 fill=0 */
-    t3 = 0x5FA00UL; /* mov t3,5FA00h */
+    t3 = 0x5FA00UL;
 l_414912:
-    t2 = 0x200UL; /* mov t2,200h */
+    t2 = 0x200UL;
     t5 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
     t4 = 0; /* index into d3u_t42C9B0 (was offset 42C9B0h) */
     t5 = (t5 + t3) & U32MASK;
-    t3 = (t3 + 0x200UL) & U32MASK; /* add t3,200h */
+    t3 = (t3 + 0x200UL) & U32MASK;
     ;
     t0 = t2;
     t2 = (t2 - t5) & U32MASK;
@@ -7669,94 +6396,88 @@ l_414912:
     t2 &= 3UL;
     t0 = (t0 - t2) & U32MASK;
     if ((int)(t0 & U32MASK) > 0) { /* signed */
-        /* rep movsb */
         while (t2 != 0) { M8(t5) = d3u_t42C9B0[t4]; t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
         t2 = t0;
         t0 &= 3UL;
         t2 >>= 2;
-        /* rep movsd */
         while (t2 != 0) { d3u_st32(c, (unsigned long)(t5), d3u_tbl_ld32(d3u_t42C9B0, t4)); t4 = (t4 + 4UL) & U32MASK; t5 = (t5 + 4UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
     }
 l_414944:
     t2 = (t2 + t0) & U32MASK;
-    /* rep movsb */
     while (t2 != 0) { M8(t5) = d3u_t42C9B0[t4]; t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
-    /* cmp t3,61600h */ if (t3 != 0x61600UL) goto l_414912;
+     if (t3 != 0x61600UL) goto l_414912;
     t0 = 0;
 l_414952:
     t3 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    t1 = (t1 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0 + 0x5FA00UL) & U32MASK)); /* mov bx,[t3+t0+5FA00h] (high lanes stale, only bx stored later) */
+    t1 = (t1 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0 + 0x5FA00UL) & U32MASK));
     t0 = (t0 + 2UL) & U32MASK;
     t1 = (t1 << 3) & U32MASK;
-    d3u_st16(c, (unsigned long)((t3 + t0 + 0x5F9FEUL) & U32MASK), (unsigned short)(t1 & 0xFFFFUL)); /* mov [t3+t0+5F9FEh],bx (in-place u16 x8) */
-    /* cmp t0,1C00h */ if (t0 != 0x1C00UL) goto l_414952;
-    t3 = 0xE00UL; /* mov t3,0E00h */
-    t1 = 0xE00UL; /* mov t1,0E00h */
+    d3u_st16(c, (unsigned long)((t3 + t0 + 0x5F9FEUL) & U32MASK), (unsigned short)(t1 & 0xFFFFUL));
+     if (t0 != 0x1C00UL) goto l_414952;
+    t3 = 0xE00UL;
+    t1 = 0xE00UL;
     t0 = 8;
     v1c = t3;
     t3 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    t2 = 0x180UL; /* mov t2,180h */
-    t3 = (t3 + 0x5FA00UL) & U32MASK; /* add t3,5FA00h */
-    t5 = D3U_TBL_443B68; /* mov t5,offset dword_443B68 */
-    d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5); /* call sub_421284 (t4 stale, callee ignores t4/t5/t2) */
-    t1 = 0x203UL; /* mov t1,203h */
+    t2 = 0x180UL;
+    t3 = (t3 + 0x5FA00UL) & U32MASK;
+    t5 = D3U_TBL_443B68;
+    d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
+    t1 = 0x203UL;
     t0 = 1;
     t3 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
     t4 = 0; /* index into d3u_t429A08 (was offset 429A08h) */
-    d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5); /* call sub_421284 (t2=180h,t5=443B68h preserved) */
-    t1 = 0x203UL; /* mov t1,203h */
+    d3uc_fill16(c, (unsigned int)t1, (unsigned int)t3, (unsigned int)t0, (unsigned int)t2, (unsigned int)t4, (unsigned int)t5);
+    t1 = 0x203UL;
     ;
-    t0 = t2; /* mov t0,t2 (=180h: t2 preserved by callee) */
+    t0 = t2;
     t2 = (t2 - t5) & U32MASK;
     t2 = (t2 - t0) & U32MASK;
     t2 &= 3UL;
     t0 = (t0 - t2) & U32MASK;
     if ((int)(t0 & U32MASK) > 0) { /* signed */
-        /* rep movsb */
         while (t2 != 0) { M8(t5) = d3u_t429A08[t4]; t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
         t2 = t0;
         t0 &= 3UL;
         t2 >>= 2;
-        /* rep movsd */
         while (t2 != 0) { d3u_st32(c, (unsigned long)(t5), d3u_tbl_ld32(d3u_t429A08, t4)); t4 = (t4 + 4UL) & U32MASK; t5 = (t5 + 4UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
     }
 l_4149db:
     t2 = (t2 + t0) & U32MASK;
-    /* rep movsb */
     while (t2 != 0) { M8(t5) = d3u_t429A08[t4]; t4 = (t4 + 1UL) & U32MASK; t5 = (t5 + 1UL) & U32MASK; t2 = (t2 - 1UL) & U32MASK; }
-    v1c = t1; /* mov [var_1C],t1 (=203h) */
+    v1c = t1;
 l_4149e2:
     t2 = v1c;
     t0 = v1c;
     t2 = (t2 + 1UL) & U32MASK;
-    d3uc_fold_ctx_block(c, (unsigned int)t0); /* call sub_414D78 (t0 in; t2 preserved by callee) */
+    d3uc_fold_ctx_block(c, (unsigned int)t0);
     v1c = t2;
-    /* cmp t2,2FDh */ if (t2 < 0x2FDUL) goto l_4149e2; /* unsigned */
+     if (t2 < 0x2FDUL) goto l_4149e2; /* unsigned */
     d3uc_rescale_blk02_model(c);
-    t1 = 0x1FFUL; /* mov t1,1FFh */
-    t2 = D3U_TBL_442528; /* mov t2,offset dword_442528 */
+    t1 = 0x1FFUL;
+    t2 = D3U_TBL_442528;
     t5 = 0;
     t3 = 0;
     D3U_TBL_444210_32(&c->st, 0) = (unsigned int)t5;
     D3U_TBL_44424C_32(&c->st, 0) = (unsigned int)t5;
     D3U_TBL_44423C_32(&c->st, 0) = (unsigned int)t5;
-    D3U_TBL_444208_32(&c->st, 0) = (unsigned int)t1; /* mov dword_444208,t1 (=1FFh) */
+    D3U_TBL_444208_32(&c->st, 0) = (unsigned int)t1;
     t0 = t2;
-    t1 = 0x430UL; /* mov t1,430h */
+    t1 = 0x430UL;
     D3U_TBL_4441F8_32(&c->st, 0) = (unsigned int)t2;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=430h dst=442528h fill=0 */
-    t1 = 0x400UL; /* mov t1,400h */
-    t3 = 0xFFFFFFFFUL; /* mov t3,0FFFFFFFFh */
-    t0 = D3U_TBL_443360; /* mov t0,offset dword_443360 */
+    t1 = 0x400UL;
+    t3 = 0xFFFFFFFFUL;
+    t0 = D3U_TBL_443360;
     t4 = 1;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=400h dst=443360h fill=FFh */
-    t1 = 0x400UL; /* mov t1,400h */
-    t0 = D3U_TBL_442128; /* mov t0,offset dword_442128 */
+    t1 = 0x400UL;
+    t0 = D3U_TBL_442128;
     t3 = 0;
     v1c = t4;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=400h dst=442128h fill=0 */
     t3 &= 0xFFFFFF00UL;
-    t0 &= 0xFFFF00FFUL; /* xor ah,ah (t0=442028h) */
+    t0 &= 0xFFFF00FFUL;
     D3U_TBL_442D58_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
     t3 = (t3 & 0xFFFF00FFUL) | 0x100UL;
     D3U_TBL_443260_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFUL);
@@ -7772,18 +6493,18 @@ l_414a81:
     t3 = (t3 & 0xFFFFFF00UL) | ((t3 + 1UL) & 0xFFUL);
     v1c = t5;
     G8((D3U_TBL_443260 + t0) & U32MASK) = (unsigned char)(t3 & 0xFFUL);
-    /* cmp t5,100h */ if (t5 < 0x100UL) goto l_414a81; /* unsigned */
-    t3 = 0x9240UL; /* mov t3,9240h */
+     if (t5 < 0x100UL) goto l_414a81; /* unsigned */
+    t3 = 0x9240UL;
     t6 = (unsigned long)D3U_TBL_44426C_32(&c->st, 0);
     t0 = 0;
 l_414ab5:
     t0 = (t0 + 4UL) & U32MASK;
     D3U_TBL_442E54_32(&c->st, t0) = (unsigned int)t3;
-    /* cmp t0,400h */ if (t0 != 0x400UL) goto l_414ab5;
-    t1 = 0xFFUL; /* mov t1,0FFh */
-    t2 = 0x91ADC0UL; /* mov t2,91ADC0h */
+     if (t0 != 0x400UL) goto l_414ab5;
+    t1 = 0xFFUL;
+    t2 = 0x91ADC0UL;
     t4 = 0;
-    D3U_TBL_4441FC_32(&c->st, 0) = (unsigned int)t1; /* mov dword_4441FC,t1 (=FFh) */
+    D3U_TBL_4441FC_32(&c->st, 0) = (unsigned int)t1;
     D3U_TBL_443258_32(&c->st, 0) = (unsigned int)t4;
     D3U_TBL_44325C_32(&c->st, 0) = (unsigned int)t4;
     D3U_TBL_443B60_32(&c->st, 0) = (unsigned int)t4;
@@ -7791,18 +6512,18 @@ l_414ab5:
     D3U_TBL_4441E0_32(&c->st, 0) = (unsigned int)t4;
     D3U_TBL_444200_32(&c->st, 0) = (unsigned int)t4;
     t4 = (unsigned long)D3U_CUM_TABLE_PTR_32(&c->st, 0);
-    D3U_TBL_4441E4_32(&c->st, 0) = (unsigned int)t2; /* mov dword_4441E4,t2 (=91ADC0h) */
-    /* test t4,t4 */ if (t4 == 0UL) goto l_414b7d;
+    D3U_TBL_4441E4_32(&c->st, 0) = (unsigned int)t2;
+     if (t4 == 0UL) goto l_414b7d;
     t2 = 0;
     t2 = (unsigned long)D3U_FLAG_444EA0_8(&c->st, 0);
-    t0 = 0x40000UL; /* mov t0,40000h */
+    t0 = 0x40000UL;
     t2 = (t2 + t2) & U32MASK;
     t5 = (unsigned long)D3U_TBL_444230_32(&c->st, 0);
-    t0 = (unsigned long)(((long)0x40000) >> (t2 & 31UL)); /* sar t0,cl (x86 masks count to 5 bits) */
+    t0 = (unsigned long)(((long)0x40000) >> (t2 & 31UL));
     t5 = (t5 + t0) & U32MASK;
     t3 = (unsigned long)D3U_OUT_TOTAL_LEN_32(&c->st, 0);
     D3U_TBL_444230_32(&c->st, 0) = (unsigned int)t5;
-    /* cmp t5,t3 */ if (t5 > t3) { /* unsigned */
+     if (t5 > t3) { /* unsigned */
     D3U_TBL_444230_32(&c->st, 0) = (unsigned int)t3;
     }
 l_414b3e:
@@ -7812,13 +6533,13 @@ l_414b3e:
     t0 = (t6 * 4UL) & U32MASK;
 l_414b57:
     t3 = (unsigned long)D3U_CUM_TABLE_PTR_32(&c->st, 0);
-    /* cmp t1,[t3+t0] */ if (t1 <= (unsigned long)d3u_ld32(c, (unsigned long)((t3 + t0) & U32MASK))) goto l_414b72; /* unsigned */
+     if (t1 <= (unsigned long)d3u_ld32(c, (unsigned long)((t3 + t0) & U32MASK))) goto l_414b72; /* unsigned */
     t0 = (t0 + 4UL) & U32MASK;
     t3 = (t3 + t0) & U32MASK;
     t5 = (unsigned long)d3u_ld32(c, (unsigned long)(t3));
     t6 = (t6 + 1UL) & U32MASK;
-    /* cmp t5,t2 */ if (t5 >= t2) goto l_414b72; /* unsigned */
-    /* cmp t5,t4 */ if (t5 < t4) goto l_414b57; /* unsigned */
+     if (t5 >= t2) goto l_414b72; /* unsigned */
+     if (t5 < t4) goto l_414b57; /* unsigned */
 l_414b72:
     t3 = (unsigned long)D3U_CUM_TABLE_PTR_32(&c->st, 0);
     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + ((t6 * 4UL) & U32MASK)) & U32MASK));
@@ -7828,14 +6549,14 @@ l_414b7d:
 l_414b82:
     D3U_TBL_444230_32(&c->st, 0) = (unsigned int)t0;
     D3U_TBL_44426C_32(&c->st, 0) = (unsigned int)t6;
-    /* test t6,t6 */ if (t6 == 0UL) goto l_414c9f; /* unsigned jbe 0 */
+     if (t6 == 0UL) goto l_414c9f; /* unsigned jbe 0 */
     t2 = (unsigned long)D3U_CUM_TABLE_PTR_32(&c->st, 0);
     t0 = (t6 * 4UL) & U32MASK;
     t0 = (t0 + t2) & U32MASK;
     t2 = (unsigned long)D3U_TBL_444230_32(&c->st, 0);
     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 - 4UL) & U32MASK));
     t2 = (t2 - t5) & U32MASK;
-    /* cmp t6,1 */ if (t6 > 1UL) { /* unsigned */
+     if (t6 > 1UL) { /* unsigned */
     t5 = (t5 - (unsigned long)d3u_ld32(c, (unsigned long)((t0 - 8UL) & U32MASK))) & U32MASK;
     }
 l_414bb7:
@@ -7847,58 +6568,58 @@ l_414bc7:
 l_414bcc:
     v1c = t0;
     D3U_TBL_44426C_32(&c->st, 0) = (unsigned int)t6;
-    /* cmp t5,75A45h */ if (t5 != 0x75A45UL) goto l_414be5;
-    /* cmp t2,68302h */ if (t2 == 0x68302UL) goto l_414bf5;
+     if (t5 != 0x75A45UL) goto l_414be5;
+     if (t2 == 0x68302UL) goto l_414bf5;
 l_414be5:
-    /* cmp t5,8F4D0h */ if (t5 != 0x8F4D0UL) goto l_414c06;
-    /* cmp t2,2D9A22h */ if (t2 != 0x2D9A22UL) goto l_414c06;
+     if (t5 != 0x8F4D0UL) goto l_414c06;
+     if (t2 != 0x2D9A22UL) goto l_414c06;
 l_414bf5:
-    t1 = 0x800000UL; /* mov t1,800000h */
+    t1 = 0x800000UL;
     t0 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=800000h dst=4299BC fill=0 */
 l_414c06:
-    /* cmp t5,17E5F8h */ if (t5 != 0x17E5F8UL) goto l_414c16;
-    /* cmp t2,2CC640h */ if (t2 == 0x2CC640UL) goto l_414c26;
+     if (t5 != 0x17E5F8UL) goto l_414c16;
+     if (t2 == 0x2CC640UL) goto l_414c26;
 l_414c16:
-    /* cmp t5,2CC640h */ if (t5 != 0x2CC640UL) goto l_414c30;
-    /* cmp t2,6AF80h */ if (t2 != 0x6AF80UL) goto l_414c30;
+     if (t5 != 0x2CC640UL) goto l_414c30;
+     if (t2 != 0x6AF80UL) goto l_414c30;
 l_414c26:
     d3uc_rescale_blk01_model(c);
     d3uc_rescale_blk02_model(c);
 l_414c30:
-    /* cmp t5,388DC2h */ if (t5 != 0x388DC2UL) goto l_414c40;
-    /* cmp t2,16DD2Eh */ if (t2 == 0x16DD2EUL) goto l_414c6b;
+     if (t5 != 0x388DC2UL) goto l_414c40;
+     if (t2 == 0x16DD2EUL) goto l_414c6b;
 l_414c40:
-    /* cmp t5,7D4C0h */ if (t5 != 0x7D4C0UL) goto l_414c50;
-    /* cmp t2,3C41Eh */ if (t2 == 0x3C41EUL) goto l_414c6b;
+     if (t5 != 0x7D4C0UL) goto l_414c50;
+     if (t2 == 0x3C41EUL) goto l_414c6b;
 l_414c50:
-    /* cmp t5,0FB670h */ if (t5 == 0xFB670UL) goto l_414c9f;
-    /* cmp t2,0FB670h */ if (t2 != 0xFB670UL) goto l_414c9f;
+     if (t5 == 0xFB670UL) goto l_414c9f;
+     if (t2 != 0xFB670UL) goto l_414c9f;
     t0 = v1c;
-    /* cmp t0,dword_444228 */ if (t0 < (unsigned long)D3U_TBL_444228_32(&c->st, 0)) goto l_414c9f; /* unsigned */
+     if (t0 < (unsigned long)D3U_TBL_444228_32(&c->st, 0)) goto l_414c9f; /* unsigned */
 l_414c6b:
-    t1 = 0x800000UL; /* mov t1,800000h */
+    t1 = 0x800000UL;
     t0 = (unsigned long)(unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=800000h dst=4299BC fill=0 */
-    t1 = 0x140000UL; /* mov t1,140000h */
+    t1 = 0x140000UL;
     t0 = (unsigned long)(unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
     t3 = 0;
     d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3); /* len=140000h dst=4299C0 fill=0 */
     t0 = v1c;
-    /* cmp t0,dword_444228 */ if (t0 < (unsigned long)D3U_TBL_444228_32(&c->st, 0)) goto l_414c9f; /* unsigned */
+     if (t0 < (unsigned long)D3U_TBL_444228_32(&c->st, 0)) goto l_414c9f; /* unsigned */
     D3U_FLAG_444EA2_8(&c->st, 0) = 0x0A;
 l_414c9f:
     if (D3U_FLAG_444E99_8(&c->st, 0) != 1) goto l_414cb7;
-    t0 = 0xFFUL; /* mov t0,0FFh */
-    d3uc_update_match_price(c, (unsigned int)t0); /* call sub_419F44 (al=FFh in) */
+    t0 = 0xFFUL;
+    d3uc_update_match_price(c, (unsigned int)t0);
     goto l_414d67;
 l_414cb7:
     t4 = 0x0AUL;
     t0 = t4;
     D3U_RC_TOTAL_32(&c->st, 0) = (unsigned int)t4;
-    t0 = (unsigned long)d3uc_rc_decode(c, (unsigned int)t0); /* call sub_423188 (t0=0Ah in, al out) */
+    t0 = (unsigned long)d3uc_rc_decode(c, (unsigned int)t0);
     t3 = t0;
     t0 = 0;
     t2 = 0;
@@ -7907,8 +6628,8 @@ l_414cb7:
     D3U_RC_PROB_LO_32(&c->st, 0) = (unsigned int)t0;
     t0 = (t2 + 1UL) & U32MASK;
     D3U_RC_PROB_HI_32(&c->st, 0) = (unsigned int)t0;
-    t0 = D3U_RC_TOTAL; /* mov t0,offset dword_4441E8 */
-    d3uc_rc_update(c, (unsigned int)t0); /* call sub_423140 (pops t3: caller dl preserved) */
+    t0 = D3U_RC_TOTAL;
+    d3uc_rc_update(c, (unsigned int)t0);
     if ((t3 & 0xFFUL) == (unsigned long)D3U_FLAG_444EA9_8(&c->st, 0)) goto l_414d67;
     t6 = (unsigned long)D3U_TBL_44426C_32(&c->st, 0);
     D3U_FLAG_444EA9_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
@@ -7970,192 +6691,189 @@ unsigned int d3uc_update_match_price(dec3w_ctx *c, unsigned int sym)
     unsigned char w1c = 0;
     unsigned int i = 0;
     w20 = (unsigned char)(sym & 0xFFUL);
-    t0 = 0UL; /* xor t0,t0 */
+    t0 = 0UL;
     t0 = (t0 & ~0xFFUL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
-    t6 = D3U_TBL_444230_32(&c->st, 0); /* mov t6,dword_444230 */
-    t3 = D3U_TBL_444268_32(&c->st, 0); /* mov t3,dword_444268 */
-    t0 = (t0 & ~0xFFUL) | (unsigned int)d3u_t429E3A[(unsigned int)(t0 & 0xFFUL)]; /* mov al,byte_429E3A[t0] */
-    t6 = (t6 - t3) & U32MASK; /* sub t6,t3 */
+    t6 = D3U_TBL_444230_32(&c->st, 0);
+    t3 = D3U_TBL_444268_32(&c->st, 0);
+    t0 = (t0 & ~0xFFUL) | (unsigned int)d3u_t429E3A[(unsigned int)(t0 & 0xFFUL)];
+    t6 = (t6 - t3) & U32MASK;
     w24 = (unsigned char)(t0 & 0xFFUL);
     w1c = (unsigned char)(t0 & 0xFFUL);
-    if (t6 < 0x4B00UL) goto L_419F81; /* cmp / jb unsigned */
-    t6 = 0x3200UL; /* mov t6,3200h */
+    if (t6 < 0x4B00UL) goto L_419F81;
+    t6 = 0x3200UL;
 L_419F81:
-    if (D3U_TBL_42BC6E_8(&c->st, 0) == 0) goto L_41A17B; /* cmp / jz */
-    if (D3U_FLAG_444EA0_8(&c->st, 0) == 0) goto L_41A17B; /* cmp / jz */
-    t0 = D3U_TBL_444268_32(&c->st, 0); /* mov t0,dword_444268 */
-    if (t0 >= D3U_TBL_444228_32(&c->st, 0)) goto L_41A17B; /* cmp / jnb unsigned */
-    if (t6 <= 0x100UL) goto L_419FBF; /* cmp / jbe unsigned */
-    t0 = (t6 - 0x100UL) & U32MASK; /* lea t0,[t6-100h] */
+    if (D3U_TBL_42BC6E_8(&c->st, 0) == 0) goto L_41A17B;
+    if (D3U_FLAG_444EA0_8(&c->st, 0) == 0) goto L_41A17B;
+    t0 = D3U_TBL_444268_32(&c->st, 0);
+    if (t0 >= D3U_TBL_444228_32(&c->st, 0)) goto L_41A17B;
+    if (t6 <= 0x100UL) goto L_419FBF;
+    t0 = (t6 - 0x100UL) & U32MASK;
     d3uc_fill_input(c, t0);
 L_419FBF:
-    t2 = 0x14UL; /* mov t2,14h */
-    t5 = D3U_TBL_444188; /* mov t5,offset dword_444188 */
-    t0 = (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0); /* mov t0,dword_42C9A8 */
-    t3 = D3U_IN_POS_32(&c->st, 0); /* mov t3,dword_444EE8 */
-    t4 = D3U_TBL_44419C; /* mov t4,offset dword_44419C */
-    t3 = (t3 + t0) & U32MASK; /* add t3,t0 */
-    t0 = t2; /* mov t0,t2 */
-    t2 = (t2 - t5) & U32MASK; /* sub t2,t5 */
-    t2 = (t2 - t0) & U32MASK; /* sub t2,t0 */
-    t2 &= 3UL; /* and t2,3 */
-    t0 = (t0 - t2) & U32MASK; /* sub t0,t2 */
-    if ((int)t0 <= 0) goto L_419FF5; /* jle SIGNED */
-    /* rep movsb (head); mov t2,t0; and t0,3 */
-    /* shr t2,2; rep movsd; add t2,t0 */
-    /* rep movsb (tail): net 20-byte copy 44419C -> 444188 */
+    t2 = 0x14UL;
+    t5 = D3U_TBL_444188;
+    t0 = (unsigned long)D3U_IN_BUFFER_BASE_32(&c->st, 0);
+    t3 = D3U_IN_POS_32(&c->st, 0);
+    t4 = D3U_TBL_44419C;
+    t3 = (t3 + t0) & U32MASK;
+    t0 = t2;
+    t2 = (t2 - t5) & U32MASK;
+    t2 = (t2 - t0) & U32MASK;
+    t2 &= 3UL;
+    t0 = (t0 - t2) & U32MASK;
+    if ((int)t0 <= 0) goto L_419FF5;
     for (i = 0; i < 20UL; i++) M8((D3U_TBL_444188 + i) & U32MASK) = M8((D3U_TBL_44419C + i) & U32MASK);
 L_419FF5:
-    t2 = (t2 + t0) & U32MASK; /* add t2,t0 */
-    w2c = t3; /* mov [var_2C],t3 */
-    if (t6 <= 0x100UL) goto L_41A016; /* cmp / jbe unsigned */
-    t0 = w2c; /* mov t0,[var_2C] */
-    t3 = (t6 - 0x100UL) & U32MASK; /* lea t3,[t6-100h] */
-    t6 = d3uc_walk_price_slots(c, (unsigned int)t0, (unsigned int)t3); /* call sub_41A9C4 + mov t6,t0 */
+    t2 = (t2 + t0) & U32MASK;
+    w2c = t3;
+    if (t6 <= 0x100UL) goto L_41A016;
+    t0 = w2c;
+    t3 = (t6 - 0x100UL) & U32MASK;
+    t6 = d3uc_walk_price_slots(c, (unsigned int)t0, (unsigned int)t3);
 L_41A016:
-    t4 = w1c; /* movzx t4,[var_1C] */
-    t1 = 0xFFFFFFFFUL; /* mov t1,0FFFFFFFFh */
-    t0 = w2c; /* mov t0,[var_2C] */
-    t3 = t6; /* mov t3,t6 */
-    t2 = t4; /* mov t2,t4 */
+    t4 = w1c;
+    t1 = 0xFFFFFFFFUL;
+    t0 = w2c;
+    t3 = t6;
+    t2 = t4;
     t0 = d3uc_walk_match_price(c, (unsigned int)t0, (unsigned int)t3, (unsigned int)t2, (unsigned int)t1);
     t3 &= ~0xFF00UL;
-    w40[t4] = t0; /* mov [esp+t4*4+var_40],t0 */
-    w28 = 0; /* mov [var_28],dh, dh==0 after 41A02D */
+    w40[t4] = t0;
+    w28 = 0;
 L_41A036:
     t0 = (t0 & ~0xFFUL) | (unsigned int)w28;
-    if ((t0 & 0xFFUL) == (unsigned int)w24) goto L_41A068; /* cmp / jz */
-    t5 = w1c; /* movzx t5,[var_1C] */
-    t4 = t0 & 0xFFUL; /* movzx t4,al */
-    t3 = t6; /* mov t3,t6 */
-    t0 = w2c; /* mov t0,[var_2C] */
-    t2 = t4; /* mov t2,t4 */
-    t1 = w40[t5]; /* mov t1,[esp+t5*4+var_40] */
+    if ((t0 & 0xFFUL) == (unsigned int)w24) goto L_41A068;
+    t5 = w1c;
+    t4 = t0 & 0xFFUL;
+    t3 = t6;
+    t0 = w2c;
+    t2 = t4;
+    t1 = w40[t5];
     t0 = d3uc_walk_match_price(c, (unsigned int)t0, (unsigned int)t3, (unsigned int)t2, (unsigned int)t1);
-    w40[t4] = t0; /* mov [esp+t4*4+var_40],t0 */
-    if (t0 >= w40[t5]) goto L_41A068; /* cmp / jnb unsigned */
+    w40[t4] = t0;
+    if (t0 >= w40[t5]) goto L_41A068;
     t0 = (t0 & ~0xFFUL) | (unsigned int)w28;
     w1c = (unsigned char)(t0 & 0xFFUL);
 L_41A068:
     t1 = (t1 & ~0xFFUL) | (unsigned int)w28;
     t1 = (t1 & ~0xFFUL) | (((t1 & 0xFFUL) + 1UL) & 0xFFUL);
     w28 = (unsigned char)(t1 & 0xFFUL);
-    if ((t1 & 0xFFUL) <= 4UL) goto L_41A036; /* cmp / jbe unsigned */
-    t2 = 0UL; /* xor t2,t2 */
-    D3U_TBL_4441B8_32(&c->st, 0) = t6; /* mov dword_4441B8,t6 */
-    D3U_TBL_4441B0_32(&c->st, 0) = t2; /* mov dword_4441B0,t2 */
+    if ((t1 & 0xFFUL) <= 4UL) goto L_41A036;
+    t2 = 0UL;
+    D3U_TBL_4441B8_32(&c->st, 0) = t6;
+    D3U_TBL_4441B0_32(&c->st, 0) = t2;
     t2 = (t2 & ~0xFFUL) | (unsigned int)w1c;
     t1 = (t1 & ~0xFFUL) | 0UL;
-    if ((t2 & 0xFFUL) == 0UL) goto L_41A0CB; /* test cl,cl / jz */
-    if ((t2 & 0xFFUL) == 3UL) goto L_41A0CB; /* cmp / jz */
-    t2 = 0UL; /* xor t2,t2 */
+    if ((t2 & 0xFFUL) == 0UL) goto L_41A0CB;
+    if ((t2 & 0xFFUL) == 3UL) goto L_41A0CB;
+    t2 = 0UL;
     t2 = (t2 & ~0xFFUL) | (unsigned int)w1c;
-    t3 = ((t2 & 0xFFUL) * 4UL) & U32MASK; /* lea t3,ds:0[t2*4] */
-    t4 = (unsigned long)D3U_TBL_444188_32(&c->st, t3); /* mov t4,dword_444188[t3] */
-    t0 = (t4 * 4UL) & U32MASK; /* lea t0,ds:0[t4*4] */
-    t0 = (t0 + t4) & U32MASK; /* add t0,t4 */
-    t4 = D3U_TBL_444188_32(&c->st, 0); /* mov t4,dword_444188 */
-    t4 = (t4 << 2) & U32MASK; /* shl t4,2 */
-    if (t0 <= t4) goto L_41A0CB; /* cmp / jbe unsigned */
-    t0 = w2c; /* mov t0,[var_2C] */
-    t1 = w40[(t3 >> 2) & 0xFFUL]; /* mov t1,[esp+t3+var_40] */
-    t3 = t6; /* mov t3,t6 */
+    t3 = ((t2 & 0xFFUL) * 4UL) & U32MASK;
+    t4 = (unsigned long)D3U_TBL_444188_32(&c->st, t3);
+    t0 = (t4 * 4UL) & U32MASK;
+    t0 = (t0 + t4) & U32MASK;
+    t4 = D3U_TBL_444188_32(&c->st, 0);
+    t4 = (t4 << 2) & U32MASK;
+    if (t0 <= t4) goto L_41A0CB;
+    t0 = w2c;
+    t1 = w40[(t3 >> 2) & 0xFFUL];
+    t3 = t6;
     goto L_41A150;
 L_41A0CB:
-    t0 = 1UL; /* mov t0,1 */
-    t3 = (t3 & ~0xFFUL) | ((t6 < 0x800UL) ? 1UL : 0UL); /* cmp / setb dl unsigned */
-    t4 = 5UL; /* mov t4,5 */
-    t3 &= 0xFFUL; /* and t3,0FFh */
-    t5 = D3U_TBL_44418C_32(&c->st, 0); /* mov t5,dword_44418C */
-    t4 = (t4 - t3) & U32MASK; /* sub t4,t3 */
-    if (t5 >= D3U_TBL_444190_32(&c->st, 0)) goto L_41A0F9; /* cmp / jnb unsigned */
-    t0 = 2UL; /* mov t0,2 */
+    t0 = 1UL;
+    t3 = (t3 & ~0xFFUL) | ((t6 < 0x800UL) ? 1UL : 0UL);
+    t4 = 5UL;
+    t3 &= 0xFFUL;
+    t5 = D3U_TBL_44418C_32(&c->st, 0);
+    t4 = (t4 - t3) & U32MASK;
+    if (t5 >= D3U_TBL_444190_32(&c->st, 0)) goto L_41A0F9;
+    t0 = 2UL;
 L_41A0F9:
-    t3 = D3U_TBL_444194_32(&c->st, 0); /* mov t3,dword_444194 */
-    if (t3 <= D3U_TBL_444188_32(&c->st, (t0 * 4UL))) goto L_41A10D; /* cmp / jbe unsigned */
-    t0 = 3UL; /* mov t0,3 */
+    t3 = D3U_TBL_444194_32(&c->st, 0);
+    if (t3 <= D3U_TBL_444188_32(&c->st, (t0 * 4UL))) goto L_41A10D;
+    t0 = 3UL;
 L_41A10D:
-    t3 = D3U_TBL_444198_32(&c->st, 0); /* mov t3,dword_444198 */
-    if (t3 <= D3U_TBL_444188_32(&c->st, (t0 * 4UL))) goto L_41A121; /* cmp / jbe unsigned */
-    t0 = 4UL; /* mov t0,4 */
+    t3 = D3U_TBL_444198_32(&c->st, 0);
+    if (t3 <= D3U_TBL_444188_32(&c->st, (t0 * 4UL))) goto L_41A121;
+    t0 = 4UL;
 L_41A121:
-    if (t0 == 3UL) goto L_41A157; /* cmp / jz */
-    t3 = D3U_TBL_444188_32(&c->st, 0); /* mov t3,dword_444188 */
-    t3 = (t3 * t4) & U32MASK; /* imul t3,t4 */
-    t2 = D3U_TBL_444188_32(&c->st, (t0 * 4UL)); /* mov t2,dword_444188[t0*4] */
-    t2 = (t2 << 2) & U32MASK; /* shl t2,2 */
-    if (t2 <= t3) goto L_41A157; /* cmp / jbe unsigned */
-    t2 = 0UL; /* xor t2,t2 */
+    if (t0 == 3UL) goto L_41A157;
+    t3 = D3U_TBL_444188_32(&c->st, 0);
+    t3 = (t3 * t4) & U32MASK;
+    t2 = D3U_TBL_444188_32(&c->st, (t0 * 4UL));
+    t2 = (t2 << 2) & U32MASK;
+    if (t2 <= t3) goto L_41A157;
+    t2 = 0UL;
     t2 = (t2 & ~0xFFUL) | (t0 & 0xFFUL);
-    t0 = 0UL; /* xor t0,t0 */
+    t0 = 0UL;
     t0 = (t0 & ~0xFFUL) | (unsigned int)w1c;
-    t3 = t6; /* mov t3,t6 */
-    t1 = w40[t0 & 0xFFUL]; /* mov t1,[esp+t0*4+var_40] */
-    t0 = w2c; /* mov t0,[var_2C] */
+    t3 = t6;
+    t1 = w40[t0 & 0xFFUL];
+    t0 = w2c;
 L_41A150:
     t0 = (t0 & ~0xFFUL) | d3uc_refine_match_price(c, (unsigned int)t0, (unsigned int)t3, (unsigned int)t2, (unsigned int)t1);
     t1 = (t1 & ~0xFFUL) | (t0 & 0xFFUL);
 L_41A157:
-    if ((t1 & 0xFFUL) == 0UL) goto L_41A16F; /* test bl,bl / jz */
+    if ((t1 & 0xFFUL) == 0UL) goto L_41A16F;
     w1c = (unsigned char)(t1 & 0xFFUL);
-    t1 = 0UL; /* xor t1,t1 */
-    D3U_TBL_4441B8_32(&c->st, 0) = t6; /* mov dword_4441B8,t6 */
-    D3U_TBL_4441B0_32(&c->st, 0) = t1; /* mov dword_4441B0,t1 */
+    t1 = 0UL;
+    D3U_TBL_4441B8_32(&c->st, 0) = t6;
+    D3U_TBL_4441B0_32(&c->st, 0) = t1;
     goto L_41A17B;
 L_41A16F:
-    t0 = 0UL; /* xor t0,t0 */
-    D3U_TBL_4441B0_32(&c->st, 0) = t0; /* mov dword_4441B0,t0 */
-    D3U_TBL_4441B8_32(&c->st, 0) = t0; /* mov dword_4441B8,t0 */
+    t0 = 0UL;
+    D3U_TBL_4441B0_32(&c->st, 0) = t0;
+    D3U_TBL_4441B8_32(&c->st, 0) = t0;
 L_41A17B:
-    if (w20 == 0xFF) goto L_41A192; /* cmp / jz */
+    if (w20 == 0xFF) goto L_41A192;
     t0 = (t0 & ~0xFFUL) | (unsigned int)w1c;
-    if ((t0 & 0xFFUL) == (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0)) goto L_41A26D; /* cmp / jz */
+    if ((t0 & 0xFFUL) == (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0)) goto L_41A26D;
 L_41A192:
     t1 = (t1 & ~0xFFUL) | (unsigned int)w20;
-    if ((t1 & 0xFFUL) == 0xFFUL) goto L_41A1DF; /* cmp / jz */
-    t0 = 0UL; /* xor t0,t0 */
-    t3 = 0UL; /* xor t3,t3 */
+    if ((t1 & 0xFFUL) == 0xFFUL) goto L_41A1DF;
+    t0 = 0UL;
+    t3 = 0UL;
     t0 = (t0 & ~0xFFUL) | (unsigned int)D3U_FLAG_444EB6_8(&c->st, 0);
     t3 = (t3 & ~0xFFUL) | (t1 & 0xFFUL);
-    t0 = (t0 + (t3 & 0xFFUL)) & U32MASK; /* add t0,t3 */
-    t0 = (t0 << 3) & U32MASK; /* shl t0,3 */
-    t0 = (t0 + D3U_TBL_443B68) & U32MASK; /* add t0,offset dword_443B68 */
-    t3 = 0UL; /* xor t3,t3 */
-    t3 = (t3 & ~0xFFFFUL) | (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 6UL) & U32MASK)); /* mov dx,[t0+6] */
-    D3U_RC_TOTAL_32(&c->st, 0) = t3; /* mov dword_4441E8,t3 */
-    t3 = 0UL; /* xor t3,t3 */
-    t3 = (t3 & ~0xFFFFUL) | (unsigned int)d3u_ld16(c, (unsigned long)(t0)); /* mov dx,[t0] */
-    D3U_RC_PROB_LO_32(&c->st, 0) = t3; /* mov dword_4441EC,t3 */
-    t0 = (t0 & ~0xFFFFUL) | (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 2UL) & U32MASK)); /* mov ax,[t0+2] */
-    t0 &= 0xFFFFUL; /* and t0,0FFFFh */
-    D3U_RC_PROB_HI_32(&c->st, 0) = t0; /* mov dword_4441F0,t0 */
-    t0 = D3U_RC_TOTAL; /* mov t0,offset dword_4441E8 */
+    t0 = (t0 + (t3 & 0xFFUL)) & U32MASK;
+    t0 = (t0 << 3) & U32MASK;
+    t0 = (t0 + D3U_TBL_443B68) & U32MASK;
+    t3 = 0UL;
+    t3 = (t3 & ~0xFFFFUL) | (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 6UL) & U32MASK));
+    D3U_RC_TOTAL_32(&c->st, 0) = t3;
+    t3 = 0UL;
+    t3 = (t3 & ~0xFFFFUL) | (unsigned int)d3u_ld16(c, (unsigned long)(t0));
+    D3U_RC_PROB_LO_32(&c->st, 0) = t3;
+    t0 = (t0 & ~0xFFFFUL) | (unsigned int)d3u_ld16(c, (unsigned long)((t0 + 2UL) & U32MASK));
+    t0 &= 0xFFFFUL;
+    D3U_RC_PROB_HI_32(&c->st, 0) = t0;
+    t0 = D3U_RC_TOTAL;
     d3uc_rc_renorm_update(c, t0);
 L_41A1DF:
-    t0 = 0UL; /* xor t0,t0 */
-    t1 = 0UL; /* xor t1,t1 */
+    t0 = 0UL;
+    t1 = 0UL;
     t0 = (t0 & ~0xFFUL) | (unsigned int)w1c;
     t1 = (t1 & ~0xFFUL) | (t0 & 0xFFUL);
-    D3U_RC_PROB_LO_32(&c->st, 0) = t0; /* mov dword_4441EC,t0 */
-    t0 = (t1 + 1UL) & U32MASK; /* lea t0,[t1+1], t1 high clean via 41A1E1 */
-    t4 = 0x0AUL; /* mov t4,0Ah */
-    D3U_RC_PROB_HI_32(&c->st, 0) = t0; /* mov dword_4441F0,t0 */
-    t0 = D3U_RC_TOTAL; /* mov t0,offset dword_4441E8 */
-    D3U_RC_TOTAL_32(&c->st, 0) = t4; /* mov dword_4441E8,t4 */
+    D3U_RC_PROB_LO_32(&c->st, 0) = t0;
+    t0 = (t1 + 1UL) & U32MASK;
+    t4 = 0x0AUL;
+    D3U_RC_PROB_HI_32(&c->st, 0) = t0;
+    t0 = D3U_RC_TOTAL;
+    D3U_RC_TOTAL_32(&c->st, 0) = t4;
     d3uc_rc_renorm_update(c, t0);
     t2 = (t2 & ~0xFFUL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
     t0 = (t0 & ~0xFFUL) | (t1 & 0xFFUL);
-    if ((t0 & 0xFFUL) == (t2 & 0xFFUL)) goto L_41A26D; /* cmp / jz */
+    if ((t0 & 0xFFUL) == (t2 & 0xFFUL)) goto L_41A26D;
     D3U_FLAG_444EA9_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
     t2 = (t2 & ~0xFF00UL) | ((t1 & 0xFFUL) << 8);
-    t0 = d3u_t429DE0[(unsigned int)(t1 & 0xFFUL)]; /* mov t0,dword_429DE0[t1*4] */
-    t3 = d3u_t429DB8[(unsigned int)(t1 & 0xFFUL)]; /* mov t3,dword_429DB8[t1*4] */
-    D3U_TBL_4441C4_32(&c->st, 0) = t0; /* mov dword_4441C4,t0 */
-    t0 = (t0 & ~0xFFUL) | (unsigned int)d3u_t429E30[(unsigned int)(t1 & 0xFFUL)]; /* mov al,byte_429E30[t1] */
-    D3U_TBL_4441C8_32(&c->st, 0) = t3; /* mov dword_4441C8,t3 */
+    t0 = d3u_t429DE0[(unsigned int)(t1 & 0xFFUL)];
+    t3 = d3u_t429DB8[(unsigned int)(t1 & 0xFFUL)];
+    D3U_TBL_4441C4_32(&c->st, 0) = t0;
+    t0 = (t0 & ~0xFFUL) | (unsigned int)d3u_t429E30[(unsigned int)(t1 & 0xFFUL)];
+    D3U_TBL_4441C8_32(&c->st, 0) = t3;
     D3U_FLAG_444E9E_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
-    if (((t2 >> 8) & 0xFFUL) == 5UL) goto L_41A24C; /* cmp / jz */
-    if ((t1 & 0xFFUL) != 6UL) goto L_41A250; /* cmp / jnz */
+    if (((t2 >> 8) & 0xFFUL) == 5UL) goto L_41A24C;
+    if ((t1 & 0xFFUL) != 6UL) goto L_41A250;
 L_41A24C:
     t0 = (t0 & ~0xFFUL) | 1UL;
     goto L_41A252;
@@ -8163,15 +6881,15 @@ L_41A250:
     t0 &= ~0xFFUL;
 L_41A252:
     D3U_FLAG_444EA6_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
-    t5 = 0UL; /* xor t5,t5 */
+    t5 = 0UL;
     t0 &= ~0xFF00UL;
-    D3U_TBL_4441D0_32(&c->st, 0) = t5; /* mov dword_4441D0,t5 */
+    D3U_TBL_4441D0_32(&c->st, 0) = t5;
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFUL);
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)((t0 >> 8) & 0xFFUL);
 L_41A26D:
-    t0 = D3U_TBL_444268_32(&c->st, 0); /* mov t0,dword_444268 */
-    t0 = (t0 + t6) & U32MASK; /* add t0,t6 */
-    D3U_TBL_4441D4_32(&c->st, 0) = t0; /* mov dword_4441D4,t0 */
+    t0 = D3U_TBL_444268_32(&c->st, 0);
+    t0 = (t0 + t6) & U32MASK;
+    D3U_TBL_4441D4_32(&c->st, 0) = t0;
     return t0 & U32MASK; /* epilogue retn, t0=444268+t6 */
 }
 
@@ -8183,63 +6901,55 @@ unsigned int eax_ = 0;
 unsigned int ebx_ = 0;
 unsigned int ecx_ = 0;
 unsigned int edx_ = 0;
-/* push t1 */
-/* push t2 */
-/* push t3 */
-/* mov t3, t0 */ edx_ = p;
-/* xor t1, t1 */ ebx_ = 0u;
-/* mov bl, [t0+1] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(p + 1u);
-/* xor t0, t0 */ eax_ = 0u;
-/* mov al, [t3] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
-/* add t0, t1 */ eax_ = (eax_ + ebx_) & U32MASK;
-/* mov dword_4441E8, t0 */ D3U_RC_TOTAL_32(&c->st, 0) = eax_;
+ edx_ = p;
+ ebx_ = 0u;
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(p + 1u);
+ eax_ = 0u;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
+ eax_ = (eax_ + ebx_) & U32MASK;
+ D3U_RC_TOTAL_32(&c->st, 0) = eax_;
 eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)D3U_RC_TOTAL_16(&c->st, 0);
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* xor t1, t1 */ ebx_ = 0u;
+ eax_ &= 0xFFFFu;
+ ebx_ = 0u;
 eax_ = d3uc_rc_decode(c, eax_);
-/* mov bl, [t3] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* cmp t0, t1 */ /* flags for setl */
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
+ eax_ &= 0xFFFFu;
+ /* flags for setl */
 eax_ = (eax_ & 0xFFFFFF00UL) | ((((int)eax_ < (int)ebx_) ? 1u : 0u));
 if ((eax_ & 0xFFu) == 0u) goto l_4167c1;
-/* xor t1, t1 */ ebx_ = 0u;
-/* mov dword_4441EC, t1 */ D3U_RC_PROB_LO_32(&c->st, 0) = ebx_;
-/* mov bl, [t3] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
-/* mov dword_4441F0, t1 */ D3U_RC_PROB_HI_32(&c->st, 0) = ebx_;
+ ebx_ = 0u;
+ D3U_RC_PROB_LO_32(&c->st, 0) = ebx_;
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
+ D3U_RC_PROB_HI_32(&c->st, 0) = ebx_;
 ebx_ = (ebx_ & 0xFFFFFF00UL) | ((ebx_ + 1u) & 0xFFu);
-/* mov [t3], bl */ M8(edx_) = (unsigned char)(ebx_ & 0xFFu);
+ M8(edx_) = (unsigned char)(ebx_ & 0xFFu);
 goto l_4167df;
 l_4167c1:
-/* xor t1, t1 */ ebx_ = 0u;
-/* mov ah, [t3+1] */ eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)G8(edx_ + 1u) << 8) & 0xFF00u);
-/* mov bl, [t3] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
+ ebx_ = 0u;
+ eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)G8(edx_ + 1u) << 8) & 0xFF00u);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_);
 eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + 1u) & 0xFFu) << 8);
-/* mov dword_4441EC, t1 */ D3U_RC_PROB_LO_32(&c->st, 0) = ebx_;
-/* mov t1, dword_4441E8 */ ebx_ = D3U_RC_TOTAL_32(&c->st, 0);
-/* mov [t3+1], ah */ M8(edx_ + 1u) = (unsigned char)((eax_ >> 8) & 0xFFu);
-/* mov dword_4441F0, t1 */ D3U_RC_PROB_HI_32(&c->st, 0) = ebx_;
+ D3U_RC_PROB_LO_32(&c->st, 0) = ebx_;
+ ebx_ = D3U_RC_TOTAL_32(&c->st, 0);
+ M8(edx_ + 1u) = (unsigned char)((eax_ >> 8) & 0xFFu);
+ D3U_RC_PROB_HI_32(&c->st, 0) = ebx_;
 l_4167df:
-/* cmp byte ptr [t3], 0FEh */
 if (G8(edx_) >= 0xFEu) goto l_4167ea;
-/* cmp byte ptr [t3+1], 0FEh */
 if (G8(edx_ + 1u) < 0xFEu) goto l_416805;
 l_4167ea:
-/* mov ch, [t3] */ ecx_ = (ecx_ & 0xFFFF00FFUL) | (((unsigned int)G8(edx_) << 8) & 0xFF00u);
-/* mov bl, [t3+1] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_ + 1u);
+ ecx_ = (ecx_ & 0xFFFF00FFUL) | (((unsigned int)G8(edx_) << 8) & 0xFF00u);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(edx_ + 1u);
 ecx_ = (ecx_ & 0xFFFF00FFUL) | (((((ecx_ >> 8) & 0xFFu) + 1u) & 0xFFu) << 8);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | ((ebx_ + 1u) & 0xFFu);
-/* mov [t3], ch */ M8(edx_) = (unsigned char)((ecx_ >> 8) & 0xFFu);
+ M8(edx_) = (unsigned char)((ecx_ >> 8) & 0xFFu);
 eax_ = (eax_ & 0xFFFF00FFUL) | (ecx_ & 0xFF00u);
-/* mov [t3+1], bl */ M8(edx_ + 1u) = (unsigned char)(ebx_ & 0xFFu);
+ M8(edx_ + 1u) = (unsigned char)(ebx_ & 0xFFu);
 ebx_ = (ebx_ & 0xFFFF00FFUL) | ((ebx_ & 0xFFu) << 8);
 eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) >> 1) & 0xFFu) << 8);
 ebx_ = (ebx_ & 0xFFFF00FFUL) | (((((ebx_ >> 8) & 0xFFu) >> 1) & 0xFFu) << 8);
-/* mov [t3], ah */ M8(edx_) = (unsigned char)((eax_ >> 8) & 0xFFu);
-/* mov [t3+1], bh */ M8(edx_ + 1u) = (unsigned char)((ebx_ >> 8) & 0xFFu);
+ M8(edx_) = (unsigned char)((eax_ >> 8) & 0xFFu);
+ M8(edx_ + 1u) = (unsigned char)((ebx_ >> 8) & 0xFFu);
 l_416805:
-/* pop t3 */
-/* pop t2 */
-/* pop t1 */
 /* retn */ return (eax_ & 0xFFu);
 }
 /* write is xor at ). Exit t0 = table-entry pointer, or 0. */
@@ -8256,259 +6966,225 @@ unsigned int v24 = 0;
 unsigned int v20 = 0;
 unsigned int v1c = 0;
 unsigned int qv = 0;
-/* push t1 */
-/* push t2 */
-/* push t3 */
-/* push t4 */
-/* push t5 */
-/* push t6 */
-/* sub esp, 0Ch */
 ebx_ = (ebx_ & 0xFFFF00FFUL) | (8u << 8);
-/* mov t3, dword_444258 */ edx_ = D3U_TBL_444258_32(&c->st, 0);
-/* mov t4, t3 */ esi_ = edx_;
-/* mov t5, t3 */ edi_ = edx_;
-/* xor t2, t2 */ ecx_ = 0u;
-/* xor t0, t0 */ eax_ = 0u;
-/* mov dword_44427C, t2 */ D3U_TBL_44427C_32(&c->st, 0) = ecx_;
+ edx_ = D3U_TBL_444258_32(&c->st, 0);
+ esi_ = edx_;
+ edi_ = edx_;
+ ecx_ = 0u;
+ eax_ = 0u;
+ D3U_TBL_44427C_32(&c->st, 0) = ecx_;
 goto l_41507f;
 l_41507f:
-/* shr t3, 8 */ edx_ >>= 8;
-/* shr t4, 10h */ esi_ >>= 16;
+ edx_ >>= 8;
+ esi_ >>= 16;
 edi_ &= 0xFFFF0000UL;
 ebx_ &= 0xFFFFFF00UL;
-/* cmp t5, 0FFFF0000h */
 if (edi_ != 0xFFFF0000UL) goto l_41509c;
-/* mov t0, 10000h */ eax_ = 0x10000u;
+ eax_ = 0x10000u;
 goto l_415124;
 l_41509c:
-/* mov t5, dword_444258 */ edi_ = D3U_TBL_444258_32(&c->st, 0);
-/* and t5, 0FFFFh */ edi_ &= 0xFFFFu;
-/* cmp t5, 0FFFFh */
+ edi_ = D3U_TBL_444258_32(&c->st, 0);
+ edi_ &= 0xFFFFu;
 if (edi_ != 0xFFFFu) goto l_4150ba;
-/* mov t0, 20000h */ eax_ = 0x20000u;
+ eax_ = 0x20000u;
 goto l_415124;
 l_4150ba:
-/* mov t5, dword_444258 */ edi_ = D3U_TBL_444258_32(&c->st, 0);
-/* and t5, 0FF000000h */ edi_ &= 0xFF000000UL;
-/* cmp t5, 0FF000000h */
+ edi_ = D3U_TBL_444258_32(&c->st, 0);
+ edi_ &= 0xFF000000UL;
 if (edi_ != 0xFF000000UL) goto l_4150d5;
-/* mov t0, 30000h */ eax_ = 0x30000u;
+ eax_ = 0x30000u;
 goto l_415124;
 l_4150d5:
-/* mov t5, dword_444258 */ edi_ = D3U_TBL_444258_32(&c->st, 0);
-/* and t5, 0FF0000h */ edi_ &= 0xFF0000u;
-/* cmp t5, 0FF0000h */
+ edi_ = D3U_TBL_444258_32(&c->st, 0);
+ edi_ &= 0xFF0000u;
 if (edi_ != 0xFF0000u) goto l_4150f0;
-/* mov t0, 40000h */ eax_ = 0x40000u;
+ eax_ = 0x40000u;
 goto l_415124;
 l_4150f0:
-/* mov t5, dword_444258 */ edi_ = D3U_TBL_444258_32(&c->st, 0);
-/* and t5, 0FF00h */ edi_ &= 0xFF00u;
-/* cmp t5, 0FF00h */
+ edi_ = D3U_TBL_444258_32(&c->st, 0);
+ edi_ &= 0xFF00u;
 if (edi_ != 0xFF00u) goto l_41510b;
-/* mov t0, 50000h */ eax_ = 0x50000u;
+ eax_ = 0x50000u;
 goto l_415124;
 l_41510b:
-/* mov t5, dword_444258 */ edi_ = D3U_TBL_444258_32(&c->st, 0);
-/* and t5, 0FFh */ edi_ &= 0xFFu;
-/* cmp t5, 0FFh */
+ edi_ = D3U_TBL_444258_32(&c->st, 0);
+ edi_ &= 0xFFu;
 if (edi_ != 0xFFu) goto l_415124;
-/* mov t0, 60000h */ eax_ = 0x60000u;
+ eax_ = 0x60000u;
 l_415124:
-/* mov t5, t4 */ edi_ = esi_;
-/* mov t6, dword_44425C */ ebp_ = D3U_TBL_44425C_32(&c->st, 0);
-/* and t5, 0FF00h */ edi_ &= 0xFF00u;
-/* shr t6, 18h */ ebp_ >>= 24;
-/* and t4, 0FFFFh */ esi_ &= 0xFFFFu;
-/* mov dword_443CF0, t4 */ D3U_TBL_443CF0_32(&c->st, 0) = esi_;
-/* add t6, t5 */ ebp_ = (ebp_ + edi_) & U32MASK;
-/* mov t4, t3 */ esi_ = edx_;
-/* mov dword_443CE8, t6 */ D3U_TBL_443CE8_32(&c->st, 0) = ebp_;
-/* and t4, 0FF00h */ esi_ &= 0xFF00u;
-/* mov t6, t3 */ ebp_ = edx_;
-/* mov [esp+24h+var_24], t4 */ v24 = esi_;
-/* and t6, 0FFFFh */ ebp_ &= 0xFFFFu;
-/* mov t4, dword_444258 */ esi_ = D3U_TBL_444258_32(&c->st, 0);
-/* mov dword_443CEC, t6 */ D3U_TBL_443CEC_32(&c->st, 0) = ebp_;
-/* and t4, 0FFh */ esi_ &= 0xFFu;
-/* mov t6, [esp+24h+var_24] */ ebp_ = v24;
-/* add t6, t4 */ ebp_ = (ebp_ + esi_) & U32MASK;
-/* and t3, 0FFh */ edx_ &= 0xFFu;
-/* mov dword_443CF4, t6 */ D3U_TBL_443CF4_32(&c->st, 0) = ebp_;
-/* lea t6, [t5+t3] */ ebp_ = (edi_ + edx_) & U32MASK;
-/* mov t3, dword_44425C */ edx_ = D3U_TBL_44425C_32(&c->st, 0);
-/* mov dword_443CF8, t6 */ D3U_TBL_443CF8_32(&c->st, 0) = ebp_;
-/* and t3, 0FFFFh */ edx_ &= 0xFFFFu;
-/* add t5, t4 */ edi_ = (edi_ + esi_) & U32MASK;
-/* add t3, t0 */ edx_ = (edx_ + eax_) & U32MASK;
-/* mov dword_443CFC, t5 */ D3U_TBL_443CFC_32(&c->st, 0) = edi_;
-/* mov dword_443D00, t3 */ D3U_TBL_443D00_32(&c->st, 0) = edx_;
-/* cmp t4, 0FFh */
+ edi_ = esi_;
+ ebp_ = D3U_TBL_44425C_32(&c->st, 0);
+ edi_ &= 0xFF00u;
+ ebp_ >>= 24;
+ esi_ &= 0xFFFFu;
+ D3U_TBL_443CF0_32(&c->st, 0) = esi_;
+ ebp_ = (ebp_ + edi_) & U32MASK;
+ esi_ = edx_;
+ D3U_TBL_443CE8_32(&c->st, 0) = ebp_;
+ esi_ &= 0xFF00u;
+ ebp_ = edx_;
+ v24 = esi_;
+ ebp_ &= 0xFFFFu;
+ esi_ = D3U_TBL_444258_32(&c->st, 0);
+ D3U_TBL_443CEC_32(&c->st, 0) = ebp_;
+ esi_ &= 0xFFu;
+ ebp_ = v24;
+ ebp_ = (ebp_ + esi_) & U32MASK;
+ edx_ &= 0xFFu;
+ D3U_TBL_443CF4_32(&c->st, 0) = ebp_;
+ ebp_ = (edi_ + edx_) & U32MASK;
+ edx_ = D3U_TBL_44425C_32(&c->st, 0);
+ D3U_TBL_443CF8_32(&c->st, 0) = ebp_;
+ edx_ &= 0xFFFFu;
+ edi_ = (edi_ + esi_) & U32MASK;
+ edx_ = (edx_ + eax_) & U32MASK;
+ D3U_TBL_443CFC_32(&c->st, 0) = edi_;
+ D3U_TBL_443D00_32(&c->st, 0) = edx_;
 if (esi_ != 0xFFu) goto l_4151ca;
 edx_ = (edx_ & 0xFFFF0000UL) | (unsigned int)D3U_TBL_443CEC_16(&c->st, 2u);
 esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)D3U_TBL_443CF0_16(&c->st, 2u);
-/* inc t3 */ edx_ = (edx_ + 1u) & U32MASK;
-/* inc t4 */ esi_ = (esi_ + 1u) & U32MASK;
+ edx_ = (edx_ + 1u) & U32MASK;
+ esi_ = (esi_ + 1u) & U32MASK;
 D3U_TBL_443CEC_16(&c->st, 2u) = (unsigned short)(edx_ & 0xFFFFu);
 D3U_TBL_443CF0_16(&c->st, 2u) = (unsigned short)(esi_ & 0xFFFFu);
 l_4151ca:
-/* movzx t4, byte_444EB9 */ esi_ = (unsigned int)D3U_FLAG_444EB9_8(&c->st, 0);
-/* mov t3, dword_444274 */ edx_ = D3U_DICT_CURSOR_32(&c->st, 0);
-/* mov t5, dword_444278 */ edi_ = D3U_DICT_MASK_32(&c->st, 0);
-/* sub t3, t4 */ edx_ = (edx_ - esi_) & U32MASK;
-/* mov t0, dword_4299B8 */ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* and t3, t5 */ edx_ &= edi_;
-/* mov dl, [t3+t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[(edx_ + eax_) - c->blk00_base];
-/* and t3, 0FFh */ edx_ &= 0xFFu;
-/* mov [esp+24h+var_1C], t3 */ v1c = edx_;
-/* xor t3, t3 */ edx_ = 0u;
+ esi_ = (unsigned int)D3U_FLAG_444EB9_8(&c->st, 0);
+ edx_ = D3U_DICT_CURSOR_32(&c->st, 0);
+ edi_ = D3U_DICT_MASK_32(&c->st, 0);
+ edx_ = (edx_ - esi_) & U32MASK;
+ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ edx_ &= edi_;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[(edx_ + eax_) - c->blk00_base];
+ edx_ &= 0xFFu;
+ v1c = edx_;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB9_8(&c->st, 0);
-/* mov t5, dword_444274 */ edi_ = D3U_DICT_CURSOR_32(&c->st, 0);
-/* add t3, t3 */ edx_ = (edx_ + edx_) & U32MASK;
-/* sub t5, t3 */ edi_ = (edi_ - edx_) & U32MASK;
-/* mov t6, dword_444278 */ ebp_ = D3U_DICT_MASK_32(&c->st, 0);
-/* mov t3, t5 */ edx_ = edi_;
-/* and t3, t6 */ edx_ &= ebp_;
-/* mov al, [t3+t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[(edx_ + eax_) - c->blk00_base];
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* mov [esp+24h+var_20], t0 */ v20 = eax_;
+ edi_ = D3U_DICT_CURSOR_32(&c->st, 0);
+ edx_ = (edx_ + edx_) & U32MASK;
+ edi_ = (edi_ - edx_) & U32MASK;
+ ebp_ = D3U_DICT_MASK_32(&c->st, 0);
+ edx_ = edi_;
+ edx_ &= ebp_;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[(edx_ + eax_) - c->blk00_base];
+ eax_ &= 0xFFu;
+ v20 = eax_;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB9_8(&c->st, 0);
 if ((eax_ & 0xFFu) != (unsigned int)D3U_FLAG_444EA2_8(&c->st, 0)) goto l_415252;
 if (D3U_TBL_444258_8(&c->st, 0) != 1u) goto l_415233;
 ebx_ = (ebx_ & 0xFFFFFF00UL) | 8u;
 l_415233:
-/* mov t0, dword_444258 */ eax_ = D3U_TBL_444258_32(&c->st, 0);
-/* shr t0, 10h */ eax_ >>= 16;
-/* cmp t0, 0F6FFh */
+ eax_ = D3U_TBL_444258_32(&c->st, 0);
+ eax_ >>= 16;
 eax_ = (eax_ & 0xFFFFFF00UL) | ((eax_ == 0xF6FFu) ? 1u : 0u);
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* shl t0, 8 */ eax_ = (eax_ << 8) & U32MASK;
-/* mov dword_443D04, t0 */ D3U_TBL_443D04_32(&c->st, 0) = eax_;
+ eax_ &= 0xFFu;
+ eax_ = (eax_ << 8) & U32MASK;
+ D3U_TBL_443D04_32(&c->st, 0) = eax_;
 goto l_415264;
 l_415252:
-/* mov t0, dword_4441C0 */ eax_ = D3U_TBL_4441C0_32(&c->st, 0);
-/* xor t3, t3 */ edx_ = 0u;
-/* div t4 */ qv = eax_; eax_ = qv / esi_; edx_ = qv % esi_;
-/* shl t3, 8 */ edx_ = (edx_ << 8) & U32MASK;
-/* mov dword_443D04, t3 */ D3U_TBL_443D04_32(&c->st, 0) = edx_;
+ eax_ = D3U_TBL_4441C0_32(&c->st, 0);
+ edx_ = 0u;
+ qv = eax_; eax_ = qv / esi_; edx_ = qv % esi_;
+ edx_ = (edx_ << 8) & U32MASK;
+ D3U_TBL_443D04_32(&c->st, 0) = edx_;
 l_415264:
-/* mov dl, byte ptr [esp+24h+var_1C] */ edx_ = (edx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
 edx_ = (edx_ & 0xFFFFFF00UL) | (((edx_ & 0xFFu) + (edx_ & 0xFFu)) & 0xFFu);
-/* mov dh, byte ptr [esp+24h+var_20] */ edx_ = (edx_ & 0xFFFF00FFUL) | ((v20 & 0xFFu) << 8);
-/* mov al, byte ptr [esp+24h+var_1C] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ edx_ = (edx_ & 0xFFFF00FFUL) | ((v20 & 0xFFu) << 8);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
 edx_ = (edx_ & 0xFFFFFF00UL) | (((edx_ & 0xFFu) - ((edx_ >> 8) & 0xFFu)) & 0xFFu);
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) - ((edx_ >> 8) & 0xFFu)) & 0xFFu);
-/* mov t4, dword_443D04 */ esi_ = D3U_TBL_443D04_32(&c->st, 0);
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* add t4, t0 */ esi_ = (esi_ + eax_) & U32MASK;
-/* mov t0, t4 */ eax_ = esi_;
-/* mov dword_443D04, t4 */ D3U_TBL_443D04_32(&c->st, 0) = esi_;
-/* mov t4, dword_4299EC */ esi_ = (unsigned long)D3U_TBL_4299EC_32(&c->st, 0);
-/* mov [t4+t0*4+2], dl */ M8(esi_ + eax_ * 4u + 2u) = (unsigned char)(edx_ & 0xFFu);
+ esi_ = D3U_TBL_443D04_32(&c->st, 0);
+ eax_ &= 0xFFu;
+ esi_ = (esi_ + eax_) & U32MASK;
+ eax_ = esi_;
+ D3U_TBL_443D04_32(&c->st, 0) = esi_;
+ esi_ = (unsigned long)D3U_TBL_4299EC_32(&c->st, 0);
+ M8(esi_ + eax_ * 4u + 2u) = (unsigned char)(edx_ & 0xFFu);
 if ((ebx_ & 0xFFu) >= 8u) goto l_4152e5;
 l_41529a:
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* mov t3, dword_443CE8[t0*4] */ edx_ = D3U_TBL_443CE8_32(&c->st, (eax_ & 0xFFu) * 4u);
-/* shl t3, 2 */ edx_ = (edx_ << 2) & U32MASK;
-/* mov t0, dword_4299D0[t0*4] */ eax_ = D3U_TBL_4299D0_32(&c->st, (eax_ & 0xFFu) * 4u);
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* cmp byte ptr [t0+1], 0 */
+ edx_ = D3U_TBL_443CE8_32(&c->st, (eax_ & 0xFFu) * 4u);
+ edx_ = (edx_ << 2) & U32MASK;
+ eax_ = D3U_TBL_4299D0_32(&c->st, (eax_ & 0xFFu) * 4u);
+ eax_ = (eax_ + edx_) & U32MASK;
 if (G8(eax_ + 1u) == 0u) goto l_4152de;
-/* cmp byte ptr [t0+3], 80h */
 if (G8(eax_ + 3u) >= 0x80u) goto l_4152de;
-/* movzx t4, byte ptr [t0] */ esi_ = (unsigned int)G8(eax_);
-/* xor t3, t3 */ edx_ = 0u;
-/* shl t4, 8 */ esi_ = (esi_ << 8) & U32MASK;
-/* mov dl, [t0+3] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_ + 3u);
-/* imul t3, t4 */ edx_ = (edx_ * esi_) & U32MASK;
-/* movzx t4, byte ptr [t0+1] */ esi_ = (unsigned int)G8(eax_ + 1u);
-/* mov t0, t3 */ eax_ = edx_;
-/* sar t3, 1Fh */ edx_ = (unsigned int)(((int)edx_) >> 31) & U32MASK;
-/* idiv t4 */ qv = eax_; eax_ = (unsigned int)(((int)qv) / ((int)esi_)); edx_ = (unsigned int)(((int)qv) % ((int)esi_));
-/* cmp t0, t2 */
+ esi_ = (unsigned int)G8(eax_);
+ edx_ = 0u;
+ esi_ = (esi_ << 8) & U32MASK;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_ + 3u);
+ edx_ = (edx_ * esi_) & U32MASK;
+ esi_ = (unsigned int)G8(eax_ + 1u);
+ eax_ = edx_;
+ edx_ = (unsigned int)(((int)edx_) >> 31) & U32MASK;
+ qv = eax_; eax_ = (unsigned int)(((int)qv) / ((int)esi_)); edx_ = (unsigned int)(((int)qv) % ((int)esi_));
 if (eax_ <= ecx_) goto l_4152de;
-/* mov t2, t0 */ ecx_ = eax_;
+ ecx_ = eax_;
 ebx_ = (ebx_ & 0xFFFF00FFUL) | ((ebx_ & 0xFFu) << 8);
 l_4152de:
 ebx_ = (ebx_ & 0xFFFFFF00UL) | ((ebx_ + 1u) & 0xFFu);
 if ((ebx_ & 0xFFu) < 8u) goto l_41529a;
 l_4152e5:
 if (((ebx_ >> 8) & 0xFFu) >= 8u) goto l_4153a2;
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* mov t3, dword_443CE8[t0*4] */ edx_ = D3U_TBL_443CE8_32(&c->st, (eax_ & 0xFFu) * 4u);
-/* shl t3, 2 */ edx_ = (edx_ << 2) & U32MASK;
-/* mov t0, dword_4299D0[t0*4] */ eax_ = D3U_TBL_4299D0_32(&c->st, (eax_ & 0xFFu) * 4u);
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov dl, [t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
-/* cmp dl, [t0+1] */
+ edx_ = D3U_TBL_443CE8_32(&c->st, (eax_ & 0xFFu) * 4u);
+ edx_ = (edx_ << 2) & U32MASK;
+ eax_ = D3U_TBL_4299D0_32(&c->st, (eax_ & 0xFFu) * 4u);
+ eax_ = (eax_ + edx_) & U32MASK;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 if ((edx_ & 0xFFu) > (unsigned int)G8(eax_ + 1u)) goto l_41531b;
-/* mov dl, [t0+3] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_ + 3u);
-/* and dl, 7Fh */ edx_ = (edx_ & 0xFFFFFF00UL) | ((edx_ & 0xFFu) & 0x7Fu);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_ + 3u);
+ edx_ = (edx_ & 0xFFFFFF00UL) | ((edx_ & 0xFFu) & 0x7Fu);
 if ((edx_ & 0xFFu) <= 1u) goto l_4153a2;
 l_41531b:
 if ((unsigned int)D3U_FLAG_444EB9_8(&c->st, 0) <= 1u) goto l_415330;
 edx_ = (edx_ & 0xFFFFFF00UL) | (((((ebx_ >> 8) & 0xFFu) == 7u) ? 1u : 0u));
 D3U_FLAG_444EA4_8(&c->st, 0) = (unsigned char)(edx_ & 0xFFu);
 l_415330:
-/* mov ch, [t0+1] */ ecx_ = (ecx_ & 0xFFFF00FFUL) | (((unsigned int)G8(eax_ + 1u) << 8) & 0xFF00u);
+ ecx_ = (ecx_ & 0xFFFF00FFUL) | (((unsigned int)G8(eax_ + 1u) << 8) & 0xFF00u);
 if (((ecx_ >> 8) & 0xFFu) != 2u) goto l_415360;
-/* mov dl, [t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 edx_ = (edx_ & 0xFFFFFF00UL) | (((edx_ & 0xFFu) - 3u) & 0xFFu);
 if ((edx_ & 0xFFu) >= ((ecx_ >> 8) & 0xFFu)) goto l_415360;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov dl, [t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
-/* xor t2, t2 */ ecx_ = 0u;
-/* shl t3, 3 */ edx_ = (edx_ << 3) & U32MASK;
+ edx_ = 0u;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ ecx_ = 0u;
+ edx_ = (edx_ << 3) & U32MASK;
 ecx_ = (ecx_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* sub t3, 18h */ edx_ = (edx_ - 0x18u) & U32MASK;
-/* add t3, t2 */ edx_ = (edx_ + ecx_) & U32MASK;
-/* mov t2, offset dword_444148 */ ecx_ = D3U_TBL_444148;
-/* add t3, t3 */ edx_ = (edx_ + edx_) & U32MASK;
-/* add t2, t3 */ ecx_ = (ecx_ + edx_) & U32MASK;
-/* mov dword_44427C, t2 */ D3U_TBL_44427C_32(&c->st, 0) = ecx_;
+ edx_ = (edx_ - 0x18u) & U32MASK;
+ edx_ = (edx_ + ecx_) & U32MASK;
+ ecx_ = D3U_TBL_444148;
+ edx_ = (edx_ + edx_) & U32MASK;
+ ecx_ = (ecx_ + edx_) & U32MASK;
+ D3U_TBL_44427C_32(&c->st, 0) = ecx_;
 l_415360:
-/* cmp byte ptr [t0+1], 3 */
 if (G8(eax_ + 1u) != 3u) goto l_415392;
-/* mov dl, [t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 edx_ = (edx_ & 0xFFFFFF00UL) | (((edx_ & 0xFFu) - 4u) & 0xFFu);
 if ((edx_ & 0xFFu) >= 2u) goto l_415392;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov dl, [t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
-/* xor t2, t2 */ ecx_ = 0u;
-/* shl t3, 3 */ edx_ = (edx_ << 3) & U32MASK;
+ edx_ = 0u;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ ecx_ = 0u;
+ edx_ = (edx_ << 3) & U32MASK;
 ecx_ = (ecx_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* sub t3, 20h */ edx_ = (edx_ - 0x20u) & U32MASK;
-/* add t3, t2 */ edx_ = (edx_ + ecx_) & U32MASK;
-/* add t3, t3 */ edx_ = (edx_ + edx_) & U32MASK;
-/* mov t2, offset dword_444148 */ ecx_ = D3U_TBL_444148;
-/* add t3, 20h */ edx_ = (edx_ + 0x20u) & U32MASK;
-/* add t2, t3 */ ecx_ = (ecx_ + edx_) & U32MASK;
-/* mov dword_44427C, t2 */ D3U_TBL_44427C_32(&c->st, 0) = ecx_;
+ edx_ = (edx_ - 0x20u) & U32MASK;
+ edx_ = (edx_ + ecx_) & U32MASK;
+ edx_ = (edx_ + edx_) & U32MASK;
+ ecx_ = D3U_TBL_444148;
+ edx_ = (edx_ + 0x20u) & U32MASK;
+ ecx_ = (ecx_ + edx_) & U32MASK;
+ D3U_TBL_44427C_32(&c->st, 0) = ecx_;
 l_415392:
 D3U_FLAG_444EA3_8(&c->st, 0) = (unsigned char)((ebx_ >> 8) & 0xFFu);
-/* add esp, 0Ch */
-/* pop t6 */
-/* pop t5 */
-/* pop t4 */
-/* pop t3 */
-/* pop t2 */
-/* pop t1 */
 /* retn */ return eax_;
 l_4153a2:
 if ((unsigned int)D3U_FLAG_444EBA_8(&c->st, 0) <= 1u) goto l_4153b2;
-/* mov t0, dword_4441F8 */ eax_ = D3U_TBL_4441F8_32(&c->st, 0);
-/* shr dword ptr [t0], 1 */ d3u_st32(c, (unsigned long)(eax_), d3u_ld32(c, (unsigned long)(eax_)) >> (1));
+ eax_ = D3U_TBL_4441F8_32(&c->st, 0);
+ d3u_st32(c, (unsigned long)(eax_), d3u_ld32(c, (unsigned long)(eax_)) >> (1));
 l_4153b2:
-/* xor t0, t0 */ eax_ = 0u;
-/* add esp, 0Ch */
-/* pop t6 */
-/* pop t5 */
-/* pop t4 */
-/* pop t3 */
-/* pop t2 */
-/* pop t1 */
+ eax_ = 0u;
 /* retn */ return eax_;
 }
 /* t1 access is write mov bh,al at . Exit al (mov al,bl tail). */
@@ -8523,189 +7199,172 @@ unsigned int edi_ = 0;
 unsigned int ebp_ = 0;
 unsigned int stk_d = 0;
 unsigned int stk_b = 0;
-/* push t1 */
-/* push t2 */
-/* push t4 */
-/* push t5 */
-/* push t6 */
-/* sub esp, 8 */
-/* mov t2, t0 */ ecx_ = eax_in;
-/* mov t4, t3 */ esi_ = edx_in;
-/* mov t5, dword_4441E4 */ edi_ = D3U_TBL_4441E4_32(&c->st, 0);
-/* cmp t3, 2FDh */
+ ecx_ = eax_in;
+ esi_ = edx_in;
+ edi_ = D3U_TBL_4441E4_32(&c->st, 0);
 eax_ = (eax_ & 0xFFFFFF00UL) | ((edx_in == 0x2FDu) ? 1u : 0u);
-/* mov dword_44421C, t4 */ D3U_TBL_44421C_32(&c->st, 0) = esi_;
-/* mov t3, dword_4441FC */ edx_ = D3U_TBL_4441FC_32(&c->st, 0);
-/* xor t6, t6 */ ebp_ = 0u;
-/* inc t3 */ edx_ = (edx_ + 1u) & U32MASK;
+ D3U_TBL_44421C_32(&c->st, 0) = esi_;
+ edx_ = D3U_TBL_4441FC_32(&c->st, 0);
+ ebp_ = 0u;
+ edx_ = (edx_ + 1u) & U32MASK;
 ebx_ = (ebx_ & 0xFFFF00FFUL) | ((eax_ & 0xFFu) << 8);
-/* and t3, 0FFh */ edx_ &= 0xFFu;
-/* mov dword_4441F4, t6 */ D3U_TBL_4441F4_32(&c->st, 0) = ebp_;
-/* mov dword_4441FC, t3 */ D3U_TBL_4441FC_32(&c->st, 0) = edx_;
-/* mov t3, dword_442E58[t3*4] */ edx_ = D3U_TBL_442E58_32(&c->st, edx_ * 4u);
+ edx_ &= 0xFFu;
+ D3U_TBL_4441F4_32(&c->st, 0) = ebp_;
+ D3U_TBL_4441FC_32(&c->st, 0) = edx_;
+ edx_ = D3U_TBL_442E58_32(&c->st, edx_ * 4u);
 eax_ = (eax_ & 0xFFFF00FFUL) | (1u << 8);
-/* sub t5, t3 */ edi_ = (edi_ - edx_) & U32MASK;
-/* mov [esp+1Ch+var_18], ah */ stk_b = (eax_ >> 8) & 0xFFu;
-/* mov dword_4441E4, t5 */ D3U_TBL_4441E4_32(&c->st, 0) = edi_;
-/* cmp t5, 6D4250h */
+ edi_ = (edi_ - edx_) & U32MASK;
+ stk_b = (eax_ >> 8) & 0xFFu;
+ D3U_TBL_4441E4_32(&c->st, 0) = edi_;
 if (edi_ < 0x6D4250u) goto l_4176fb;
-/* cmp t5, 0FEFF01h */
 if (edi_ >= 0xFEFF01u) goto l_4176fb;
-/* cmp t5, 91ADC0h */
 if (edi_ < 0x91ADC0u) goto l_4175cb;
-/* mov t4, 100h */ esi_ = 0x100u;
-/* xor t0, t0 */ eax_ = 0u;
-/* mov dword_4441E8, t4 */ D3U_RC_TOTAL_32(&c->st, 0) = esi_;
+ esi_ = 0x100u;
+ eax_ = 0u;
+ D3U_RC_TOTAL_32(&c->st, 0) = esi_;
 eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)D3U_RC_TOTAL_16(&c->st, 0);
 eax_ = d3uc_rc_decode(c, eax_);
-/* mov t3, t0 */ edx_ = eax_;
+ edx_ = eax_;
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (edx_ & 0xFFu);
-/* mov dword_4441EC, t0 */ D3U_RC_PROB_LO_32(&c->st, 0) = eax_;
-/* xor t0, t0 */ eax_ = 0u;
+ D3U_RC_PROB_LO_32(&c->st, 0) = eax_;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (edx_ & 0xFFu);
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* mov dword_4441F0, t0 */ D3U_RC_PROB_HI_32(&c->st, 0) = eax_;
-/* mov t0, offset dword_4441E8 */ eax_ = D3U_RC_TOTAL;
+ eax_ = (eax_ + 1u) & U32MASK;
+ D3U_RC_PROB_HI_32(&c->st, 0) = eax_;
+ eax_ = D3U_RC_TOTAL;
 d3uc_rc_update(c, eax_);
 if (D3U_FLAG_444EAE_8(&c->st, 0) == 0u) goto l_4175bb;
-/* add dword_44420C, 9240h */ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + 0x9240u) & U32MASK;
+ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + 0x9240u) & U32MASK;
 l_4175bb:
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t0, t2 */ eax_ = ecx_;
+ edx_ = 0u;
+ eax_ = ecx_;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
 eax_ = d3uc_update_ctx_coder(c, eax_, edx_);
 goto l_417719;
 l_4175cb:
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
-/* mov t5, dword_443258[t3*4] */ edi_ = D3U_TBL_443258_32(&c->st, (edx_ & 0xFFu) * 4u);
-/* cmp t5, dword_443B60[t3*4] */
+ edi_ = D3U_TBL_443258_32(&c->st, (edx_ & 0xFFu) * 4u);
 if (edi_ < D3U_TBL_443B60_32(&c->st, (edx_ & 0xFFu) * 4u)) goto l_417626;
-/* mov t0, t2 */ eax_ = ecx_;
+ eax_ = ecx_;
 eax_ = d3uc_decode_offset_sym(c, eax_);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EAE_8(&c->st, 0);
-/* mov t6, dword_4441F4 */ ebp_ = D3U_TBL_4441F4_32(&c->st, 0);
+ ebp_ = D3U_TBL_4441F4_32(&c->st, 0);
 if ((eax_ & 0xFFu) == 0u) goto l_4175fd;
-/* add dword_44420C, t6 */ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + ebp_) & U32MASK;
+ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + ebp_) & U32MASK;
 l_4175fd:
-/* xor t0, t0 */ eax_ = 0u;
-/* mov dword_4441F4, t0 */ D3U_TBL_4441F4_32(&c->st, 0) = eax_;
+ eax_ = 0u;
+ D3U_TBL_4441F4_32(&c->st, 0) = eax_;
 eax_ = (eax_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* xor t3, t3 */ edx_ = 0u;
-/* add t0, 2FEh */ eax_ = (eax_ + 0x2FEu) & U32MASK;
+ edx_ = 0u;
+ eax_ = (eax_ + 0x2FEu) & U32MASK;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* mov dword_44421C, t0 */ D3U_TBL_44421C_32(&c->st, 0) = eax_;
-/* mov t0, 200h */ eax_ = 0x200u;
+ D3U_TBL_44421C_32(&c->st, 0) = eax_;
+ eax_ = 0x200u;
 eax_ = d3uc_update_ctx_coder(c, eax_, edx_);
-/* mov t5, dword_4441F4 */ edi_ = D3U_TBL_4441F4_32(&c->st, 0);
+ edi_ = D3U_TBL_4441F4_32(&c->st, 0);
 goto l_417671;
 l_417626:
-/* add t3, 2FEh */ edx_ = (edx_ + 0x2FEu) & U32MASK;
-/* mov t0, 200h */ eax_ = 0x200u;
-/* mov dword_44421C, t3 */ D3U_TBL_44421C_32(&c->st, 0) = edx_;
+ edx_ = (edx_ + 0x2FEu) & U32MASK;
+ eax_ = 0x200u;
+ D3U_TBL_44421C_32(&c->st, 0) = edx_;
 eax_ = d3uc_decode_offset_sym(c, eax_);
-/* mov t5, dword_4441F4 */ edi_ = D3U_TBL_4441F4_32(&c->st, 0);
+ edi_ = D3U_TBL_4441F4_32(&c->st, 0);
 edx_ = (edx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444EAE_8(&c->st, 0) << 8) & 0xFF00u);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
 if (((edx_ >> 8) & 0xFFu) == 0u) goto l_417654;
-/* add dword_44420C, t5 */ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + edi_) & U32MASK;
+ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + edi_) & U32MASK;
 l_417654:
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t0, t2 */ eax_ = ecx_;
-/* mov dword_4441F4, t3 */ D3U_TBL_4441F4_32(&c->st, 0) = edx_;
+ edx_ = 0u;
+ eax_ = ecx_;
+ D3U_TBL_4441F4_32(&c->st, 0) = edx_;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* mov dword_44421C, t4 */ D3U_TBL_44421C_32(&c->st, 0) = esi_;
+ D3U_TBL_44421C_32(&c->st, 0) = esi_;
 eax_ = d3uc_update_ctx_coder(c, eax_, edx_);
-/* mov t6, dword_4441F4 */ ebp_ = D3U_TBL_4441F4_32(&c->st, 0);
+ ebp_ = D3U_TBL_4441F4_32(&c->st, 0);
 l_417671:
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* mov [esp+1Ch+var_1C], t0 */ stk_d = eax_;
-/* add t0, 2FEh */ eax_ = (eax_ + 0x2FEu) & U32MASK;
-/* mov dword_44421C, t0 */ D3U_TBL_44421C_32(&c->st, 0) = eax_;
-/* xor t0, t0 */ eax_ = 0u;
+ stk_d = eax_;
+ eax_ = (eax_ + 0x2FEu) & U32MASK;
+ D3U_TBL_44421C_32(&c->st, 0) = eax_;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB3_8(&c->st, 0);
-/* mov t3, dword_44421C */ edx_ = D3U_TBL_44421C_32(&c->st, 0);
-/* mov dword_441F08[t0*4], t3 */ D3U_TBL_441F08_32(&c->st, (eax_ & 0xFFu) * 4u) = edx_;
-/* mov dword_442018[t0*4], 200h */ D3U_TBL_442018_32(&c->st, (eax_ & 0xFFu) * 4u) = 0x200u;
+ edx_ = D3U_TBL_44421C_32(&c->st, 0);
+ D3U_TBL_441F08_32(&c->st, (eax_ & 0xFFu) * 4u) = edx_;
+ D3U_TBL_442018_32(&c->st, (eax_ & 0xFFu) * 4u) = 0x200u;
 D3U_FLAG_444EB3_8(&c->st, 0) = (unsigned char)((D3U_FLAG_444EB3_8(&c->st, 0) + 1u) & 0xFFu);
-/* mov t3, dword_4441E4 */ edx_ = D3U_TBL_4441E4_32(&c->st, 0);
-/* add t3, t5 */ edx_ = (edx_ + edi_) & U32MASK;
-/* mov byte_4441D8[t0], bl */ D3U_TBL_4441D8_8(&c->st, (eax_ & 0xFFu)) = (unsigned char)(ebx_ & 0xFFu);
-/* mov dword_4441E4, t3 */ D3U_TBL_4441E4_32(&c->st, 0) = edx_;
-/* mov t3, [esp+1Ch+var_1C] */ edx_ = stk_d;
-/* mov t0, dword_4441FC */ eax_ = D3U_TBL_4441FC_32(&c->st, 0);
-/* shl t3, 2 */ edx_ = (edx_ << 2) & U32MASK;
-/* mov dword_442E58[t0*4], t5 */ D3U_TBL_442E58_32(&c->st, eax_ * 4u) = edi_;
-/* mov t0, dword_443258[t3] */ eax_ = D3U_TBL_443258_32(&c->st, edx_);
-/* mov [esp+1Ch+var_1C], t0 */ stk_d = eax_;
-/* shl t0, 5 */ eax_ = (eax_ << 5) & U32MASK;
-/* sub t0, [esp+1Ch+var_1C] */ eax_ = (eax_ - stk_d) & U32MASK;
-/* shr t0, 5 */ eax_ >>= 5;
-/* add t0, t5 */ eax_ = (eax_ + edi_) & U32MASK;
-/* mov dword_4441F4, t6 */ D3U_TBL_4441F4_32(&c->st, 0) = ebp_;
-/* mov dword_443258[t3], t0 */ D3U_TBL_443258_32(&c->st, edx_) = eax_;
+ edx_ = D3U_TBL_4441E4_32(&c->st, 0);
+ edx_ = (edx_ + edi_) & U32MASK;
+ D3U_TBL_4441D8_8(&c->st, (eax_ & 0xFFu)) = (unsigned char)(ebx_ & 0xFFu);
+ D3U_TBL_4441E4_32(&c->st, 0) = edx_;
+ edx_ = stk_d;
+ eax_ = D3U_TBL_4441FC_32(&c->st, 0);
+ edx_ = (edx_ << 2) & U32MASK;
+ D3U_TBL_442E58_32(&c->st, eax_ * 4u) = edi_;
+ eax_ = D3U_TBL_443258_32(&c->st, edx_);
+ stk_d = eax_;
+ eax_ = (eax_ << 5) & U32MASK;
+ eax_ = (eax_ - stk_d) & U32MASK;
+ eax_ >>= 5;
+ eax_ = (eax_ + edi_) & U32MASK;
+ D3U_TBL_4441F4_32(&c->st, 0) = ebp_;
+ D3U_TBL_443258_32(&c->st, edx_) = eax_;
 edx_ = (edx_ & 0xFFFF00FFUL);
-/* mov dword_44421C, t4 */ D3U_TBL_44421C_32(&c->st, 0) = esi_;
-/* mov [esp+1Ch+var_18], dh */ stk_b = (edx_ >> 8) & 0xFFu;
+ D3U_TBL_44421C_32(&c->st, 0) = esi_;
+ stk_b = (edx_ >> 8) & 0xFFu;
 goto l_417719;
 l_4176fb:
-/* mov t0, t2 */ eax_ = ecx_;
+ eax_ = ecx_;
 eax_ = d3uc_decode_offset_sym(c, eax_);
 edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EAE_8(&c->st, 0);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
 if ((edx_ & 0xFFu) == 0u) goto l_417719;
-/* mov t0, dword_4441F4 */ eax_ = D3U_TBL_4441F4_32(&c->st, 0);
-/* add dword_44420C, t0 */ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + eax_) & U32MASK;
+ eax_ = D3U_TBL_4441F4_32(&c->st, 0);
+ D3U_TBL_44420C_32(&c->st, 0) = (D3U_TBL_44420C_32(&c->st, 0) + eax_) & U32MASK;
 l_417719:
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB3_8(&c->st, 0);
-/* mov t4, dword_44421C */ esi_ = D3U_TBL_44421C_32(&c->st, 0);
-/* mov dword_441F08[t0*4], t4 */ D3U_TBL_441F08_32(&c->st, (eax_ & 0xFFu) * 4u) = esi_;
-/* mov dword_442018[t0*4], t2 */ D3U_TBL_442018_32(&c->st, (eax_ & 0xFFu) * 4u) = ecx_;
-/* mov byte_4441D8[t0], bl */ D3U_TBL_4441D8_8(&c->st, (eax_ & 0xFFu)) = (unsigned char)(ebx_ & 0xFFu);
+ esi_ = D3U_TBL_44421C_32(&c->st, 0);
+ D3U_TBL_441F08_32(&c->st, (eax_ & 0xFFu) * 4u) = esi_;
+ D3U_TBL_442018_32(&c->st, (eax_ & 0xFFu) * 4u) = ecx_;
+ D3U_TBL_4441D8_8(&c->st, (eax_ & 0xFFu)) = (unsigned char)(ebx_ & 0xFFu);
 eax_ = (eax_ & 0xFFFF00FFUL) | ((eax_ & 0xFFu) << 8);
 eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + 1u) & 0xFFu) << 8);
-/* mov dl, [esp+1Ch+var_18] */ edx_ = (edx_ & 0xFFFFFF00UL) | (stk_b & 0xFFu);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (stk_b & 0xFFu);
 D3U_FLAG_444EB3_8(&c->st, 0) = (unsigned char)((eax_ >> 8) & 0xFFu);
 if ((edx_ & 0xFFu) == 0u) goto l_417790;
-/* mov t3, dword_4441F4 */ edx_ = D3U_TBL_4441F4_32(&c->st, 0);
-/* mov t6, dword_4441E4 */ ebp_ = D3U_TBL_4441E4_32(&c->st, 0);
-/* mov t0, dword_4441FC */ eax_ = D3U_TBL_4441FC_32(&c->st, 0);
-/* add t6, t3 */ ebp_ = (ebp_ + edx_) & U32MASK;
-/* mov dword_442E58[t0*4], t3 */ D3U_TBL_442E58_32(&c->st, eax_ * 4u) = edx_;
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = D3U_TBL_4441F4_32(&c->st, 0);
+ ebp_ = D3U_TBL_4441E4_32(&c->st, 0);
+ eax_ = D3U_TBL_4441FC_32(&c->st, 0);
+ ebp_ = (ebp_ + edx_) & U32MASK;
+ D3U_TBL_442E58_32(&c->st, eax_ * 4u) = edx_;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* mov t2, dword_443258[t3*4] */ ecx_ = D3U_TBL_443258_32(&c->st, (edx_ & 0xFFu) * 4u);
-/* mov t0, t2 */ eax_ = ecx_;
-/* shl t0, 5 */ eax_ = (eax_ << 5) & U32MASK;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
-/* mov t2, dword_4441F4 */ ecx_ = D3U_TBL_4441F4_32(&c->st, 0);
-/* shr t0, 5 */ eax_ >>= 5;
-/* add t0, t2 */ eax_ = (eax_ + ecx_) & U32MASK;
-/* mov dword_4441E4, t6 */ D3U_TBL_4441E4_32(&c->st, 0) = ebp_;
-/* mov dword_443258[t3*4], t0 */ D3U_TBL_443258_32(&c->st, (edx_ & 0xFFu) * 4u) = eax_;
+ ecx_ = D3U_TBL_443258_32(&c->st, (edx_ & 0xFFu) * 4u);
+ eax_ = ecx_;
+ eax_ = (eax_ << 5) & U32MASK;
+ eax_ = (eax_ - ecx_) & U32MASK;
+ ecx_ = D3U_TBL_4441F4_32(&c->st, 0);
+ eax_ >>= 5;
+ eax_ = (eax_ + ecx_) & U32MASK;
+ D3U_TBL_4441E4_32(&c->st, 0) = ebp_;
+ D3U_TBL_443258_32(&c->st, (edx_ & 0xFFu) * 4u) = eax_;
 l_417790:
-/* xor t2, t2 */ ecx_ = 0u;
+ ecx_ = 0u;
 ecx_ = (ecx_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* mov t3, dword_443B60[t2*4] */ edx_ = D3U_TBL_443B60_32(&c->st, (ecx_ & 0xFFu) * 4u);
-/* mov t0, t3 */ eax_ = edx_;
-/* shl t0, 5 */ eax_ = (eax_ << 5) & U32MASK;
-/* sub t0, t3 */ eax_ = (eax_ - edx_) & U32MASK;
-/* mov t4, dword_4441F4 */ esi_ = D3U_TBL_4441F4_32(&c->st, 0);
-/* shr t0, 5 */ eax_ >>= 5;
-/* add t0, t4 */ eax_ = (eax_ + esi_) & U32MASK;
-/* mov dword_443B60[t2*4], t0 */ D3U_TBL_443B60_32(&c->st, (ecx_ & 0xFFu) * 4u) = eax_;
+ edx_ = D3U_TBL_443B60_32(&c->st, (ecx_ & 0xFFu) * 4u);
+ eax_ = edx_;
+ eax_ = (eax_ << 5) & U32MASK;
+ eax_ = (eax_ - edx_) & U32MASK;
+ esi_ = D3U_TBL_4441F4_32(&c->st, 0);
+ eax_ >>= 5;
+ eax_ = (eax_ + esi_) & U32MASK;
+ D3U_TBL_443B60_32(&c->st, (ecx_ & 0xFFu) * 4u) = eax_;
 eax_ = (eax_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* add esp, 8 */
-/* pop t6 */
-/* pop t5 */
-/* pop t4 */
-/* pop t2 */
-/* pop t1 */
 /* retn */ return (eax_ & 0xFFu);
 }
 /* ignore t0 (next instr overwrites or calls). Void. */
@@ -8716,45 +7375,35 @@ unsigned int ebx_ = 0;
 unsigned int ecx_ = 0;
 unsigned int edx_ = 0;
 unsigned int esi_ = 0;
-/* push t1 */
-/* push t2 */
-/* push t3 */
-/* push t4 */
-/* mov t4, dword_4299BC */ esi_ = (unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
-/* xor t2, t2 */ ecx_ = 0u;
+ esi_ = (unsigned long)D3U_BLK01_DICT_COPY_32(&c->st, 0);
+ ecx_ = 0u;
 l_4141e0:
-/* lea t1, [t4+t2] */ ebx_ = (esi_ + ecx_) & U32MASK;
-/* cmp byte ptr [t1], 0 */
+ ebx_ = (esi_ + ecx_) & U32MASK;
 if (G8(ebx_) == 0u) goto l_414214;
 eax_ = (eax_ & 0xFFFFFF00UL) | 0x0Du;
 eax_ = (eax_ & 0xFFFF00FFUL);
 l_4141ec:
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) - 1u) & 0xFFu);
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
-/* shr byte ptr [t3+t1+1], 2 */ M8(edx_ + ebx_ + 1u) = (unsigned char)(M8(edx_ + ebx_ + 1u) >> 2);
-/* add ah, [t3+t1+1] */ eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + (unsigned int)G8(edx_ + ebx_ + 1u)) & 0xFFu) << 8);
+ M8(edx_ + ebx_ + 1u) = (unsigned char)(M8(edx_ + ebx_ + 1u) >> 2);
+ eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + (unsigned int)G8(edx_ + ebx_ + 1u)) & 0xFFu) << 8);
 if ((eax_ & 0xFFu) != 0u) goto l_4141ec;
 if (((eax_ >> 8) & 0xFFu) == 0u) goto l_41420d;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov dl, [t1] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_);
-/* sar t3, 2 */ edx_ = (unsigned int)(((int)edx_) >> 2) & U32MASK;
-/* inc t3 */ edx_ = (edx_ + 1u) & U32MASK;
+ edx_ = 0u;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_);
+ edx_ = (unsigned int)(((int)edx_) >> 2) & U32MASK;
+ edx_ = (edx_ + 1u) & U32MASK;
 goto l_41420f;
 l_41420d:
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 l_41420f:
-/* mov [t1], dl */ M8(ebx_) = (unsigned char)(edx_ & 0xFFu);
-/* shr byte ptr [t1+1Bh], 1 */ M8(ebx_ + 0x1Bu) = (unsigned char)(M8(ebx_ + 0x1Bu) >> 1);
+ M8(ebx_) = (unsigned char)(edx_ & 0xFFu);
+ M8(ebx_ + 0x1Bu) = (unsigned char)(M8(ebx_ + 0x1Bu) >> 1);
 l_414214:
-/* add t2, 20h */ ecx_ = (ecx_ + 0x20u) & U32MASK;
-/* cmp t2, 800000h */
+ ecx_ = (ecx_ + 0x20u) & U32MASK;
 if (ecx_ != 0x800000u) goto l_4141e0;
-/* mov dword_4299BC, t4 */ D3U_BLK01_DICT_COPY_32(&c->st, 0) = esi_;
-/* pop t4 */
-/* pop t3 */
-/* pop t2 */
-/* pop t1 */
+ D3U_BLK01_DICT_COPY_32(&c->st, 0) = esi_;
 /* retn */ return;
 }
 /* return; callers overwrite t0 next. Void. */
@@ -8765,50 +7414,40 @@ unsigned int ebx_ = 0;
 unsigned int ecx_ = 0;
 unsigned int edx_ = 0;
 unsigned int esi_ = 0;
-/* push t1 */
-/* push t2 */
-/* push t3 */
-/* push t4 */
-/* mov t4, dword_4299C0 */ esi_ = (unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
-/* xor t2, t2 */ ecx_ = 0u;
+ esi_ = (unsigned long)D3U_BLK02_MODEL_A_32(&c->st, 0);
+ ecx_ = 0u;
 l_414238:
-/* lea t1, [t4+t2] */ ebx_ = (esi_ + ecx_) & U32MASK;
-/* cmp byte ptr [t1], 0 */
+ ebx_ = (esi_ + ecx_) & U32MASK;
 if (G8(ebx_) == 0u) goto l_414278;
 eax_ = (eax_ & 0xFFFFFF00UL) | 8u;
 eax_ = (eax_ & 0xFFFF00FFUL);
 l_414244:
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) - 1u) & 0xFFu);
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
-/* shr byte ptr [t3+t1+1], 2 */ M8(edx_ + ebx_ + 1u) = (unsigned char)(M8(edx_ + ebx_ + 1u) >> 2);
-/* add ah, [t3+t1+1] */ eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + (unsigned int)G8(edx_ + ebx_ + 1u)) & 0xFFu) << 8);
+ M8(edx_ + ebx_ + 1u) = (unsigned char)(M8(edx_ + ebx_ + 1u) >> 2);
+ eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + (unsigned int)G8(edx_ + ebx_ + 1u)) & 0xFFu) << 8);
 if ((eax_ & 0xFFu) != 0u) goto l_414244;
 if (((eax_ >> 8) & 0xFFu) == 0u) goto l_414265;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov dl, [t1] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_);
-/* sar t3, 2 */ edx_ = (unsigned int)(((int)edx_) >> 2) & U32MASK;
-/* inc t3 */ edx_ = (edx_ + 1u) & U32MASK;
+ edx_ = 0u;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_);
+ edx_ = (unsigned int)(((int)edx_) >> 2) & U32MASK;
+ edx_ = (edx_ + 1u) & U32MASK;
 goto l_414267;
 l_414265:
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 l_414267:
-/* mov [t1], dl */ M8(ebx_) = (unsigned char)(edx_ & 0xFFu);
-/* mov dl, [t1+11h] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_ + 0x11u);
-/* mov al, [t1] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_);
+ M8(ebx_) = (unsigned char)(edx_ & 0xFFu);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_ + 0x11u);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(ebx_);
 edx_ = (edx_ & 0xFFFFFF00UL) | (((edx_ & 0xFFu) >> 1) & 0xFFu);
 eax_ = (eax_ & 0xFFFF00FFUL) | (((((eax_ >> 8) & 0xFFu) + (eax_ & 0xFFu)) & 0xFFu) << 8);
-/* mov [t1+11h], dl */ M8(ebx_ + 0x11u) = (unsigned char)(edx_ & 0xFFu);
-/* mov [t1+12h], ah */ M8(ebx_ + 0x12u) = (unsigned char)((eax_ >> 8) & 0xFFu);
+ M8(ebx_ + 0x11u) = (unsigned char)(edx_ & 0xFFu);
+ M8(ebx_ + 0x12u) = (unsigned char)((eax_ >> 8) & 0xFFu);
 l_414278:
-/* add t2, 14h */ ecx_ = (ecx_ + 0x14u) & U32MASK;
-/* cmp t2, 140000h */
+ ecx_ = (ecx_ + 0x14u) & U32MASK;
 if (ecx_ != 0x140000u) goto l_414238;
-/* mov dword_4299C0, t4 */ D3U_BLK02_MODEL_A_32(&c->st, 0) = esi_;
-/* pop t4 */
-/* pop t3 */
-/* pop t2 */
-/* pop t1 */
+ D3U_BLK02_MODEL_A_32(&c->st, 0) = esi_;
 /* retn */ return;
 }
 /* written before use). Tail sets no return. Void. */
@@ -8817,25 +7456,20 @@ void d3uc_init_hash_buckets(dec3w_ctx *c)
 unsigned int eax_ = 0;
 unsigned int ebx_ = 0;
 unsigned int edx_ = 0;
-/* push t1 */
-/* push t3 */
-/* mov t1, 1E40h */ ebx_ = 0x1E40u;
-/* mov t0, offset dword_43D8B0 */ eax_ = D3U_TBL_43D8B0;
-/* xor t3, t3 */ edx_ = 0u;
+ ebx_ = 0x1E40u;
+ eax_ = D3U_TBL_43D8B0;
+ edx_ = 0u;
 d3uc_fill(c, ebx_, eax_, edx_);
-/* mov t3, 2 */ edx_ = 2u;
-/* mov t1, 0FFFFFFFFh */ ebx_ = 0xFFFFFFFFUL;
-/* xor t0, t0 */ eax_ = 0u;
-/* mov dword_43D8B8, t3 */ D3U_TBL_43D8B8_32(&c->st, 0) = edx_;
+ edx_ = 2u;
+ ebx_ = 0xFFFFFFFFUL;
+ eax_ = 0u;
+ D3U_TBL_43D8B8_32(&c->st, 0) = edx_;
 l_41b2f9:
-/* add t0, 7Ch */ eax_ = (eax_ + 0x7Cu) & U32MASK;
-/* mov dword_43F4F0[t0], t1 */ D3U_TBL_43F4F0_32(&c->st, eax_) = ebx_;
-/* mov dword_43F4F4[t0], t1 */ D3U_TBL_43F4F4_32(&c->st, eax_) = ebx_;
-/* mov dword_43F4F8[t0], t1 */ D3U_TBL_43F4F8_32(&c->st, eax_) = ebx_;
-/* cmp t0, 1F0h */
+ eax_ = (eax_ + 0x7Cu) & U32MASK;
+ D3U_TBL_43F4F0_32(&c->st, eax_) = ebx_;
+ D3U_TBL_43F4F4_32(&c->st, eax_) = ebx_;
+ D3U_TBL_43F4F8_32(&c->st, eax_) = ebx_;
 if (eax_ != 0x1F0u) goto l_41b2f9;
-/* pop t3 */
-/* pop t1 */
 /* retn */ return;
 }
 /* caller overwrites t0 with mov t0,2 next). Void. */
@@ -8848,101 +7482,84 @@ unsigned int edx_ = 0;
 unsigned int esi_ = 0;
 unsigned int edi_ = 0;
 unsigned int qv = 0;
-/* push t1 */
-/* push t2 */
-/* push t3 */
-/* push t4 */
-/* push t5 */
-/* mov t1, dword_4450F0 */ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
-/* mov t3, dword_4450F8 */ edx_ = D3U_RC_RANGE_32(&c->st, 0);
-/* mov t2, t0 */ ecx_ = p;
-/* cmp t3, 800000h */
+ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
+ edx_ = D3U_RC_RANGE_32(&c->st, 0);
+ ecx_ = p;
 if (edx_ > 0x800000u) goto l_423318;
-/* mov t4, 0FFh */ esi_ = 0xFFu;
+ esi_ = 0xFFu;
 l_42324c:
-/* cmp dword_4450F4, 7F800000h */
 if (D3U_RC_VALUE_32(&c->st, 0) >= 0x7F800000UL) goto l_423299;
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_RC_CARRY_BYTE_8(&c->st, 0);
-/* mov dword_4450F0, t1 */ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
+ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
 d3uc_put_byte(c, eax_);
-/* mov t1, dword_4450F0 */ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
-/* test t1, t1 */
+ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
 if (ebx_ == 0u) goto l_42328a;
 l_423274:
-/* mov t0, t4 */ eax_ = esi_;
-/* mov dword_4450F0, t1 */ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
+ eax_ = esi_;
+ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
 d3uc_put_byte(c, eax_);
-/* mov t1, dword_4450F0 */ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
-/* dec t1 */ ebx_ = (ebx_ - 1u) & U32MASK;
+ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
+ ebx_ = (ebx_ - 1u) & U32MASK;
 if (ebx_ != 0u) goto l_423274;
 l_42328a:
-/* mov t0, dword_4450F4 */ eax_ = D3U_RC_VALUE_32(&c->st, 0);
-/* shr t0, 17h */ eax_ >>= 23;
+ eax_ = D3U_RC_VALUE_32(&c->st, 0);
+ eax_ >>= 23;
 D3U_RC_CARRY_BYTE_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
 goto l_4232eb;
 l_423299:
-/* test byte ptr dword_4450F4+3, 80h */
 if ((D3U_RC_VALUE_8(&c->st, 3u) & 0x80u) == 0u) goto l_4232ea;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_RC_CARRY_BYTE_8(&c->st, 0);
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) + 1u) & 0xFFu);
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* mov dword_4450F0, t1 */ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
+ eax_ &= 0xFFu;
+ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
 d3uc_put_byte(c, eax_);
-/* mov t1, dword_4450F0 */ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
-/* test t1, t1 */
+ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
 if (ebx_ == 0u) goto l_4232db;
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 l_4232c5:
-/* mov t0, t3 */ eax_ = edx_;
-/* mov dword_4450F0, t1 */ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
+ eax_ = edx_;
+ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
 d3uc_put_byte(c, eax_);
-/* mov t1, dword_4450F0 */ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
-/* dec t1 */ ebx_ = (ebx_ - 1u) & U32MASK;
+ ebx_ = D3U_RC_SCALE_32(&c->st, 0);
+ ebx_ = (ebx_ - 1u) & U32MASK;
 if (ebx_ != 0u) goto l_4232c5;
 l_4232db:
-/* mov t0, dword_4450F4 */ eax_ = D3U_RC_VALUE_32(&c->st, 0);
-/* shr t0, 17h */ eax_ >>= 23;
+ eax_ = D3U_RC_VALUE_32(&c->st, 0);
+ eax_ >>= 23;
 D3U_RC_CARRY_BYTE_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
 goto l_4232eb;
 l_4232ea:
-/* inc t1 */ ebx_ = (ebx_ + 1u) & U32MASK;
+ ebx_ = (ebx_ + 1u) & U32MASK;
 l_4232eb:
-/* mov t0, dword_4450F4 */ eax_ = D3U_RC_VALUE_32(&c->st, 0);
-/* mov t5, dword_4450F8 */ edi_ = D3U_RC_RANGE_32(&c->st, 0);
-/* shl t0, 8 */ eax_ = (eax_ << 8) & U32MASK;
-/* shl t5, 8 */ edi_ = (edi_ << 8) & U32MASK;
-/* and t0, 7FFFFFFFh */ eax_ &= 0x7FFFFFFFUL;
-/* mov dword_4450F8, t5 */ D3U_RC_RANGE_32(&c->st, 0) = edi_;
-/* mov dword_4450F4, t0 */ D3U_RC_VALUE_32(&c->st, 0) = eax_;
-/* cmp t5, 800000h */
+ eax_ = D3U_RC_VALUE_32(&c->st, 0);
+ edi_ = D3U_RC_RANGE_32(&c->st, 0);
+ eax_ = (eax_ << 8) & U32MASK;
+ edi_ = (edi_ << 8) & U32MASK;
+ eax_ &= 0x7FFFFFFFUL;
+ D3U_RC_RANGE_32(&c->st, 0) = edi_;
+ D3U_RC_VALUE_32(&c->st, 0) = eax_;
 if (edi_ <= 0x800000u) goto l_42324c;
 l_423318:
-/* mov t0, dword_4450F8 */ eax_ = D3U_RC_RANGE_32(&c->st, 0);
-/* mov t4, [t2] */ esi_ = d3u_ld32(c, (unsigned long)(ecx_));
-/* xor t3, t3 */ edx_ = 0u;
-/* div t4 */ qv = eax_; eax_ = qv / esi_; edx_ = qv % esi_;
-/* mov t4, [t2+4] */ esi_ = d3u_ld32(c, (unsigned long)(ecx_ + 4u));
-/* imul t4, t0 */ esi_ = (esi_ * eax_) & U32MASK;
-/* mov t5, [t2] */ edi_ = d3u_ld32(c, (unsigned long)(ecx_));
-/* mov t3, t0 */ edx_ = eax_;
-/* mov t0, [t2+8] */ eax_ = d3u_ld32(c, (unsigned long)(ecx_ + 8u));
-/* cmp t0, t5 */
+ eax_ = D3U_RC_RANGE_32(&c->st, 0);
+ esi_ = d3u_ld32(c, (unsigned long)(ecx_));
+ edx_ = 0u;
+ qv = eax_; eax_ = qv / esi_; edx_ = qv % esi_;
+ esi_ = d3u_ld32(c, (unsigned long)(ecx_ + 4u));
+ esi_ = (esi_ * eax_) & U32MASK;
+ edi_ = d3u_ld32(c, (unsigned long)(ecx_));
+ edx_ = eax_;
+ eax_ = d3u_ld32(c, (unsigned long)(ecx_ + 8u));
 if (eax_ >= edi_) goto l_423342;
-/* sub t0, [t2+4] */ eax_ = (eax_ - d3u_ld32(c, (unsigned long)(ecx_ + 4u))) & U32MASK;
-/* imul t3, t0 */ edx_ = (edx_ * eax_) & U32MASK;
-/* mov dword_4450F8, t3 */ D3U_RC_RANGE_32(&c->st, 0) = edx_;
+ eax_ = (eax_ - d3u_ld32(c, (unsigned long)(ecx_ + 4u))) & U32MASK;
+ edx_ = (edx_ * eax_) & U32MASK;
+ D3U_RC_RANGE_32(&c->st, 0) = edx_;
 goto l_423348;
 l_423342:
-/* sub dword_4450F8, t4 */ D3U_RC_RANGE_32(&c->st, 0) = (D3U_RC_RANGE_32(&c->st, 0) - esi_) & U32MASK;
+ D3U_RC_RANGE_32(&c->st, 0) = (D3U_RC_RANGE_32(&c->st, 0) - esi_) & U32MASK;
 l_423348:
-/* add dword_4450F4, t4 */ D3U_RC_VALUE_32(&c->st, 0) = (D3U_RC_VALUE_32(&c->st, 0) + esi_) & U32MASK;
-/* mov dword_4450F0, t1 */ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
-/* pop t5 */
-/* pop t4 */
-/* pop t3 */
-/* pop t2 */
-/* pop t1 */
+ D3U_RC_VALUE_32(&c->st, 0) = (D3U_RC_VALUE_32(&c->st, 0) + esi_) & U32MASK;
+ D3U_RC_SCALE_32(&c->st, 0) = ebx_;
 /* retn */ return;
 }
 /* agrees: (t0,t3,cl,t1)). Exit t0 = accumulated var_2C. */
@@ -8978,511 +7595,484 @@ unsigned int v14 = 0;
 unsigned int v10 = 0;
 unsigned int qv = 0;
 int sv = 0;
-/* push t4 */
-/* push t5 */
-/* push t6 */
-/* sub esp, 54h */
-/* mov t6, dword_4441DC */ ebp_ = D3U_TBL_4441DC_32(&c->st, 0);
-/* mov [esp+60h+var_54], t0 */ v54 = eax_in;
-/* mov [esp+60h+var_5C], t3 */ v5c = edx_in;
-/* mov [esp+60h+var_44], t1 */ v44 = ebx_in;
-/* mov [esp+60h+var_1C], cl */ v1c = ecx_in & 0xFFu;
-/* xor t0, t0 */ eax_ = 0u;
+ ebp_ = D3U_TBL_4441DC_32(&c->st, 0);
+ v54 = eax_in;
+ v5c = edx_in;
+ v44 = ebx_in;
+ v1c = ecx_in & 0xFFu;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (ecx_in & 0xFFu);
-/* mov t1, dword_429DE0[t0*4] */ ebx_ = d3u_ld32(c, (unsigned long)(d3u_t429DE0[(unsigned int)(eax_ & 0xFFU)]));
-/* mov t3, dword_429E08[t0*4] */ edx_ = d3u_t429E08[(unsigned int)(eax_ & 0xFFU)];
-/* mov [esp+60h+var_34], t1 */ v34 = ebx_;
-/* mov [esp+60h+var_3C], t3 */ v3c = edx_;
-/* shl t0, 8 */ eax_ = (eax_ << 8) & U32MASK;
-/* xor t3, t3 */ edx_ = 0u;
-/* add t0, 30000h */ eax_ = (eax_ + 0x30000u) & U32MASK;
-/* mov [esp+60h+var_28], t3 */ v28 = edx_;
-/* mov [esp+60h+var_2C], t3 */ v2c = edx_;
-/* mov [esp+60h+var_58], t0 */ v58 = eax_;
-/* mov t3, dword_444274 */ edx_ = D3U_DICT_CURSOR_32(&c->st, 0);
+ ebx_ = d3u_ld32(c, (unsigned long)(d3u_t429DE0[(unsigned int)(eax_ & 0xFFU)]));
+ edx_ = d3u_t429E08[(unsigned int)(eax_ & 0xFFU)];
+ v34 = ebx_;
+ v3c = edx_;
+ eax_ = (eax_ << 8) & U32MASK;
+ edx_ = 0u;
+ eax_ = (eax_ + 0x30000u) & U32MASK;
+ v28 = edx_;
+ v2c = edx_;
+ v58 = eax_;
+ edx_ = D3U_DICT_CURSOR_32(&c->st, 0);
 eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444EA9_8(&c->st, 0) << 8) & 0xFF00u);
-/* mov [esp+60h+var_24], t3 */ v24 = edx_;
+ v24 = edx_;
 if ((ecx_in & 0xFFu) != ((eax_ >> 8) & 0xFFu)) goto l_41a3a5;
-/* mov t0, dword_4441C4 */ eax_ = D3U_TBL_4441C4_32(&c->st, 0);
-/* sub t0, t1 */ eax_ = (eax_ - ebx_) & U32MASK;
+ eax_ = D3U_TBL_4441C4_32(&c->st, 0);
+ eax_ = (eax_ - ebx_) & U32MASK;
 goto l_41a3a7;
 l_41a3a5:
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 l_41a3a7:
-/* mov [esp+60h+var_40], t0 */ v40 = eax_;
-/* mov t0, dword_4441C0 */ eax_ = D3U_TBL_4441C0_32(&c->st, 0);
-/* mov [esp+60h+var_48], t0 */ v48 = eax_;
+ v40 = eax_;
+ eax_ = D3U_TBL_4441C0_32(&c->st, 0);
+ v48 = eax_;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA8_8(&c->st, 0);
-/* mov [esp+60h+var_14], al */ v14 = eax_ & 0xFFu;
-/* xor t0, t0 */ eax_ = 0u;
-/* mov al, [esp+60h+var_1C] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
-/* mov dl, [esp+60h+var_1C] */ edx_ = (edx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
-/* mov al, byte_429E30[t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E30[(unsigned int)(eax_ & 0xFFU)];
-/* mov dword_4441DC, t6 */ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
-/* mov [esp+60h+var_18], al */ v18 = eax_ & 0xFFu;
+ v14 = eax_ & 0xFFu;
+ eax_ = 0u;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E30[(unsigned int)(eax_ & 0xFFU)];
+ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
+ v18 = eax_ & 0xFFu;
 if ((edx_ & 0xFFu) != 0u) goto l_41a4b2;
-/* mov t2, 400h */ ecx_ = 0x400u;
-/* mov t5, offset dword_443760 */ edi_ = D3U_TBL_443760;
-/* mov t4, offset dword_443360 */ esi_ = D3U_TBL_443360;
-/* mov t0, t2 */ eax_ = ecx_;
-/* sub t2, t5 */ ecx_ = (ecx_ - edi_) & U32MASK;
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* and t2, 3 */ ecx_ &= 3u;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
+ ecx_ = 0x400u;
+ edi_ = D3U_TBL_443760;
+ esi_ = D3U_TBL_443360;
+ eax_ = ecx_;
+ ecx_ = (ecx_ - edi_) & U32MASK;
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ ecx_ &= 3u;
+ eax_ = (eax_ - ecx_) & U32MASK;
 if ((int)eax_ <= 0) goto l_41a408;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, t0 */ ecx_ = eax_;
-/* and t0, 3 */ eax_ &= 3u;
-/* shr t2, 2 */ ecx_ >>= 2;
-/* rep movsd */ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = eax_;
+ eax_ &= 3u;
+ ecx_ >>= 2;
+ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
 l_41a408:
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, 400h */ ecx_ = 0x400u;
-/* mov t5, offset dword_442958 */ edi_ = D3U_TBL_442958;
-/* mov t4, offset dword_442128 */ esi_ = D3U_TBL_442128;
-/* mov t0, t2 */ eax_ = ecx_;
-/* sub t2, t5 */ ecx_ = (ecx_ - edi_) & U32MASK;
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* and t2, 3 */ ecx_ &= 3u;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = 0x400u;
+ edi_ = D3U_TBL_442958;
+ esi_ = D3U_TBL_442128;
+ eax_ = ecx_;
+ ecx_ = (ecx_ - edi_) & U32MASK;
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ ecx_ &= 3u;
+ eax_ = (eax_ - ecx_) & U32MASK;
 if ((int)eax_ <= 0) goto l_41a435;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, t0 */ ecx_ = eax_;
-/* and t0, 3 */ eax_ &= 3u;
-/* shr t2, 2 */ ecx_ >>= 2;
-/* rep movsd */ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = eax_;
+ eax_ &= 3u;
+ ecx_ >>= 2;
+ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
 l_41a435:
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, 100h */ ecx_ = 0x100u;
-/* mov t5, offset byte_441F18 */ edi_ = D3U_TBL_441F18;
-/* mov t4, offset byte_442D58 */ esi_ = D3U_TBL_442D58;
-/* mov t0, t2 */ eax_ = ecx_;
-/* sub t2, t5 */ ecx_ = (ecx_ - edi_) & U32MASK;
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* and t2, 3 */ ecx_ &= 3u;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = 0x100u;
+ edi_ = D3U_TBL_441F18;
+ esi_ = D3U_TBL_442D58;
+ eax_ = ecx_;
+ ecx_ = (ecx_ - edi_) & U32MASK;
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ ecx_ &= 3u;
+ eax_ = (eax_ - ecx_) & U32MASK;
 if ((int)eax_ <= 0) goto l_41a462;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, t0 */ ecx_ = eax_;
-/* and t0, 3 */ eax_ &= 3u;
-/* shr t2, 2 */ ecx_ >>= 2;
-/* rep movsd */ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = eax_;
+ eax_ &= 3u;
+ ecx_ >>= 2;
+ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
 l_41a462:
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, 100h */ ecx_ = 0x100u;
-/* mov t5, offset byte_442028 */ edi_ = D3U_TBL_442028;
-/* mov t4, offset byte_443260 */ esi_ = D3U_TBL_443260;
-/* mov t0, t2 */ eax_ = ecx_;
-/* sub t2, t5 */ ecx_ = (ecx_ - edi_) & U32MASK;
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* and t2, 3 */ ecx_ &= 3u;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = 0x100u;
+ edi_ = D3U_TBL_442028;
+ esi_ = D3U_TBL_443260;
+ eax_ = ecx_;
+ ecx_ = (ecx_ - edi_) & U32MASK;
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ ecx_ &= 3u;
+ eax_ = (eax_ - ecx_) & U32MASK;
 if ((int)eax_ <= 0) goto l_41a48f;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, t0 */ ecx_ = eax_;
-/* and t0, 3 */ eax_ &= 3u;
-/* shr t2, 2 */ ecx_ >>= 2;
-/* rep movsd */ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = eax_;
+ eax_ &= 3u;
+ ecx_ >>= 2;
+ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
 l_41a48f:
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t4, 201h */ esi_ = 0x201u;
-/* mov t6, dword_444210 */ ebp_ = D3U_TBL_444210_32(&c->st, 0);
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ esi_ = 0x201u;
+ ebp_ = D3U_TBL_444210_32(&c->st, 0);
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EBA_8(&c->st, 0);
-/* mov dword_4441DC, t6 */ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
+ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
 D3U_FLAG_444EB4_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
-/* mov [esp+60h+var_34], t4 */ v34 = esi_;
+ v34 = esi_;
 l_41a4b2:
-/* mov t3, [esp+60h+var_3C] */ edx_ = v3c;
-/* mov t1, [esp+60h+var_34] */ ebx_ = v34;
-/* mov t5, dword_4299F8 */ edi_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
-/* mov t4, dword_4299F4 */ esi_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-/* shl t3, 9 */ edx_ = (edx_ << 9) & U32MASK;
-/* shl t1, 9 */ ebx_ = (ebx_ << 9) & U32MASK;
-/* mov t2, t3 */ ecx_ = edx_;
-/* add t4, t1 */ esi_ = (esi_ + ebx_) & U32MASK;
-/* mov t0, t2 */ eax_ = ecx_;
-/* sub t2, t5 */ ecx_ = (ecx_ - edi_) & U32MASK;
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* and t2, 3 */ ecx_ &= 3u;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
+ edx_ = v3c;
+ ebx_ = v34;
+ edi_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
+ esi_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+ edx_ = (edx_ << 9) & U32MASK;
+ ebx_ = (ebx_ << 9) & U32MASK;
+ ecx_ = edx_;
+ esi_ = (esi_ + ebx_) & U32MASK;
+ eax_ = ecx_;
+ ecx_ = (ecx_ - edi_) & U32MASK;
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ ecx_ &= 3u;
+ eax_ = (eax_ - ecx_) & U32MASK;
 if ((int)eax_ <= 0) goto l_41a4ea;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, t0 */ ecx_ = eax_;
-/* and t0, 3 */ eax_ &= 3u;
-/* shr t2, 2 */ ecx_ >>= 2;
-/* rep movsd */ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = eax_;
+ eax_ &= 3u;
+ ecx_ >>= 2;
+ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
 l_41a4ea:
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* lea t2, [t3+t1] */ ecx_ = (edx_ + ebx_) & U32MASK;
-/* mov t3, [esp+60h+var_3C] */ edx_ = v3c;
-/* mov t1, [esp+60h+var_34] */ ebx_ = v34;
-/* add t3, t3 */ edx_ = (edx_ + edx_) & U32MASK;
-/* add t1, t1 */ ebx_ = (ebx_ + ebx_) & U32MASK;
-/* mov t0, t3 */ eax_ = edx_;
-/* add t3, t1 */ edx_ = (edx_ + ebx_) & U32MASK;
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = (edx_ + ebx_) & U32MASK;
+ edx_ = v3c;
+ ebx_ = v34;
+ edx_ = (edx_ + edx_) & U32MASK;
+ ebx_ = (ebx_ + ebx_) & U32MASK;
+ eax_ = edx_;
+ edx_ = (edx_ + ebx_) & U32MASK;
 l_41a501:
-/* mov t5, [esp+60h+var_3C] */ edi_ = v3c;
-/* mov t6, dword_4441DC */ ebp_ = D3U_TBL_4441DC_32(&c->st, 0);
-/* sub t2, 200h */ ecx_ = (ecx_ - 0x200u) & U32MASK;
-/* sub t0, 2 */ eax_ = (eax_ - 2u) & U32MASK;
-/* dec t5 */ edi_ = (edi_ - 1u) & U32MASK;
-/* sub t3, 2 */ edx_ = (edx_ - 2u) & U32MASK;
-/* mov [esp+60h+var_3C], t5 */ v3c = edi_;
-/* cmp t0, 0FFFFFFFEh */
+ edi_ = v3c;
+ ebp_ = D3U_TBL_4441DC_32(&c->st, 0);
+ ecx_ = (ecx_ - 0x200u) & U32MASK;
+ eax_ = (eax_ - 2u) & U32MASK;
+ edi_ = (edi_ - 1u) & U32MASK;
+ edx_ = (edx_ - 2u) & U32MASK;
+ v3c = edi_;
 if (eax_ == 0xFFFFFFFEUL) goto l_41a55a;
-/* mov t1, dword_4299FC */ ebx_ = (unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-/* mov t4, dword_429A04 */ esi_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
-/* mov bx, [t3+t1] */ ebx_ = (ebx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_ + ebx_));
-/* xor t5, t5 */ edi_ = 0u;
-/* mov [t4+t0], bx */ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
-/* mov t4, dword_4299F0 */ esi_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+ ebx_ = (unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
+ esi_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
+ ebx_ = (ebx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_ + ebx_));
+ edi_ = 0u;
+ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
+ esi_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
 edi_ = (edi_ & 0xFFFF0000UL) | (ebx_ & 0xFFFFu);
-/* mov si, [t2+t4] */ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(ecx_ + esi_));
-/* and t4, 0FFFFh */ esi_ &= 0xFFFFu;
-/* add t4, t5 */ esi_ = (esi_ + edi_) & U32MASK;
-/* mov t1, t4 */ ebx_ = esi_;
-/* mov t4, dword_429A00 */ esi_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-/* mov [t4+t0], bx */ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
+ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(ecx_ + esi_));
+ esi_ &= 0xFFFFu;
+ esi_ = (esi_ + edi_) & U32MASK;
+ ebx_ = esi_;
+ esi_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
 goto l_41a501;
 l_41a55a:
-/* mov t0, dword_444258 */ eax_ = D3U_TBL_444258_32(&c->st, 0);
-/* mov [esp+60h+var_34], t0 */ v34 = eax_;
-/* mov t0, [esp+60h+var_58] */ eax_ = v58;
-/* add t0, t0 */ eax_ = (eax_ + eax_) & U32MASK;
-/* mov t3, [esp+60h+var_54] */ edx_ = v54;
-/* mov [esp+60h+var_60], t0 */ v60 = eax_;
-/* mov t0, [esp+60h+var_28] */ eax_ = v28;
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov [esp+60h+var_30], t0 */ v30 = eax_;
+ eax_ = D3U_TBL_444258_32(&c->st, 0);
+ v34 = eax_;
+ eax_ = v58;
+ eax_ = (eax_ + eax_) & U32MASK;
+ edx_ = v54;
+ v60 = eax_;
+ eax_ = v28;
+ eax_ = (eax_ + edx_) & U32MASK;
+ v30 = eax_;
 l_41a57a:
-/* cmp [esp+60h+var_28], 100h */
 if (v28 >= 0x100u) goto l_41a597;
-/* mov t2, [esp+60h+var_24] */ ecx_ = v24;
-/* mov t0, dword_4299B8 */ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* add t0, t2 */ eax_ = (eax_ + ecx_) & U32MASK;
-/* mov al, [t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
-/* mov [esp+60h+var_10], al */ v10 = eax_ & 0xFFu;
+ ecx_ = v24;
+ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ eax_ = (eax_ + ecx_) & U32MASK;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
+ v10 = eax_ & 0xFFu;
 goto l_41a5ad;
 l_41a597:
-/* mov t0, [esp+60h+var_30] */ eax_ = v30;
-/* mov al, [t0-100h] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_ - 0x100u);
+ eax_ = v30;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_ - 0x100u);
 edx_ = (edx_ & 0xFFFF00FFUL) | ((eax_ & 0xFFu) << 8);
-/* mov [esp+60h+var_10], al */ v10 = eax_ & 0xFFu;
+ v10 = eax_ & 0xFFu;
 edx_ = (edx_ & 0xFFFF00FFUL) | (((~((edx_ >> 8) & 0xFFu)) & 0xFFu) << 8);
-/* mov [esp+60h+var_10], dh */ v10 = (edx_ >> 8) & 0xFFu;
+ v10 = (edx_ >> 8) & 0xFFu;
 l_41a5ad:
-/* cmp [esp+60h+var_1C], 0 */
 if ((v1c & 0xFFu) == 0u) goto l_41a5d6;
-/* mov cl, [esp+60h+var_18] */ ecx_ = (ecx_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
-/* mov t0, [esp+60h+var_34] */ eax_ = v34;
-/* shr t0, cl */ eax_ >>= (ecx_ & 0xFFu);
-/* cmp [esp+60h+var_14], 0 */
+ ecx_ = (ecx_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
+ eax_ = v34;
+ eax_ >>= (ecx_ & 0xFFu);
 if ((v14 & 0xFFu) == 0u) goto l_41a66d;
-/* mov ah, [esp+60h+var_10] */ eax_ = (eax_ & 0xFFFF00FFUL) | ((v10 & 0xFFu) << 8);
+ eax_ = (eax_ & 0xFFFF00FFUL) | ((v10 & 0xFFu) << 8);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (eax_ & 0xFFu);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (((ebx_ & 0xFFu) - ((eax_ >> 8) & 0xFFu)) & 0xFFu);
 goto l_41a673;
 l_41a5d6:
-/* xor t4, t4 */ esi_ = 0u;
+ esi_ = 0u;
 ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444EB4_8(&c->st, 0)) << 8);
-/* mov [esp+60h+var_40], t4 */ v40 = esi_;
+ v40 = esi_;
 if (((ebx_ >> 8) & 0xFFu) <= 1u) goto l_41a656;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t0, [esp+60h+var_28] */ eax_ = v28;
+ edx_ = 0u;
+ eax_ = v28;
 edx_ = (edx_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
-/* sub t0, t3 */ eax_ = (eax_ - edx_) & U32MASK;
-/* test t0, t0 */
+ eax_ = (eax_ - edx_) & U32MASK;
 if ((int)eax_ >= 0) goto l_41a611;
-/* mov t0, [esp+60h+var_24] */ eax_ = v24;
-/* sub t0, t3 */ eax_ = (eax_ - edx_) & U32MASK;
-/* mov t3, dword_444278 */ edx_ = D3U_DICT_MASK_32(&c->st, 0);
-/* and t3, t0 */ edx_ &= eax_;
-/* mov t0, dword_4299B8 */ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* mov al, [t3+t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[(edx_ + eax_) - c->blk00_base];
+ eax_ = v24;
+ eax_ = (eax_ - edx_) & U32MASK;
+ edx_ = D3U_DICT_MASK_32(&c->st, 0);
+ edx_ &= eax_;
+ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[(edx_ + eax_) - c->blk00_base];
 goto l_41a619;
 l_41a611:
-/* add t0, [esp+60h+var_54] */ eax_ = (eax_ + v54) & U32MASK;
-/* mov al, [t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ eax_ = (eax_ + v54) & U32MASK;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 eax_ = (eax_ & 0xFFFFFF00UL) | ((~(eax_ & 0xFFu)) & 0xFFu);
 l_41a619:
-/* xor t2, t2 */ ecx_ = 0u;
+ ecx_ = 0u;
 ecx_ = (ecx_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB4_8(&c->st, 0);
-/* mov t3, [esp+60h+var_28] */ edx_ = v28;
-/* add t2, t2 */ ecx_ = (ecx_ + ecx_) & U32MASK;
-/* sub t3, t2 */ edx_ = (edx_ - ecx_) & U32MASK;
-/* test t3, t3 */
+ edx_ = v28;
+ ecx_ = (ecx_ + ecx_) & U32MASK;
+ edx_ = (edx_ - ecx_) & U32MASK;
 if ((int)edx_ >= 0) goto l_41a644;
-/* mov t3, [esp+60h+var_24] */ edx_ = v24;
-/* sub t3, t2 */ edx_ = (edx_ - ecx_) & U32MASK;
-/* and t3, dword_444278 */ edx_ &= D3U_DICT_MASK_32(&c->st, 0);
-/* mov t2, dword_4299B8 */ ecx_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* mov ah, [t2+t3] */ eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)c->blk00_dict[(ecx_ + edx_) - c->blk00_base] << 8) & 0xFF00u);
+ edx_ = v24;
+ edx_ = (edx_ - ecx_) & U32MASK;
+ edx_ &= D3U_DICT_MASK_32(&c->st, 0);
+ ecx_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)c->blk00_dict[(ecx_ + edx_) - c->blk00_base] << 8) & 0xFF00u);
 goto l_41a64c;
 l_41a644:
-/* add t3, [esp+60h+var_54] */ edx_ = (edx_ + v54) & U32MASK;
-/* mov ah, [t3] */ eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)G8(edx_) << 8) & 0xFF00u);
+ edx_ = (edx_ + v54) & U32MASK;
+ eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)G8(edx_) << 8) & 0xFF00u);
 eax_ = (eax_ & 0xFFFF00FFUL) | (((~((eax_ >> 8) & 0xFFu)) & 0xFFu) << 8);
 l_41a64c:
 if ((eax_ & 0xFFu) != ((eax_ >> 8) & 0xFFu)) goto l_41a66d;
-/* inc [esp+60h+var_40] */ v40 = (v40 + 1u) & U32MASK;
+ v40 = (v40 + 1u) & U32MASK;
 goto l_41a66d;
 l_41a656:
-/* mov t3, [esp+60h+var_34] */ edx_ = v34;
-/* mov al, byte ptr [esp+60h+var_34] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v34 & 0xFFu);
-/* shr t3, 8 */ edx_ >>= 8;
+ edx_ = v34;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v34 & 0xFFu);
+ edx_ >>= 8;
 if ((edx_ & 0xFFu) != (eax_ & 0xFFu)) goto l_41a66d;
-/* mov [esp+60h+var_40], 1 */ v40 = 1u;
+ v40 = 1u;
 l_41a66d:
-/* mov bl, [esp+60h+var_10] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (((ebx_ & 0xFFu) - (eax_ & 0xFFu)) & 0xFFu);
 l_41a673:
-/* mov t0, [esp+60h+var_40] */ eax_ = v40;
-/* xor t3, t3 */ edx_ = 0u;
-/* shl t0, 8 */ eax_ = (eax_ << 8) & U32MASK;
+ eax_ = v40;
+ edx_ = 0u;
+ eax_ = (eax_ << 8) & U32MASK;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* mov t5, [esp+60h+var_40] */ edi_ = v40;
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov t2, dword_429A00 */ ecx_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-/* lea t4, ds:0[t0*2] */ esi_ = (eax_ * 2u) & U32MASK;
-/* add t5, t5 */ edi_ = (edi_ + edi_) & U32MASK;
-/* mov t0, dword_4299F8 */ eax_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
-/* add t2, t5 */ ecx_ = (ecx_ + edi_) & U32MASK;
-/* add t4, t0 */ esi_ = (esi_ + eax_) & U32MASK;
-/* mov [esp+60h+var_38], t3 */ v38 = edx_;
-/* mov dx, [t2] */ edx_ = (edx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(ecx_));
-/* mov ax, [t4] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(esi_));
-/* mov [esp+60h+var_20], t3 */ v20 = edx_;
+ edi_ = v40;
+ eax_ = (eax_ + edx_) & U32MASK;
+ ecx_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+ esi_ = (eax_ * 2u) & U32MASK;
+ edi_ = (edi_ + edi_) & U32MASK;
+ eax_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
+ ecx_ = (ecx_ + edi_) & U32MASK;
+ esi_ = (esi_ + eax_) & U32MASK;
+ v38 = edx_;
+ edx_ = (edx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(ecx_));
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(esi_));
+ v20 = edx_;
 if ((eax_ & 0xFFFFu) != 0u) goto l_41a71d;
-/* mov t0, [esp+60h+var_58] */ eax_ = v58;
-/* add t0, [esp+60h+var_38] */ eax_ = (eax_ + v38) & U32MASK;
-/* mov t3, dword_4299F4 */ edx_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-/* add t0, t0 */ eax_ = (eax_ + eax_) & U32MASK;
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov ax, [t0] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(eax_));
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* shl t0, 0Eh */ eax_ = (eax_ << 14) & U32MASK;
-/* mov t3, [esp+60h+var_60] */ edx_ = v60;
-/* mov [esp+60h+var_50], t0 */ v50 = eax_;
-/* mov t0, dword_4299F0 */ eax_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov ax, [t0] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(eax_));
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov [esp+60h+var_4C], t0 */ v4c = eax_;
-/* mov t0, [esp+60h+var_50] */ eax_ = v50;
-/* div [esp+60h+var_4C] */ qv = eax_; eax_ = qv / v4c; edx_ = qv % v4c;
-/* mov ax, word_42D274[t0*2] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
-/* mov t3, [esp+60h+var_2C] */ edx_ = v2c;
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* add t3, t0 */ edx_ = (edx_ + eax_) & U32MASK;
-/* mov t0, dword_429A04 */ eax_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
-/* add t5, t0 */ edi_ = (edi_ + eax_) & U32MASK;
-/* mov ax, [t5] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edi_));
-/* mov [esp+60h+var_2C], t3 */ v2c = edx_;
-/* mov t3, t0 */ edx_ = eax_;
-/* add t3, 20h */ edx_ = (edx_ + 0x20u) & U32MASK;
-/* mov [t5], dx */ d3u_st16(c, (unsigned long)(edi_), (unsigned short)(edx_ & 0xFFFFu));
-/* add word ptr [t2], 20h */ d3u_st16(c, (unsigned long)(ecx_), (unsigned short)((d3u_ld16(c, (unsigned long)(ecx_)) + 0x20u) & 0xFFFFu));
+ eax_ = v58;
+ eax_ = (eax_ + v38) & U32MASK;
+ edx_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+ eax_ = (eax_ + eax_) & U32MASK;
+ eax_ = (eax_ + edx_) & U32MASK;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(eax_));
+ eax_ &= 0xFFFFu;
+ eax_ = (eax_ << 14) & U32MASK;
+ edx_ = v60;
+ v50 = eax_;
+ eax_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+ eax_ = (eax_ + edx_) & U32MASK;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(eax_));
+ eax_ &= 0xFFFFu;
+ edx_ = 0u;
+ v4c = eax_;
+ eax_ = v50;
+ qv = eax_; eax_ = qv / v4c; edx_ = qv % v4c;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
+ edx_ = v2c;
+ eax_ &= 0xFFFFu;
+ edx_ = (edx_ + eax_) & U32MASK;
+ eax_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
+ edi_ = (edi_ + eax_) & U32MASK;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edi_));
+ v2c = edx_;
+ edx_ = eax_;
+ edx_ = (edx_ + 0x20u) & U32MASK;
+ d3u_st16(c, (unsigned long)(edi_), (unsigned short)(edx_ & 0xFFFFu));
+ d3u_st16(c, (unsigned long)(ecx_), (unsigned short)((d3u_ld16(c, (unsigned long)(ecx_)) + 0x20u) & 0xFFFFu));
 l_41a71d:
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* xor t2, t2 */ ecx_ = 0u;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov cx, word ptr [esp+60h+var_20] */ ecx_ = (ecx_ & 0xFFFF0000UL) | (v20 & 0xFFFFu);
-/* shl t0, 0Eh */ eax_ = (eax_ << 14) & U32MASK;
-/* div t2 */ qv = eax_; eax_ = qv / ecx_; edx_ = qv % ecx_;
-/* mov ax, word_42D274[t0*2] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
-/* mov t2, [esp+60h+var_2C] */ ecx_ = v2c;
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* mov t5, [esp+60h+var_44] */ edi_ = v44;
-/* mov [esp+60h+var_2C], t2 */ v2c = ecx_;
-/* cmp t2, t5 */
+ eax_ &= 0xFFFFu;
+ ecx_ = 0u;
+ edx_ = 0u;
+ ecx_ = (ecx_ & 0xFFFF0000UL) | (v20 & 0xFFFFu);
+ eax_ = (eax_ << 14) & U32MASK;
+ qv = eax_; eax_ = qv / ecx_; edx_ = qv % ecx_;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
+ ecx_ = v2c;
+ eax_ &= 0xFFFFu;
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ edi_ = v44;
+ v2c = ecx_;
 if (ecx_ > edi_) goto l_41a9b1;
-/* mov cx, [t4] */ ecx_ = (ecx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(esi_));
-/* mov t0, [esp+60h+var_40] */ eax_ = v40;
-/* add t2, 20h */ ecx_ = (ecx_ + 0x20u) & U32MASK;
-/* mov t3, dword_429A00 */ edx_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-/* mov [t4], cx */ d3u_st16(c, (unsigned long)(esi_), (unsigned short)(ecx_ & 0xFFFFu));
-/* mov si, [t3+t0*2] */ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_ + eax_ * 2u));
-/* add t4, 20h */ esi_ = (esi_ + 0x20u) & U32MASK;
-/* mov dword_4441DC, t6 */ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
-/* mov [t3+t0*2], si */ d3u_st16(c, (unsigned long)(edx_ + eax_ * 2u), (unsigned short)(esi_ & 0xFFFFu));
-/* cmp si, 4000h */
+ ecx_ = (ecx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(esi_));
+ eax_ = v40;
+ ecx_ = (ecx_ + 0x20u) & U32MASK;
+ edx_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+ d3u_st16(c, (unsigned long)(esi_), (unsigned short)(ecx_ & 0xFFFFu));
+ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_ + eax_ * 2u));
+ esi_ = (esi_ + 0x20u) & U32MASK;
+ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
+ d3u_st16(c, (unsigned long)(edx_ + eax_ * 2u), (unsigned short)(esi_ & 0xFFFFu));
 if ((esi_ & 0xFFFFu) < 0x4000u) goto l_41a783;
 eax_ = d3uc_fold_small_ctx_block(c, eax_);
 l_41a783:
-/* mov dl, [esp+60h+var_1C] */ edx_ = (edx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
-/* mov t6, dword_4441DC */ ebp_ = D3U_TBL_4441DC_32(&c->st, 0);
+ edx_ = (edx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ ebp_ = D3U_TBL_4441DC_32(&c->st, 0);
 if ((edx_ & 0xFFu) == 0u) goto l_41a852;
-/* cmp bl, 80h */
 if ((ebx_ & 0xFFu) < 0x80u) goto l_41a7a7;
-/* mov bh, [esp+60h+var_14] */ ebx_ = (ebx_ & 0xFFFF00FFUL) | ((v14 & 0xFFu) << 8);
+ ebx_ = (ebx_ & 0xFFFF00FFUL) | ((v14 & 0xFFu) << 8);
 eax_ = (eax_ & 0xFFFFFF00UL) | (((((ebx_ >> 8) & 0xFFu) == 0u) ? 1u : 0u));
-/* mov [esp+60h+var_14], al */ v14 = eax_ & 0xFFu;
+ v14 = eax_ & 0xFFu;
 l_41a7a7:
-/* mov cl, [esp+60h+var_1C] */ ecx_ = (ecx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ ecx_ = (ecx_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
 if ((ecx_ & 0xFFu) != 1u) goto l_41a7df;
-/* mov t0, [esp+60h+var_40] */ eax_ = v40;
-/* and t0, 0Fh */ eax_ &= 0xFu;
-/* mov al, byte_429E44[t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E44[(unsigned int)(eax_ & 0x0FU)];
-/* mov t3, t0 */ edx_ = eax_;
-/* xor t0, t0 */ eax_ = 0u;
-/* and t3, 0FFh */ edx_ &= 0xFFu;
+ eax_ = v40;
+ eax_ &= 0xFu;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E44[(unsigned int)(eax_ & 0x0FU)];
+ edx_ = eax_;
+ eax_ = 0u;
+ edx_ &= 0xFFu;
 eax_ = (eax_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* shl t3, 4 */ edx_ = (edx_ << 4) & U32MASK;
-/* mov al, byte_429E54[t0] */ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(eax_ & 0xFFU)];
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* add t3, t0 */ edx_ = (edx_ + eax_) & U32MASK;
-/* mov [esp+60h+var_40], t3 */ v40 = edx_;
+ edx_ = (edx_ << 4) & U32MASK;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(eax_ & 0xFFU)];
+ eax_ &= 0xFFu;
+ edx_ = (edx_ + eax_) & U32MASK;
+ v40 = edx_;
 goto l_41a849;
 l_41a7df:
 if ((ecx_ & 0xFFu) != 2u) goto l_41a7f9;
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* xor t3, t3 */ edx_ = 0u;
-/* mov dl, byte_429E54[t0] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(eax_ & 0xFFU)];
-/* mov t0, [esp+60h+var_48] */ eax_ = v48;
-/* and t0, 1 */ eax_ &= 1u;
+ edx_ = 0u;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(eax_ & 0xFFU)];
+ eax_ = v48;
+ eax_ &= 1u;
 goto l_41a840;
 l_41a7f9:
 if ((ecx_ & 0xFFu) != 3u) goto l_41a829;
-/* xor t0, t0 */ eax_ = 0u;
-/* xor t2, t2 */ ecx_ = 0u;
+ eax_ = 0u;
+ ecx_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t1, 3 */ ebx_ = 3u;
-/* mov cl, byte_429F54[t0] */ ecx_ = (ecx_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429F54[(unsigned int)(eax_ & 0xFFU)];
-/* mov t0, [esp+60h+var_48] */ eax_ = v48;
-/* div t1 */ qv = eax_; eax_ = qv / ebx_; edx_ = qv % ebx_;
-/* shl t3, 5 */ edx_ = (edx_ << 5) & U32MASK;
-/* add t3, t2 */ edx_ = (edx_ + ecx_) & U32MASK;
-/* mov [esp+60h+var_40], t3 */ v40 = edx_;
-/* inc [esp+60h+var_48] */ v48 = (v48 + 1u) & U32MASK;
+ edx_ = 0u;
+ ebx_ = 3u;
+ ecx_ = (ecx_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429F54[(unsigned int)(eax_ & 0xFFU)];
+ eax_ = v48;
+ qv = eax_; eax_ = qv / ebx_; edx_ = qv % ebx_;
+ edx_ = (edx_ << 5) & U32MASK;
+ edx_ = (edx_ + ecx_) & U32MASK;
+ v40 = edx_;
+ v48 = (v48 + 1u) & U32MASK;
 goto l_41a977;
 l_41a829:
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* mov dl, byte_429E54[t3] */ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(edx_ & 0xFFU)];
-/* mov t0, [esp+60h+var_48] */ eax_ = v48;
-/* and t0, 3 */ eax_ &= 3u;
-/* and t3, 0FFh */ edx_ &= 0xFFu;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)d3u_t429E54[(unsigned int)(edx_ & 0xFFU)];
+ eax_ = v48;
+ eax_ &= 3u;
+ edx_ &= 0xFFu;
 l_41a840:
-/* shl t0, 4 */ eax_ = (eax_ << 4) & U32MASK;
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov [esp+60h+var_40], t0 */ v40 = eax_;
+ eax_ = (eax_ << 4) & U32MASK;
+ eax_ = (eax_ + edx_) & U32MASK;
+ v40 = eax_;
 l_41a849:
-/* inc [esp+60h+var_48] */ v48 = (v48 + 1u) & U32MASK;
+ v48 = (v48 + 1u) & U32MASK;
 goto l_41a977;
 l_41a852:
-/* mov dh, [esp+60h+var_10] */ edx_ = (edx_ & 0xFFFF00FFUL) | ((v10 & 0xFFu) << 8);
+ edx_ = (edx_ & 0xFFFF00FFUL) | ((v10 & 0xFFu) << 8);
 if (((edx_ >> 8) & 0xFFu) == 0u) goto l_41a977;
-/* cmp dh, 0FFh */
 if (((edx_ >> 8) & 0xFFu) == 0xFFu) goto l_41a977;
-/* xor t0, t0 */ eax_ = 0u;
+ eax_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | ((edx_ >> 8) & 0xFFu);
-/* mov t3, [esp+60h+var_24] */ edx_ = v24;
-/* mov t1, dword_443760[t0*4] */ ebx_ = D3U_TBL_443760_32(&c->st, (eax_ & 0xFFu) * 4u);
-/* mov t0, t3 */ eax_ = edx_;
-/* mov t2, dword_444278 */ ecx_ = D3U_DICT_MASK_32(&c->st, 0);
-/* sub t0, t1 */ eax_ = (eax_ - ebx_) & U32MASK;
-/* and t0, t2 */ eax_ &= ecx_;
-/* cmp t0, 100h */
+ edx_ = v24;
+ ebx_ = D3U_TBL_443760_32(&c->st, (eax_ & 0xFFu) * 4u);
+ eax_ = edx_;
+ ecx_ = D3U_DICT_MASK_32(&c->st, 0);
+ eax_ = (eax_ - ebx_) & U32MASK;
+ eax_ &= ecx_;
 if (eax_ < 0x100u) goto l_41a8c0;
-/* mov al, [esp+60h+var_10] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) - 1u) & 0xFFu);
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* mov t4, dword_443760[t0*4] */ esi_ = D3U_TBL_443760_32(&c->st, eax_ * 4u);
-/* mov t0, t3 */ eax_ = edx_;
-/* sub t0, t4 */ eax_ = (eax_ - esi_) & U32MASK;
-/* and t0, t2 */ eax_ &= ecx_;
-/* cmp t0, 100h */
+ eax_ &= 0xFFu;
+ esi_ = D3U_TBL_443760_32(&c->st, eax_ * 4u);
+ eax_ = edx_;
+ eax_ = (eax_ - esi_) & U32MASK;
+ eax_ &= ecx_;
 if (eax_ < 0x100u) goto l_41a8c0;
-/* mov al, [esp+60h+var_10] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) + 1u) & 0xFFu);
-/* and t0, 0FFh */ eax_ &= 0xFFu;
-/* mov t1, dword_443760[t0*4] */ ebx_ = D3U_TBL_443760_32(&c->st, eax_ * 4u);
-/* mov t0, t3 */ eax_ = edx_;
-/* sub t0, t1 */ eax_ = (eax_ - ebx_) & U32MASK;
-/* and t0, t2 */ eax_ &= ecx_;
+ eax_ &= 0xFFu;
+ ebx_ = D3U_TBL_443760_32(&c->st, eax_ * 4u);
+ eax_ = edx_;
+ eax_ = (eax_ - ebx_) & U32MASK;
+ eax_ &= ecx_;
 l_41a8c0:
-/* test t0, t0 */
 if (eax_ == 0u) goto l_41a966;
-/* cmp t0, 100h */
 if (eax_ >= 0x100u) goto l_41a966;
-/* lea t5, ds:0[t0*4] */ edi_ = (eax_ * 4u) & U32MASK;
-/* mov t4, dword_442958[t5] */ esi_ = D3U_TBL_442958_32(&c->st, edi_);
-/* xor t3, t3 */ edx_ = 0u;
-/* inc t4 */ esi_ = (esi_ + 1u) & U32MASK;
+ edi_ = (eax_ * 4u) & U32MASK;
+ esi_ = D3U_TBL_442958_32(&c->st, edi_);
+ edx_ = 0u;
+ esi_ = (esi_ + 1u) & U32MASK;
 edx_ = (edx_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EB4_8(&c->st, 0);
-/* mov dword_442958[t5], t4 */ D3U_TBL_442958_32(&c->st, edi_) = esi_;
-/* cmp t0, t3 */
+ D3U_TBL_442958_32(&c->st, edi_) = esi_;
 if (eax_ == edx_) goto l_41a93f;
-/* mov bl, byte_441F18[t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)D3U_TBL_441F18_8(&c->st, eax_);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)D3U_TBL_441F18_8(&c->st, eax_);
 l_41a8f9:
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* mov t4, dword_442958[t5] */ esi_ = D3U_TBL_442958_32(&c->st, edi_);
-/* cmp t4, dword_442958[t3*4] */
+ esi_ = D3U_TBL_442958_32(&c->st, edi_);
 if (esi_ < D3U_TBL_442958_32(&c->st, (edx_ & 0xFFu) * 4u)) goto l_41a93f;
-/* mov bh, byte_441F18[t3] */ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_TBL_441F18_8(&c->st, (edx_ & 0xFFu))) << 8);
-/* mov byte_441F18[t0], bh */ D3U_TBL_441F18_8(&c->st, eax_) = (unsigned char)((ebx_ >> 8) & 0xFFu);
-/* mov bh, byte_442028[t0] */ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_TBL_442028_8(&c->st, eax_)) << 8);
-/* mov byte_442028[t3], bh */ D3U_TBL_442028_8(&c->st, (edx_ & 0xFFu)) = (unsigned char)((ebx_ >> 8) & 0xFFu);
-/* mov byte_441F18[t3], al */ D3U_TBL_441F18_8(&c->st, (edx_ & 0xFFu)) = (unsigned char)(eax_ & 0xFFu);
-/* mov byte_442028[t0], bl */ D3U_TBL_442028_8(&c->st, eax_) = (unsigned char)(ebx_ & 0xFFu);
-/* mov bl, byte_441F18[t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)D3U_TBL_441F18_8(&c->st, eax_);
+ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_TBL_441F18_8(&c->st, (edx_ & 0xFFu))) << 8);
+ D3U_TBL_441F18_8(&c->st, eax_) = (unsigned char)((ebx_ >> 8) & 0xFFu);
+ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_TBL_442028_8(&c->st, eax_)) << 8);
+ D3U_TBL_442028_8(&c->st, (edx_ & 0xFFu)) = (unsigned char)((ebx_ >> 8) & 0xFFu);
+ D3U_TBL_441F18_8(&c->st, (edx_ & 0xFFu)) = (unsigned char)(eax_ & 0xFFu);
+ D3U_TBL_442028_8(&c->st, eax_) = (unsigned char)(ebx_ & 0xFFu);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)D3U_TBL_441F18_8(&c->st, eax_);
 if ((ebx_ & 0xFFu) != 0u) goto l_41a8f9;
 D3U_FLAG_444EB4_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
 l_41a93f:
-/* inc t6 */ ebp_ = (ebp_ + 1u) & U32MASK;
-/* cmp t6, 100h */
+ ebp_ = (ebp_ + 1u) & U32MASK;
 if (ebp_ <= 0x100u) goto l_41a966;
-/* xor t6, t6 */ ebp_ = 0u;
-/* xor t0, t0 */ eax_ = 0u;
+ ebp_ = 0u;
+ eax_ = 0u;
 l_41a94c:
-/* mov t4, dword_442958[t0] */ esi_ = D3U_TBL_442958_32(&c->st, eax_);
-/* shr t4, 1 */ esi_ >>= 1;
-/* add t0, 4 */ eax_ = (eax_ + 4u) & U32MASK;
-/* add t6, t4 */ ebp_ = (ebp_ + esi_) & U32MASK;
-/* mov dword_442954[t0], t4 */ D3U_TBL_442954_32(&c->st, eax_) = esi_;
-/* cmp t0, 400h */
+ esi_ = D3U_TBL_442958_32(&c->st, eax_);
+ esi_ >>= 1;
+ eax_ = (eax_ + 4u) & U32MASK;
+ ebp_ = (ebp_ + esi_) & U32MASK;
+ D3U_TBL_442954_32(&c->st, eax_) = esi_;
 if (eax_ != 0x400u) goto l_41a94c;
 l_41a966:
-/* xor t0, t0 */ eax_ = 0u;
-/* mov al, [esp+60h+var_10] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
-/* mov t3, [esp+60h+var_24] */ edx_ = v24;
-/* mov dword_443760[t0*4], t3 */ D3U_TBL_443760_32(&c->st, (eax_ & 0xFFu) * 4u) = edx_;
+ eax_ = 0u;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
+ edx_ = v24;
+ D3U_TBL_443760_32(&c->st, (eax_ & 0xFFu) * 4u) = edx_;
 l_41a977:
-/* mov t0, [esp+60h+var_34] */ eax_ = v34;
-/* mov t5, [esp+60h+var_24] */ edi_ = v24;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t1, [esp+60h+var_5C] */ ebx_ = v5c;
-/* mov dl, [esp+60h+var_10] */ edx_ = (edx_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
-/* inc t5 */ edi_ = (edi_ + 1u) & U32MASK;
-/* shl t0, 8 */ eax_ = (eax_ << 8) & U32MASK;
-/* mov [esp+60h+var_24], t5 */ v24 = edi_;
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov t3, [esp+60h+var_28] */ edx_ = v28;
-/* mov [esp+60h+var_34], t0 */ v34 = eax_;
-/* mov t0, [esp+60h+var_30] */ eax_ = v30;
-/* inc t3 */ edx_ = (edx_ + 1u) & U32MASK;
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* mov [esp+60h+var_28], t3 */ v28 = edx_;
-/* mov [esp+60h+var_30], t0 */ v30 = eax_;
-/* cmp t3, t1 */
+ eax_ = v34;
+ edi_ = v24;
+ edx_ = 0u;
+ ebx_ = v5c;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
+ edi_ = (edi_ + 1u) & U32MASK;
+ eax_ = (eax_ << 8) & U32MASK;
+ v24 = edi_;
+ eax_ = (eax_ + edx_) & U32MASK;
+ edx_ = v28;
+ v34 = eax_;
+ eax_ = v30;
+ edx_ = (edx_ + 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ v28 = edx_;
+ v30 = eax_;
 if (edx_ < ebx_) goto l_41a57a;
 l_41a9b1:
-/* mov t0, [esp+60h+var_2C] */ eax_ = v2c;
-/* mov dword_4441DC, t6 */ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
-/* add esp, 54h */
-/* pop t6 */
-/* pop t5 */
-/* pop t4 */
+ eax_ = v2c;
+ D3U_TBL_4441DC_32(&c->st, 0) = ebp_;
 /* retn */ sv = 0; qv = 0; return eax_;
 }
 /* agrees: (t0,t3,cl,t1)). Exit al (0 or var_18 byte). */
@@ -9520,177 +8110,154 @@ unsigned int v14 = 0;
 unsigned int v10 = 0;
 unsigned int qv = 0;
 int sv = 0;
-/* push t4 */
-/* push t5 */
-/* push t6 */
-/* sub esp, 5Ch */
-/* mov [esp+68h+var_5C], t0 */ v5c = eax_in;
-/* mov [esp+68h+var_38], t3 */ v38 = edx_in;
-/* mov [esp+68h+var_3C], t1 */ v3c = ebx_in;
-/* mov t0, dword_444274 */ eax_ = D3U_DICT_CURSOR_32(&c->st, 0);
-/* mov [esp+68h+var_2C], t0 */ v2c = eax_;
-/* mov t0, dword_4441C0 */ eax_ = D3U_TBL_4441C0_32(&c->st, 0);
-/* mov [esp+68h+var_54], t0 */ v54 = eax_;
-/* mov t0, dword_4441D0 */ eax_ = D3U_TBL_4441D0_32(&c->st, 0);
-/* mov [esp+68h+var_48], t0 */ v48 = eax_;
-/* mov t0, dword_4441C4 */ eax_ = D3U_TBL_4441C4_32(&c->st, 0);
-/* mov [esp+68h+var_4C], t0 */ v4c = eax_;
+ v5c = eax_in;
+ v38 = edx_in;
+ v3c = ebx_in;
+ eax_ = D3U_DICT_CURSOR_32(&c->st, 0);
+ v2c = eax_;
+ eax_ = D3U_TBL_4441C0_32(&c->st, 0);
+ v54 = eax_;
+ eax_ = D3U_TBL_4441D0_32(&c->st, 0);
+ v48 = eax_;
+ eax_ = D3U_TBL_4441C4_32(&c->st, 0);
+ v4c = eax_;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA8_8(&c->st, 0);
-/* mov [esp+68h+var_10], al */ v10 = eax_ & 0xFFu;
+ v10 = eax_ & 0xFFu;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
-/* xor t3, t3 */ edx_ = 0u;
-/* mov [esp+68h+var_14], al */ v14 = eax_ & 0xFFu;
+ edx_ = 0u;
+ v14 = eax_ & 0xFFu;
 eax_ = (eax_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444E9D_8(&c->st, 0);
-/* xor t6, t6 */ ebp_ = 0u;
-/* mov [esp+68h+var_1C], al */ v1c = eax_ & 0xFFu;
+ ebp_ = 0u;
+ v1c = eax_ & 0xFFu;
 eax_ = (eax_ & 0xFFFF00FFUL) | (1u << 8);
-/* mov [esp+68h+var_24], t3 */ v24 = edx_;
+ v24 = edx_;
 D3U_FLAG_444EAB_8(&c->st, 0) = (unsigned char)((eax_ >> 8) & 0xFFu);
 if ((ecx_in & 0xFFu) != ((eax_ >> 8) & 0xFFu)) goto l_41aeda;
-/* mov t2, 100h */ ecx_ = 0x100u;
-/* mov t1, [esp+68h+var_2C] */ ebx_ = v2c;
-/* mov t0, dword_4299B8 */ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* mov t4, [esp+68h+var_38] */ esi_ = v38;
-/* add t0, t1 */ eax_ = (eax_ + ebx_) & U32MASK;
-/* cmp t4, t2 */
+ ecx_ = 0x100u;
+ ebx_ = v2c;
+ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ esi_ = v38;
+ eax_ = (eax_ + ebx_) & U32MASK;
 if (esi_ >= ecx_) goto l_41ae73;
-/* mov t2, t4 */ ecx_ = esi_;
+ ecx_ = esi_;
 l_41ae73:
-/* mov t5, 0FFFFFFFFh */ edi_ = 0xFFFFFFFFUL;
+ edi_ = 0xFFFFFFFFUL;
 l_41ae78:
-/* mov bl, [t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
-/* cmp bl, 40h */
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
 if ((ebx_ & 0xFFu) < 0x40u) goto l_41ae84;
-/* cmp bl, 0C0h */
 if ((ebx_ & 0xFFu) < 0xC0u) goto l_41ae8b;
 l_41ae84:
-/* mov t4, 1 */ esi_ = 1u;
+ esi_ = 1u;
 goto l_41ae8d;
 l_41ae8b:
-/* mov t4, t5 */ esi_ = edi_;
+ esi_ = edi_;
 l_41ae8d:
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* add t3, t4 */ edx_ = (edx_ + esi_) & U32MASK;
-/* dec t2 */ ecx_ = (ecx_ - 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ edx_ = (edx_ + esi_) & U32MASK;
+ ecx_ = (ecx_ - 1u) & U32MASK;
 if (ecx_ != 0u) goto l_41ae78;
-/* mov t0, [esp+68h+var_38] */ eax_ = v38;
-/* cmp t0, 100h */
+ eax_ = v38;
 if (eax_ <= 0x100u) goto l_41aeca;
-/* lea t2, [t0-100h] */ ecx_ = (eax_ - 0x100u) & U32MASK;
-/* mov t4, 0FFFFFFFFh */ esi_ = 0xFFFFFFFFUL;
-/* mov t0, [esp+68h+var_5C] */ eax_ = v5c;
+ ecx_ = (eax_ - 0x100u) & U32MASK;
+ esi_ = 0xFFFFFFFFUL;
+ eax_ = v5c;
 l_41aead:
-/* mov bl, [t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | ((~(ebx_ & 0xFFu)) & 0xFFu);
-/* cmp bl, 40h */
 if ((ebx_ & 0xFFu) < 0x40u) goto l_41aebb;
-/* cmp bl, 0C0h */
 if ((ebx_ & 0xFFu) < 0xC0u) goto l_41aec2;
 l_41aebb:
-/* mov t1, 1 */ ebx_ = 1u;
+ ebx_ = 1u;
 goto l_41aec4;
 l_41aec2:
-/* mov t1, t4 */ ebx_ = esi_;
+ ebx_ = esi_;
 l_41aec4:
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* add t3, t1 */ edx_ = (edx_ + ebx_) & U32MASK;
-/* dec t2 */ ecx_ = (ecx_ - 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ edx_ = (edx_ + ebx_) & U32MASK;
+ ecx_ = (ecx_ - 1u) & U32MASK;
 if (ecx_ != 0u) goto l_41aead;
 l_41aeca:
-/* test t3, t3 */
-/* setnle al */ eax_ = (eax_ & 0xFFFFFF00UL) | ((((int)edx_ > 0) ? 1u : 0u));
+ eax_ = (eax_ & 0xFFFFFF00UL) | ((((int)edx_ > 0) ? 1u : 0u));
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) + 5u) & 0xFFu);
-/* mov [esp+68h+var_18], al */ v18 = eax_ & 0xFFu;
+ v18 = eax_ & 0xFFu;
 goto l_41afac;
 l_41aeda:
 if ((ecx_in & 0xFFu) != 2u) goto l_41afa7;
-/* mov t3, 100h */ edx_ = 0x100u;
-/* mov t1, [esp+68h+var_2C] */ ebx_ = v2c;
-/* mov t5, [esp+68h+var_38] */ edi_ = v38;
-/* mov t0, dword_4299B8 */ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* xor t4, t4 */ esi_ = 0u;
-/* xor t2, t2 */ ecx_ = 0u;
-/* add t0, t1 */ eax_ = (eax_ + ebx_) & U32MASK;
-/* cmp t5, t3 */
+ edx_ = 0x100u;
+ ebx_ = v2c;
+ edi_ = v38;
+ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ esi_ = 0u;
+ ecx_ = 0u;
+ eax_ = (eax_ + ebx_) & U32MASK;
 if (edi_ >= edx_) goto l_41af01;
-/* mov t3, t5 */ edx_ = edi_;
+ edx_ = edi_;
 l_41af01:
-/* mov t5, 0FFFFFFFFh */ edi_ = 0xFFFFFFFFUL;
+ edi_ = 0xFFFFFFFFUL;
 l_41af06:
-/* mov bl, [t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
-/* cmp bl, 40h */
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
 if ((ebx_ & 0xFFu) < 0x40u) goto l_41af12;
-/* cmp bl, 0C0h */
 if ((ebx_ & 0xFFu) < 0xC0u) goto l_41af19;
 l_41af12:
-/* mov t1, 1 */ ebx_ = 1u;
+ ebx_ = 1u;
 goto l_41af1b;
 l_41af19:
-/* mov t1, t5 */ ebx_ = edi_;
+ ebx_ = edi_;
 l_41af1b:
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* add t4, t1 */ esi_ = (esi_ + ebx_) & U32MASK;
-/* dec t3 */ edx_ = (edx_ - 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ esi_ = (esi_ + ebx_) & U32MASK;
+ edx_ = (edx_ - 1u) & U32MASK;
 if (edx_ == 0u) goto l_41af3c;
-/* mov bl, [t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
-/* cmp bl, 40h */
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)c->blk00_dict[eax_ - c->blk00_base];
 if ((ebx_ & 0xFFu) < 0x40u) goto l_41af2d;
-/* cmp bl, 0C0h */
 if ((ebx_ & 0xFFu) < 0xC0u) goto l_41af34;
 l_41af2d:
-/* mov t1, 1 */ ebx_ = 1u;
+ ebx_ = 1u;
 goto l_41af36;
 l_41af34:
-/* mov t1, t5 */ ebx_ = edi_;
+ ebx_ = edi_;
 l_41af36:
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* add t2, t1 */ ecx_ = (ecx_ + ebx_) & U32MASK;
-/* dec t3 */ edx_ = (edx_ - 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ ecx_ = (ecx_ + ebx_) & U32MASK;
+ edx_ = (edx_ - 1u) & U32MASK;
 if (edx_ != 0u) goto l_41af06;
 l_41af3c:
-/* mov t5, [esp+68h+var_38] */ edi_ = v38;
-/* cmp t5, 100h */
+ edi_ = v38;
 if (edi_ <= 0x100u) goto l_41af91;
-/* lea t3, [t5-100h] */ edx_ = (edi_ - 0x100u) & U32MASK;
-/* mov t0, [esp+68h+var_5C] */ eax_ = v5c;
-/* mov t5, 0FFFFFFFFh */ edi_ = 0xFFFFFFFFUL;
+ edx_ = (edi_ - 0x100u) & U32MASK;
+ eax_ = v5c;
+ edi_ = 0xFFFFFFFFUL;
 l_41af57:
-/* mov bl, [t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | ((~(ebx_ & 0xFFu)) & 0xFFu);
-/* cmp bl, 40h */
 if ((ebx_ & 0xFFu) < 0x40u) goto l_41af65;
-/* cmp bl, 0C0h */
 if ((ebx_ & 0xFFu) < 0xC0u) goto l_41af6c;
 l_41af65:
-/* mov t1, 1 */ ebx_ = 1u;
+ ebx_ = 1u;
 goto l_41af6e;
 l_41af6c:
-/* mov t1, t5 */ ebx_ = edi_;
+ ebx_ = edi_;
 l_41af6e:
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* add t4, t1 */ esi_ = (esi_ + ebx_) & U32MASK;
-/* dec t3 */ edx_ = (edx_ - 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ esi_ = (esi_ + ebx_) & U32MASK;
+ edx_ = (edx_ - 1u) & U32MASK;
 if (edx_ == 0u) goto l_41af91;
-/* mov bl, [t0] */ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
+ ebx_ = (ebx_ & 0xFFFFFF00UL) | (unsigned int)G8(eax_);
 ebx_ = (ebx_ & 0xFFFFFF00UL) | ((~(ebx_ & 0xFFu)) & 0xFFu);
-/* cmp bl, 40h */
 if ((ebx_ & 0xFFu) < 0x40u) goto l_41af82;
-/* cmp bl, 0C0h */
 if ((ebx_ & 0xFFu) < 0xC0u) goto l_41af89;
 l_41af82:
-/* mov t1, 1 */ ebx_ = 1u;
+ ebx_ = 1u;
 goto l_41af8b;
 l_41af89:
-/* mov t1, t5 */ ebx_ = edi_;
+ ebx_ = edi_;
 l_41af8b:
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* add t2, t1 */ ecx_ = (ecx_ + ebx_) & U32MASK;
-/* dec t3 */ edx_ = (edx_ - 1u) & U32MASK;
+ eax_ = (eax_ + 1u) & U32MASK;
+ ecx_ = (ecx_ + ebx_) & U32MASK;
+ edx_ = (edx_ - 1u) & U32MASK;
 if (edx_ != 0u) goto l_41af57;
 l_41af91:
-/* test t4, t4 */
 if ((int)esi_ > 0) goto l_41af99;
-/* test t2, t2 */
 if ((int)ecx_ <= 0) goto l_41af9d;
 l_41af99:
 eax_ = (eax_ & 0xFFFFFF00UL) | 1u;
@@ -9699,106 +8266,104 @@ l_41af9d:
 eax_ = (eax_ & 0xFFFFFF00UL);
 l_41af9f:
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) + 7u) & 0xFFu);
-/* mov [esp+68h+var_18], al */ v18 = eax_ & 0xFFu;
+ v18 = eax_ & 0xFFu;
 goto l_41afac;
 l_41afa7:
-/* mov [esp+68h+var_18], 9 */ v18 = 9u;
+ v18 = 9u;
 l_41afac:
-/* xor t3, t3 */ edx_ = 0u;
-/* mov dl, [esp+68h+var_18] */ edx_ = (edx_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
+ edx_ = 0u;
+ edx_ = (edx_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
 ecx_ = (ecx_ & 0xFFFFFF00UL) | (unsigned int)D3U_FLAG_444EA9_8(&c->st, 0);
-/* mov t1, dword_429DB8[t3*4] */ ebx_ = d3u_ld32(c, (unsigned long)(d3u_t429DB8[(unsigned int)(edx_ & 0xFFU)]));
-/* mov t0, dword_429E08[t3*4] */ eax_ = d3u_t429E08[(unsigned int)(edx_ & 0xFFU)];
-/* mov [esp+68h+var_68], t1 */ v68 = ebx_;
-/* mov [esp+68h+var_34], t0 */ v34 = eax_;
-/* mov t1, dword_429DE0[t3*4] */ ebx_ = d3u_ld32(c, (unsigned long)(d3u_t429DE0[(unsigned int)(edx_ & 0xFFU)]));
-/* shl t3, 8 */ edx_ = (edx_ << 8) & U32MASK;
-/* mov al, [esp+68h+var_18] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
-/* add t3, 30000h */ edx_ = (edx_ + 0x30000u) & U32MASK;
-/* mov [esp+68h+var_60], t1 */ v60 = ebx_;
-/* mov [esp+68h+var_64], t3 */ v64 = edx_;
+ ebx_ = d3u_ld32(c, (unsigned long)(d3u_t429DB8[(unsigned int)(edx_ & 0xFFU)]));
+ eax_ = d3u_t429E08[(unsigned int)(edx_ & 0xFFU)];
+ v68 = ebx_;
+ v34 = eax_;
+ ebx_ = d3u_ld32(c, (unsigned long)(d3u_t429DE0[(unsigned int)(edx_ & 0xFFU)]));
+ edx_ = (edx_ << 8) & U32MASK;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
+ edx_ = (edx_ + 0x30000u) & U32MASK;
+ v60 = ebx_;
+ v64 = edx_;
 if ((eax_ & 0xFFu) == (ecx_ & 0xFFu)) goto l_41b01a;
-/* mov t0, t1 */ eax_ = ebx_;
-/* mov dword_4441C4, t1 */ D3U_TBL_4441C4_32(&c->st, 0) = ebx_;
+ eax_ = ebx_;
+ D3U_TBL_4441C4_32(&c->st, 0) = ebx_;
 ecx_ = (ecx_ & 0xFFFF00FFUL);
-/* xor t3, t3 */ edx_ = 0u;
+ edx_ = 0u;
 eax_ = (eax_ & 0xFFFFFF00UL) | (((eax_ & 0xFFu) ^ (ebx_ & 0xFFu)) & 0xFFu);
 D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)((ecx_ >> 8) & 0xFFu);
 D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
-/* mov al, [esp+68h+var_18] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
-/* mov dword_4441D0, t3 */ D3U_TBL_4441D0_32(&c->st, 0) = edx_;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
+ D3U_TBL_4441D0_32(&c->st, 0) = edx_;
 D3U_FLAG_444EA9_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
 d3uc_init_hash_buckets(c);
 l_41b01a:
-/* mov t3, [esp+68h+var_34] */ edx_ = v34;
-/* mov t1, [esp+68h+var_60] */ ebx_ = v60;
-/* mov t5, dword_4299F8 */ edi_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
-/* mov t4, dword_4299F4 */ esi_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-/* shl t3, 9 */ edx_ = (edx_ << 9) & U32MASK;
-/* shl t1, 9 */ ebx_ = (ebx_ << 9) & U32MASK;
-/* mov t2, t3 */ ecx_ = edx_;
-/* add t4, t1 */ esi_ = (esi_ + ebx_) & U32MASK;
-/* mov t0, t2 */ eax_ = ecx_;
-/* sub t2, t5 */ ecx_ = (ecx_ - edi_) & U32MASK;
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* and t2, 3 */ ecx_ &= 3u;
-/* sub t0, t2 */ eax_ = (eax_ - ecx_) & U32MASK;
+ edx_ = v34;
+ ebx_ = v60;
+ edi_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
+ esi_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+ edx_ = (edx_ << 9) & U32MASK;
+ ebx_ = (ebx_ << 9) & U32MASK;
+ ecx_ = edx_;
+ esi_ = (esi_ + ebx_) & U32MASK;
+ eax_ = ecx_;
+ ecx_ = (ecx_ - edi_) & U32MASK;
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ ecx_ &= 3u;
+ eax_ = (eax_ - ecx_) & U32MASK;
 if ((int)eax_ <= 0) goto l_41b052;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* mov t2, t0 */ ecx_ = eax_;
-/* and t0, 3 */ eax_ &= 3u;
-/* shr t2, 2 */ ecx_ >>= 2;
-/* rep movsd */ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ ecx_ = eax_;
+ eax_ &= 3u;
+ ecx_ >>= 2;
+ while (ecx_ != 0u) { d3u_st32(c, (unsigned long)(edi_), d3u_ld32(c, (unsigned long)(esi_))); edi_ = (edi_ + 4u) & U32MASK; esi_ = (esi_ + 4u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
 l_41b052:
-/* add t2, t0 */ ecx_ = (ecx_ + eax_) & U32MASK;
-/* rep movsb */ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
-/* add t3, t1 */ edx_ = (edx_ + ebx_) & U32MASK;
-/* mov t1, [esp+68h+var_34] */ ebx_ = v34;
-/* mov t2, [esp+68h+var_60] */ ecx_ = v60;
-/* add t1, t1 */ ebx_ = (ebx_ + ebx_) & U32MASK;
-/* add t2, t2 */ ecx_ = (ecx_ + ecx_) & U32MASK;
-/* mov t0, t1 */ eax_ = ebx_;
-/* add t2, t1 */ ecx_ = (ecx_ + ebx_) & U32MASK;
+ ecx_ = (ecx_ + eax_) & U32MASK;
+ while (ecx_ != 0u) { M8(edi_) = G8(esi_); edi_ = (edi_ + 1u) & U32MASK; esi_ = (esi_ + 1u) & U32MASK; ecx_ = (ecx_ - 1u) & U32MASK; }
+ edx_ = (edx_ + ebx_) & U32MASK;
+ ebx_ = v34;
+ ecx_ = v60;
+ ebx_ = (ebx_ + ebx_) & U32MASK;
+ ecx_ = (ecx_ + ecx_) & U32MASK;
+ eax_ = ebx_;
+ ecx_ = (ecx_ + ebx_) & U32MASK;
 l_41b068:
-/* mov t1, [esp+68h+var_34] */ ebx_ = v34;
-/* sub t3, 200h */ edx_ = (edx_ - 0x200u) & U32MASK;
-/* sub t0, 2 */ eax_ = (eax_ - 2u) & U32MASK;
-/* dec t1 */ ebx_ = (ebx_ - 1u) & U32MASK;
-/* sub t2, 2 */ ecx_ = (ecx_ - 2u) & U32MASK;
-/* mov [esp+68h+var_34], t1 */ v34 = ebx_;
-/* cmp t0, 0FFFFFFFEh */
+ ebx_ = v34;
+ edx_ = (edx_ - 0x200u) & U32MASK;
+ eax_ = (eax_ - 2u) & U32MASK;
+ ebx_ = (ebx_ - 1u) & U32MASK;
+ ecx_ = (ecx_ - 2u) & U32MASK;
+ v34 = ebx_;
 if (eax_ == 0xFFFFFFFEUL) goto l_41b0ba;
-/* mov t1, dword_4299FC */ ebx_ = (unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-/* mov t4, dword_429A04 */ esi_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
-/* mov bx, [t2+t1] */ ebx_ = (ebx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(ecx_ + ebx_));
-/* mov [t4+t0], bx */ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
-/* mov t4, dword_4299F0 */ esi_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-/* and t1, 0FFFFh */ ebx_ &= 0xFFFFu;
-/* mov si, [t3+t4] */ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_ + esi_));
-/* and t4, 0FFFFh */ esi_ &= 0xFFFFu;
-/* add t1, t4 */ ebx_ = (ebx_ + esi_) & U32MASK;
-/* mov t4, dword_429A00 */ esi_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-/* mov [t4+t0], bx */ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
+ ebx_ = (unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
+ esi_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
+ ebx_ = (ebx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(ecx_ + ebx_));
+ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
+ esi_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+ ebx_ &= 0xFFFFu;
+ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_ + esi_));
+ esi_ &= 0xFFFFu;
+ ebx_ = (ebx_ + esi_) & U32MASK;
+ esi_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+ d3u_st16(c, (unsigned long)(esi_ + eax_), (unsigned short)(ebx_ & 0xFFFFu));
 goto l_41b068;
 l_41b0ba:
-/* mov t0, [esp+68h+var_64] */ eax_ = v64;
-/* add t0, t0 */ eax_ = (eax_ + eax_) & U32MASK;
-/* mov t2, [esp+68h+var_5C] */ ecx_ = v5c;
-/* mov [esp+68h+var_40], t0 */ v40 = eax_;
-/* mov t0, [esp+68h+var_24] */ eax_ = v24;
-/* add t0, t2 */ eax_ = (eax_ + ecx_) & U32MASK;
-/* mov [esp+68h+var_44], t0 */ v44 = eax_;
+ eax_ = v64;
+ eax_ = (eax_ + eax_) & U32MASK;
+ ecx_ = v5c;
+ v40 = eax_;
+ eax_ = v24;
+ eax_ = (eax_ + ecx_) & U32MASK;
+ v44 = eax_;
 l_41b0d2:
-/* cmp [esp+68h+var_24], 100h */
 if (v24 >= 0x100u) goto l_41b0eb;
-/* mov t5, [esp+68h+var_2C] */ edi_ = v2c;
-/* mov t0, dword_4299B8 */ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
-/* add t0, t5 */ eax_ = (eax_ + edi_) & U32MASK;
-/* mov bh, [t0] */ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)c->blk00_dict[eax_ - c->blk00_base]) << 8);
+ edi_ = v2c;
+ eax_ = (unsigned long)D3U_BLK00_DICT_MASTER_32(&c->st, 0);
+ eax_ = (eax_ + edi_) & U32MASK;
+ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)c->blk00_dict[eax_ - c->blk00_base]) << 8);
 goto l_41b0f7;
 l_41b0eb:
-/* mov t1, [esp+68h+var_44] */ ebx_ = v44;
-/* mov bh, [t1-100h] */ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)G8(ebx_ - 0x100u)) << 8);
+ ebx_ = v44;
+ ebx_ = (ebx_ & 0xFFFF00FFUL) | (((unsigned int)G8(ebx_ - 0x100u)) << 8);
 ebx_ = (ebx_ & 0xFFFF00FFUL) | (((~((ebx_ >> 8) & 0xFFu)) & 0xFFu) << 8);
 l_41b0f7:
 eax_ = (eax_ & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444E9D_8(&c->st, 0) << 8) & 0xFF00u);
@@ -9808,140 +8373,131 @@ ebx_ = (ebx_ & 0xFFFFFF00UL) | (((ebx_ & 0xFFu) - ((eax_ >> 8) & 0xFFu)) & 0xFFu
 if ((edx_ & 0xFFu) == 0u) goto l_41b10d;
 ebx_ = (ebx_ & 0xFFFFFF00UL) | (((-(int)(ebx_ & 0xFFu)) & 0xFFu));
 l_41b10d:
-/* cmp bl, 80h */
 if ((ebx_ & 0xFFu) < 0x80u) goto l_41b122;
 edx_ = (edx_ & 0xFFFF00FFUL) | (((unsigned int)D3U_FLAG_444EA8_8(&c->st, 0) << 8) & 0xFF00u);
 eax_ = (eax_ & 0xFFFFFF00UL) | (((((edx_ >> 8) & 0xFFu) == 0u) ? 1u : 0u));
 D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
 l_41b122:
-/* mov t0, [esp+68h+var_60] */ eax_ = v60;
-/* mov t2, dword_4441C4 */ ecx_ = D3U_TBL_4441C4_32(&c->st, 0);
-/* sub t2, t0 */ ecx_ = (ecx_ - eax_) & U32MASK;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t0, t2 */ eax_ = ecx_;
+ eax_ = v60;
+ ecx_ = D3U_TBL_4441C4_32(&c->st, 0);
+ ecx_ = (ecx_ - eax_) & U32MASK;
+ edx_ = 0u;
+ eax_ = ecx_;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
-/* shl t0, 8 */ eax_ = (eax_ << 8) & U32MASK;
-/* add t0, t3 */ eax_ = (eax_ + edx_) & U32MASK;
-/* mov t4, dword_4299F8 */ esi_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
-/* add t0, t0 */ eax_ = (eax_ + eax_) & U32MASK;
-/* add t4, t0 */ esi_ = (esi_ + eax_) & U32MASK;
-/* mov [esp+68h+var_50], t4 */ v50 = esi_;
-/* mov ax, [t4] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(esi_));
-/* lea t4, [t2+t2] */ esi_ = (ecx_ + ecx_) & U32MASK;
-/* mov [esp+68h+var_30], t4 */ v30 = esi_;
-/* mov t5, [esp+68h+var_30] */ edi_ = v30;
-/* mov t4, dword_429A00 */ esi_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-/* add t5, t4 */ edi_ = (edi_ + esi_) & U32MASK;
-/* mov si, [t5] */ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edi_));
-/* mov [esp+68h+var_20], t4 */ v20 = esi_;
-/* mov t4, dword_4441C4 */ esi_ = D3U_TBL_4441C4_32(&c->st, 0);
-/* mov [esp+68h+var_28], t5 */ v28 = edi_;
-/* mov si, word_44428A[t4*2] */ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)D3U_TBL_44428A_16(&c->st, esi_ * 2u);
+ eax_ = (eax_ << 8) & U32MASK;
+ eax_ = (eax_ + edx_) & U32MASK;
+ esi_ = (unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
+ eax_ = (eax_ + eax_) & U32MASK;
+ esi_ = (esi_ + eax_) & U32MASK;
+ v50 = esi_;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(esi_));
+ esi_ = (ecx_ + ecx_) & U32MASK;
+ v30 = esi_;
+ edi_ = v30;
+ esi_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+ edi_ = (edi_ + esi_) & U32MASK;
+ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edi_));
+ v20 = esi_;
+ esi_ = D3U_TBL_4441C4_32(&c->st, 0);
+ v28 = edi_;
+ esi_ = (esi_ & 0xFFFF0000UL) | (unsigned int)D3U_TBL_44428A_16(&c->st, esi_ * 2u);
 if ((eax_ & 0xFFFFu) != 0u) goto l_41b1db;
-/* add t3, [esp+68h+var_64] */ edx_ = (edx_ + v64) & U32MASK;
-/* mov t0, dword_4299F4 */ eax_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-/* add t3, t3 */ edx_ = (edx_ + edx_) & U32MASK;
-/* add t3, t0 */ edx_ = (edx_ + eax_) & U32MASK;
-/* xor t0, t0 */ eax_ = 0u;
-/* mov t5, [esp+68h+var_40] */ edi_ = v40;
-/* mov ax, [t3] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_));
-/* mov t3, dword_4299F0 */ edx_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-/* add t3, t5 */ edx_ = (edx_ + edi_) & U32MASK;
-/* shl t0, 0Eh */ eax_ = (eax_ << 14) & U32MASK;
-/* mov dx, [t3] */ edx_ = (edx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_));
-/* and t3, 0FFFFh */ edx_ &= 0xFFFFu;
-/* mov [esp+68h+var_58], t3 */ v58 = edx_;
-/* mov t5, [esp+68h+var_58] */ edi_ = v58;
-/* xor t3, t3 */ edx_ = 0u;
-/* div t5 */ qv = eax_; eax_ = qv / edi_; edx_ = qv % edi_;
-/* mov ax, word_42D274[t0*2] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* mov t3, dword_429A04 */ edx_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
-/* add t6, t0 */ ebp_ = (ebp_ + eax_) & U32MASK;
-/* add t3, [esp+68h+var_30] */ edx_ = (edx_ + v30) & U32MASK;
-/* mov ax, [t3] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_));
-/* mov t5, t0 */ edi_ = eax_;
-/* add t5, t4 */ edi_ = (edi_ + esi_) & U32MASK;
-/* mov [t3], di */ d3u_st16(c, (unsigned long)(edx_), (unsigned short)(edi_ & 0xFFFFu));
-/* mov t3, [esp+68h+var_28] */ edx_ = v28;
-/* add [t3], si */ d3u_st16(c, (unsigned long)(edx_), (unsigned short)((d3u_ld16(c, (unsigned long)(edx_)) + (esi_ & 0xFFFFu)) & 0xFFFFu));
+ edx_ = (edx_ + v64) & U32MASK;
+ eax_ = (unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+ edx_ = (edx_ + edx_) & U32MASK;
+ edx_ = (edx_ + eax_) & U32MASK;
+ eax_ = 0u;
+ edi_ = v40;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_));
+ edx_ = (unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+ edx_ = (edx_ + edi_) & U32MASK;
+ eax_ = (eax_ << 14) & U32MASK;
+ edx_ = (edx_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_));
+ edx_ &= 0xFFFFu;
+ v58 = edx_;
+ edi_ = v58;
+ edx_ = 0u;
+ qv = eax_; eax_ = qv / edi_; edx_ = qv % edi_;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
+ eax_ &= 0xFFFFu;
+ edx_ = (unsigned long)D3U_TBL_429A04_32(&c->st, 0);
+ ebp_ = (ebp_ + eax_) & U32MASK;
+ edx_ = (edx_ + v30) & U32MASK;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(edx_));
+ edi_ = eax_;
+ edi_ = (edi_ + esi_) & U32MASK;
+ d3u_st16(c, (unsigned long)(edx_), (unsigned short)(edi_ & 0xFFFFu));
+ edx_ = v28;
+ d3u_st16(c, (unsigned long)(edx_), (unsigned short)((d3u_ld16(c, (unsigned long)(edx_)) + (esi_ & 0xFFFFu)) & 0xFFFFu));
 l_41b1db:
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* xor t5, t5 */ edi_ = 0u;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov di, word ptr [esp+68h+var_20] */ edi_ = (edi_ & 0xFFFF0000UL) | (v20 & 0xFFFFu);
-/* shl t0, 0Eh */ eax_ = (eax_ << 14) & U32MASK;
-/* div t5 */ qv = eax_; eax_ = qv / edi_; edx_ = qv % edi_;
-/* mov ax, word_42D274[t0*2] */ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
-/* and t0, 0FFFFh */ eax_ &= 0xFFFFu;
-/* mov t3, [esp+68h+var_3C] */ edx_ = v3c;
-/* add t6, t0 */ ebp_ = (ebp_ + eax_) & U32MASK;
-/* cmp t6, t3 */
+ eax_ &= 0xFFFFu;
+ edi_ = 0u;
+ edx_ = 0u;
+ edi_ = (edi_ & 0xFFFF0000UL) | (v20 & 0xFFFFu);
+ eax_ = (eax_ << 14) & U32MASK;
+ qv = eax_; eax_ = qv / edi_; edx_ = qv % edi_;
+ eax_ = (eax_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(D3U_U16_CUM_DST + eax_ * 2u));
+ eax_ &= 0xFFFFu;
+ edx_ = v3c;
+ ebp_ = (ebp_ + eax_) & U32MASK;
 if (ebp_ > edx_) goto l_41b27e;
-/* mov t0, [esp+68h+var_50] */ eax_ = v50;
-/* add [t0], si */ d3u_st16(c, (unsigned long)(eax_), (unsigned short)((d3u_ld16(c, (unsigned long)(eax_)) + (esi_ & 0xFFFFu)) & 0xFFFFu));
-/* mov t0, dword_429A00 */ eax_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-/* mov di, [t0+t2*2] */ edi_ = (edi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(eax_ + ecx_ * 2u));
-/* add t5, t4 */ edi_ = (edi_ + esi_) & U32MASK;
-/* mov [t0+t2*2], di */ d3u_st16(c, (unsigned long)(eax_ + ecx_ * 2u), (unsigned short)(edi_ & 0xFFFFu));
-/* cmp di, 4000h */
+ eax_ = v50;
+ d3u_st16(c, (unsigned long)(eax_), (unsigned short)((d3u_ld16(c, (unsigned long)(eax_)) + (esi_ & 0xFFFFu)) & 0xFFFFu));
+ eax_ = (unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+ edi_ = (edi_ & 0xFFFF0000UL) | (unsigned int)d3u_ld16(c, (unsigned long)(eax_ + ecx_ * 2u));
+ edi_ = (edi_ + esi_) & U32MASK;
+ d3u_st16(c, (unsigned long)(eax_ + ecx_ * 2u), (unsigned short)(edi_ & 0xFFFFu));
 if ((edi_ & 0xFFFFu) < 0x4000u) goto l_41b229;
-/* mov t0, t2 */ eax_ = ecx_;
+ eax_ = ecx_;
 eax_ = d3uc_fold_small_ctx_block(c, eax_);
 l_41b229:
-/* xor t3, t3 */ edx_ = 0u;
-/* xor t0, t0 */ eax_ = 0u;
+ edx_ = 0u;
+ eax_ = 0u;
 edx_ = (edx_ & 0xFFFFFF00UL) | (ebx_ & 0xFFu);
 eax_ = (eax_ & 0xFFFFFF00UL) | ((ebx_ >> 8) & 0xFFu);
 d3uc_walk_hash_chain(c, eax_, edx_);
-/* mov t1, dword_4441C0 */ ebx_ = D3U_TBL_4441C0_32(&c->st, 0);
-/* mov t2, [esp+68h+var_68] */ ecx_ = v68;
-/* inc t1 */ ebx_ = (ebx_ + 1u) & U32MASK;
-/* xor t3, t3 */ edx_ = 0u;
-/* mov t0, t1 */ eax_ = ebx_;
-/* div t2 */ qv = eax_; eax_ = qv / ecx_; edx_ = qv % ecx_;
-/* mov t4, [esp+68h+var_2C] */ esi_ = v2c;
-/* mov t5, [esp+68h+var_44] */ edi_ = v44;
-/* inc t4 */ esi_ = (esi_ + 1u) & U32MASK;
-/* inc t5 */ edi_ = (edi_ + 1u) & U32MASK;
-/* mov [esp+68h+var_2C], t4 */ v2c = esi_;
-/* mov dword_4441C0, t1 */ D3U_TBL_4441C0_32(&c->st, 0) = ebx_;
-/* mov dword_4441D0, t3 */ D3U_TBL_4441D0_32(&c->st, 0) = edx_;
+ ebx_ = D3U_TBL_4441C0_32(&c->st, 0);
+ ecx_ = v68;
+ ebx_ = (ebx_ + 1u) & U32MASK;
+ edx_ = 0u;
+ eax_ = ebx_;
+ qv = eax_; eax_ = qv / ecx_; edx_ = qv % ecx_;
+ esi_ = v2c;
+ edi_ = v44;
+ esi_ = (esi_ + 1u) & U32MASK;
+ edi_ = (edi_ + 1u) & U32MASK;
+ v2c = esi_;
+ D3U_TBL_4441C0_32(&c->st, 0) = ebx_;
+ D3U_TBL_4441D0_32(&c->st, 0) = edx_;
 d3uc_update_hash_bucket(c);
-/* mov t0, [esp+68h+var_24] */ eax_ = v24;
-/* mov [esp+68h+var_44], t5 */ v44 = edi_;
-/* inc t0 */ eax_ = (eax_ + 1u) & U32MASK;
-/* mov t3, [esp+68h+var_38] */ edx_ = v38;
-/* mov [esp+68h+var_24], t0 */ v24 = eax_;
-/* cmp t0, t3 */
+ eax_ = v24;
+ v44 = edi_;
+ eax_ = (eax_ + 1u) & U32MASK;
+ edx_ = v38;
+ v24 = eax_;
 if (eax_ < edx_) goto l_41b0d2;
 l_41b27e:
-/* mov t0, [esp+68h+var_54] */ eax_ = v54;
-/* mov dword_4441C0, t0 */ D3U_TBL_4441C0_32(&c->st, 0) = eax_;
-/* mov t0, [esp+68h+var_48] */ eax_ = v48;
-/* mov dword_4441D0, t0 */ D3U_TBL_4441D0_32(&c->st, 0) = eax_;
-/* mov t0, [esp+68h+var_4C] */ eax_ = v4c;
-/* mov dword_4441C4, t0 */ D3U_TBL_4441C4_32(&c->st, 0) = eax_;
-/* mov al, [esp+68h+var_10] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
+ eax_ = v54;
+ D3U_TBL_4441C0_32(&c->st, 0) = eax_;
+ eax_ = v48;
+ D3U_TBL_4441D0_32(&c->st, 0) = eax_;
+ eax_ = v4c;
+ D3U_TBL_4441C4_32(&c->st, 0) = eax_;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v10 & 0xFFu);
 ebx_ = (ebx_ & 0xFFFFFF00UL);
 D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
-/* mov al, [esp+68h+var_14] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v14 & 0xFFu);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v14 & 0xFFu);
 D3U_FLAG_444EAB_8(&c->st, 0) = (unsigned char)(ebx_ & 0xFFu);
 D3U_FLAG_444EA9_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
-/* mov al, [esp+68h+var_1C] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
-/* mov t1, [esp+68h+var_3C] */ ebx_ = v3c;
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v1c & 0xFFu);
+ ebx_ = v3c;
 D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(eax_ & 0xFFu);
-/* cmp t6, t1 */
 if (ebp_ >= ebx_) goto l_41b2ca;
-/* mov al, [esp+68h+var_18] */ eax_ = (eax_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
+ eax_ = (eax_ & 0xFFFFFF00UL) | (v18 & 0xFFu);
 goto l_41b2cc;
 l_41b2ca:
 eax_ = (eax_ & 0xFFFFFF00UL);
 l_41b2cc:
-/* add esp, 5Ch */
-/* pop t6 */
-/* pop t5 */
-/* pop t4 */
 /* retn */ sv = 0; qv = 0; return (eax_ & 0xFFu);
 }
 
@@ -9960,90 +8516,84 @@ unsigned int d3uc_update_ctx_coder(dec3w_ctx *c, unsigned int eax_in, unsigned i
     unsigned long v1c = 0;
     unsigned long v18 = 0;
     unsigned long qv = 0;
-    /* push t1/push t2/push t4/push t5/push t6 + sub esp,8: no C equivalent */
     t0 = (unsigned long)eax_in;
     t1 = (t1 & 0xFFFF00FFUL) | ((((unsigned long)D3U_FLAG_444EAA_8(&c->st, 0)) & 0xFFUL) << 8);
-    /* mov t2,t0 */ t2 = t0;
+     t2 = t0;
     v18 = (unsigned long)(dl_in & 0xFFUL);
-    /* mov t5,dword_4299F4 */ t5 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* shl t0,9 */ t0 = (t0 << 9) & U32MASK;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* add t5,t0 */ t5 = (t5 + t0) & U32MASK;
-    /* mov [var_1C],t3 */ v1c = t3;
+     t5 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+     t0 = (t0 << 9) & U32MASK;
+     t3 = 0UL;
+     t5 = (t5 + t0) & U32MASK;
+     v1c = t3;
     t3 = (t3 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-    /* cmp word ptr [t5+t3*2],0 */
     if (d3u_ld16(c, (unsigned long)((t5 + (t3 & 0xFFFFUL) * 2UL) & U32MASK)) != 0) goto l_417e24;
-    /* mov t3,dword_4299F0 */ t3 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* mov dx,[t3+t0] */ t3 = (t3 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0) & U32MASK));
-    /* xor t0,t0 */ t0 = 0UL;
+     t3 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+     t3 = (t3 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0) & U32MASK));
+     t0 = 0UL;
 l_417db3:
-    /* movzx t6,bh */ t6 = (t1 >> 8) & 0xFFUL;
-    /* cmp t0,t6 */
+     t6 = (t1 >> 8) & 0xFFUL;
     if (t0 >= t6) goto l_417dca;
-    /* movzx t6,byte_444E82[t0] */ t6 = (unsigned long)M8((D3U_FLAG_444E82 + t0) & U32MASK);
-    /* mov si,[t5+t6*2] */ t4 = (t4 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t6 & 0xFFFFUL) * 2UL) & U32MASK));
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-    /* sub t3,t4 */ t3 = (t3 - t4) & U32MASK;
+     t6 = (unsigned long)M8((D3U_FLAG_444E82 + t0) & U32MASK);
+     t4 = (t4 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t6 & 0xFFFFUL) * 2UL) & U32MASK));
+     t0 = (t0 + 1UL) & U32MASK;
+     t3 = (t3 - t4) & U32MASK;
     goto l_417db3;
 l_417dca:
     if ((t3 & 0xFFFFUL) == 0) goto l_417e12;
-    /* mov t0,dword_4299FC */ t0 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    /* add t2,t2 */ t2 = (t2 + t2) & U32MASK;
-    /* add t0,t2 */ t0 = (t0 + t2) & U32MASK;
-    /* xor t2,t2 */ t2 = 0UL;
-    /* mov [var_1C],t5 */ v1c = t5;
-    /* mov cx,[t0] */ t2 = (t2 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)(t0 & U32MASK));
-    /* and t3,0FFFFh */ t3 &= 0xFFFFUL;
-    /* mov ax,[t0] */ t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)(t0 & U32MASK));
-    /* add t2,t3 */ t2 = (t2 + t3) & U32MASK;
-    /* and t0,0FFFFh */ t0 &= 0xFFFFUL;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* shl t0,0Eh */ t0 = (t0 << 14) & U32MASK;
-    /* div t2 */ qv = t0; t0 = qv / t2; t3 = qv % t2;
-    /* mov ax,word_42D274[t0*2] */ t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + t0 * 2UL) & U32MASK));
-    /* mov t2,dword_4441F4 */ t2 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
-    /* and t0,0FFFFh */ t0 &= 0xFFFFUL;
-    /* add t2,t0 */ t2 = (t2 + t0) & U32MASK;
-    /* mov dword_4441F4,t2 */ D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)t2;
+     t0 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
+     t2 = (t2 + t2) & U32MASK;
+     t0 = (t0 + t2) & U32MASK;
+     t2 = 0UL;
+     v1c = t5;
+     t2 = (t2 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)(t0 & U32MASK));
+     t3 &= 0xFFFFUL;
+     t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)(t0 & U32MASK));
+     t2 = (t2 + t3) & U32MASK;
+     t0 &= 0xFFFFUL;
+     t3 = 0UL;
+     t0 = (t0 << 14) & U32MASK;
+     qv = t0; t0 = qv / t2; t3 = qv % t2;
+     t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + t0 * 2UL) & U32MASK));
+     t2 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
+     t0 &= 0xFFFFUL;
+     t2 = (t2 + t0) & U32MASK;
+     D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)t2;
 l_417e12:
-    /* mov t2,dword_44421C */ t2 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
-    /* mov t5,t2 */ t5 = t2;
-    /* mov t0,dword_4299F4 */ t0 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
-    /* shl t5,9 */ t5 = (t5 << 9) & U32MASK;
-    /* add t5,t0 */ t5 = (t5 + t0) & U32MASK;
+     t2 = (unsigned long)D3U_TBL_44421C_32(&c->st, 0);
+     t5 = t2;
+     t0 = (unsigned long)(unsigned long)D3U_BLK15_CTX_CODER_B_32(&c->st, 0);
+     t5 = (t5 << 9) & U32MASK;
+     t5 = (t5 + t0) & U32MASK;
 l_417e24:
-    /* mov t0,t2 */ t0 = t2;
-    /* mov t3,dword_4299F0 */ t3 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
-    /* shl t0,9 */ t0 = (t0 << 9) & U32MASK;
-    /* mov si,[t3+t0] */ t4 = (t4 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0) & U32MASK));
-    /* cmp t2,2FDh */
+     t0 = t2;
+     t3 = (unsigned long)(unsigned long)D3U_BLK14_CTX_CODER_A_32(&c->st, 0);
+     t0 = (t0 << 9) & U32MASK;
+     t4 = (t4 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t0) & U32MASK));
     if (t2 >= 0x2FDUL) goto l_417e64;
-    /* mov t3,dword_4299FC */ t3 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
-    /* xor t0,t0 */ t0 = 0UL;
-    /* add si,[t3+t2*2] */ t4 = (t4 & 0xFFFF0000UL) | ((((t4 & 0xFFFFUL) + (unsigned long)d3u_ld16(c, (unsigned long)((t3 + (t2 & 0xFFFFUL) * 2UL) & U32MASK))) & 0xFFFFUL));
+     t3 = (unsigned long)(unsigned long)D3U_BLK17_SMALL_B_32(&c->st, 0);
+     t0 = 0UL;
+     t4 = (t4 & 0xFFFF0000UL) | ((((t4 & 0xFFFFUL) + (unsigned long)d3u_ld16(c, (unsigned long)((t3 + (t2 & 0xFFFFUL) * 2UL) & U32MASK))) & 0xFFFFUL));
 l_417e47:
-    /* xor t3,t3 */ t3 = 0UL;
+     t3 = 0UL;
     t3 = (t3 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_417efd;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* mov dl,byte_444E82[t0] */ t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_FLAG_444E82 + t0) & U32MASK);
-    /* mov cx,[t5+t3*2] */ t2 = (t2 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t3 & 0xFFFFUL) * 2UL) & U32MASK));
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-    /* sub t4,t2 */ t4 = (t4 - t2) & U32MASK;
+     t3 = 0UL;
+     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_FLAG_444E82 + t0) & U32MASK);
+     t2 = (t2 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t3 & 0xFFFFUL) * 2UL) & U32MASK));
+     t0 = (t0 + 1UL) & U32MASK;
+     t4 = (t4 - t2) & U32MASK;
     goto l_417e47;
 l_417e64:
     if (((t1 >> 8) & 0xFFUL) != 0) goto l_417e92;
     if (v1c == 0UL) goto l_417efd;
-    /* mov t6,[var_1C] */ t6 = v1c;
+     t6 = v1c;
     t0 &= 0xFFFFFF00UL;
 l_417e77:
-    /* xor t3,t3 */ t3 = 0UL;
+     t3 = 0UL;
     t3 = (t3 & 0xFFFFFF00UL) | (t0 & 0xFFUL);
-    /* add t3,t3 */ t3 = (t3 + t3) & U32MASK;
-    /* cmp word ptr [t3+t6],0 */
+     t3 = (t3 + t3) & U32MASK;
     if (d3u_ld16(c, (unsigned long)((t3 + t6) & U32MASK)) == 0) goto l_417e88;
-    /* sub si,[t3+t5] */ t4 = (t4 & 0xFFFF0000UL) | ((((t4 & 0xFFFFUL) - (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t5) & U32MASK))) & 0xFFFFUL));
+     t4 = (t4 & 0xFFFF0000UL) | ((((t4 & 0xFFFFUL) - (unsigned long)d3u_ld16(c, (unsigned long)((t3 + t5) & U32MASK))) & 0xFFFFUL));
 l_417e88:
     t0 = (t0 & 0xFFFFFF00UL) | (((t0 & 0xFFUL) + 1UL) & 0xFFUL);
     if ((t0 & 0xFFUL) == 0UL) goto l_417efd;
@@ -10052,32 +8602,30 @@ l_417e92:
     if (v1c == 0UL) goto l_417ee2;
     t1 = (t1 & 0xFFFFFF00UL) | 0UL;
 l_417e9a:
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     t0 = (t0 & 0xFFFFFF00UL) | (t1 & 0xFFUL);
-    /* mov t3,[var_1C] */ t3 = v1c;
-    /* add t0,t0 */ t0 = (t0 + t0) & U32MASK;
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* cmp word ptr [t0],0 */
+     t3 = v1c;
+     t0 = (t0 + t0) & U32MASK;
+     t0 = (t0 + t3) & U32MASK;
     t3 = (t3 & 0xFFFFFF00UL) | ((d3u_ld16(c, (unsigned long)(t0 & U32MASK)) != 0) ? 1UL : 0UL);
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     t2 = (t2 & 0xFFFFFF00UL) | (t3 & 0xFFUL);
     if ((t3 & 0xFFUL) != 0UL) goto l_417ed0;
 l_417eb4:
-    /* xor t3,t3 */ t3 = 0UL;
+     t3 = 0UL;
     t3 = (t3 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_417ed0;
-    /* mov t3,t0 */ t3 = t0;
-    /* mov cl,byte_444E82[t3] */ t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_FLAG_444E82 + t3) & U32MASK);
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
+     t3 = t0;
+     t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_FLAG_444E82 + t3) & U32MASK);
+     t0 = (t0 + 1UL) & U32MASK;
     t3 = (t3 & 0xFFFFFF00UL) | ((((t1 & 0xFFUL) == (t2 & 0xFFUL)) ? 1UL : 0UL));
     t2 = (t2 & 0xFFFFFF00UL) | (t3 & 0xFFUL);
     if ((t3 & 0xFFUL) == 0UL) goto l_417eb4;
 l_417ed0:
     if ((t2 & 0xFFUL) == 0UL) goto l_417edc;
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     t0 = (t0 & 0xFFFFFF00UL) | (t1 & 0xFFUL);
-    /* sub si,[t5+t0*2] */ t4 = (t4 & 0xFFFF0000UL) | ((((t4 & 0xFFFFUL) - (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t0 & 0xFFFFUL) * 2UL) & U32MASK))) & 0xFFFFUL));
+     t4 = (t4 & 0xFFFF0000UL) | ((((t4 & 0xFFFFUL) - (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t0 & 0xFFFFUL) * 2UL) & U32MASK))) & 0xFFFFUL));
 l_417edc:
     /* 0x00417EDC inc bl; 0x00417EDE jz loc_417EFD.
      * NOTE: keep the wrap test on the isolated new-bl local (_bl). An
@@ -10085,38 +8633,35 @@ l_417edc:
      * fused with the merge OR into a full-register je: once bh (or upper
      * bits) are nonzero the exit never fires and bl cycles forever. */
     { unsigned long _bl = (((t1 & 0xFFUL) + 1UL) & 0xFFUL); t1 = (t1 & 0xFFFFFF00UL) | _bl; if (_bl == 0UL) goto l_417efd; }
-    /* jz loc_417EFD (folded into the _bl test above) */
     goto l_417e9a;
 l_417ee2:
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
 l_417ee4:
-    /* xor t3,t3 */ t3 = 0UL;
+     t3 = 0UL;
     t3 = (t3 & 0xFFFFFF00UL) | ((t1 >> 8) & 0xFFUL);
-    /* cmp t0,t3 */
     if (t0 >= t3) goto l_417efd;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* mov dl,byte_444E82[t0] */ t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_FLAG_444E82 + t0) & U32MASK);
-    /* mov cx,[t5+t3*2] */ t2 = (t2 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t3 & 0xFFFFUL) * 2UL) & U32MASK));
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-    /* sub t4,t2 */ t4 = (t4 - t2) & U32MASK;
+     t3 = 0UL;
+     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_FLAG_444E82 + t0) & U32MASK);
+     t2 = (t2 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t3 & 0xFFFFUL) * 2UL) & U32MASK));
+     t0 = (t0 + 1UL) & U32MASK;
+     t4 = (t4 - t2) & U32MASK;
     goto l_417ee4;
 l_417efd:
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     t0 = (t0 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-    /* mov ax,[t5+t0*2] */ t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t0 & 0xFFFFUL) * 2UL) & U32MASK));
-    /* and t0,0FFFFh */ t0 &= 0xFFFFUL;
-    /* xor t2,t2 */ t2 = 0UL;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* shl t0,0Eh */ t0 = (t0 << 14) & U32MASK;
+     t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t5 + (t0 & 0xFFFFUL) * 2UL) & U32MASK));
+     t0 &= 0xFFFFUL;
+     t2 = 0UL;
+     t3 = 0UL;
+     t0 = (t0 << 14) & U32MASK;
     t2 = (t2 & 0xFFFF0000UL) | (t4 & 0xFFFFUL);
-    /* div t2 */ qv = t0; t0 = qv / t2; t3 = qv % t2;
-    /* mov ax,word_42D274[t0*2] */ t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + t0 * 2UL) & U32MASK));
-    /* mov t2,dword_4441F4 */ t2 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
-    /* and t0,0FFFFh */ t0 &= 0xFFFFUL;
-    /* add t2,t0 */ t2 = (t2 + t0) & U32MASK;
-    /* mov dword_4441F4,t2 */ D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)t2;
+     qv = t0; t0 = qv / t2; t3 = qv % t2;
+     t0 = (t0 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((D3U_U16_CUM_DST + t0 * 2UL) & U32MASK));
+     t2 = (unsigned long)D3U_TBL_4441F4_32(&c->st, 0);
+     t0 &= 0xFFFFUL;
+     t2 = (t2 + t0) & U32MASK;
+     D3U_TBL_4441F4_32(&c->st, 0) = (unsigned int)t2;
     D3U_FLAG_444EAA_8(&c->st, 0) = (unsigned char)((t1 >> 8) & 0xFFUL);
-    /* add esp,8 + pops + retn: no C equivalent */
     return (unsigned int)t0;
 }
 /* sub_41A284 (-, ~66 asm lines). No stack frame. */
@@ -10130,57 +8675,56 @@ unsigned int d3uc_fold_small_ctx_block(dec3w_ctx *c, unsigned int eax_in)
     unsigned long t5 = 0;
     unsigned long t6 = 0;
     /* prologue pushes: no C equivalent */
-    /* mov t6,t0 */ t6 = (unsigned long)eax_in;
-    /* mov t1,t0 */ t1 = (unsigned long)eax_in;
-    /* mov t0,dword_4299F8 */ t0 = (unsigned long)(unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
-    /* shl t1,9 */ t1 = (t1 << 9) & U32MASK;
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* xor t2,t2 */ t2 = 0UL;
-    /* lea t5,[t1+200h] */ t5 = (t1 + 0x200UL) & U32MASK;
+     t6 = (unsigned long)eax_in;
+     t1 = (unsigned long)eax_in;
+     t0 = (unsigned long)(unsigned long)D3U_TBL_4299F8_32(&c->st, 0);
+     t1 = (t1 << 9) & U32MASK;
+     t1 = (t1 + t0) & U32MASK;
+     t2 = 0UL;
+     t5 = (t1 + 0x200UL) & U32MASK;
 l_41a2a0:
-    /* mov t0,[t1] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)(t1 & U32MASK));
-    /* mov t3,[t1+4] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
-    /* add t0,10001h */ t0 = (t0 + 0x10001UL) & U32MASK;
-    /* add t3,10001h */ t3 = (t3 + 0x10001UL) & U32MASK;
-    /* and t0,0FFFEFFFEh */ t0 &= 0xFFFEFFFEUL;
-    /* and t3,0FFFEFFFEh */ t3 &= 0xFFFEFFFEUL;
-    /* shr t0,1 */ t0 = (t0 >> 1) & U32MASK;
-    /* shr t3,1 */ t3 = (t3 >> 1) & U32MASK;
-    /* add t1,10h */ t1 = (t1 + 0x10UL) & U32MASK;
-    /* lea t4,[t0+t3] */ t4 = (t0 + t3) & U32MASK;
-    /* mov [t1-0Ch],t3 */ d3u_st32(c, (unsigned long)((t1 - 0xCUL) & U32MASK), (unsigned int)t3);
-    /* mov [t1-10h],t0 */ d3u_st32(c, (unsigned long)((t1 - 0x10UL) & U32MASK), (unsigned int)t0);
-    /* mov t3,[t1-4] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 - 4UL) & U32MASK));
-    /* mov t0,[t1-8] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 - 8UL) & U32MASK));
-    /* add t3,10001h */ t3 = (t3 + 0x10001UL) & U32MASK;
-    /* add t0,10001h */ t0 = (t0 + 0x10001UL) & U32MASK;
-    /* and t3,0FFFEFFFEh */ t3 &= 0xFFFEFFFEUL;
-    /* and t0,0FFFEFFFEh */ t0 &= 0xFFFEFFFEUL;
-    /* shr t3,1 */ t3 = (t3 >> 1) & U32MASK;
-    /* shr t0,1 */ t0 = (t0 >> 1) & U32MASK;
-    /* add t2,t4 */ t2 = (t2 + t4) & U32MASK;
-    /* lea t4,[t0+t3] */ t4 = (t0 + t3) & U32MASK;
-    /* mov [t1-4],t3 */ d3u_st32(c, (unsigned long)((t1 - 4UL) & U32MASK), (unsigned int)t3);
-    /* add t2,t4 */ t2 = (t2 + t4) & U32MASK;
-    /* mov [t1-8],t0 */ d3u_st32(c, (unsigned long)((t1 - 8UL) & U32MASK), (unsigned int)t0);
-    /* cmp t1,t5 */
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)(t1 & U32MASK));
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
+     t0 = (t0 + 0x10001UL) & U32MASK;
+     t3 = (t3 + 0x10001UL) & U32MASK;
+     t0 &= 0xFFFEFFFEUL;
+     t3 &= 0xFFFEFFFEUL;
+     t0 = (t0 >> 1) & U32MASK;
+     t3 = (t3 >> 1) & U32MASK;
+     t1 = (t1 + 0x10UL) & U32MASK;
+     t4 = (t0 + t3) & U32MASK;
+     d3u_st32(c, (unsigned long)((t1 - 0xCUL) & U32MASK), (unsigned int)t3);
+     d3u_st32(c, (unsigned long)((t1 - 0x10UL) & U32MASK), (unsigned int)t0);
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 - 4UL) & U32MASK));
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 - 8UL) & U32MASK));
+     t3 = (t3 + 0x10001UL) & U32MASK;
+     t0 = (t0 + 0x10001UL) & U32MASK;
+     t3 &= 0xFFFEFFFEUL;
+     t0 &= 0xFFFEFFFEUL;
+     t3 = (t3 >> 1) & U32MASK;
+     t0 = (t0 >> 1) & U32MASK;
+     t2 = (t2 + t4) & U32MASK;
+     t4 = (t0 + t3) & U32MASK;
+     d3u_st32(c, (unsigned long)((t1 - 4UL) & U32MASK), (unsigned int)t3);
+     t2 = (t2 + t4) & U32MASK;
+     d3u_st32(c, (unsigned long)((t1 - 8UL) & U32MASK), (unsigned int)t0);
     if (t1 != t5) goto l_41a2a0;
-    /* mov t0,dword_429A04 */ t0 = (unsigned long)(unsigned long)D3U_TBL_429A04_32(&c->st, 0);
-    /* mov dx,[t0+t6*2] */ t3 = (t3 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t0 + (t6 & 0xFFFFUL) * 2UL) & U32MASK));
+     t0 = (unsigned long)(unsigned long)D3U_TBL_429A04_32(&c->st, 0);
+     t3 = (t3 & 0xFFFF0000UL) | (unsigned long)d3u_ld16(c, (unsigned long)((t0 + (t6 & 0xFFFFUL) * 2UL) & U32MASK));
     t3 = (t3 & 0xFFFF0000UL) | ((t3 & 0xFFFFUL) >> 2);
-    /* mov t1,t3 */ t1 = t3;
-    /* mov [t0+t6*2],dx */ d3u_st16(c, (unsigned long)((t0 + (t6 & 0xFFFFUL) * 2UL) & U32MASK), (unsigned short)(t3 & 0xFFFFUL));
-    /* inc t1 */ t1 = (t1 + 1UL) & U32MASK;
-    /* mov [t0+t6*2],bx */ d3u_st16(c, (unsigned long)((t0 + (t6 & 0xFFFFUL) * 2UL) & U32MASK), (unsigned short)(t1 & 0xFFFFUL));
-    /* mov t0,t2 */ t0 = t2;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* and t0,0FFFFh */ t0 &= 0xFFFFUL;
-    /* shr t2,10h */ t2 = (t2 >> 16) & U32MASK;
+     t1 = t3;
+     d3u_st16(c, (unsigned long)((t0 + (t6 & 0xFFFFUL) * 2UL) & U32MASK), (unsigned short)(t3 & 0xFFFFUL));
+     t1 = (t1 + 1UL) & U32MASK;
+     d3u_st16(c, (unsigned long)((t0 + (t6 & 0xFFFFUL) * 2UL) & U32MASK), (unsigned short)(t1 & 0xFFFFUL));
+     t0 = t2;
+     t3 = 0UL;
+     t0 &= 0xFFFFUL;
+     t2 = (t2 >> 16) & U32MASK;
     t3 = (t3 & 0xFFFF0000UL) | (t1 & 0xFFFFUL);
-    /* add t2,t0 */ t2 = (t2 + t0) & U32MASK;
-    /* lea t0,[t2+t3] */ t0 = (t2 + t3) & U32MASK;
-    /* mov t3,dword_429A00 */ t3 = (unsigned long)(unsigned long)D3U_TBL_429A00_32(&c->st, 0);
-    /* mov [t3+t6*2],ax */ d3u_st16(c, (unsigned long)((t3 + (t6 & 0xFFFFUL) * 2UL) & U32MASK), (unsigned short)(t0 & 0xFFFFUL));
+     t2 = (t2 + t0) & U32MASK;
+     t0 = (t2 + t3) & U32MASK;
+     t3 = (unsigned long)(unsigned long)D3U_TBL_429A00_32(&c->st, 0);
+     d3u_st16(c, (unsigned long)((t3 + (t6 & 0xFFFFUL) * 2UL) & U32MASK), (unsigned short)(t0 & 0xFFFFUL));
     /* pops + retn: no C equivalent */
     return (unsigned int)t0;
 }
@@ -10197,77 +8741,75 @@ void d3uc_update_hash_bucket(dec3w_ctx *c)
     unsigned long t6 = 0;
     unsigned long cf = 0;
     /* prologue pushes: no C equivalent */
-    /* mov t4,dword_4441B0 */ t4 = (unsigned long)D3U_TBL_4441B0_32(&c->st, 0);
-    /* mov t5,dword_4441D0 */ t5 = (unsigned long)D3U_TBL_4441D0_32(&c->st, 0);
+     t4 = (unsigned long)D3U_TBL_4441B0_32(&c->st, 0);
+     t5 = (unsigned long)D3U_TBL_4441D0_32(&c->st, 0);
     if (D3U_FLAG_444EAB_8(&c->st, 0) != 0) goto l_41b33f;
-    /* cmp t4,dword_4441B8 */
     if (t4 < (unsigned long)D3U_TBL_4441B8_32(&c->st, 0)) goto l_41b60f;
 l_41b33f:
     if (D3U_FLAG_444EA9_8(&c->st, 0) >= 7) goto l_41b4cf;
-    /* mov t3,dword_43D8BC */ t3 = (unsigned long)D3U_TBL_43D8BC_32(&c->st, 0);
-    /* xor t2,t2 */ t2 = 0UL;
-    /* mov t6,dword_43D8B4 */ t6 = (unsigned long)D3U_TBL_43D8B4_32(&c->st, 0);
-    /* mov dword_43DCCC,t2 */ D3U_TBL_43DCCC_32(&c->st, 0) = (unsigned int)t2;
-    /* mov dword_43DCD0,t3 */ D3U_TBL_43DCD0_32(&c->st, 0) = (unsigned int)t3;
-    /* lea t0,[t3+t3] */ t0 = (t3 + t3) & U32MASK;
-    /* mov t2,dword_4441C0 */ t2 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
-    /* mov t3,dword_43D8C0 */ t3 = (unsigned long)D3U_TBL_43D8C0_32(&c->st, 0);
-    /* sub t2,t6 */ t2 = (t2 - t6) & U32MASK;
-    /* sub t0,t3 */ t0 = (t0 - t3) & U32MASK;
-    /* and t2,7Fh */ t2 &= 0x7FUL;
-    /* mov dword_43DCD4,t0 */ D3U_TBL_43DCD4_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t3,dword_43DACC[t2*4] */ t3 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t2 * 4UL);
-    /* mov t0,dword_43F504 */ t0 = (unsigned long)D3U_TBL_43F504_32(&c->st, 0);
-    /* mov dword_43F50C,t3 */ D3U_TBL_43F50C_32(&c->st, 0) = (unsigned int)t3;
-    /* mov dword_43F508,t0 */ D3U_TBL_43F508_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,dword_43F500 */ t0 = (unsigned long)D3U_TBL_43F500_32(&c->st, 0);
-    /* mov t3,dword_43F528 */ t3 = (unsigned long)D3U_TBL_43F528_32(&c->st, 0);
-    /* mov dword_43F504,t0 */ D3U_TBL_43F504_32(&c->st, 0) = (unsigned int)t0;
-    /* sub t3,dword_43F4FC */ t3 = (t3 - (unsigned long)D3U_TBL_43F4FC_32(&c->st, 0)) & U32MASK;
-    /* mov t0,dword_43F510 */ t0 = (unsigned long)D3U_TBL_43F510_32(&c->st, 0);
-    /* mov dword_43F500,t3 */ D3U_TBL_43F500_32(&c->st, 0) = (unsigned int)t3;
-    /* mov t3,dword_43F528 */ t3 = (unsigned long)D3U_TBL_43F528_32(&c->st, 0);
-    /* imul t0,t3 */ t0 = (t0 * t3) & U32MASK;
-    /* mov dword_43F4FC,t3 */ D3U_TBL_43F4FC_32(&c->st, 0) = (unsigned int)t3;
-    /* mov t3,dword_43F524 */ t3 = (unsigned long)D3U_TBL_43F524_32(&c->st, 0);
-    /* shl t3,4 */ t3 = (t3 << 4) & U32MASK;
-    /* mov t6,dword_43F500 */ t6 = (unsigned long)D3U_TBL_43F500_32(&c->st, 0);
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_43F514 */ t3 = (unsigned long)D3U_TBL_43F514_32(&c->st, 0);
-    /* imul t3,t6 */ t3 = (t3 * t6) & U32MASK;
-    /* mov t6,dword_43F504 */ t6 = (unsigned long)D3U_TBL_43F504_32(&c->st, 0);
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_43F518 */ t3 = (unsigned long)D3U_TBL_43F518_32(&c->st, 0);
-    /* imul t3,t6 */ t3 = (t3 * t6) & U32MASK;
-    /* mov t6,dword_43F508 */ t6 = (unsigned long)D3U_TBL_43F508_32(&c->st, 0);
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_43F51C */ t3 = (unsigned long)D3U_TBL_43F51C_32(&c->st, 0);
-    /* imul t3,t6 */ t3 = (t3 * t6) & U32MASK;
-    /* mov t6,dword_43F50C */ t6 = (unsigned long)D3U_TBL_43F50C_32(&c->st, 0);
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,dword_43F520 */ t3 = (unsigned long)D3U_TBL_43F520_32(&c->st, 0);
-    /* imul t3,t6 */ t3 = (t3 * t6) & U32MASK;
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov t0,t3 */ t0 = t3;
-    /* sar t3,1Fh */ t3 = (unsigned long)(((long)t3 >> 31)) & U32MASK;
-    /* shl t3,4 */ cf = (t3 >> 28) & 1UL; t3 = (t3 << 4) & U32MASK;
-    /* sbb t0,t3 */ t0 = (t0 - t3 - cf) & U32MASK;
-    /* sar t0,4 */ t0 = (unsigned long)(((long)t0 >> 4)) & U32MASK;
-    /* mov dword_43DCD8,t0 */ D3U_TBL_43DCD8_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,dword_43DACC[t2*4] */ t0 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t2 * 4UL);
-    /* mov t3,dword_43D8B8 */ t3 = (unsigned long)D3U_TBL_43D8B8_32(&c->st, 0);
-    /* mov dword_43DCDC,t0 */ D3U_TBL_43DCDC_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,dword_4441C0 */ t0 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
-    /* sub t0,t3 */ t0 = (t0 - t3) & U32MASK;
-    /* and t0,7Fh */ t0 &= 0x7FUL;
-    /* mov t0,dword_43DACC[t0*4] */ t0 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t0 * 4UL);
-    /* mov dword_43DCE0,t0 */ D3U_TBL_43DCE0_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,dword_43D8B0 */ t0 = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
-    /* mov t1,offset dword_43F4FC */ t1 = D3U_TBL_43F4FC;
-    /* mov al,byte ptr dword_43DCCC[t0*4] */ t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_TBL_43DCCC + t0 * 4UL) & U32MASK);
-    /* mov t2,dword_43D8B0 */ t2 = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
+     t3 = (unsigned long)D3U_TBL_43D8BC_32(&c->st, 0);
+     t2 = 0UL;
+     t6 = (unsigned long)D3U_TBL_43D8B4_32(&c->st, 0);
+     D3U_TBL_43DCCC_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_43DCD0_32(&c->st, 0) = (unsigned int)t3;
+     t0 = (t3 + t3) & U32MASK;
+     t2 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
+     t3 = (unsigned long)D3U_TBL_43D8C0_32(&c->st, 0);
+     t2 = (t2 - t6) & U32MASK;
+     t0 = (t0 - t3) & U32MASK;
+     t2 &= 0x7FUL;
+     D3U_TBL_43DCD4_32(&c->st, 0) = (unsigned int)t0;
+     t3 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t2 * 4UL);
+     t0 = (unsigned long)D3U_TBL_43F504_32(&c->st, 0);
+     D3U_TBL_43F50C_32(&c->st, 0) = (unsigned int)t3;
+     D3U_TBL_43F508_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (unsigned long)D3U_TBL_43F500_32(&c->st, 0);
+     t3 = (unsigned long)D3U_TBL_43F528_32(&c->st, 0);
+     D3U_TBL_43F504_32(&c->st, 0) = (unsigned int)t0;
+     t3 = (t3 - (unsigned long)D3U_TBL_43F4FC_32(&c->st, 0)) & U32MASK;
+     t0 = (unsigned long)D3U_TBL_43F510_32(&c->st, 0);
+     D3U_TBL_43F500_32(&c->st, 0) = (unsigned int)t3;
+     t3 = (unsigned long)D3U_TBL_43F528_32(&c->st, 0);
+     t0 = (t0 * t3) & U32MASK;
+     D3U_TBL_43F4FC_32(&c->st, 0) = (unsigned int)t3;
+     t3 = (unsigned long)D3U_TBL_43F524_32(&c->st, 0);
+     t3 = (t3 << 4) & U32MASK;
+     t6 = (unsigned long)D3U_TBL_43F500_32(&c->st, 0);
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)D3U_TBL_43F514_32(&c->st, 0);
+     t3 = (t3 * t6) & U32MASK;
+     t6 = (unsigned long)D3U_TBL_43F504_32(&c->st, 0);
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)D3U_TBL_43F518_32(&c->st, 0);
+     t3 = (t3 * t6) & U32MASK;
+     t6 = (unsigned long)D3U_TBL_43F508_32(&c->st, 0);
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)D3U_TBL_43F51C_32(&c->st, 0);
+     t3 = (t3 * t6) & U32MASK;
+     t6 = (unsigned long)D3U_TBL_43F50C_32(&c->st, 0);
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)D3U_TBL_43F520_32(&c->st, 0);
+     t3 = (t3 * t6) & U32MASK;
+     t3 = (t3 + t0) & U32MASK;
+     t0 = t3;
+     t3 = (unsigned long)(((long)t3 >> 31)) & U32MASK;
+     cf = (t3 >> 28) & 1UL; t3 = (t3 << 4) & U32MASK;
+     t0 = (t0 - t3 - cf) & U32MASK;
+     t0 = (unsigned long)(((long)t0 >> 4)) & U32MASK;
+     D3U_TBL_43DCD8_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t2 * 4UL);
+     t3 = (unsigned long)D3U_TBL_43D8B8_32(&c->st, 0);
+     D3U_TBL_43DCDC_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
+     t0 = (t0 - t3) & U32MASK;
+     t0 &= 0x7FUL;
+     t0 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t0 * 4UL);
+     D3U_TBL_43DCE0_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
+     t1 = D3U_TBL_43F4FC;
+     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_TBL_43DCCC + t0 * 4UL) & U32MASK);
+     t2 = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
-    /* cmp t2,4 */
     if (t2 < 4UL) goto l_41b47f;
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)D3U_TBL_43D8BC_8(&c->st, 0);
     t0 = (t0 & 0xFFFFFF00UL) | (((t0 & 0xFFUL) + (t3 & 0xFFUL)) & 0xFFUL);
@@ -10275,74 +8817,70 @@ l_41b33f:
 l_41b47f:
     if (D3U_FLAG_444EA9_8(&c->st, 0) != 5) goto l_41b49e;
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444E9D_8(&c->st, 0);
-    /* add dl,80h */ t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFUL) + 0x80UL) & 0xFFUL);
-    /* mov t2,2E3h */ t2 = 0x2E3UL;
+     t3 = (t3 & 0xFFFFFF00UL) | (((t3 & 0xFFUL) + 0x80UL) & 0xFFUL);
+     t2 = 0x2E3UL;
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
     goto l_41b4a3;
 l_41b49e:
-    /* mov t2,2E7h */ t2 = 0x2E7UL;
+     t2 = 0x2E7UL;
 l_41b4a3:
-    /* cmp dword ptr [t1+70h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x70UL) & U32MASK)) != 0) goto l_41b4af;
-    /* inc t2 */ t2 = (t2 + 1UL) & U32MASK;
+     t2 = (t2 + 1UL) & U32MASK;
     goto l_41b5e1;
 l_41b4af:
-    /* cmp dword ptr [t1+74h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x74UL) & U32MASK)) != 0) goto l_41b4bd;
-    /* add t2,2 */ t2 = (t2 + 2UL) & U32MASK;
+     t2 = (t2 + 2UL) & U32MASK;
     goto l_41b5e1;
 l_41b4bd:
-    /* cmp dword ptr [t1+78h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x78UL) & U32MASK)) != 0) goto l_41b5e1;
-    /* add t2,3 */ t2 = (t2 + 3UL) & U32MASK;
+     t2 = (t2 + 3UL) & U32MASK;
     goto l_41b5e1;
 l_41b4cf:
-    /* mov t1,t5 */ t1 = t5;
-    /* shl t1,5 */ t1 = (t1 << 5) & U32MASK;
-    /* sub t1,t5 */ t1 = (t1 - t5) & U32MASK;
-    /* shl t1,2 */ t1 = (t1 << 2) & U32MASK;
-    /* add t1,offset dword_43F4FC */ t1 = (t1 + D3U_TBL_43F4FC) & U32MASK;
-    /* mov t3,[t1+8] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 8UL) & U32MASK));
-    /* mov [t1+0Ch],t3 */ d3u_st32(c, (unsigned long)((t1 + 0xCUL) & U32MASK), (unsigned int)t3);
-    /* mov t3,[t1+4] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
-    /* mov [t1+8],t3 */ d3u_st32(c, (unsigned long)((t1 + 8UL) & U32MASK), (unsigned int)t3);
-    /* mov t2,[t1] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)(t1 & U32MASK));
-    /* mov t3,[t1+2Ch] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x2CUL) & U32MASK));
-    /* sub t3,t2 */ t3 = (t3 - t2) & U32MASK;
-    /* mov [t1+4],t3 */ d3u_st32(c, (unsigned long)((t1 + 4UL) & U32MASK), (unsigned int)t3);
-    /* mov t0,[t1+2Ch] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x2CUL) & U32MASK));
-    /* mov t3,[t1+14h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x14UL) & U32MASK));
-    /* imul t3,t0 */ t3 = (t3 * t0) & U32MASK;
-    /* mov [t1],t0 */ d3u_st32(c, (unsigned long)(t1 & U32MASK), (unsigned int)t0);
-    /* mov t0,[t1+28h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x28UL) & U32MASK));
-    /* shl t0,4 */ t0 = (t0 << 4) & U32MASK;
-    /* mov t2,[t1+4] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,[t1+18h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x18UL) & U32MASK));
-    /* imul t3,t2 */ t3 = (t3 * t2) & U32MASK;
-    /* mov t6,[t1+8] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 8UL) & U32MASK));
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,[t1+1Ch] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x1CUL) & U32MASK));
-    /* imul t3,t6 */ t3 = (t3 * t6) & U32MASK;
-    /* mov t2,[t1+0Ch] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0xCUL) & U32MASK));
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,[t1+20h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x20UL) & U32MASK));
-    /* imul t3,t2 */ t3 = (t3 * t2) & U32MASK;
-    /* mov t6,dword_43D8C4 */ t6 = (unsigned long)D3U_TBL_43D8C4_32(&c->st, 0);
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov t3,[t1+24h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x24UL) & U32MASK));
-    /* imul t3,t6 */ t3 = (t3 * t6) & U32MASK;
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov t0,t3 */ t0 = t3;
-    /* sar t3,1Fh */ t3 = (unsigned long)(((long)t3 >> 31)) & U32MASK;
-    /* shl t3,4 */ cf = (t3 >> 28) & 1UL; t3 = (t3 << 4) & U32MASK;
-    /* sbb t0,t3 */ t0 = (t0 - t3 - cf) & U32MASK;
-    /* sar t0,4 */ t0 = (unsigned long)(((long)t0 >> 4)) & U32MASK;
-    /* mov dword_43DCCC,t0 */ D3U_TBL_43DCCC_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t3,[t1+5Ch] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x5CUL) & U32MASK));
-    /* cmp t3,[t1+60h] */
+     t1 = t5;
+     t1 = (t1 << 5) & U32MASK;
+     t1 = (t1 - t5) & U32MASK;
+     t1 = (t1 << 2) & U32MASK;
+     t1 = (t1 + D3U_TBL_43F4FC) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 8UL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t1 + 0xCUL) & U32MASK), (unsigned int)t3);
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t1 + 8UL) & U32MASK), (unsigned int)t3);
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)(t1 & U32MASK));
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x2CUL) & U32MASK));
+     t3 = (t3 - t2) & U32MASK;
+     d3u_st32(c, (unsigned long)((t1 + 4UL) & U32MASK), (unsigned int)t3);
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x2CUL) & U32MASK));
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x14UL) & U32MASK));
+     t3 = (t3 * t0) & U32MASK;
+     d3u_st32(c, (unsigned long)(t1 & U32MASK), (unsigned int)t0);
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x28UL) & U32MASK));
+     t0 = (t0 << 4) & U32MASK;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 4UL) & U32MASK));
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x18UL) & U32MASK));
+     t3 = (t3 * t2) & U32MASK;
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 8UL) & U32MASK));
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x1CUL) & U32MASK));
+     t3 = (t3 * t6) & U32MASK;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0xCUL) & U32MASK));
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x20UL) & U32MASK));
+     t3 = (t3 * t2) & U32MASK;
+     t6 = (unsigned long)D3U_TBL_43D8C4_32(&c->st, 0);
+     t0 = (t0 + t3) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x24UL) & U32MASK));
+     t3 = (t3 * t6) & U32MASK;
+     t3 = (t3 + t0) & U32MASK;
+     t0 = t3;
+     t3 = (unsigned long)(((long)t3 >> 31)) & U32MASK;
+     cf = (t3 >> 28) & 1UL; t3 = (t3 << 4) & U32MASK;
+     t0 = (t0 - t3 - cf) & U32MASK;
+     t0 = (unsigned long)(((long)t0 >> 4)) & U32MASK;
+     D3U_TBL_43DCCC_32(&c->st, 0) = (unsigned int)t0;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x5CUL) & U32MASK));
     if (t3 <= (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x60UL) & U32MASK))) goto l_41b556;
-    /* mov dl,[t1+28h] */ t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((t1 + 0x28UL) & U32MASK);
+     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((t1 + 0x28UL) & U32MASK);
     goto l_41b55c;
 l_41b556:
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)D3U_TBL_43DCCC_8(&c->st, 0);
@@ -10351,73 +8889,67 @@ l_41b55c:
     t3 = (t3 & 0xFFFF00FFUL) | ((((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0)) & 0xFFUL) << 8);
     if (((t3 >> 8) & 0xFFUL) != 7UL) goto l_41b5a4;
     t2 = (t2 & 0xFFFF00FFUL) | ((((unsigned long)D3U_FLAG_444E9D_8(&c->st, 0)) & 0xFFUL) << 8);
-    /* add ch,80h */ t2 = (t2 & 0xFFFF00FFUL) | (((((t2 >> 8) & 0xFFUL) + 0x80UL) & 0xFFUL) << 8);
-    /* mov t6,[t1+70h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x70UL) & U32MASK));
+     t2 = (t2 & 0xFFFF00FFUL) | (((((t2 >> 8) & 0xFFUL) + 0x80UL) & 0xFFUL) << 8);
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t1 + 0x70UL) & U32MASK));
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)((t2 >> 8) & 0xFFUL);
-    /* lea t2,[t5+2EBh] */ t2 = (t5 + 0x2EBUL) & U32MASK;
-    /* test t6,t6 */
+     t2 = (t5 + 0x2EBUL) & U32MASK;
     if (t6 != 0UL) goto l_41b58e;
-    /* add t2,2 */ t2 = (t2 + 2UL) & U32MASK;
+     t2 = (t2 + 2UL) & U32MASK;
     goto l_41b5d5;
 l_41b58e:
-    /* cmp dword ptr [t1+74h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x74UL) & U32MASK)) != 0) goto l_41b599;
-    /* add t2,4 */ t2 = (t2 + 4UL) & U32MASK;
+     t2 = (t2 + 4UL) & U32MASK;
     goto l_41b5d5;
 l_41b599:
-    /* cmp dword ptr [t1+78h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x78UL) & U32MASK)) != 0) goto l_41b5d5;
-    /* add t2,6 */ t2 = (t2 + 6UL) & U32MASK;
+     t2 = (t2 + 6UL) & U32MASK;
     goto l_41b5d5;
 l_41b5a4:
     if (((t3 >> 8) & 0xFFUL) != 8UL) goto l_41b5c0;
-    /* cmp dword ptr [t1+70h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x70UL) & U32MASK)) == 0) goto l_41b5b3;
-    /* mov t2,t5 */ t2 = t5;
+     t2 = t5;
     goto l_41b5b8;
 l_41b5b3:
-    /* mov t2,2 */ t2 = 2UL;
+     t2 = 2UL;
 l_41b5b8:
-    /* add t2,2F3h */ t2 = (t2 + 0x2F3UL) & U32MASK;
+     t2 = (t2 + 0x2F3UL) & U32MASK;
     goto l_41b5d5;
 l_41b5c0:
-    /* cmp dword ptr [t1+70h],0 */
     if (d3u_ld32(c, (unsigned long)((t1 + 0x70UL) & U32MASK)) == 0) goto l_41b5ca;
-    /* mov t2,t5 */ t2 = t5;
+     t2 = t5;
     goto l_41b5cf;
 l_41b5ca:
-    /* mov t2,4 */ t2 = 4UL;
+     t2 = 4UL;
 l_41b5cf:
-    /* add t2,2F6h */ t2 = (t2 + 0x2F6UL) & U32MASK;
+     t2 = (t2 + 0x2F6UL) & U32MASK;
 l_41b5d5:
-    /* mov dl,byte_43F6EC[t5] */ t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_TBL_43F6EC + t5) & U32MASK);
+     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((D3U_TBL_43F6EC + t5) & U32MASK);
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)(t3 & 0xFFUL);
 l_41b5e1:
-    /* cmp t4,dword_4441B8 */
     if (t4 >= (unsigned long)D3U_TBL_4441B8_32(&c->st, 0)) goto l_41b632;
-    /* mov t3,dword_4441BC */ t3 = (unsigned long)D3U_TBL_4441BC_32(&c->st, 0);
-    /* lea t0,ds:0[t4*8] */ t0 = (t4 * 8UL) & U32MASK;
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
+     t3 = (unsigned long)D3U_TBL_4441BC_32(&c->st, 0);
+     t0 = (t4 * 8UL) & U32MASK;
+     t3 = (t3 + t0) & U32MASK;
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444EA8_8(&c->st, 0);
-    /* mov [t3],t2 */ d3u_st32(c, (unsigned long)(t3 & U32MASK), (unsigned int)t2);
-    /* mov [t3+4],bl */ M8((t3 + 4UL) & U32MASK) = (unsigned char)(t1 & 0xFFUL);
+     d3u_st32(c, (unsigned long)(t3 & U32MASK), (unsigned int)t2);
+     M8((t3 + 4UL) & U32MASK) = (unsigned char)(t1 & 0xFFUL);
     t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444E9D_8(&c->st, 0);
-    /* inc t4 */ t4 = (t4 + 1UL) & U32MASK;
-    /* mov [t3+5],bl */ M8((t3 + 5UL) & U32MASK) = (unsigned char)(t1 & 0xFFUL);
+     t4 = (t4 + 1UL) & U32MASK;
+     M8((t3 + 5UL) & U32MASK) = (unsigned char)(t1 & 0xFFUL);
     goto l_41b632;
 l_41b60f:
-    /* lea t3,ds:0[t4*8] */ t3 = (t4 * 8UL) & U32MASK;
-    /* mov t0,dword_4441BC */ t0 = (unsigned long)D3U_TBL_4441BC_32(&c->st, 0);
-    /* inc t4 */ t4 = (t4 + 1UL) & U32MASK;
-    /* mov t2,[t3+t0] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + t0) & U32MASK));
-    /* mov bl,[t3+t0+4] */ t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + t0 + 4UL) & U32MASK);
-    /* mov al,[t3+t0+5] */ t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + t0 + 5UL) & U32MASK);
+     t3 = (t4 * 8UL) & U32MASK;
+     t0 = (unsigned long)D3U_TBL_4441BC_32(&c->st, 0);
+     t4 = (t4 + 1UL) & U32MASK;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + t0) & U32MASK));
+     t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + t0 + 4UL) & U32MASK);
+     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + t0 + 5UL) & U32MASK);
     D3U_FLAG_444EA8_8(&c->st, 0) = (unsigned char)(t1 & 0xFFUL);
     D3U_FLAG_444E9D_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
 l_41b632:
-    /* mov dword_4441D0,t5 */ D3U_TBL_4441D0_32(&c->st, 0) = (unsigned int)t5;
-    /* mov dword_4441B0,t4 */ D3U_TBL_4441B0_32(&c->st, 0) = (unsigned int)t4;
-    /* mov dword_4441C4,t2 */ D3U_TBL_4441C4_32(&c->st, 0) = (unsigned int)t2;
+     D3U_TBL_4441D0_32(&c->st, 0) = (unsigned int)t5;
+     D3U_TBL_4441B0_32(&c->st, 0) = (unsigned int)t4;
+     D3U_TBL_4441C4_32(&c->st, 0) = (unsigned int)t2;
     /* pops + retn: no C equivalent */
 }
 /* sub_41B69C (0x0041B69C-0x0041BEF5, ~699 asm lines). Entry al/dl live,
@@ -10450,653 +8982,613 @@ void d3uc_walk_hash_chain(dec3w_ctx *c, unsigned int al_in, unsigned int dl_in)
     t1 = (t1 & 0xFFFFFF00UL) | ((unsigned long)(al_in & 0xFFUL));
     v18 = (unsigned long)(dl_in & 0xFFUL);
     if (D3U_FLAG_444EAB_8(&c->st, 0) != 0) goto l_41b6c4;
-    /* mov t0,dword_4441B0 */ t0 = (unsigned long)D3U_TBL_4441B0_32(&c->st, 0);
-    /* cmp t0,dword_4441B8 */
+     t0 = (unsigned long)D3U_TBL_4441B0_32(&c->st, 0);
     if (t0 < (unsigned long)D3U_TBL_4441B8_32(&c->st, 0)) goto l_41beed;
 l_41b6c4:
     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444EA9_8(&c->st, 0);
     if ((t3 & 0xFFUL) >= 7UL) goto l_41bba8;
-    /* mov t2,offset dword_43F4FC */ t2 = D3U_TBL_43F4FC;
+     t2 = D3U_TBL_43F4FC;
     if ((t3 & 0xFFUL) != 6UL) goto l_41b6e2;
-    /* movsx t0,bl */ t0 = (unsigned long)(((long)(signed char)(t1 & 0xFFUL))) & U32MASK;
+     t0 = (unsigned long)(((long)(signed char)(t1 & 0xFFUL))) & U32MASK;
     goto l_41b6eb;
 l_41b6e2:
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     t0 = (t0 & 0xFFFFFF00UL) | (t1 & 0xFFUL);
-    /* sub t0,80h */ t0 = (t0 - 0x80UL) & U32MASK;
+     t0 = (t0 - 0x80UL) & U32MASK;
 l_41b6eb:
-    /* mov [var_2C],t0 */ v2c = t0;
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* mov t6,dword_43D8BC */ t6 = (unsigned long)D3U_TBL_43D8BC_32(&c->st, 0);
-    /* sub t0,t6 */ t0 = (t0 - t6) & U32MASK;
-    /* mov [var_20],t0 */ v20 = t0;
+     v2c = t0;
+     t0 = v2c;
+     t6 = (unsigned long)D3U_TBL_43D8BC_32(&c->st, 0);
+     t0 = (t0 - t6) & U32MASK;
+     v20 = t0;
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)D3U_TBL_43DCD8_8(&c->st, 0);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFUL) - (v2c & 0xFFUL)) & 0xFFUL));
-    /* movsx t0,al */ t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
-    /* shl t0,4 */ t0 = (t0 << 4) & U32MASK;
-    /* mov t3,t0 */ t3 = t0;
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t1,[t2+30h] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x30UL) & U32MASK));
-    /* mov t3,dword_4398B0[t3*4] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((D3U_LIN_EXTEND_TBL + t3 * 4UL) & U32MASK));
-    /* mov t4,[t2] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)(t2 & U32MASK));
-    /* add t1,t3 */ t1 = (t1 + t3) & U32MASK;
-    /* mov t3,t0 */ t3 = t0;
-    /* sub t3,t4 */ t3 = (t3 - t4) & U32MASK;
-    /* mov [t2+30h],t1 */ d3u_st32(c, (unsigned long)((t2 + 0x30UL) & U32MASK), (unsigned int)t1);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t5,[t2+34h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x34UL) & U32MASK));
-    /* add t5,dword_4398B0[t3*4] */ t5 = (t5 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
-    /* mov t3,[t2] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)(t2 & U32MASK));
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov [t2+34h],t5 */ d3u_st32(c, (unsigned long)((t2 + 0x34UL) & U32MASK), (unsigned int)t5);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t6,[t2+38h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x38UL) & U32MASK));
-    /* mov t3,dword_4398B0[t3*4] */ t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
-    /* mov t1,[t2+4] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 4UL) & U32MASK));
-    /* add t6,t3 */ t6 = (t6 + t3) & U32MASK;
-    /* mov t3,t0 */ t3 = t0;
-    /* sub t3,t1 */ t3 = (t3 - t1) & U32MASK;
-    /* mov [t2+38h],t6 */ d3u_st32(c, (unsigned long)((t2 + 0x38UL) & U32MASK), (unsigned int)t6);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t4,[t2+3Ch] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x3CUL) & U32MASK));
-    /* add t4,dword_4398B0[t3*4] */ t4 = (t4 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
-    /* mov t3,[t2+4] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 4UL) & U32MASK));
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov [t2+3Ch],t4 */ d3u_st32(c, (unsigned long)((t2 + 0x3CUL) & U32MASK), (unsigned int)t4);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t5,[t2+40h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x40UL) & U32MASK));
-    /* mov t3,dword_4398B0[t3*4] */ t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
-    /* mov t6,[t2+8] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 8UL) & U32MASK));
-    /* add t5,t3 */ t5 = (t5 + t3) & U32MASK;
-    /* mov t3,t0 */ t3 = t0;
-    /* sub t3,t6 */ t3 = (t3 - t6) & U32MASK;
-    /* mov [t2+40h],t5 */ d3u_st32(c, (unsigned long)((t2 + 0x40UL) & U32MASK), (unsigned int)t5);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t1,[t2+44h] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x44UL) & U32MASK));
-    /* add t1,dword_4398B0[t3*4] */ t1 = (t1 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
-    /* mov t3,[t2+8] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 8UL) & U32MASK));
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov [t2+44h],t1 */ d3u_st32(c, (unsigned long)((t2 + 0x44UL) & U32MASK), (unsigned int)t1);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t4,[t2+48h] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x48UL) & U32MASK));
-    /* mov t3,dword_4398B0[t3*4] */ t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
-    /* mov t5,[t2+0Ch] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0xCUL) & U32MASK));
-    /* add t4,t3 */ t4 = (t4 + t3) & U32MASK;
-    /* mov t3,t0 */ t3 = t0;
-    /* sub t3,t5 */ t3 = (t3 - t5) & U32MASK;
-    /* mov [t2+48h],t4 */ d3u_st32(c, (unsigned long)((t2 + 0x48UL) & U32MASK), (unsigned int)t4);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t6,[t2+4Ch] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x4CUL) & U32MASK));
-    /* add t6,dword_4398B0[t3*4] */ t6 = (t6 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
-    /* mov t3,[t2+0Ch] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0xCUL) & U32MASK));
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov [t2+4Ch],t6 */ d3u_st32(c, (unsigned long)((t2 + 0x4CUL) & U32MASK), (unsigned int)t6);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t1,[t2+50h] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x50UL) & U32MASK));
-    /* mov t3,dword_4398B0[t3*4] */ t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
-    /* mov t4,[t2+10h] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x10UL) & U32MASK));
-    /* add t1,t3 */ t1 = (t1 + t3) & U32MASK;
-    /* mov t3,t0 */ t3 = t0;
-    /* sub t3,t4 */ t3 = (t3 - t4) & U32MASK;
-    /* mov [t2+50h],t1 */ d3u_st32(c, (unsigned long)((t2 + 0x50UL) & U32MASK), (unsigned int)t1);
-    /* and t3,0FFFh */ t3 &= 0xFFFUL;
-    /* mov t5,[t2+54h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x54UL) & U32MASK));
-    /* mov t3,dword_4398B0[t3*4] */ t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
-    /* mov t6,[t2+10h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x10UL) & U32MASK));
-    /* add t5,t3 */ t5 = (t5 + t3) & U32MASK;
-    /* add t0,t6 */ t0 = (t0 + t6) & U32MASK;
-    /* mov [t2+54h],t5 */ d3u_st32(c, (unsigned long)((t2 + 0x54UL) & U32MASK), (unsigned int)t5);
-    /* and t0,0FFFh */ t0 &= 0xFFFUL;
-    /* mov t3,[t2+58h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x58UL) & U32MASK));
-    /* add t3,dword_4398B0[t0*4] */ t3 = (t3 + (unsigned long)d3u_ld32(c, (unsigned long)((D3U_LIN_EXTEND_TBL + t0 * 4UL) & U32MASK))) & U32MASK;
-    /* mov t1,[t2+6Ch] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x6CUL) & U32MASK));
-    /* mov [t2+58h],t3 */ d3u_st32(c, (unsigned long)((t2 + 0x58UL) & U32MASK), (unsigned int)t3);
+     t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
+     t0 = (t0 << 4) & U32MASK;
+     t3 = t0;
+     t3 &= 0xFFFUL;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x30UL) & U32MASK));
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((D3U_LIN_EXTEND_TBL + t3 * 4UL) & U32MASK));
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)(t2 & U32MASK));
+     t1 = (t1 + t3) & U32MASK;
+     t3 = t0;
+     t3 = (t3 - t4) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x30UL) & U32MASK), (unsigned int)t1);
+     t3 &= 0xFFFUL;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x34UL) & U32MASK));
+     t5 = (t5 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)(t2 & U32MASK));
+     t3 = (t3 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x34UL) & U32MASK), (unsigned int)t5);
+     t3 &= 0xFFFUL;
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x38UL) & U32MASK));
+     t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 4UL) & U32MASK));
+     t6 = (t6 + t3) & U32MASK;
+     t3 = t0;
+     t3 = (t3 - t1) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x38UL) & U32MASK), (unsigned int)t6);
+     t3 &= 0xFFFUL;
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x3CUL) & U32MASK));
+     t4 = (t4 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 4UL) & U32MASK));
+     t3 = (t3 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x3CUL) & U32MASK), (unsigned int)t4);
+     t3 &= 0xFFFUL;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x40UL) & U32MASK));
+     t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 8UL) & U32MASK));
+     t5 = (t5 + t3) & U32MASK;
+     t3 = t0;
+     t3 = (t3 - t6) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x40UL) & U32MASK), (unsigned int)t5);
+     t3 &= 0xFFFUL;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x44UL) & U32MASK));
+     t1 = (t1 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 8UL) & U32MASK));
+     t3 = (t3 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x44UL) & U32MASK), (unsigned int)t1);
+     t3 &= 0xFFFUL;
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x48UL) & U32MASK));
+     t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0xCUL) & U32MASK));
+     t4 = (t4 + t3) & U32MASK;
+     t3 = t0;
+     t3 = (t3 - t5) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x48UL) & U32MASK), (unsigned int)t4);
+     t3 &= 0xFFFUL;
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x4CUL) & U32MASK));
+     t6 = (t6 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL)) & U32MASK;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0xCUL) & U32MASK));
+     t3 = (t3 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x4CUL) & U32MASK), (unsigned int)t6);
+     t3 &= 0xFFFUL;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x50UL) & U32MASK));
+     t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x10UL) & U32MASK));
+     t1 = (t1 + t3) & U32MASK;
+     t3 = t0;
+     t3 = (t3 - t4) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x50UL) & U32MASK), (unsigned int)t1);
+     t3 &= 0xFFFUL;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x54UL) & U32MASK));
+     t3 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t3 * 4UL);
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x10UL) & U32MASK));
+     t5 = (t5 + t3) & U32MASK;
+     t0 = (t0 + t6) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x54UL) & U32MASK), (unsigned int)t5);
+     t0 &= 0xFFFUL;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x58UL) & U32MASK));
+     t3 = (t3 + (unsigned long)d3u_ld32(c, (unsigned long)((D3U_LIN_EXTEND_TBL + t0 * 4UL) & U32MASK))) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x6CUL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t2 + 0x58UL) & U32MASK), (unsigned int)t3);
     t0 = (t0 & 0xFFFFFF00UL) | (v2c & 0xFFUL);
-    /* mov dl,[t2+28h] */ t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((t2 + 0x28UL) & U32MASK);
-    /* inc t1 */ t1 = (t1 + 1UL) & U32MASK;
+     t3 = (t3 & 0xFFFFFF00UL) | (unsigned long)M8((t2 + 0x28UL) & U32MASK);
+     t1 = (t1 + 1UL) & U32MASK;
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFUL) - (t3 & 0xFFUL)) & 0xFFUL));
-    /* mov [t2+6Ch],t1 */ d3u_st32(c, (unsigned long)((t2 + 0x6CUL) & U32MASK), (unsigned int)t1);
-    /* movsx t0,al */ t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
-    /* mov [t2+2Ch],t0 */ d3u_st32(c, (unsigned long)((t2 + 0x2CUL) & U32MASK), (unsigned int)t0);
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* mov dh,[t2+6Ch] */ t3 = (t3 & 0xFFFF00FFUL) | ((((unsigned long)M8((t2 + 0x6CUL) & U32MASK)) & 0xFFUL) << 8);
-    /* mov [t2+28h],t0 */ d3u_st32(c, (unsigned long)((t2 + 0x28UL) & U32MASK), (unsigned int)t0);
-    /* test dh,0Fh */
+     d3u_st32(c, (unsigned long)((t2 + 0x6CUL) & U32MASK), (unsigned int)t1);
+     t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x2CUL) & U32MASK), (unsigned int)t0);
+     t0 = v2c;
+     t3 = (t3 & 0xFFFF00FFUL) | ((((unsigned long)M8((t2 + 0x6CUL) & U32MASK)) & 0xFFUL) << 8);
+     d3u_st32(c, (unsigned long)((t2 + 0x28UL) & U32MASK), (unsigned int)t0);
     if ((((t3 >> 8) & 0xFFUL) & 0x0FUL) != 0) goto l_41b939;
-    /* mov t1,1 */ t1 = 1UL;
-    /* lea t0,[t2+4] */ t0 = (t2 + 4UL) & U32MASK;
-    /* xor t4,t4 */ t4 = 0UL;
-    /* mov t3,[t2+30h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x30UL) & U32MASK));
-    /* mov [t2+30h],t4 */ d3u_st32(c, (unsigned long)((t2 + 0x30UL) & U32MASK), (unsigned int)t4);
+     t1 = 1UL;
+     t0 = (t2 + 4UL) & U32MASK;
+     t4 = 0UL;
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x30UL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t2 + 0x30UL) & U32MASK), (unsigned int)t4);
 l_41b85f:
-    /* mov t5,[t0+30h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x30UL) & U32MASK));
-    /* cmp t3,t5 */
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x30UL) & U32MASK));
     if (t3 <= t5) goto l_41b86a;
-    /* mov t3,t5 */ t3 = t5;
-    /* mov t4,t1 */ t4 = t1;
+     t3 = t5;
+     t4 = t1;
 l_41b86a:
-    /* add t0,4 */ t0 = (t0 + 4UL) & U32MASK;
-    /* inc t1 */ t1 = (t1 + 1UL) & U32MASK;
-    /* mov dword ptr [t0+2Ch],0 */ d3u_st32(c, (unsigned long)((t0 + 0x2CUL) & U32MASK), 0);
-    /* cmp t1,0Bh */
+     t0 = (t0 + 4UL) & U32MASK;
+     t1 = (t1 + 1UL) & U32MASK;
+     d3u_st32(c, (unsigned long)((t0 + 0x2CUL) & U32MASK), 0);
     if (((long)t1) < 11) goto l_41b85f;
-    /* dec t4 */ t4 = (t4 - 1UL) & U32MASK;
-    /* cmp t4,9 */
+     t4 = (t4 - 1UL) & U32MASK;
     if (t4 > 9UL) goto l_41b939;
-    /* jmp cs:off_41B64C[t4*4]: switch */
     switch (t4) {
     case 0:
         /* loc_41B88C */
-        /* mov t6,[t2+14h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x14UL) & U32MASK));
-        /* cmp t6,0FFFFFFE0h */
+         t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x14UL) & U32MASK));
         if (((long)t6) <= -32) goto l_41b939;
-        /* lea t0,[t6-1] */ t0 = (t6 - 1UL) & U32MASK;
-        /* mov [t2+14h],t0 */ d3u_st32(c, (unsigned long)((t2 + 0x14UL) & U32MASK), (unsigned int)t0);
+         t0 = (t6 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x14UL) & U32MASK), (unsigned int)t0);
         goto l_41b939;
     case 1:
         /* loc_41B8A3 */
-        /* mov t4,[t2+14h] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x14UL) & U32MASK));
-        /* cmp t4,20h */
+         t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x14UL) & U32MASK));
         if (((long)t4) >= 32) goto l_41b939;
-        /* lea t5,[t4+1] */ t5 = (t4 + 1UL) & U32MASK;
-        /* mov [t2+14h],t5 */ d3u_st32(c, (unsigned long)((t2 + 0x14UL) & U32MASK), (unsigned int)t5);
+         t5 = (t4 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x14UL) & U32MASK), (unsigned int)t5);
         goto l_41b939;
     case 2:
         /* loc_41B8BA */
-        /* mov t3,[t2+18h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x18UL) & U32MASK));
-        /* cmp t3,0FFFFFFE0h */
+         t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x18UL) & U32MASK));
         if (((long)t3) <= -32) goto l_41b939;
-        /* lea t1,[t3-1] */ t1 = (t3 - 1UL) & U32MASK;
-        /* mov [t2+18h],t1 */ d3u_st32(c, (unsigned long)((t2 + 0x18UL) & U32MASK), (unsigned int)t1);
+         t1 = (t3 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x18UL) & U32MASK), (unsigned int)t1);
         goto l_41b939;
     case 3:
         /* loc_41B8D1 */
-        /* mov t6,[t2+18h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x18UL) & U32MASK));
-        /* cmp t6,20h */
+         t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x18UL) & U32MASK));
         if (((long)t6) >= 32) goto l_41b939;
-        /* lea t0,[t6+1] */ t0 = (t6 + 1UL) & U32MASK;
-        /* mov [t2+18h],t0 */ d3u_st32(c, (unsigned long)((t2 + 0x18UL) & U32MASK), (unsigned int)t0);
+         t0 = (t6 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x18UL) & U32MASK), (unsigned int)t0);
         goto l_41b939;
     case 4:
         /* loc_41B8E5 */
-        /* mov t4,[t2+1Ch] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK));
-        /* cmp t4,0FFFFFFE0h */
+         t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK));
         if (((long)t4) <= -32) goto l_41b939;
-        /* lea t5,[t4-1] */ t5 = (t4 - 1UL) & U32MASK;
-        /* mov [t2+1Ch],t5 */ d3u_st32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK), (unsigned int)t5);
+         t5 = (t4 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK), (unsigned int)t5);
         goto l_41b939;
     case 5:
         /* loc_41B8F5 */
-        /* mov t3,[t2+1Ch] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK));
-        /* cmp t3,20h */
+         t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK));
         if (((long)t3) >= 32) goto l_41b939;
-        /* lea t1,[t3+1] */ t1 = (t3 + 1UL) & U32MASK;
-        /* mov [t2+1Ch],t1 */ d3u_st32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK), (unsigned int)t1);
+         t1 = (t3 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x1CUL) & U32MASK), (unsigned int)t1);
         goto l_41b939;
     case 6:
         /* loc_41B905 */
-        /* mov t6,[t2+20h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x20UL) & U32MASK));
-        /* cmp t6,0FFFFFFE0h */
+         t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x20UL) & U32MASK));
         if (((long)t6) <= -32) goto l_41b939;
-        /* lea t0,[t6-1] */ t0 = (t6 - 1UL) & U32MASK;
-        /* mov [t2+20h],t0 */ d3u_st32(c, (unsigned long)((t2 + 0x20UL) & U32MASK), (unsigned int)t0);
+         t0 = (t6 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x20UL) & U32MASK), (unsigned int)t0);
         goto l_41b939;
     case 7:
         /* loc_41B915 */
-        /* mov t4,[t2+20h] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x20UL) & U32MASK));
-        /* cmp t4,20h */
+         t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x20UL) & U32MASK));
         if (((long)t4) >= 32) goto l_41b939;
-        /* lea t5,[t4+1] */ t5 = (t4 + 1UL) & U32MASK;
-        /* mov [t2+20h],t5 */ d3u_st32(c, (unsigned long)((t2 + 0x20UL) & U32MASK), (unsigned int)t5);
+         t5 = (t4 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t2 + 0x20UL) & U32MASK), (unsigned int)t5);
         goto l_41b939;
     case 8:
         /* loc_41B925 */
-        /* cmp dword ptr [t2+20h],0FFFFFFE0h */
         if (((long)d3u_ld32(c, (unsigned long)((t2 + 0x20UL) & U32MASK))) <= -32) goto l_41b939;
-        /* dec dword ptr [t2+24h] */ d3u_st32(c, (unsigned long)((t2 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x24UL) & U32MASK)) - 1UL) & U32MASK));
+         d3u_st32(c, (unsigned long)((t2 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x24UL) & U32MASK)) - 1UL) & U32MASK));
         goto l_41b939;
     case 9:
         /* loc_41B930 */
-        /* cmp dword ptr [t2+20h],20h */
         if (((long)d3u_ld32(c, (unsigned long)((t2 + 0x20UL) & U32MASK))) >= 32) goto l_41b939;
-        /* inc dword ptr [t2+24h] */ d3u_st32(c, (unsigned long)((t2 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x24UL) & U32MASK)) + 1UL) & U32MASK));
+         d3u_st32(c, (unsigned long)((t2 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x24UL) & U32MASK)) + 1UL) & U32MASK));
         /* fallthrough to default */
     default:
         goto l_41b939;
     }
 l_41b939:
-    /* mov t0,dword_4441C0 */ t0 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
-    /* and t0,7Fh */ t0 &= 0x7FUL;
-    /* mov t3,[var_20] */ t3 = v20;
-    /* mov dword_43DACC[t0*4],t3 */ D3U_TBL_43DACC_32(&c->st, t0 * 4UL) = (unsigned int)t3;
-    /* mov t0,dword_43D8B0 */ t0 = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
-    /* mov t3,dword_4441C0 */ t3 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
-    /* test dword_42A054[t0*4],t3 */
+     t0 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
+     t0 &= 0x7FUL;
+     t3 = v20;
+     D3U_TBL_43DACC_32(&c->st, t0 * 4UL) = (unsigned int)t3;
+     t0 = (unsigned long)D3U_TBL_43D8B0_32(&c->st, 0);
+     t3 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
     if ((((unsigned long)d3u_t42A054[(unsigned int)(t0) & 0xFFU]) & t3) != 0) goto l_41ba81;
-    /* mov t5,0FFFFh */ t5 = 0xFFFFUL;
-    /* mov t0,2 */ t0 = 2UL;
-    /* mov t3,8 */ t3 = 8UL;
-    /* mov dword_43D8B4,t0 */ D3U_TBL_43D8B4_32(&c->st, 0) = (unsigned int)t0;
-    /* mov dword_43D8B8,t0 */ D3U_TBL_43D8B8_32(&c->st, 0) = (unsigned int)t0;
+     t5 = 0xFFFFUL;
+     t0 = 2UL;
+     t3 = 8UL;
+     D3U_TBL_43D8B4_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_43D8B8_32(&c->st, 0) = (unsigned int)t0;
 l_41b97d:
-    /* mov t1,dword_4441C0 */ t1 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
-    /* lea t4,[t1-1] */ t4 = (t1 - 1UL) & U32MASK;
-    /* mov t6,t4 */ t6 = t4;
-    /* sub t6,t0 */ t6 = (t6 - t0) & U32MASK;
-    /* and t4,7Fh */ t4 &= 0x7FUL;
-    /* and t6,7Fh */ t6 &= 0x7FUL;
-    /* mov t4,dword_43DACC[t4*4] */ t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4 * 4UL);
-    /* shl t6,2 */ t6 = (t6 << 2) & U32MASK;
-    /* mov [var_1C],t4 */ v1c = t4;
-    /* mov t4,ss:dword_43DACC[t6] */ t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t6);
-    /* mov t6,[var_1C] */ t6 = v1c;
-    /* sub t6,t4 */ t6 = (t6 - t4) & U32MASK;
-    /* mov t4,t6 */ t4 = t6;
-    /* and t4,0FFFh */ t4 &= 0xFFFUL;
-    /* shl t4,2 */ t4 = (t4 << 2) & U32MASK;
-    /* mov [var_28],t4 */ v28 = t4;
-    /* mov t4,t1 */ t4 = t1;
-    /* sub t4,t0 */ t4 = (t4 - t0) & U32MASK;
-    /* and t4,7Fh */ t4 &= 0x7FUL;
-    /* shl t4,2 */ t4 = (t4 << 2) & U32MASK;
-    /* mov [var_24],t4 */ v24 = t4;
-    /* mov t4,t1 */ t4 = t1;
-    /* and t4,7Fh */ t4 &= 0x7FUL;
-    /* mov t4,dword_43DACC[t4*4] */ t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4 * 4UL);
-    /* mov [var_1C],t4 */ v1c = t4;
-    /* mov t4,[var_24] */ t4 = v24;
-    /* mov t6,[var_1C] */ t6 = v1c;
-    /* mov t4,dword_43DACC[t4] */ t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4);
-    /* sub t6,t4 */ t6 = (t6 - t4) & U32MASK;
-    /* mov t4,t6 */ t4 = t6;
-    /* and t4,0FFFh */ t4 &= 0xFFFUL;
-    /* mov t4,dword_4398B0[t4*4] */ t4 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t4 * 4UL);
-    /* mov [var_1C],t4 */ v1c = t4;
-    /* mov t4,[var_28] */ t4 = v28;
-    /* mov t6,[var_1C] */ t6 = v1c;
-    /* mov t4,dword_4398B0[t4] */ t4 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t4);
-    /* sub t1,2 */ t1 = (t1 - 2UL) & U32MASK;
-    /* add t6,t4 */ t6 = (t6 + t4) & U32MASK;
-    /* mov t4,t1 */ t4 = t1;
-    /* sub t4,t0 */ t4 = (t4 - t0) & U32MASK;
-    /* and t1,7Fh */ t1 &= 0x7FUL;
-    /* and t4,7Fh */ t4 &= 0x7FUL;
-    /* mov [var_1C],t6 */ v1c = t6;
-    /* mov t1,dword_43DACC[t1*4] */ t1 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t1 * 4UL);
-    /* sub t1,dword_43DACC[t4*4] */ t1 = (t1 - (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4 * 4UL)) & U32MASK;
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t4,[var_1C] */ t4 = v1c;
-    /* mov t6,dword_4398B0[t1*4] */ t6 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
-    /* lea t1,[t4+t6] */ t1 = (t4 + t6) & U32MASK;
-    /* imul t4,dword_43D8CC[t3],0Dh */ t4 = (((unsigned long)(unsigned long)D3U_TBL_43D8CC_32(&c->st, t3) * 0xDUL)) & U32MASK;
-    /* shr t4,4 */ t4 = (t4 >> 4) & U32MASK;
-    /* add t4,t1 */ t4 = (t4 + t1) & U32MASK;
-    /* mov dword_43D8CC[t3],t4 */ D3U_TBL_43D8CC_32(&c->st, t3) = (unsigned int)t4;
-    /* mov t6,dword_43D8CC[t3] */ t6 = (unsigned long)(unsigned long)D3U_TBL_43D8CC_32(&c->st, t3);
-    /* mov t4,dword_43D8B4 */ t4 = (unsigned long)D3U_TBL_43D8B4_32(&c->st, 0);
-    /* cmp t6,dword_43D8CC[t4*4] */
+     t1 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
+     t4 = (t1 - 1UL) & U32MASK;
+     t6 = t4;
+     t6 = (t6 - t0) & U32MASK;
+     t4 &= 0x7FUL;
+     t6 &= 0x7FUL;
+     t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4 * 4UL);
+     t6 = (t6 << 2) & U32MASK;
+     v1c = t4;
+     t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t6);
+     t6 = v1c;
+     t6 = (t6 - t4) & U32MASK;
+     t4 = t6;
+     t4 &= 0xFFFUL;
+     t4 = (t4 << 2) & U32MASK;
+     v28 = t4;
+     t4 = t1;
+     t4 = (t4 - t0) & U32MASK;
+     t4 &= 0x7FUL;
+     t4 = (t4 << 2) & U32MASK;
+     v24 = t4;
+     t4 = t1;
+     t4 &= 0x7FUL;
+     t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4 * 4UL);
+     v1c = t4;
+     t4 = v24;
+     t6 = v1c;
+     t4 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4);
+     t6 = (t6 - t4) & U32MASK;
+     t4 = t6;
+     t4 &= 0xFFFUL;
+     t4 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t4 * 4UL);
+     v1c = t4;
+     t4 = v28;
+     t6 = v1c;
+     t4 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t4);
+     t1 = (t1 - 2UL) & U32MASK;
+     t6 = (t6 + t4) & U32MASK;
+     t4 = t1;
+     t4 = (t4 - t0) & U32MASK;
+     t1 &= 0x7FUL;
+     t4 &= 0x7FUL;
+     v1c = t6;
+     t1 = (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t1 * 4UL);
+     t1 = (t1 - (unsigned long)(unsigned long)D3U_TBL_43DACC_32(&c->st, t4 * 4UL)) & U32MASK;
+     t1 &= 0xFFFUL;
+     t4 = v1c;
+     t6 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
+     t1 = (t4 + t6) & U32MASK;
+     t4 = (((unsigned long)(unsigned long)D3U_TBL_43D8CC_32(&c->st, t3) * 0xDUL)) & U32MASK;
+     t4 = (t4 >> 4) & U32MASK;
+     t4 = (t4 + t1) & U32MASK;
+     D3U_TBL_43D8CC_32(&c->st, t3) = (unsigned int)t4;
+     t6 = (unsigned long)(unsigned long)D3U_TBL_43D8CC_32(&c->st, t3);
+     t4 = (unsigned long)D3U_TBL_43D8B4_32(&c->st, 0);
     if (t6 >= (unsigned long)(unsigned long)D3U_TBL_43D8CC_32(&c->st, t4 * 4UL)) goto l_41ba69;
-    /* mov dword_43D8B4,t0 */ D3U_TBL_43D8B4_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_43D8B4_32(&c->st, 0) = (unsigned int)t0;
 l_41ba69:
-    /* cmp t1,t5 */
     if (t1 >= t5) goto l_41ba74;
-    /* mov t5,t1 */ t5 = t1;
-    /* mov dword_43D8B8,t0 */ D3U_TBL_43D8B8_32(&c->st, 0) = (unsigned int)t0;
+     t5 = t1;
+     D3U_TBL_43D8B8_32(&c->st, 0) = (unsigned int)t0;
 l_41ba74:
-    /* inc t0 */ t0 = (t0 + 1UL) & U32MASK;
-    /* add t3,4 */ t3 = (t3 + 4UL) & U32MASK;
-    /* cmp t0,7Ch */
+     t0 = (t0 + 1UL) & U32MASK;
+     t3 = (t3 + 4UL) & U32MASK;
     if (t0 < 0x7CUL) goto l_41b97d;
 l_41ba81:
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* sub t0,dword_43DCCC */ t0 = (t0 - (unsigned long)D3U_TBL_43DCCC_32(&c->st, 0)) & U32MASK;
-    /* mov t1,dword_43DCD0 */ t1 = (unsigned long)D3U_TBL_43DCD0_32(&c->st, 0);
-    /* mov [var_44],t0 */ v44 = t0;
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* sub t0,t1 */ t0 = (t0 - t1) & U32MASK;
-    /* mov t4,dword_43DCD4 */ t4 = (unsigned long)D3U_TBL_43DCD4_32(&c->st, 0);
-    /* mov [var_40],t0 */ v40 = t0;
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* sub t0,t4 */ t0 = (t0 - t4) & U32MASK;
-    /* mov t5,dword_43DCD8 */ t5 = (unsigned long)D3U_TBL_43DCD8_32(&c->st, 0);
-    /* mov [var_3C],t0 */ v3c = t0;
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* sub t0,t5 */ t0 = (t0 - t5) & U32MASK;
-    /* mov t6,dword_43DCDC */ t6 = (unsigned long)D3U_TBL_43DCDC_32(&c->st, 0);
-    /* mov [var_38],t0 */ v38 = t0;
-    /* mov t0,[var_20] */ t0 = v20;
-    /* mov t3,dword_43DCE0 */ t3 = (unsigned long)D3U_TBL_43DCE0_32(&c->st, 0);
-    /* sub t0,t6 */ t0 = (t0 - t6) & U32MASK;
-    /* xor t1,t1 */ t1 = 0UL;
-    /* mov [var_34],t0 */ v34 = t0;
-    /* mov t0,[var_20] */ t0 = v20;
-    /* mov dword_43D8B0,t1 */ D3U_TBL_43D8B0_32(&c->st, 0) = (unsigned int)t1;
-    /* sub t0,t3 */ t0 = (t0 - t3) & U32MASK;
-    /* xor t4,t4 */ t4 = 0UL;
-    /* mov [var_30],t0 */ v30 = t0;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* mov t0,offset dword_43DCE4 */ t0 = D3U_TBL_43DCE4;
+     t0 = v2c;
+     t0 = (t0 - (unsigned long)D3U_TBL_43DCCC_32(&c->st, 0)) & U32MASK;
+     t1 = (unsigned long)D3U_TBL_43DCD0_32(&c->st, 0);
+     v44 = t0;
+     t0 = v2c;
+     t0 = (t0 - t1) & U32MASK;
+     t4 = (unsigned long)D3U_TBL_43DCD4_32(&c->st, 0);
+     v40 = t0;
+     t0 = v2c;
+     t0 = (t0 - t4) & U32MASK;
+     t5 = (unsigned long)D3U_TBL_43DCD8_32(&c->st, 0);
+     v3c = t0;
+     t0 = v2c;
+     t0 = (t0 - t5) & U32MASK;
+     t6 = (unsigned long)D3U_TBL_43DCDC_32(&c->st, 0);
+     v38 = t0;
+     t0 = v20;
+     t3 = (unsigned long)D3U_TBL_43DCE0_32(&c->st, 0);
+     t0 = (t0 - t6) & U32MASK;
+     t1 = 0UL;
+     v34 = t0;
+     t0 = v20;
+     D3U_TBL_43D8B0_32(&c->st, 0) = (unsigned int)t1;
+     t0 = (t0 - t3) & U32MASK;
+     t4 = 0UL;
+     v30 = t0;
+     t3 = 0UL;
+     t0 = D3U_TBL_43DCE4;
 l_41baef:
-    /* mov t1,dword_4441C0 */ t1 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
-    /* and t1,0FFh */ t1 &= 0xFFUL;
-    /* mov t6,[t0+400h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x400UL) & U32MASK));
-    /* mov t5,[t0+t1*4] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + t1 * 4UL) & U32MASK));
-    /* sub t6,t5 */ t6 = (t6 - t5) & U32MASK;
-    /* mov [t0+400h],t6 */ d3u_st32(c, (unsigned long)((t0 + 0x400UL) & U32MASK), (unsigned int)t6);
-    /* mov t5,[esp+t4+var_44] */ t5 = (t4 == 0UL) ? v44 : (t4 == 4UL) ? v40 : (t4 == 8UL) ? v3c : (t4 == 12UL) ? v38 : (t4 == 16UL) ? v34 : v30;
-    /* and t5,1FFh */ t5 &= 0x1FFUL;
-    /* mov t5,dword_42A06C[t5*4] */ t5 = (unsigned long)d3u_t42A06C[(unsigned int)(t5 & 0x1FFU)];
-    /* mov [t0+t1*4],t5 */ d3u_st32(c, (unsigned long)((t0 + t1 * 4UL) & U32MASK), (unsigned int)t5);
-    /* mov t1,t5 */ t1 = t5;
-    /* add [t0+400h],t1 */ d3u_st32(c, (unsigned long)((t0 + 0x400UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x400UL) & U32MASK)) + t1) & U32MASK));
-    /* imul t5,dword_43D8B0,404h */ t5 = (((unsigned long)D3U_TBL_43D8B0_32(&c->st, 0) * 0x404UL)) & U32MASK;
-    /* mov t1,[t0+400h] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x400UL) & U32MASK));
-    /* cmp t1,dword_43E0E4[t5] */
+     t1 = (unsigned long)D3U_TBL_4441C0_32(&c->st, 0);
+     t1 &= 0xFFUL;
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x400UL) & U32MASK));
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + t1 * 4UL) & U32MASK));
+     t6 = (t6 - t5) & U32MASK;
+     d3u_st32(c, (unsigned long)((t0 + 0x400UL) & U32MASK), (unsigned int)t6);
+     t5 = (t4 == 0UL) ? v44 : (t4 == 4UL) ? v40 : (t4 == 8UL) ? v3c : (t4 == 12UL) ? v38 : (t4 == 16UL) ? v34 : v30;
+     t5 &= 0x1FFUL;
+     t5 = (unsigned long)d3u_t42A06C[(unsigned int)(t5 & 0x1FFU)];
+     d3u_st32(c, (unsigned long)((t0 + t1 * 4UL) & U32MASK), (unsigned int)t5);
+     t1 = t5;
+     d3u_st32(c, (unsigned long)((t0 + 0x400UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x400UL) & U32MASK)) + t1) & U32MASK));
+     t5 = (((unsigned long)D3U_TBL_43D8B0_32(&c->st, 0) * 0x404UL)) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x400UL) & U32MASK));
     if (t1 >= (unsigned long)(unsigned long)D3U_TBL_43E0E4_32(&c->st, t5)) goto l_41bb45;
-    /* mov dword_43D8B0,t3 */ D3U_TBL_43D8B0_32(&c->st, 0) = (unsigned int)t3;
+     D3U_TBL_43D8B0_32(&c->st, 0) = (unsigned int)t3;
 l_41bb45:
-    /* add t4,4 */ t4 = (t4 + 4UL) & U32MASK;
-    /* inc t3 */ t3 = (t3 + 1UL) & U32MASK;
-    /* add t0,404h */ t0 = (t0 + 0x404UL) & U32MASK;
-    /* cmp t3,6 */
+     t4 = (t4 + 4UL) & U32MASK;
+     t3 = (t3 + 1UL) & U32MASK;
+     t0 = (t0 + 0x404UL) & U32MASK;
     if (((long)t3) < 6) goto l_41baef;
-    /* mov t0,dword_43D8BC */ t0 = (unsigned long)D3U_TBL_43D8BC_32(&c->st, 0);
-    /* mov dword_43D8C0,t0 */ D3U_TBL_43D8C0_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* xor t3,t3 */ t3 = 0UL;
-    /* mov dword_43D8BC,t0 */ D3U_TBL_43D8BC_32(&c->st, 0) = (unsigned int)t0;
-    /* mov t0,[t2+70h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x70UL) & U32MASK));
+     t0 = (unsigned long)D3U_TBL_43D8BC_32(&c->st, 0);
+     D3U_TBL_43D8C0_32(&c->st, 0) = (unsigned int)t0;
+     t0 = v2c;
+     t3 = 0UL;
+     D3U_TBL_43D8BC_32(&c->st, 0) = (unsigned int)t0;
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x70UL) & U32MASK));
     t3 = (t3 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-    /* shl t0,8 */ t0 = (t0 << 8) & U32MASK;
-    /* add t0,t3 */ t0 = (t0 + t3) & U32MASK;
-    /* mov [t2+70h],t0 */ d3u_st32(c, (unsigned long)((t2 + 0x70UL) & U32MASK), (unsigned int)t0);
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = (t0 << 8) & U32MASK;
+     t0 = (t0 + t3) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x70UL) & U32MASK), (unsigned int)t0);
+     t0 = 0UL;
     t0 = (t0 & 0xFFFFFF00UL) | (t3 & 0xFFUL);
-    /* mov t3,[t2+74h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x74UL) & U32MASK));
-    /* mov t1,dword_42A86C[t0*4] */ t1 = (unsigned long)d3u_t42A86C[(unsigned int)(t0 & 0xFFUL)];
-    /* shl t3,8 */ t3 = (t3 << 8) & U32MASK;
-    /* add t3,t1 */ t3 = (t3 + t1) & U32MASK;
-    /* mov [t2+74h],t3 */ d3u_st32(c, (unsigned long)((t2 + 0x74UL) & U32MASK), (unsigned int)t3);
-    /* mov t3,[t2+78h] */ t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x78UL) & U32MASK));
-    /* mov t0,dword_42B06C[t0*4] */ t0 = (unsigned long)d3u_t42B06C[(unsigned int)(t0 & 0xFFUL)];
-    /* shl t3,8 */ t3 = (t3 << 8) & U32MASK;
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
-    /* mov [t2+78h],t3 */ d3u_st32(c, (unsigned long)((t2 + 0x78UL) & U32MASK), (unsigned int)t3);
-    /* add esp,30h + pops + retn (<7 early return): no C equivalent */
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x74UL) & U32MASK));
+     t1 = (unsigned long)d3u_t42A86C[(unsigned int)(t0 & 0xFFUL)];
+     t3 = (t3 << 8) & U32MASK;
+     t3 = (t3 + t1) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x74UL) & U32MASK), (unsigned int)t3);
+     t3 = (unsigned long)d3u_ld32(c, (unsigned long)((t2 + 0x78UL) & U32MASK));
+     t0 = (unsigned long)d3u_t42B06C[(unsigned int)(t0 & 0xFFUL)];
+     t3 = (t3 << 8) & U32MASK;
+     t3 = (t3 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t2 + 0x78UL) & U32MASK), (unsigned int)t3);
     return;
 l_41bba8:
-    /* mov t3,dword_4441D0 */ t3 = (unsigned long)D3U_TBL_4441D0_32(&c->st, 0);
-    /* mov t0,t3 */ t0 = t3;
-    /* shl t0,5 */ t0 = (t0 << 5) & U32MASK;
-    /* sub t0,t3 */ t0 = (t0 - t3) & U32MASK;
-    /* mov t3,offset dword_43F4FC */ t3 = D3U_TBL_43F4FC;
-    /* shl t0,2 */ t0 = (t0 << 2) & U32MASK;
-    /* mov t2,dword_4441D0 */ t2 = (unsigned long)D3U_TBL_4441D0_32(&c->st, 0);
-    /* add t3,t0 */ t3 = (t3 + t0) & U32MASK;
+     t3 = (unsigned long)D3U_TBL_4441D0_32(&c->st, 0);
+     t0 = t3;
+     t0 = (t0 << 5) & U32MASK;
+     t0 = (t0 - t3) & U32MASK;
+     t3 = D3U_TBL_43F4FC;
+     t0 = (t0 << 2) & U32MASK;
+     t2 = (unsigned long)D3U_TBL_4441D0_32(&c->st, 0);
+     t3 = (t3 + t0) & U32MASK;
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444EA8_8(&c->st, 0);
     t1 = (t1 & 0xFFFF00FFUL) | ((((unsigned long)D3U_FLAG_444EA9_8(&c->st, 0)) & 0xFFUL) << 8);
-    /* mov byte_43F6EC[t2],al */ M8((D3U_TBL_43F6EC + t2) & U32MASK) = (unsigned char)(t0 & 0xFFUL);
+     M8((D3U_TBL_43F6EC + t2) & U32MASK) = (unsigned char)(t0 & 0xFFUL);
     if (((t1 >> 8) & 0xFFUL) < 8UL) goto l_41bbe0;
-    /* movsx t0,bl */ t0 = (unsigned long)(((long)(signed char)(t1 & 0xFFUL))) & U32MASK;
+     t0 = (unsigned long)(((long)(signed char)(t1 & 0xFFUL))) & U32MASK;
     goto l_41bbe9;
 l_41bbe0:
-    /* xor t0,t0 */ t0 = 0UL;
+     t0 = 0UL;
     t0 = (t0 & 0xFFFFFF00UL) | (t1 & 0xFFUL);
-    /* sub t0,80h */ t0 = (t0 - 0x80UL) & U32MASK;
+     t0 = (t0 - 0x80UL) & U32MASK;
 l_41bbe9:
-    /* mov [var_2C],t0 */ v2c = t0;
+     v2c = t0;
     t2 = (t2 & 0xFFFFFF00UL) | (v2c & 0xFFUL);
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)D3U_TBL_43DCCC_8(&c->st, 0);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFUL) - (t2 & 0xFFUL)) & 0xFFUL));
-    /* movsx t0,al */ t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
-    /* shl t0,4 */ t0 = (t0 << 4) & U32MASK;
-    /* mov t1,t0 */ t1 = t0;
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t2,[t3+30h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x30UL) & U32MASK));
-    /* mov t1,dword_4398B0[t1*4] */ t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
-    /* mov t4,[t3] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)(t3 & U32MASK));
-    /* add t2,t1 */ t2 = (t2 + t1) & U32MASK;
-    /* mov t1,t0 */ t1 = t0;
-    /* sub t1,t4 */ t1 = (t1 - t4) & U32MASK;
-    /* mov [t3+30h],t2 */ d3u_st32(c, (unsigned long)((t3 + 0x30UL) & U32MASK), (unsigned int)t2);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t5,[t3+34h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x34UL) & U32MASK));
-    /* add t5,dword_4398B0[t1*4] */ t5 = (t5 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
-    /* mov t1,[t3] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)(t3 & U32MASK));
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* mov [t3+34h],t5 */ d3u_st32(c, (unsigned long)((t3 + 0x34UL) & U32MASK), (unsigned int)t5);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t6,[t3+38h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x38UL) & U32MASK));
-    /* mov t1,dword_4398B0[t1*4] */ t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
-    /* mov t2,[t3+4] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 4UL) & U32MASK));
-    /* add t6,t1 */ t6 = (t6 + t1) & U32MASK;
-    /* mov t1,t0 */ t1 = t0;
-    /* sub t1,t2 */ t1 = (t1 - t2) & U32MASK;
-    /* mov [t3+38h],t6 */ d3u_st32(c, (unsigned long)((t3 + 0x38UL) & U32MASK), (unsigned int)t6);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t4,[t3+3Ch] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x3CUL) & U32MASK));
-    /* add t4,dword_4398B0[t1*4] */ t4 = (t4 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
-    /* mov t1,[t3+4] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 4UL) & U32MASK));
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* mov [t3+3Ch],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x3CUL) & U32MASK), (unsigned int)t4);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t5,[t3+40h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x40UL) & U32MASK));
-    /* mov t1,dword_4398B0[t1*4] */ t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
-    /* mov t6,[t3+8] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 8UL) & U32MASK));
-    /* add t5,t1 */ t5 = (t5 + t1) & U32MASK;
-    /* mov t1,t0 */ t1 = t0;
-    /* sub t1,t6 */ t1 = (t1 - t6) & U32MASK;
-    /* mov [t3+40h],t5 */ d3u_st32(c, (unsigned long)((t3 + 0x40UL) & U32MASK), (unsigned int)t5);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t2,[t3+44h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x44UL) & U32MASK));
-    /* add t2,dword_4398B0[t1*4] */ t2 = (t2 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
-    /* mov t1,[t3+8] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 8UL) & U32MASK));
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* mov [t3+44h],t2 */ d3u_st32(c, (unsigned long)((t3 + 0x44UL) & U32MASK), (unsigned int)t2);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t4,[t3+48h] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x48UL) & U32MASK));
-    /* mov t1,dword_4398B0[t1*4] */ t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
-    /* mov t5,[t3+0Ch] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0xCUL) & U32MASK));
-    /* add t4,t1 */ t4 = (t4 + t1) & U32MASK;
-    /* mov t1,t0 */ t1 = t0;
-    /* sub t1,t5 */ t1 = (t1 - t5) & U32MASK;
-    /* mov [t3+48h],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x48UL) & U32MASK), (unsigned int)t4);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t6,[t3+4Ch] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x4CUL) & U32MASK));
-    /* add t6,dword_4398B0[t1*4] */ t6 = (t6 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
-    /* mov t1,[t3+0Ch] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0xCUL) & U32MASK));
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* mov [t3+4Ch],t6 */ d3u_st32(c, (unsigned long)((t3 + 0x4CUL) & U32MASK), (unsigned int)t6);
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t2,[t3+50h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x50UL) & U32MASK));
-    /* mov t1,dword_4398B0[t1*4] */ t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
-    /* add t2,t1 */ t2 = (t2 + t1) & U32MASK;
-    /* mov [t3+50h],t2 */ d3u_st32(c, (unsigned long)((t3 + 0x50UL) & U32MASK), (unsigned int)t2);
-    /* mov t1,t0 */ t1 = t0;
-    /* mov t4,dword_43D8C4 */ t4 = (unsigned long)D3U_TBL_43D8C4_32(&c->st, 0);
-    /* sub t1,t4 */ t1 = (t1 - t4) & U32MASK;
-    /* and t1,0FFFh */ t1 &= 0xFFFUL;
-    /* mov t5,[t3+54h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x54UL) & U32MASK));
-    /* add t5,dword_4398B0[t1*4] */ t5 = (t5 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
-    /* add t0,t4 */ t0 = (t0 + t4) & U32MASK;
-    /* mov [t3+54h],t5 */ d3u_st32(c, (unsigned long)((t3 + 0x54UL) & U32MASK), (unsigned int)t5);
-    /* and t0,0FFFh */ t0 &= 0xFFFUL;
-    /* mov t1,[t3+58h] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x58UL) & U32MASK));
-    /* mov t0,dword_4398B0[t0*4] */ t0 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t0 * 4UL);
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* mov [t3+58h],t1 */ d3u_st32(c, (unsigned long)((t3 + 0x58UL) & U32MASK), (unsigned int)t1);
+     t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
+     t0 = (t0 << 4) & U32MASK;
+     t1 = t0;
+     t1 &= 0xFFFUL;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x30UL) & U32MASK));
+     t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)(t3 & U32MASK));
+     t2 = (t2 + t1) & U32MASK;
+     t1 = t0;
+     t1 = (t1 - t4) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x30UL) & U32MASK), (unsigned int)t2);
+     t1 &= 0xFFFUL;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x34UL) & U32MASK));
+     t5 = (t5 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)(t3 & U32MASK));
+     t1 = (t1 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x34UL) & U32MASK), (unsigned int)t5);
+     t1 &= 0xFFFUL;
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x38UL) & U32MASK));
+     t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 4UL) & U32MASK));
+     t6 = (t6 + t1) & U32MASK;
+     t1 = t0;
+     t1 = (t1 - t2) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x38UL) & U32MASK), (unsigned int)t6);
+     t1 &= 0xFFFUL;
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x3CUL) & U32MASK));
+     t4 = (t4 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 4UL) & U32MASK));
+     t1 = (t1 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x3CUL) & U32MASK), (unsigned int)t4);
+     t1 &= 0xFFFUL;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x40UL) & U32MASK));
+     t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 8UL) & U32MASK));
+     t5 = (t5 + t1) & U32MASK;
+     t1 = t0;
+     t1 = (t1 - t6) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x40UL) & U32MASK), (unsigned int)t5);
+     t1 &= 0xFFFUL;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x44UL) & U32MASK));
+     t2 = (t2 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 8UL) & U32MASK));
+     t1 = (t1 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x44UL) & U32MASK), (unsigned int)t2);
+     t1 &= 0xFFFUL;
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x48UL) & U32MASK));
+     t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0xCUL) & U32MASK));
+     t4 = (t4 + t1) & U32MASK;
+     t1 = t0;
+     t1 = (t1 - t5) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x48UL) & U32MASK), (unsigned int)t4);
+     t1 &= 0xFFFUL;
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x4CUL) & U32MASK));
+     t6 = (t6 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0xCUL) & U32MASK));
+     t1 = (t1 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x4CUL) & U32MASK), (unsigned int)t6);
+     t1 &= 0xFFFUL;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x50UL) & U32MASK));
+     t1 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL);
+     t2 = (t2 + t1) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x50UL) & U32MASK), (unsigned int)t2);
+     t1 = t0;
+     t4 = (unsigned long)D3U_TBL_43D8C4_32(&c->st, 0);
+     t1 = (t1 - t4) & U32MASK;
+     t1 &= 0xFFFUL;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x54UL) & U32MASK));
+     t5 = (t5 + (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t1 * 4UL)) & U32MASK;
+     t0 = (t0 + t4) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x54UL) & U32MASK), (unsigned int)t5);
+     t0 &= 0xFFFUL;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x58UL) & U32MASK));
+     t0 = (unsigned long)(unsigned long)D3U_LIN_EXTEND_TBL_32(&c->st, t0 * 4UL);
+     t1 = (t1 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x58UL) & U32MASK), (unsigned int)t1);
     t2 = (t2 & 0xFFFF00FFUL) | ((v2c & 0xFFUL) << 8);
     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)D3U_TBL_43DCCC_8(&c->st, 0);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFUL) - ((t2 >> 8) & 0xFFUL)) & 0xFFUL));
-    /* and t0,0FFh */ t0 &= 0xFFUL;
-    /* mov t2,[t3+5Ch] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK));
-    /* add t2,dword_42B86C[t0*4] */ t2 = (t2 + (unsigned long)d3u_t42B86C[(unsigned int)(t0 & 0xFFUL)]) & U32MASK;
-    /* mov al,[t3+28h] */ t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + 0x28UL) & U32MASK);
+     t0 &= 0xFFUL;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK));
+     t2 = (t2 + (unsigned long)d3u_t42B86C[(unsigned int)(t0 & 0xFFUL)]) & U32MASK;
+     t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + 0x28UL) & U32MASK);
     t0 = (t0 & 0xFFFF00FFUL) | ((v2c & 0xFFUL) << 8);
-    /* mov [t3+5Ch],t2 */ d3u_st32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK), (unsigned int)t2);
+     d3u_st32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK), (unsigned int)t2);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFUL) - ((t0 >> 8) & 0xFFUL)) & 0xFFUL));
-    /* and t0,0FFh */ t0 &= 0xFFUL;
-    /* mov t4,[t3+60h] */ t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x60UL) & U32MASK));
-    /* mov t0,dword_42B86C[t0*4] */ t0 = (unsigned long)d3u_t42B86C[(unsigned int)(t0 & 0xFFUL)];
-    /* mov bl,[t3+28h] */ t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + 0x28UL) & U32MASK);
-    /* add t4,t0 */ t4 = (t4 + t0) & U32MASK;
+     t0 &= 0xFFUL;
+     t4 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x60UL) & U32MASK));
+     t0 = (unsigned long)d3u_t42B86C[(unsigned int)(t0 & 0xFFUL)];
+     t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)M8((t3 + 0x28UL) & U32MASK);
+     t4 = (t4 + t0) & U32MASK;
     t0 = (t0 & 0xFFFFFF00UL) | (v2c & 0xFFUL);
     t0 = (t0 & 0xFFFFFF00UL) | ((((t0 & 0xFFUL) - (t1 & 0xFFUL)) & 0xFFUL));
-    /* mov [t3+60h],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x60UL) & U32MASK), (unsigned int)t4);
-    /* movsx t0,al */ t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
-    /* mov t5,[t3+6Ch] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x6CUL) & U32MASK));
-    /* mov [t3+2Ch],t0 */ d3u_st32(c, (unsigned long)((t3 + 0x2CUL) & U32MASK), (unsigned int)t0);
-    /* inc t5 */ t5 = (t5 + 1UL) & U32MASK;
-    /* mov dword_43D8C4,t0 */ D3U_TBL_43D8C4_32(&c->st, 0) = (unsigned int)t0;
-    /* mov [t3+6Ch],t5 */ d3u_st32(c, (unsigned long)((t3 + 0x6CUL) & U32MASK), (unsigned int)t5);
-    /* mov t0,[var_2C] */ t0 = v2c;
-    /* mov bh,[t3+6Ch] */ t1 = (t1 & 0xFFFF00FFUL) | ((((unsigned long)M8((t3 + 0x6CUL) & U32MASK)) & 0xFFUL) << 8);
-    /* mov [t3+28h],t0 */ d3u_st32(c, (unsigned long)((t3 + 0x28UL) & U32MASK), (unsigned int)t0);
-    /* test bh,0Fh */
+     d3u_st32(c, (unsigned long)((t3 + 0x60UL) & U32MASK), (unsigned int)t4);
+     t0 = (unsigned long)(((long)(signed char)(t0 & 0xFFUL))) & U32MASK;
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x6CUL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t3 + 0x2CUL) & U32MASK), (unsigned int)t0);
+     t5 = (t5 + 1UL) & U32MASK;
+     D3U_TBL_43D8C4_32(&c->st, 0) = (unsigned int)t0;
+     d3u_st32(c, (unsigned long)((t3 + 0x6CUL) & U32MASK), (unsigned int)t5);
+     t0 = v2c;
+     t1 = (t1 & 0xFFFF00FFUL) | ((((unsigned long)M8((t3 + 0x6CUL) & U32MASK)) & 0xFFUL) << 8);
+     d3u_st32(c, (unsigned long)((t3 + 0x28UL) & U32MASK), (unsigned int)t0);
     if ((((t1 >> 8) & 0xFFUL) & 0x0FUL) != 0) goto l_41be8a;
-    /* mov t1,1 */ t1 = 1UL;
-    /* lea t0,[t3+4] */ t0 = (t3 + 4UL) & U32MASK;
-    /* xor t4,t4 */ t4 = 0UL;
-    /* mov t2,[t3+30h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x30UL) & U32MASK));
-    /* mov [t3+30h],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x30UL) & U32MASK), (unsigned int)t4);
+     t1 = 1UL;
+     t0 = (t3 + 4UL) & U32MASK;
+     t4 = 0UL;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x30UL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t3 + 0x30UL) & U32MASK), (unsigned int)t4);
 l_41bd8e:
-    /* mov t5,[t0+30h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x30UL) & U32MASK));
-    /* cmp t2,t5 */
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t0 + 0x30UL) & U32MASK));
     if (t2 <= t5) goto l_41bd99;
-    /* mov t2,t5 */ t2 = t5;
-    /* mov t4,t1 */ t4 = t1;
+     t2 = t5;
+     t4 = t1;
 l_41bd99:
-    /* add t0,4 */ t0 = (t0 + 4UL) & U32MASK;
-    /* inc t1 */ t1 = (t1 + 1UL) & U32MASK;
-    /* mov dword ptr [t0+2Ch],0 */ d3u_st32(c, (unsigned long)((t0 + 0x2CUL) & U32MASK), 0);
-    /* cmp t1,0Bh */
+     t0 = (t0 + 4UL) & U32MASK;
+     t1 = (t1 + 1UL) & U32MASK;
+     d3u_st32(c, (unsigned long)((t0 + 0x2CUL) & U32MASK), 0);
     if (((long)t1) < 11) goto l_41bd8e;
-    /* dec t4 */ t4 = (t4 - 1UL) & U32MASK;
-    /* cmp t4,9 */
+     t4 = (t4 - 1UL) & U32MASK;
     if (t4 > 9UL) goto l_41be68;
-    /* jmp cs:off_41B674[t4*4]: switch */
     switch (t4) {
     case 0:
         /* loc_41BDBB */
-        /* mov t2,[t3+14h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x14UL) & U32MASK));
-        /* cmp t2,0FFFFFFE0h */
+         t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x14UL) & U32MASK));
         if (((long)t2) <= -32) goto l_41be68;
-        /* lea t4,[t2-1] */ t4 = (t2 - 1UL) & U32MASK;
-        /* mov [t3+14h],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x14UL) & U32MASK), (unsigned int)t4);
+         t4 = (t2 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x14UL) & U32MASK), (unsigned int)t4);
         goto l_41be68;
     case 1:
         /* loc_41BDD2 */
-        /* mov t0,[t3+14h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x14UL) & U32MASK));
-        /* cmp t0,20h */
+         t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x14UL) & U32MASK));
         if (((long)t0) >= 32) goto l_41be68;
-        /* lea t1,[t0+1] */ t1 = (t0 + 1UL) & U32MASK;
-        /* mov [t3+14h],t1 */ d3u_st32(c, (unsigned long)((t3 + 0x14UL) & U32MASK), (unsigned int)t1);
+         t1 = (t0 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x14UL) & U32MASK), (unsigned int)t1);
         goto l_41be68;
     case 2:
         /* loc_41BDE9 */
-        /* mov t5,[t3+18h] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x18UL) & U32MASK));
-        /* cmp t5,0FFFFFFE0h */
+         t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x18UL) & U32MASK));
         if (((long)t5) <= -32) goto l_41be68;
-        /* lea t6,[t5-1] */ t6 = (t5 - 1UL) & U32MASK;
-        /* mov [t3+18h],t6 */ d3u_st32(c, (unsigned long)((t3 + 0x18UL) & U32MASK), (unsigned int)t6);
+         t6 = (t5 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x18UL) & U32MASK), (unsigned int)t6);
         goto l_41be68;
     case 3:
         /* loc_41BE00 */
-        /* mov t2,[t3+18h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x18UL) & U32MASK));
-        /* cmp t2,20h */
+         t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x18UL) & U32MASK));
         if (((long)t2) >= 32) goto l_41be68;
-        /* lea t4,[t2+1] */ t4 = (t2 + 1UL) & U32MASK;
-        /* mov [t3+18h],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x18UL) & U32MASK), (unsigned int)t4);
+         t4 = (t2 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x18UL) & U32MASK), (unsigned int)t4);
         goto l_41be68;
     case 4:
         /* loc_41BE14 */
-        /* mov t0,[t3+1Ch] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK));
-        /* cmp t0,0FFFFFFE0h */
+         t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK));
         if (((long)t0) <= -32) goto l_41be68;
-        /* lea t1,[t0-1] */ t1 = (t0 - 1UL) & U32MASK;
-        /* mov [t3+1Ch],t1 */ d3u_st32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK), (unsigned int)t1);
+         t1 = (t0 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK), (unsigned int)t1);
         goto l_41be68;
     case 5:
         /* loc_41BE24 */
-        /* mov t5,[t3+1Ch] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK));
-        /* cmp t5,20h */
+         t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK));
         if (((long)t5) >= 32) goto l_41be68;
-        /* lea t6,[t5+1] */ t6 = (t5 + 1UL) & U32MASK;
-        /* mov [t3+1Ch],t6 */ d3u_st32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK), (unsigned int)t6);
+         t6 = (t5 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x1CUL) & U32MASK), (unsigned int)t6);
         goto l_41be68;
     case 6:
         /* loc_41BE34 */
-        /* mov t2,[t3+20h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x20UL) & U32MASK));
-        /* cmp t2,0FFFFFFE0h */
+         t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x20UL) & U32MASK));
         if (((long)t2) <= -32) goto l_41be68;
-        /* lea t4,[t2-1] */ t4 = (t2 - 1UL) & U32MASK;
-        /* mov [t3+20h],t4 */ d3u_st32(c, (unsigned long)((t3 + 0x20UL) & U32MASK), (unsigned int)t4);
+         t4 = (t2 - 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x20UL) & U32MASK), (unsigned int)t4);
         goto l_41be68;
     case 7:
         /* loc_41BE44 */
-        /* mov t0,[t3+20h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x20UL) & U32MASK));
-        /* cmp t0,20h */
+         t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x20UL) & U32MASK));
         if (((long)t0) >= 32) goto l_41be68;
-        /* lea t1,[t0+1] */ t1 = (t0 + 1UL) & U32MASK;
-        /* mov [t3+20h],t1 */ d3u_st32(c, (unsigned long)((t3 + 0x20UL) & U32MASK), (unsigned int)t1);
+         t1 = (t0 + 1UL) & U32MASK;
+         d3u_st32(c, (unsigned long)((t3 + 0x20UL) & U32MASK), (unsigned int)t1);
         goto l_41be68;
     case 8:
         /* loc_41BE54 */
-        /* cmp dword ptr [t3+20h],0FFFFFFE0h */
         if (((long)d3u_ld32(c, (unsigned long)((t3 + 0x20UL) & U32MASK))) <= -32) goto l_41be68;
-        /* dec dword ptr [t3+24h] */ d3u_st32(c, (unsigned long)((t3 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x24UL) & U32MASK)) - 1UL) & U32MASK));
+         d3u_st32(c, (unsigned long)((t3 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x24UL) & U32MASK)) - 1UL) & U32MASK));
         goto l_41be68;
     case 9:
         /* loc_41BE5F */
-        /* cmp dword ptr [t3+20h],20h */
         if (((long)d3u_ld32(c, (unsigned long)((t3 + 0x20UL) & U32MASK))) >= 32) goto l_41be68;
-        /* inc dword ptr [t3+24h] */ d3u_st32(c, (unsigned long)((t3 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x24UL) & U32MASK)) + 1UL) & U32MASK));
+         d3u_st32(c, (unsigned long)((t3 + 0x24UL) & U32MASK), (unsigned int)(((unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x24UL) & U32MASK)) + 1UL) & U32MASK));
         /* fallthrough to default */
     default:
         goto l_41be68;
     }
 l_41be68:
-    /* test byte ptr [t3+6Ch],0FFh */
     if (M8((t3 + 0x6CUL) & U32MASK) != 0) goto l_41be8a;
-    /* mov t0,[t3+64h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x64UL) & U32MASK));
-    /* mov t5,[t3+5Ch] */ t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK));
-    /* sub t5,t0 */ t5 = (t5 - t0) & U32MASK;
-    /* mov [t3+5Ch],t5 */ d3u_st32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK), (unsigned int)t5);
-    /* mov t6,[t3+60h] */ t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x60UL) & U32MASK));
-    /* mov t0,[t3+68h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x68UL) & U32MASK));
-    /* mov [t3+64h],t5 */ d3u_st32(c, (unsigned long)((t3 + 0x64UL) & U32MASK), (unsigned int)t5);
-    /* sub t6,t0 */ t6 = (t6 - t0) & U32MASK;
-    /* mov [t3+60h],t6 */ d3u_st32(c, (unsigned long)((t3 + 0x60UL) & U32MASK), (unsigned int)t6);
-    /* mov [t3+68h],t6 */ d3u_st32(c, (unsigned long)((t3 + 0x68UL) & U32MASK), (unsigned int)t6);
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x64UL) & U32MASK));
+     t5 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK));
+     t5 = (t5 - t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x5CUL) & U32MASK), (unsigned int)t5);
+     t6 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x60UL) & U32MASK));
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x68UL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t3 + 0x64UL) & U32MASK), (unsigned int)t5);
+     t6 = (t6 - t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x60UL) & U32MASK), (unsigned int)t6);
+     d3u_st32(c, (unsigned long)((t3 + 0x68UL) & U32MASK), (unsigned int)t6);
 l_41be8a:
     if (D3U_FLAG_444EA9_8(&c->st, 0) != 9) goto l_41bea9;
-    /* mov t0,dword_43D8C8 */ t0 = (unsigned long)D3U_TBL_43D8C8_32(&c->st, 0);
-    /* mov t1,dword_43D8C4 */ t1 = (unsigned long)D3U_TBL_43D8C4_32(&c->st, 0);
-    /* mov dword_43D8C4,t0 */ D3U_TBL_43D8C4_32(&c->st, 0) = (unsigned int)t0;
-    /* mov dword_43D8C8,t1 */ D3U_TBL_43D8C8_32(&c->st, 0) = (unsigned int)t1;
+     t0 = (unsigned long)D3U_TBL_43D8C8_32(&c->st, 0);
+     t1 = (unsigned long)D3U_TBL_43D8C4_32(&c->st, 0);
+     D3U_TBL_43D8C4_32(&c->st, 0) = (unsigned int)t0;
+     D3U_TBL_43D8C8_32(&c->st, 0) = (unsigned int)t1;
 l_41bea9:
-    /* xor t1,t1 */ t1 = 0UL;
-    /* mov t0,[t3+70h] */ t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x70UL) & U32MASK));
+     t1 = 0UL;
+     t0 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x70UL) & U32MASK));
     t1 = (t1 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-    /* shl t0,8 */ t0 = (t0 << 8) & U32MASK;
-    /* add t0,t1 */ t0 = (t0 + t1) & U32MASK;
+     t0 = (t0 << 8) & U32MASK;
+     t0 = (t0 + t1) & U32MASK;
     t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444EA9_8(&c->st, 0);
-    /* mov [t3+70h],t0 */ d3u_st32(c, (unsigned long)((t3 + 0x70UL) & U32MASK), (unsigned int)t0);
+     d3u_st32(c, (unsigned long)((t3 + 0x70UL) & U32MASK), (unsigned int)t0);
     if ((t2 & 0xFFUL) != 7UL) goto l_41beed;
-    /* xor t0,t0 */ t0 = 0UL;
-    /* mov t2,[t3+74h] */ t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x74UL) & U32MASK));
+     t0 = 0UL;
+     t2 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x74UL) & U32MASK));
     t0 = (t0 & 0xFFFFFF00UL) | (t1 & 0xFFUL);
-    /* shl t2,8 */ t2 = (t2 << 8) & U32MASK;
-    /* mov t1,dword_42AC6C[t0*4] */ t1 = (unsigned long)d3u_t42AC6C[(unsigned int)(t0 & 0xFFUL)];
-    /* add t2,t1 */ t2 = (t2 + t1) & U32MASK;
-    /* mov t1,[t3+78h] */ t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x78UL) & U32MASK));
-    /* mov [t3+74h],t2 */ d3u_st32(c, (unsigned long)((t3 + 0x74UL) & U32MASK), (unsigned int)t2);
-    /* shl t1,8 */ t1 = (t1 << 8) & U32MASK;
-    /* mov t0,dword_42B46C[t0*4] */ t0 = (unsigned long)d3u_t42B46C[(unsigned int)(t0 & 0xFFUL)];
-    /* add t1,t0 */ t1 = (t1 + t0) & U32MASK;
-    /* mov [t3+78h],t1 */ d3u_st32(c, (unsigned long)((t3 + 0x78UL) & U32MASK), (unsigned int)t1);
+     t2 = (t2 << 8) & U32MASK;
+     t1 = (unsigned long)d3u_t42AC6C[(unsigned int)(t0 & 0xFFUL)];
+     t2 = (t2 + t1) & U32MASK;
+     t1 = (unsigned long)d3u_ld32(c, (unsigned long)((t3 + 0x78UL) & U32MASK));
+     d3u_st32(c, (unsigned long)((t3 + 0x74UL) & U32MASK), (unsigned int)t2);
+     t1 = (t1 << 8) & U32MASK;
+     t0 = (unsigned long)d3u_t42B46C[(unsigned int)(t0 & 0xFFUL)];
+     t1 = (t1 + t0) & U32MASK;
+     d3u_st32(c, (unsigned long)((t3 + 0x78UL) & U32MASK), (unsigned int)t1);
 l_41beed:
-    /* add esp,30h + pops + retn: no C equivalent */
     ;
 }
 
@@ -11129,326 +9621,295 @@ unsigned long v1C = 0;
 unsigned long v18 = 0;
 t0 = (unsigned long)eax_in; /* entry live t0 */
 t3 = (unsigned long)edx_in; /* entry live t3 */
-/* push t1 */
-/* push t2 */
-/* push t4 */
-/* push t5 */
-/* push t6 */
-/* sub esp, 44h */
-v34 = t0 & U32MASK; /* mov [var_34], t0 */
-v58 = t3 & U32MASK; /* mov [var_58], t3 */
+v34 = t0 & U32MASK;
+v58 = t3 & U32MASK;
 t0 = (t0 & 0xFFFFFF00UL) | (unsigned long)D3U_FLAG_444E9A_8(&c->st, 0);
 v20 = t0 & 0xFFUL;
-/* cmp t3, 800h */
 if (t3 <= 0x800UL) goto L_41ADD9;
-t1 = 0x14UL; /* mov t1, 14h */
-t0 = D3U_TBL_444188; /* mov t0, offset dword_444188 */
-t3 = 0UL; /* xor t3, t3 */
+t1 = 0x14UL;
+t0 = D3U_TBL_444188;
+t3 = 0UL;
 d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
-t1 = 0x14UL; /* mov t1, 14h */
-t0 = D3U_TBL_44419C; /* mov t0, offset dword_44419C */
-t3 = 0UL; /* xor t3, t3 */
+t1 = 0x14UL;
+t0 = D3U_TBL_44419C;
+t3 = 0UL;
 d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
-t1 = 0x1400UL; /* mov t1, 1400h */
-t0 = D3U_TBL_43F6F0; /* mov t0, offset dword_43F6F0 */
-t3 = 0UL; /* xor t3, t3 */
+t1 = 0x1400UL;
+t0 = D3U_TBL_43F6F0;
+t3 = 0UL;
 d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
-t1 = 0x1400UL; /* mov t1, 1400h */
-t0 = D3U_TBL_440B08; /* mov t0, offset dword_440B08 */
-t3 = 0UL; /* xor t3, t3 */
-t5 = 0UL; /* xor t5, t5 */
+t1 = 0x1400UL;
+t0 = D3U_TBL_440B08;
+t3 = 0UL;
+t5 = 0UL;
 d3uc_fill(c, (unsigned int)t1, (unsigned int)t0, (unsigned int)t3);
-t1 = 0x400UL; /* mov t1, 400h */
-v48 = t5 & U32MASK; /* mov [var_48], t5 */
-v38 = t1 & U32MASK; /* mov [var_38], t1 */
-t6 = t1 & U32MASK; /* mov t6, t1 */
+t1 = 0x400UL;
+v48 = t5 & U32MASK;
+v38 = t1 & U32MASK;
+t6 = t1 & U32MASK;
 L_41AA3D: /* loc_41AA3D: */
-t0 = t5 & U32MASK; /* mov t0, t5 */
-t1 = t5 & U32MASK; /* mov t1, t5 */
-t2 = t5 & U32MASK; /* mov t2, t5 */
-t3 = 0UL; /* xor t3, t3 */
-t1 = (t1 << 10) & U32MASK; /* shl t1, 0Ah */
-t2 = (0UL - t2) & U32MASK; /* neg t2 */
-v2C = t1 & U32MASK; /* mov [var_2C], t1 */
-t1 = v34 & U32MASK; /* mov t1, [var_34] */
-t0 = (t0 << 11) & U32MASK; /* shl t0, 0Bh */
-t4 = (t1 + t2) & U32MASK; /* lea t4, [t1+t2] */
+t0 = t5 & U32MASK;
+t1 = t5 & U32MASK;
+t2 = t5 & U32MASK;
+t3 = 0UL;
+t1 = (t1 << 10) & U32MASK;
+t2 = (0UL - t2) & U32MASK;
+v2C = t1 & U32MASK;
+t1 = v34 & U32MASK;
+t0 = (t0 << 11) & U32MASK;
+t4 = (t1 + t2) & U32MASK;
 L_41AA58: /* loc_41AA58: */
-/* test t5, t5 */
 if (t5 == 0UL) goto L_41AA68;
-/* cmp t3, t5 */
 if (t3 < t5) goto L_41AA68;
-t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)G8(t1); /* mov cl, [t1] */
-t2 = (t2 & 0xFFFF00FFUL) | ((unsigned long)G8(t4) << 8); /* mov ch, [t4] */
+t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)G8(t1);
+t2 = (t2 & 0xFFFF00FFUL) | ((unsigned long)G8(t4) << 8);
 t2 = (t2 & 0xFFFFFF00UL) | (((t2 & 0xFFUL) - ((t2 >> 8) & 0xFFUL)) & 0xFFUL);
 goto L_41AA6A;
 L_41AA68: /* loc_41AA68: */
-t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)G8(t1); /* mov cl, [t1] */
+t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)G8(t1);
 L_41AA6A: /* loc_41AA6A: */
-M8(D3U_TBL_4370B0 + t0) = (unsigned char)(t2 & 0xFFUL); /* mov byte_4370B0[t0], cl */
-t2 = 0UL; /* xor t2, t2 */
-t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + t0); /* mov cl, byte_4370B0[t0] */
-t1 = (t1 + 1UL) & U32MASK; /* inc t1 */
-t2 = (t2 << 2) & U32MASK; /* shl t2, 2 */
-t4 = (t4 + 1UL) & U32MASK; /* inc t4 */
-t2 = (t2 + v2C) & U32MASK; /* add t2, [var_2C] */
-t0 = (t0 + 1UL) & U32MASK; /* inc t0 */
-t3 = (t3 + 1UL) & U32MASK; /* inc t3 */
-D3U_TBL_43F6F0_32(&c->st, t2) = (D3U_TBL_43F6F0_32(&c->st, t2) + 1UL) & U32MASK; /* inc dword_43F6F0[t2] */
-/* cmp t3, 400h */
+M8(D3U_TBL_4370B0 + t0) = (unsigned char)(t2 & 0xFFUL);
+t2 = 0UL;
+t2 = (t2 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + t0);
+t1 = (t1 + 1UL) & U32MASK;
+t2 = (t2 << 2) & U32MASK;
+t4 = (t4 + 1UL) & U32MASK;
+t2 = (t2 + v2C) & U32MASK;
+t0 = (t0 + 1UL) & U32MASK;
+t3 = (t3 + 1UL) & U32MASK;
+D3U_TBL_43F6F0_32(&c->st, t2) = (D3U_TBL_43F6F0_32(&c->st, t2) + 1UL) & U32MASK;
 if (t3 < 0x400UL) goto L_41AA58;
-t0 = v48 & U32MASK; /* mov t0, [var_48] */
-t3 = t5 & U32MASK; /* mov t3, t5 */
-t2 = v38 & U32MASK; /* mov t2, [var_38] */
-t3 = (t3 << 10) & U32MASK; /* shl t3, 0Ah */
+t0 = v48 & U32MASK;
+t3 = t5 & U32MASK;
+t2 = v38 & U32MASK;
+t3 = (t3 << 10) & U32MASK;
 L_41AA9E: /* loc_41AA9E: */
-t1 = D3U_TBL_43F6F0_32(&c->st, t3) & U32MASK; /* mov t1, dword_43F6F0[t3] */
-t1 = (t1 * t1) & U32MASK; /* imul t1, t1 */
-t4 = D3U_TBL_444188_32(&c->st, t0) & U32MASK; /* mov t4, dword_444188[t0] */
-t4 = (t4 + t1) & U32MASK; /* add t4, t1 */
-t3 = (t3 + 4UL) & U32MASK; /* add t3, 4 */
-D3U_TBL_444188_32(&c->st, t0) = t4 & U32MASK; /* mov dword_444188[t0], t4 */
-/* cmp t3, t2 */
+t1 = D3U_TBL_43F6F0_32(&c->st, t3) & U32MASK;
+t1 = (t1 * t1) & U32MASK;
+t4 = D3U_TBL_444188_32(&c->st, t0) & U32MASK;
+t4 = (t4 + t1) & U32MASK;
+t3 = (t3 + 4UL) & U32MASK;
+D3U_TBL_444188_32(&c->st, t0) = t4 & U32MASK;
 if (t3 != t2) goto L_41AA9E;
-t4 = v38 & U32MASK; /* mov t4, [var_38] */
-t0 = v48 & U32MASK; /* mov t0, [var_48] */
-t5 = (t5 + 1UL) & U32MASK; /* inc t5 */
-t4 = (t4 + t6) & U32MASK; /* add t4, t6 */
-t0 = (t0 + 4UL) & U32MASK; /* add t0, 4 */
-v38 = t4 & U32MASK; /* mov [var_38], t4 */
-v48 = t0 & U32MASK; /* mov [var_48], t0 */
-/* cmp t5, 5 */
+t4 = v38 & U32MASK;
+t0 = v48 & U32MASK;
+t5 = (t5 + 1UL) & U32MASK;
+t4 = (t4 + t6) & U32MASK;
+t0 = (t0 + 4UL) & U32MASK;
+v38 = t4 & U32MASK;
+v48 = t0 & U32MASK;
 if (t5 < 5UL) goto L_41AA3D;
-t3 = 0x400UL; /* mov t3, 400h */
-t0 = v34 & U32MASK; /* mov t0, [var_34] */
-t4 = 0UL; /* xor t4, t4 */
-v44 = t3 & U32MASK; /* mov [var_44], t3 */
-t0 = (t0 + t3) & U32MASK; /* add t0, t3 */
-v3C = t4 & U32MASK; /* mov [var_3C], t4 */
-v50 = t0 & U32MASK; /* mov [var_50], t0 */
-t6 = 4UL; /* mov t6, 4 */
+t3 = 0x400UL;
+t0 = v34 & U32MASK;
+t4 = 0UL;
+v44 = t3 & U32MASK;
+t0 = (t0 + t3) & U32MASK;
+v3C = t4 & U32MASK;
+v50 = t0 & U32MASK;
+t6 = 4UL;
 L_41AAF9: /* loc_41AAF9: */
-t0 = t4 & U32MASK; /* mov t0, t4 */
-t0 = (t0 << 10) & U32MASK; /* shl t0, 0Ah */
-t3 = v50 & U32MASK; /* mov t3, [var_50] */
-v28 = t0 & U32MASK; /* mov [var_28], t0 */
-t0 = t4 & U32MASK; /* mov t0, t4 */
-t5 = t4 & U32MASK; /* mov t5, t4 */
-t0 = (0UL - t0) & U32MASK; /* neg t0 */
-t5 = (t5 << 11) & U32MASK; /* shl t5, 0Bh */
-t2 = (t3 + t0) & U32MASK; /* lea t2, [t3+t0] */
-t0 = (t5 + 0x400UL) & U32MASK; /* lea t0, [t5+400h] */
-t5 = (t5 + 0x800UL) & U32MASK; /* add t5, 800h */
+t0 = t4 & U32MASK;
+t0 = (t0 << 10) & U32MASK;
+t3 = v50 & U32MASK;
+v28 = t0 & U32MASK;
+t0 = t4 & U32MASK;
+t5 = t4 & U32MASK;
+t0 = (0UL - t0) & U32MASK;
+t5 = (t5 << 11) & U32MASK;
+t2 = (t3 + t0) & U32MASK;
+t0 = (t5 + 0x400UL) & U32MASK;
+t5 = (t5 + 0x800UL) & U32MASK;
 L_41AB1E: /* loc_41AB1E: */
-/* test t4, t4 */
 if (t4 == 0UL) goto L_41AB2A;
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t3); /* mov bl, [t3] */
-t1 = (t1 & 0xFFFF00FFUL) | ((unsigned long)G8(t2) << 8); /* mov bh, [t2] */
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t3);
+t1 = (t1 & 0xFFFF00FFUL) | ((unsigned long)G8(t2) << 8);
 t1 = (t1 & 0xFFFFFF00UL) | (((t1 & 0xFFUL) - ((t1 >> 8) & 0xFFUL)) & 0xFFUL);
 goto L_41AB2C;
 L_41AB2A: /* loc_41AB2A: */
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t3); /* mov bl, [t3] */
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t3);
 L_41AB2C: /* loc_41AB2C: */
-M8(D3U_TBL_4370B0 + t0) = (unsigned char)(t1 & 0xFFUL); /* mov byte_4370B0[t0], bl */
-t1 = 0UL; /* xor t1, t1 */
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + t0); /* mov bl, byte_4370B0[t0] */
-t1 = (t1 << 2) & U32MASK; /* shl t1, 2 */
-t3 = (t3 + 1UL) & U32MASK; /* inc t3 */
-t1 = (t1 + v28) & U32MASK; /* add t1, [var_28] */
-t2 = (t2 + 1UL) & U32MASK; /* inc t2 */
-t0 = (t0 + 1UL) & U32MASK; /* inc t0 */
-D3U_TBL_440B08_32(&c->st, t1) = (D3U_TBL_440B08_32(&c->st, t1) + 1UL) & U32MASK; /* inc dword_440B08[t1] */
-/* cmp t0, t5 */
+M8(D3U_TBL_4370B0 + t0) = (unsigned char)(t1 & 0xFFUL);
+t1 = 0UL;
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + t0);
+t1 = (t1 << 2) & U32MASK;
+t3 = (t3 + 1UL) & U32MASK;
+t1 = (t1 + v28) & U32MASK;
+t2 = (t2 + 1UL) & U32MASK;
+t0 = (t0 + 1UL) & U32MASK;
+D3U_TBL_440B08_32(&c->st, t1) = (D3U_TBL_440B08_32(&c->st, t1) + 1UL) & U32MASK;
 if (t0 != t5) goto L_41AB1E;
-t3 = v3C & U32MASK; /* mov t3, [var_3C] */
-t0 = t4 & U32MASK; /* mov t0, t4 */
-t2 = v44 & U32MASK; /* mov t2, [var_44] */
-t0 = (t0 << 10) & U32MASK; /* shl t0, 0Ah */
+t3 = v3C & U32MASK;
+t0 = t4 & U32MASK;
+t2 = v44 & U32MASK;
+t0 = (t0 << 10) & U32MASK;
 L_41AB5B: /* loc_41AB5B: */
-t1 = D3U_TBL_440B08_32(&c->st, t0) & U32MASK; /* mov t1, dword_440B08[t0] */
-t1 = (t1 * t1) & U32MASK; /* imul t1, t1 */
-t5 = D3U_TBL_44419C_32(&c->st, t3) & U32MASK; /* mov t5, dword_44419C[t3] */
-t5 = (t5 + t1) & U32MASK; /* add t5, t1 */
-t0 = (t0 + 4UL) & U32MASK; /* add t0, 4 */
-D3U_TBL_44419C_32(&c->st, t3) = t5 & U32MASK; /* mov dword_44419C[t3], t5 */
-/* cmp t0, t2 */
+t1 = D3U_TBL_440B08_32(&c->st, t0) & U32MASK;
+t1 = (t1 * t1) & U32MASK;
+t5 = D3U_TBL_44419C_32(&c->st, t3) & U32MASK;
+t5 = (t5 + t1) & U32MASK;
+t0 = (t0 + 4UL) & U32MASK;
+D3U_TBL_44419C_32(&c->st, t3) = t5 & U32MASK;
 if (t0 != t2) goto L_41AB5B;
-t5 = v44 & U32MASK; /* mov t5, [var_44] */
-t0 = v3C & U32MASK; /* mov t0, [var_3C] */
-t4 = (t4 + 1UL) & U32MASK; /* inc t4 */
-t5 = (t5 + 0x400UL) & U32MASK; /* add t5, 400h */
-t0 = (t0 + t6) & U32MASK; /* add t0, t6 */
-v44 = t5 & U32MASK; /* mov [var_44], t5 */
-v3C = t0 & U32MASK; /* mov [var_3C], t0 */
-/* cmp t4, 5 */
+t5 = v44 & U32MASK;
+t0 = v3C & U32MASK;
+t4 = (t4 + 1UL) & U32MASK;
+t5 = (t5 + 0x400UL) & U32MASK;
+t0 = (t0 + t6) & U32MASK;
+v44 = t5 & U32MASK;
+v3C = t0 & U32MASK;
 if (t4 < 5UL) goto L_41AAF9;
-t3 = 0x800UL; /* mov t3, 800h */
-t1 = v58 & U32MASK; /* mov t1, [var_58] */
-v30 = t3 & U32MASK; /* mov [var_30], t3 */
-/* cmp t1, t3 */
+t3 = 0x800UL;
+t1 = v58 & U32MASK;
+v30 = t3 & U32MASK;
 if (t1 <= t3) goto L_41ADD9;
-t0 = v34 & U32MASK; /* mov t0, [var_34] */
-t2 = 0x0C00UL; /* mov t2, 0C00h */
-t0 = (t0 + t3) & U32MASK; /* add t0, t3 */
-v40 = t2 & U32MASK; /* mov [var_40], t2 */
-v4C = t0 & U32MASK; /* mov [var_4C], t0 */
+t0 = v34 & U32MASK;
+t2 = 0x0C00UL;
+t0 = (t0 + t3) & U32MASK;
+v40 = t2 & U32MASK;
+v4C = t0 & U32MASK;
 L_41ABC2: /* loc_41ABC2: */
-t4 = v30 & U32MASK; /* mov t4, [var_30] */
-t0 = v40 & U32MASK; /* mov t0, [var_40] */
-t1 = v4C & U32MASK; /* mov t1, [var_4C] */
-t5 = v34 & U32MASK; /* mov t5, [var_34] */
-t6 = v30 & U32MASK; /* mov t6, [var_30] */
+t4 = v30 & U32MASK;
+t0 = v40 & U32MASK;
+t1 = v4C & U32MASK;
+t5 = v34 & U32MASK;
+t6 = v30 & U32MASK;
 t2 = (t2 & 0xFFFFFF00UL);
-t3 = 0UL; /* xor t3, t3 */
+t3 = 0UL;
 v18 = t2 & 0xFFUL;
 v1C = t2 & 0xFFUL;
-t4 = t4 & 0x7FFUL; /* and t4, 7FFh */
-t0 = t0 & 0x7FFUL; /* and t0, 7FFh */
-v54 = t1 & U32MASK; /* mov [var_54], t1 */
-t5 = (t5 + t6) & U32MASK; /* add t5, t6 */
-v24 = t0 & U32MASK; /* mov [var_24], t0 */
-t2 = 0UL; /* xor t2, t2 */
-t0 = 0UL; /* xor t0, t0 */
+t4 = t4 & 0x7FFUL;
+t0 = t0 & 0x7FFUL;
+v54 = t1 & U32MASK;
+t5 = (t5 + t6) & U32MASK;
+v24 = t0 & U32MASK;
+t2 = 0UL;
+t0 = 0UL;
 L_41ABFB: /* loc_41ABFB: */
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + t4); /* mov bl, byte_4370B0[t4] */
-t1 = t1 & 0xFFUL; /* and t1, 0FFh */
-t6 = D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK; /* mov t6, dword_43F6F0[t2+t1*4] */
-D3U_TBL_444188_32(&c->st, t0) = (D3U_TBL_444188_32(&c->st, t0) - t6) & U32MASK; /* sub dword_444188[t0], t6 */
-t6 = (t6 - 1UL) & U32MASK; /* dec t6 */
-D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK; /* mov dword_43F6F0[t2+t1*4], t6 */
-t1 = t6 & U32MASK; /* mov t1, t6 */
-t6 = D3U_TBL_444188_32(&c->st, t0) & U32MASK; /* mov t6, dword_444188[t0] */
-t6 = (t6 - t1) & U32MASK; /* sub t6, t1 */
-t1 = v24 & U32MASK; /* mov t1, [var_24] */
-D3U_TBL_444188_32(&c->st, t0) = t6 & U32MASK; /* mov dword_444188[t0], t6 */
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + (t1 & U32MASK)); /* mov bl, byte_4370B0[t1] */
-t1 = t1 & 0xFFUL; /* and t1, 0FFh */
-t6 = D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK; /* mov t6, dword_43F6F0[t2+t1*4] */
-D3U_TBL_444188_32(&c->st, t0) = (D3U_TBL_444188_32(&c->st, t0) + t6) & U32MASK; /* add dword_444188[t0], t6 */
-t6 = (t6 + 1UL) & U32MASK; /* inc t6 */
-D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK; /* mov dword_43F6F0[t2+t1*4], t6 */
-D3U_TBL_444188_32(&c->st, t0) = (D3U_TBL_444188_32(&c->st, t0) + t6) & U32MASK; /* add dword_444188[t0], t6 */
-t6 = D3U_TBL_440B08_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK; /* mov t6, dword_440B08[t2+t1*4] */
-D3U_TBL_44419C_32(&c->st, t0) = (D3U_TBL_44419C_32(&c->st, t0) - t6) & U32MASK; /* sub dword_44419C[t0], t6 */
-t6 = (t6 - 1UL) & U32MASK; /* dec t6 */
-D3U_TBL_440B08_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK; /* mov dword_440B08[t2+t1*4], t6 */
-t1 = t6 & U32MASK; /* mov t1, t6 */
-D3U_TBL_44419C_32(&c->st, t0) = (D3U_TBL_44419C_32(&c->st, t0) - t1) & U32MASK; /* sub dword_44419C[t0], t1 */
-/* test t3, t3 */
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + t4);
+t1 = t1 & 0xFFUL;
+t6 = D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK;
+D3U_TBL_444188_32(&c->st, t0) = (D3U_TBL_444188_32(&c->st, t0) - t6) & U32MASK;
+t6 = (t6 - 1UL) & U32MASK;
+D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK;
+t1 = t6 & U32MASK;
+t6 = D3U_TBL_444188_32(&c->st, t0) & U32MASK;
+t6 = (t6 - t1) & U32MASK;
+t1 = v24 & U32MASK;
+D3U_TBL_444188_32(&c->st, t0) = t6 & U32MASK;
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(D3U_TBL_4370B0 + (t1 & U32MASK));
+t1 = t1 & 0xFFUL;
+t6 = D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK;
+D3U_TBL_444188_32(&c->st, t0) = (D3U_TBL_444188_32(&c->st, t0) + t6) & U32MASK;
+t6 = (t6 + 1UL) & U32MASK;
+D3U_TBL_43F6F0_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK;
+D3U_TBL_444188_32(&c->st, t0) = (D3U_TBL_444188_32(&c->st, t0) + t6) & U32MASK;
+t6 = D3U_TBL_440B08_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK;
+D3U_TBL_44419C_32(&c->st, t0) = (D3U_TBL_44419C_32(&c->st, t0) - t6) & U32MASK;
+t6 = (t6 - 1UL) & U32MASK;
+D3U_TBL_440B08_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK;
+t1 = t6 & U32MASK;
+D3U_TBL_44419C_32(&c->st, t0) = (D3U_TBL_44419C_32(&c->st, t0) - t1) & U32MASK;
 if (t3 == 0UL) goto L_41AC82;
-t1 = v54 & U32MASK; /* mov t1, [var_54] */
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t1 & U32MASK); /* mov bl, [t1] */
-t1 = (t1 & 0xFFFFFF00UL) | (((t1 & 0xFFUL) - (unsigned long)G8(t5)) & 0xFFUL); /* sub bl, [t5] */
+t1 = v54 & U32MASK;
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t1 & U32MASK);
+t1 = (t1 & 0xFFFFFF00UL) | (((t1 & 0xFFUL) - (unsigned long)G8(t5)) & 0xFFUL);
 goto L_41AC88;
 L_41AC82: /* loc_41AC82: */
-t1 = v54 & U32MASK; /* mov t1, [var_54] */
-t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t1 & U32MASK); /* mov bl, [t1] */
+t1 = v54 & U32MASK;
+t1 = (t1 & 0xFFFFFF00UL) | (unsigned long)G8(t1 & U32MASK);
 L_41AC88: /* loc_41AC88: */
-M8(D3U_TBL_4370B0 + t4) = (unsigned char)(t1 & 0xFFUL); /* mov byte_4370B0[t4], bl */
-t1 = t1 & 0xFFUL; /* and t1, 0FFh */
-t5 = (t5 - 1UL) & U32MASK; /* dec t5 */
-t6 = D3U_TBL_440B08_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK; /* mov t6, dword_440B08[t2+t1*4] */
-t2 = (t2 + 0x400UL) & U32MASK; /* add t2, 400h */
-D3U_TBL_44419C_32(&c->st, t0) = (D3U_TBL_44419C_32(&c->st, t0) + t6) & U32MASK; /* add dword_44419C[t0], t6 */
-t6 = (t6 + 1UL) & U32MASK; /* inc t6 */
-t0 = (t0 + 4UL) & U32MASK; /* add t0, 4 */
-D3U_TBL_440708_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK; /* mov dword_440708[t2+t1*4], t6 */
-t1 = t6 & U32MASK; /* mov t1, t6 */
-t6 = D3U_TBL_444198_32(&c->st, t0) & U32MASK; /* mov t6, dword_444198[t0] */
-t4 = (t4 + 0x800UL) & U32MASK; /* add t4, 800h */
-t6 = (t6 + t1) & U32MASK; /* add t6, t1 */
-t1 = v24 & U32MASK; /* mov t1, [var_24] */
-t3 = (t3 + 1UL) & U32MASK; /* inc t3 */
-t1 = (t1 + 0x800UL) & U32MASK; /* add t1, 800h */
-D3U_TBL_444198_32(&c->st, t0) = t6 & U32MASK; /* mov dword_444198[t0], t6 */
-v24 = t1 & U32MASK; /* mov [var_24], t1 */
-/* cmp t3, 5 */
+M8(D3U_TBL_4370B0 + t4) = (unsigned char)(t1 & 0xFFUL);
+t1 = t1 & 0xFFUL;
+t5 = (t5 - 1UL) & U32MASK;
+t6 = D3U_TBL_440B08_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) & U32MASK;
+t2 = (t2 + 0x400UL) & U32MASK;
+D3U_TBL_44419C_32(&c->st, t0) = (D3U_TBL_44419C_32(&c->st, t0) + t6) & U32MASK;
+t6 = (t6 + 1UL) & U32MASK;
+t0 = (t0 + 4UL) & U32MASK;
+D3U_TBL_440708_32(&c->st, ((t2 + t1 * 4UL) & U32MASK)) = t6 & U32MASK;
+t1 = t6 & U32MASK;
+t6 = D3U_TBL_444198_32(&c->st, t0) & U32MASK;
+t4 = (t4 + 0x800UL) & U32MASK;
+t6 = (t6 + t1) & U32MASK;
+t1 = v24 & U32MASK;
+t3 = (t3 + 1UL) & U32MASK;
+t1 = (t1 + 0x800UL) & U32MASK;
+D3U_TBL_444198_32(&c->st, t0) = t6 & U32MASK;
+v24 = t1 & U32MASK;
 if (t3 < 5UL) goto L_41ABFB;
-t3 = 1UL; /* mov t3, 1 */
-t0 = 4UL; /* mov t0, 4 */
+t3 = 1UL;
+t0 = 4UL;
 L_41ACEB: /* loc_41ACEB: */
-t1 = 0UL; /* xor t1, t1 */
+t1 = 0UL;
 t1 = (t1 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-t2 = (t1 * 4UL) & U32MASK; /* lea t2, ds:0[t1*4] */
-t1 = D3U_TBL_444188_32(&c->st, t0) & U32MASK; /* mov t1, dword_444188[t0] */
-/* cmp t1, dword_444188[t2] */
+t2 = (t1 * 4UL) & U32MASK;
+t1 = D3U_TBL_444188_32(&c->st, t0) & U32MASK;
 if (t1 <= D3U_TBL_444188_32(&c->st, t2)) goto L_41AD0A;
 v18 = t3 & 0xFFUL;
 L_41AD0A: /* loc_41AD0A: */
-t1 = 0UL; /* xor t1, t1 */
+t1 = 0UL;
 t1 = (t1 & 0xFFFFFF00UL) | (v1C & 0xFFUL);
-t2 = D3U_TBL_44419C_32(&c->st, t0) & U32MASK; /* mov t2, dword_44419C[t0] */
-/* cmp t2, dword_44419C[t1*4] */
+t2 = D3U_TBL_44419C_32(&c->st, t0) & U32MASK;
 if (t2 <= D3U_TBL_44419C_32(&c->st, ((t1 * 4UL) & U32MASK))) goto L_41AD23;
 v1C = t3 & 0xFFUL;
 L_41AD23: /* loc_41AD23: */
-t3 = (t3 + 1UL) & U32MASK; /* inc t3 */
-t0 = (t0 + 4UL) & U32MASK; /* add t0, 4 */
-/* cmp t3, 5 */
+t3 = (t3 + 1UL) & U32MASK;
+t0 = (t0 + 4UL) & U32MASK;
 if (t3 < 5UL) goto L_41ACEB;
 t0 = (t0 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
 t2 = (t2 & 0xFFFFFF00UL) | (v20 & 0xFFUL);
 if ((t0 & 0xFFUL) == (t2 & 0xFFUL)) goto L_41AD5E;
-t0 = 0UL; /* xor t0, t0 */
+t0 = 0UL;
 t0 = (t0 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-t3 = D3U_TBL_444188_32(&c->st, ((t0 * 4UL) & U32MASK)) & U32MASK; /* mov t3, dword_444188[t0*4] */
-t0 = 0UL; /* xor t0, t0 */
+t3 = D3U_TBL_444188_32(&c->st, ((t0 * 4UL) & U32MASK)) & U32MASK;
+t0 = 0UL;
 t0 = (t0 & 0xFFFFFF00UL) | (t2 & 0xFFUL);
-t0 = D3U_TBL_444188_32(&c->st, ((t0 * 4UL) & U32MASK)) & U32MASK; /* mov t0, dword_444188[t0*4] */
-t3 = (t3 + t3 * 2UL) & U32MASK; /* lea t3, [t3+t3*2] */
-t0 = (t0 << 2) & U32MASK; /* shl t0, 2 */
-/* cmp t3, t0 */
+t0 = D3U_TBL_444188_32(&c->st, ((t0 * 4UL) & U32MASK)) & U32MASK;
+t3 = (t3 + t3 * 2UL) & U32MASK;
+t0 = (t0 << 2) & U32MASK;
 if (t3 >= t0) goto L_41AD5E;
 v18 = t2 & 0xFFUL;
 L_41AD5E: /* loc_41AD5E: */
 t0 = (t0 & 0xFFFFFF00UL) | (v1C & 0xFFUL);
 t2 = (t2 & 0xFFFF00FFUL) | ((v20 & 0xFFUL) << 8);
 if ((t0 & 0xFFUL) == ((t2 >> 8) & 0xFFUL)) goto L_41AD90;
-t0 = 0UL; /* xor t0, t0 */
-t3 = 0UL; /* xor t3, t3 */
+t0 = 0UL;
+t3 = 0UL;
 t0 = (t0 & 0xFFFFFF00UL) | (v1C & 0xFFUL);
 t3 = (t3 & 0xFFFFFF00UL) | ((t2 >> 8) & 0xFFUL);
-t0 = D3U_TBL_44419C_32(&c->st, ((t0 * 4UL) & U32MASK)) & U32MASK; /* mov t0, dword_44419C[t0*4] */
-t3 = D3U_TBL_44419C_32(&c->st, ((t3 * 4UL) & U32MASK)) & U32MASK; /* mov t3, dword_44419C[t3*4] */
-t0 = (t0 + t0 * 2UL) & U32MASK; /* lea t0, [t0+t0*2] */
-t3 = (t3 << 2) & U32MASK; /* shl t3, 2 */
-/* cmp t0, t3 */
+t0 = D3U_TBL_44419C_32(&c->st, ((t0 * 4UL) & U32MASK)) & U32MASK;
+t3 = D3U_TBL_44419C_32(&c->st, ((t3 * 4UL) & U32MASK)) & U32MASK;
+t0 = (t0 + t0 * 2UL) & U32MASK;
+t3 = (t3 << 2) & U32MASK;
 if (t0 >= t3) goto L_41AD90;
 v1C = (t2 >> 8) & 0xFFUL;
 L_41AD90: /* loc_41AD90: */
 t0 = (t0 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
 if ((t0 & 0xFFUL) == (v1C & 0xFFUL)) goto L_41ADAB;
-t1 = v30 & U32MASK; /* mov t1, [var_30] */
+t1 = v30 & U32MASK;
 D3U_FLAG_444E9A_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
-t1 = (t1 - 0x200UL) & U32MASK; /* sub t1, 200h */
+t1 = (t1 - 0x200UL) & U32MASK;
 goto L_41ADE5;
 L_41ADAB: /* loc_41ADAB: */
 t0 = (t0 & 0xFFFFFF00UL) | (v18 & 0xFFUL);
-t6 = v4C & U32MASK; /* mov t6, [var_4C] */
-t3 = v30 & U32MASK; /* mov t3, [var_30] */
-t1 = v58 & U32MASK; /* mov t1, [var_58] */
+t6 = v4C & U32MASK;
+t3 = v30 & U32MASK;
+t1 = v58 & U32MASK;
 v20 = t0 & 0xFFUL;
-t6 = (t6 + 1UL) & U32MASK; /* inc t6 */
-t3 = (t3 + 1UL) & U32MASK; /* inc t3 */
-t0 = v40 & U32MASK; /* mov t0, [var_40] */
-v4C = t6 & U32MASK; /* mov [var_4C], t6 */
-t0 = (t0 + 1UL) & U32MASK; /* inc t0 */
-v30 = t3 & U32MASK; /* mov [var_30], t3 */
-v40 = t0 & U32MASK; /* mov [var_40], t0 */
-/* cmp t3, t1 */
+t6 = (t6 + 1UL) & U32MASK;
+t3 = (t3 + 1UL) & U32MASK;
+t0 = v40 & U32MASK;
+v4C = t6 & U32MASK;
+t0 = (t0 + 1UL) & U32MASK;
+v30 = t3 & U32MASK;
+v40 = t0 & U32MASK;
 if (t3 < t1) goto L_41ABC2;
 L_41ADD9: /* loc_41ADD9: */
 t0 = (t0 & 0xFFFFFF00UL) | (v20 & 0xFFUL);
-t1 = v58 & U32MASK; /* mov t1, [var_58] */
+t1 = v58 & U32MASK;
 D3U_FLAG_444E9A_8(&c->st, 0) = (unsigned char)(t0 & 0xFFUL);
 L_41ADE5: /* loc_41ADE5: */
-t0 = t1 & U32MASK; /* mov t0, t1 */
-/* add esp, 44h */
-/* pop t6 */
-/* pop t5 */
-/* pop t4 */
-/* pop t2 */
-/* pop t1 */
+t0 = t1 & U32MASK;
 /* retn */
 return (unsigned int)(t0 & U32MASK);
 }
