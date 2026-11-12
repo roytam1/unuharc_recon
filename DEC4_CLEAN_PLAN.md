@@ -100,8 +100,9 @@ Done:
    tool itself is unchanged apart from that banner.
 
 Checked with `tools/diff_fuzz.py`: the typed ports and their arena
-references agree byte for byte on mutated archives as well (103 trials
-per version, bit flips, bursts and truncations, 0 differences).
+references agree byte for byte on the corpus's archives and on mutated
+ones as well (412 trials per version - a quarter of them the archive
+untouched, the rest bit flips, bursts and truncations - 0 differences).
 
 The full corpora are compared against the arena references as well: the
 0.4 clean port is byte-identical on all 103 archives of `uharc-rs-04/arc`

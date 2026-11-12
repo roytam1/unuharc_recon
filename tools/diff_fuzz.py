@@ -3,8 +3,9 @@
 
 The typed ports are generated from the arena ports, so they must agree
 byte for byte - not only on the corpus but on damaged input as well.
-This mutates the archives of a corpus (bit flips, bursts, truncations)
-and compares what the two binaries extract.
+This takes the archives of a corpus, leaves one in four of them
+untouched and mutates the rest (bit flips, bursts, truncations), then
+compares what the two binaries extract.
 
 usage: diff_fuzz.py <corpus-dir> <typed-exe> <arena-exe> [rounds]
 """
@@ -39,6 +40,10 @@ def extract(exe, arc, outdir):
 def main():
     corpus, typed, arena = sys.argv[1], sys.argv[2], sys.argv[3]
     rounds = int(sys.argv[4]) if len(sys.argv) > 4 else 2
+    # "none" leaves the archive untouched, which compares the two ports on
+    # the corpus as it stands - the mutation kinds below cover the damaged
+    # archives, this one the valid ones.
+    kinds = ("none", "flip", "burst", "truncate")
     rnd = random.Random(0xC0FFEE)
     files = sorted(f for f in os.listdir(corpus) if f.endswith(".uha"))
     work = tempfile.mkdtemp(prefix="difffuzz_")
@@ -49,15 +54,15 @@ def main():
                 data = bytearray(open(os.path.join(corpus, f), "rb").read())
                 if not data:
                     continue
-                kind = rnd.randrange(3)
-                if kind == 0:
+                kind = rnd.randrange(4)
+                if kind == 1:
                     i = rnd.randrange(len(data))
                     data[i] ^= 1 << rnd.randrange(8)
-                elif kind == 1:
+                elif kind == 2:
                     i = rnd.randrange(len(data))
                     for k in range(min(16, len(data) - i)):
                         data[i + k] ^= rnd.randrange(1, 256)
-                else:
+                elif kind == 3:
                     data = data[: rnd.randrange(1, len(data))]
                 arc = os.path.join(work, f)
                 with open(arc, "wb") as fh:
@@ -75,8 +80,8 @@ def main():
                     continue
                 if ra != rt or oa != ot:
                     diffs += 1
-                    print("DIFF %s kind=%d arena=(%r,%d) typed=(%r,%d)"
-                          % (f, kind, ra, len(oa), rt, len(ot)))
+                    print("DIFF %s kind=%s arena=(%r,%d) typed=(%r,%d)"
+                          % (f, kinds[kind], ra, len(oa), rt, len(ot)))
                     if diffs > 8:
                         print("... stopping")
                         return
