@@ -58,7 +58,6 @@
 
 typedef struct dec3w_ctx {
     unsigned char *mem; /* compat, unused */
-    unsigned char *fixed_mem;
     unsigned char fx_gap;   /* the arena's zero gap outside the globals */
     unsigned char *io_mem;
     unsigned char *model_mem;
@@ -115,6 +114,8 @@ static unsigned int d3w_o(unsigned int o)
 
 #define D3U_FIXED_BASE 0x428000UL
 #define D3U_FIXED_SIZE 0x40000UL
+#define D3U_GLOBALS_BASE 0x428000UL /* the DGROUP slice */
+#define D3U_GLOBALS_END  0x468000UL /* end of the arena's globals */
 #define D3U_IO_BASE    0x3800000UL
 #define D3U_IO_SIZE    0x510000UL
 #define D3U_MODEL_BASE 0x00600000UL
@@ -124,11 +125,10 @@ static unsigned char *d3u_ptr(dec3w_ctx *c, unsigned long addr)
 {
     if (addr >= D3U_MODEL_BASE && addr < D3U_MODEL_BASE + D3U_MODEL_SIZE)
         return c->model_mem + (addr - D3U_MODEL_BASE);
-    /* Fixed-region layout-backed storage (BSS above DGROUP image). */
-    if (addr >= 0x436E40UL && addr < 0x468000UL)
-        return c->st.fx_436E40 + (addr - 0x436E40UL);
-    if (addr >= D3U_FIXED_BASE && addr < D3U_FIXED_BASE + D3U_FIXED_SIZE)
-        return c->fixed_mem + (addr - D3U_FIXED_BASE);
+    /* The globals are one byte array the typed state owns: the DGROUP
+     * slice the decoder loads at 0x428000 and the BSS above it. */
+    if (addr >= D3U_GLOBALS_BASE && addr < D3U_GLOBALS_END)
+        return c->st.fx_428000 + (addr - D3U_GLOBALS_BASE);
     if (addr >= D3U_IO_BASE && addr < D3U_IO_BASE + D3U_IO_SIZE)
         return c->io_mem + (addr - D3U_IO_BASE);
     /* The arena port clamps every address to the end of its buffer, so
@@ -1118,42 +1118,34 @@ static void d3u_st32(dec3w_ctx *c, unsigned long a, unsigned int v)
 }
 
 /* sub_40C9C0-style byte fill (ebx=len, eax=dst, edx=val).
- * Must be region-aware: a fill can span fixed/layout-region boundaries. */
+ * Must be storage-aware: a fill can run past the end of the globals
+ * array into the arena's zero gap, which the port stands in for with
+ * one byte, so it stops there. */
 void d3uc_fill(dec3w_ctx *c, unsigned int len, unsigned int dst,
               unsigned int val)
 {
     unsigned long a = (unsigned long)dst;
     unsigned long n = (unsigned long)len;
     unsigned char v = (unsigned char)(val & 0xFFU);
-    static const unsigned long bounds[] = { 0x436E40UL, 0x468000UL };
     while (n > 0) {
-        unsigned long chunk = n;
-        unsigned int i;
-        if (a < D3U_MODEL_BASE) {
-            for (i = 0; i < sizeof(bounds)/sizeof(bounds[0]); i++) {
-                unsigned long b = bounds[i];
-                if (a < b && a + chunk > b) { chunk = b - a; break; }
-            }
-            if (a >= D3U_FIXED_BASE && a < D3U_FIXED_BASE + D3U_FIXED_SIZE
-                && a + chunk > D3U_FIXED_BASE + D3U_FIXED_SIZE)
-                chunk = (D3U_FIXED_BASE + D3U_FIXED_SIZE) - a;
-            if (a >= D3U_IO_BASE && a < D3U_IO_BASE + D3U_IO_SIZE
-                && a + chunk > D3U_IO_BASE + D3U_IO_SIZE)
-                chunk = (D3U_IO_BASE + D3U_IO_SIZE) - a;
-        } else {
-            if (a >= D3U_MODEL_BASE && a < D3U_MODEL_BASE + D3U_MODEL_SIZE
-                && a + chunk > D3U_MODEL_BASE + D3U_MODEL_SIZE)
-                chunk = (D3U_MODEL_BASE + D3U_MODEL_SIZE) - a;
-        }
-        /* The rest of a fill that runs past the globals lands in the
-         * arena's zero gap, which the port stands in for with one byte,
-         * so it is written once and the fill ends there. */
-        if (!(a >= D3U_FIXED_BASE && a < D3U_FIXED_BASE + D3U_FIXED_SIZE)
-            && !(a >= D3U_MODEL_BASE && a < D3U_MODEL_BASE + D3U_MODEL_SIZE)
-            && !(a >= D3U_IO_BASE && a < D3U_IO_BASE + D3U_IO_SIZE)) {
+        unsigned long chunk;
+        unsigned long end;
+        if (a >= D3U_GLOBALS_BASE && a < D3U_GLOBALS_END)
+            end = D3U_GLOBALS_END;
+        else if (a >= D3U_MODEL_BASE && a < D3U_MODEL_BASE + D3U_MODEL_SIZE)
+            end = D3U_MODEL_BASE + D3U_MODEL_SIZE;
+        else if (a >= D3U_IO_BASE && a < D3U_IO_BASE + D3U_IO_SIZE)
+            end = D3U_IO_BASE + D3U_IO_SIZE;
+        else {
+            /* The rest of a fill that runs past the globals lands in the
+             * arena's zero gap, which the port stands in for with one byte,
+             * so it is written once and the fill ends there. */
             memset(d3u_ptr(c, a), (int)v, (size_t)1);
             break;
         }
+        chunk = n;
+        if (a + chunk > end)
+            chunk = end - a;
         memset(d3u_ptr(c, a), (int)v, (size_t)chunk);
         a += chunk;
         n -= chunk;
@@ -1366,11 +1358,10 @@ int uharc_dec4uc_init(void **pctx, int method)
     (void)method;
     c = (dec3w_ctx *)calloc(1, sizeof(*c));    if (!c)
         return 2;
-    c->fixed_mem = (unsigned char *)calloc(1, (size_t)D3U_FIXED_SIZE);
     c->io_mem = (unsigned char *)calloc(1, (size_t)D3U_IO_SIZE);
     c->model_mem = (unsigned char *)calloc(1, (size_t)D3U_MODEL_SIZE);
-    if (!c->fixed_mem || !c->io_mem || !c->model_mem) {
-        free(c->fixed_mem); free(c->io_mem); free(c->model_mem); free(c); return 2;
+    if (!c->io_mem || !c->model_mem) {
+        free(c->io_mem); free(c->model_mem); free(c); return 2;
     }
     c->mem = NULL;
     /* Model blocks must live ABOVE the fixed DGROUP window (const slice
@@ -1412,7 +1403,7 @@ int uharc_dec4uc_decode_b(void *ctx,
     int method;
     (void)cum;
     (void)ncum;
-    if (!c || !c->fixed_mem || !c->io_mem || !c->model_mem)
+    if (!c || !c->io_mem || !c->model_mem)
         return 1;
     method = c->method;
     c->rcb = rcb;
@@ -1481,7 +1472,6 @@ void uharc_dec4uc_free(void *ctx)
     dec3w_ctx *c = (dec3w_ctx *)ctx;
     if (!c)
         return;
-    free(c->fixed_mem);
     free(c->io_mem);
     free(c->model_mem);
     free(c);
