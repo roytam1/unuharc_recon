@@ -337,20 +337,21 @@ Left:
      array, the PPM's byte probability list, 0x434000..0x43429B (668
      bytes): two flat runs of 0x09 and 0x0A, then a rising ramp, then
      a plateau of 0x7D (0x4341A4..0x43429B).  The 0x43409C access
-     masks its index to a byte and is already lifted (it reads
-     0x43409C..0x43419B, inside the list).  The other two index the
-     same list with the quotient `dd_ / D4V_TBL_45AFD0`:
-     `byte_43408C[quotient]` and `byte_43407C[quotient]`.  So bounding
-     that quotient to a byte would lift both, and the array's extent
-     is already known.
+     masks its index to a byte - it is a plain 256-entry byte lookup
+     whose index is a byte read from the model - and is already lifted
+     (it reads 0x43409C..0x43419B, inside the list).  The other two
+     index the same list with the quotient `dd_ / D4V_TBL_45AFD0`,
+     where `dd_` is `D4V_TBL_45AFA8 << 2` (a counter scaled by four)
+     and `D4V_TBL_45AFD0` is the PPM's period.  So bounding that
+     quotient to a byte would lift both, and the array's extent is
+     already known.
 
-     What is missing is the bound on the quotient.  `D4V_TBL_45AFD0`
-     is the PPM's period: it is set to 1 at init (0x4157F7) and then
-     from the model's counters (0x41616E, 0x417459, 0x41748B,
-     0x417729, 0x417758), so it is a run-time value and the quotient
-     is not bounded by the source alone.  The bound has to come from
-     the model's semantics - how many contexts the PPM keeps and what
-     the period is relative to them.
+     What is missing is the bound on the quotient.  The period is a
+     run-time value - it is set to 1 at init (0x4157F7) and then from
+     the model's counters (0x41616E, 0x417459, 0x41748B, 0x417729,
+     0x417758) - so the source alone does not bound it.  The bound has
+     to come from the model's semantics: how many symbols a context
+     holds, and how the period relates to them.
 
    * The symbol-index reads of 0x43429C, 0x4342C4 and 0x434314 use
      `var_30`, the symbol index, which the code does not bound either.
