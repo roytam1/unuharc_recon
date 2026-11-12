@@ -301,6 +301,33 @@ Left:
    tables, 0x45AF00/0x45AF10/0x45AF14, which the corpus never
    reaches) are the starting point.
 
+   **The group's size is also what keeps the memory down - and it
+   cannot be shrunk yet.**  The plan says the two ways out are to size
+   the array so it covers the whole arena range the group can reach
+   ("gaps included"), or to bound the index expressions per table and
+   collapse the gaps.  The first is what the ports do now, and it is
+   why the state is not smaller than the buffer it replaced: the 0.3
+   region is 0x436E40..0x468000 (201 152 bytes) because the arena's
+   globals end at 0x468000, not because the decoder uses all of it.
+   Trimming it to the corpus-observed bound (0x4450FC) would save
+   about 140 KB, but only if nothing writes above the bound, and the
+   init's fills *do* write the whole fixed region - with zeros.  The
+   bytes above the bound are zero, so trimming them would not change
+   what the decoder reads; it would only change how much the state
+   occupies.  It is worth doing once the extents are proven.
+
+   **A fill that runs into the gap now stops there.**  The ports
+   stand in for the arena's zero gap - the space between the globals
+   and the model blocks - with a single byte, but a fill that ran into
+   the gap handed its whole remaining length to `memset()` and wrote
+   past that byte, over the context's own members and into the heap.
+   `test_gapfill.c` drives a fill at each of the three gaps and
+   checks that the members behind the gap byte still hold what they
+   held; against the port as it was, it died with a heap corruption.
+   A fill that reaches the gap writes the gap byte and stops: the
+   arena's zero gap is one long run of zeros, so writing it once is
+   the same as writing it many times.
+
    **The tables that are read with a bounded index are already lifted.**
    The 26 0.4 tables and the 19 0.3 tables above are the ones whose
    extent the code proves; what the layout still holds is the rest of
