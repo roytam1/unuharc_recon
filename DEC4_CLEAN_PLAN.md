@@ -328,6 +328,43 @@ Left:
    arena's zero gap is one long run of zeros, so writing it once is
    the same as writing it many times.
 
+   **What is left of the 0.4 image tables, and what it needs.**  The
+   tables that are still on the image path are all read with an index
+   the code does not bound.  One of them is now understood well enough
+   to name the missing piece:
+
+   * 0x43407C, 0x43408C and 0x43409C are three windows into *one*
+     array, the PPM's byte probability list, 0x434000..0x43429B (668
+     bytes): two flat runs of 0x09 and 0x0A, then a rising ramp, then
+     a plateau of 0x7D (0x4341A4..0x43429B).  The 0x43409C access
+     masks its index to a byte and is already lifted (it reads
+     0x43409C..0x43419B, inside the list).  The other two index the
+     same list with the quotient `dd_ / D4V_TBL_45AFD0`:
+     `byte_43408C[quotient]` and `byte_43407C[quotient]`.  So bounding
+     that quotient to a byte would lift both, and the array's extent
+     is already known.
+
+     What is missing is the bound on the quotient.  `D4V_TBL_45AFD0`
+     is the PPM's period: it is set to 1 at init (0x4157F7) and then
+     from the model's counters (0x41616E, 0x417459, 0x41748B,
+     0x417729, 0x417758), so it is a run-time value and the quotient
+     is not bounded by the source alone.  The bound has to come from
+     the model's semantics - how many contexts the PPM keeps and what
+     the period is relative to them.
+
+   * The symbol-index reads of 0x43429C, 0x4342C4 and 0x434314 use
+     `var_30`, the symbol index, which the code does not bound either.
+   * 0x434538 is indexed by `D4V_TBL_451920_32`, another run-time
+     cell.
+   * 0x436976 is indexed by `11 * (byte_45C68C - 0xA6) + byte`, and
+     the subtraction wraps when the byte is below 0xA6.
+   * The price table at 0x437966/0x437968 is the one table that is
+     *written* by the init - the prefix sum in `d4vc_prices` adds the
+     source 0x437966 into the destination 0x437968 - so it is not a
+     const table at all in 0.4.  (In 0.6, where there is no image, the
+     source is BSS-zero and the sum is a no-op; that is the case the
+     plan describes.)
+
    **The tables that are read with a bounded index are already lifted.**
    The 26 0.4 tables and the 19 0.3 tables above are the ones whose
    extent the code proves; what the layout still holds is the rest of
