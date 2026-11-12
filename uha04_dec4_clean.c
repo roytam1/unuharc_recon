@@ -1466,6 +1466,92 @@ static const unsigned int d4v_t434550[512] = {
     0x00000002,0x00000002,0x00000002,0x00000001
 };
 
+/* Const table lifted from DGROUP image 0x433B90 (5 u32): the branch at 0x418922
+ * proves the index <= 4 and the next named cell is 0x433BA4, so the table ends there. */
+static const unsigned int d4v_t433B90[5] = {
+    0x00000000,0x00000000,0x00000100,0x00000102,
+    0x00000105
+};
+
+/* Const table lifted from DGROUP image 0x433BA4 (17 u32): the branch at 0x418939
+ * proves the index <= 0x10 and the next named cell is 0x433BE8, so the table ends there. */
+static const unsigned int d4v_t433BA4[17] = {
+    0x00000000,0x00000000,0x00000100,0x00000102,
+    0x00000105,0x00000109,0x0000010E,0x00000114,
+    0x0000011B,0x00000123,0x0000012C,0x00000136,
+    0x00000141,0x0000014D,0x0000015A,0x00000168,
+    0x00000177
+};
+
+/* Const table lifted from DGROUP image 0x433E8C (256 u32): the index is the byte
+ * read from the model block, so it is in 0..255. */
+static const unsigned int d4v_t433E8C[256] = {
+    0x00000000,0x00000000,0x00000001,0x00000001,
+    0x00000002,0x00000002,0x00000003,0x00000003,
+    0x00000003,0x00000003,0x00000100,0x00000100,
+    0x00000100,0x00000100,0x00000100,0x00000100,
+    0x00000101,0x00000101,0x00000101,0x00000101,
+    0x00000101,0x00000101,0x00000101,0x00000101,
+    0x00000101,0x00000101,0x00000102,0x00000102,
+    0x00000102,0x00000102,0x00000102,0x00000102,
+    0x00000102,0x00000102,0x00000102,0x00000102,
+    0x00000102,0x00000102,0x00000102,0x00000102,
+    0x00000102,0x00000102,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x00000103,0x00000103,0x00000103,0x00000103,
+    0x01010000,0x03030202,0x04040403,0x05050505,
+    0x06060606,0x07070606,0x07070707,0x07070707,
+    0x08080808,0x08080808,0x08080808,0x08080808,
+    0x09090808,0x09090909,0x09090909,0x09090909,
+    0x09090909,0x09090909,0x09090909,0x09090909,
+    0x09090909,0x0A0A0A0A,0x0A0A0A0A,0x0A0A0A0A,
+    0x0A0A0A0A,0x0A0A0A0A,0x0A0A0A0A,0x0A0A0A0A,
+    0x0A0A0A0A,0x0A0A0A0A,0x0A0A0A0A,0x0A0A0A0A,
+    0x02010000,0x04040303,0x05050505,0x06060606,
+    0x06060606,0x07070707,0x07070707,0x07070707,
+    0x04020100,0x63210B07,0x63636363,0x63636363,
+    0x03030303,0x0B090705,0x0C0C0B0B,0x0C0C0C0C,
+    0x08080808,0x0C0B0A09,0x0C0C0C0C,0x0C0C0C0C,
+    0xFDFDFDFD,0x7D9DDDFD,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0xF7F7F7F7,0x7D9BD9F7,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,
+    0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D,0x7D7D7D7D
+};
+
 void d4vc_prices(dec4v_ctx *c)
 {
     if (D4V_PRICE_DONE_8(&c->st)) {
@@ -4233,14 +4319,14 @@ L_418917: e_ecx = (D4V_TBL_45AF7C_32(&c->st, 0)); e_ebx = (e_ecx); /* cmp e_ecx,
     d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
     e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
     e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x0041892B */;
-    e_ebx = ((*(unsigned int *)(void *)(d4v_fx(c, 80784UL + e_ecx * 4)))); e_ebx = ((e_ebx) + (e_edx)); /* 0x0041892D,0x00418934 */
+    e_ebx = (d4v_t433B90[(unsigned int)(e_ecx)]); e_ebx = ((e_ebx) + (e_edx)); /* 0x0041892D,0x00418934 */
 L_418936: /* cmp e_ecx, 0x10u (flags folded into ja @0x00418939 below) */; /* 0x00418936 */
     if ((e_ecx) > (0x10u)) goto L_41894D; /* ja, unsigned=True */ /* 0x00418939 */
     e_eax = (D4V_TBL_45AF38_32(&c->st, 0)); e_edx = (0u); /* 0x0041893B,0x00418940 */
     d4v_q = (((unsigned UHI64)e_edx << 32) | e_eax) /* div faults on 0, as x86 does */;
     e_eax = (unsigned)(d4v_q / ((unsigned UHI64)(e_ecx)));
     e_edx = (unsigned)(d4v_q % ((unsigned UHI64)(e_ecx))) /* 0x00418942 */;
-    e_ecx = ((*(unsigned int *)(void *)(d4v_fx(c, 80804UL + e_ecx * 4)))); e_ecx = ((e_ecx) + (e_edx)); /* 0x00418944,0x0041894B */
+    e_ecx = (d4v_t433BA4[(unsigned int)(e_ecx)]); e_ecx = ((e_ecx) + (e_edx)); /* 0x00418944,0x0041894B */
 L_41894D: e_eax = (D4V_TBL_45B5F4); e_ebx = ((e_ebx) << 2); e_eax = ((e_eax) + (e_ebx)); e_ecx = ((e_ecx) << 2); D4V_TBL_45AFA0_32(&c->st) = (e_eax); e_eax = (D4V_TBL_45AFD8); /* 0x0041894D,0x00418952,0x00418955,0x00418957,0x0041895A,0x0041895F */
     e_eax = ((e_eax) + (e_ecx)); D4V_TBL_45AF78_32(&c->st) = (e_eax); /* 0x00418964,0x00418966 */
 L_41896B: /* cmp stk[0x30], 0x0u (flags folded into jz @0x00418970 below) */; /* 0x0041896B */
@@ -4467,7 +4553,7 @@ L_418EF8: e_eax = (0u); e_edx = (D4V_TBL_45AFB8_32(&c->st)); e_eax = ((e_eax & ~
     if (((*(unsigned char *)d4v_ptr(c, (unsigned long)(e_ebx)))) != (0x1u)) goto L_41907F; /* jnz, unsigned=True */ /* 0x00418F2C */
     /* cmp (*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)(e_ebx + 0x1u))), 0x50u (flags folded into jnb @0x00418F36 below) */; /* 0x00418F32 */
     if (((*(unsigned int *)(void *)d4v_ptr(c, (unsigned long)(e_ebx + 0x1u)))) >= (0x50u)) goto L_41907F; /* jnb, unsigned=True */ /* 0x00418F36 */
-    e_eax = (0u); e_edx = (D4V_TBL_45AFC4_32(&c->st, 0)); e_eax = ((e_eax & ~0xFFu) | ((*(unsigned char *)d4v_ptr(c, (unsigned long)(e_ebx + 0x1u))))); e_edx = ((e_edx) & (0xF0u)); e_eax = ((*(unsigned int *)(void *)(d4v_fx(c, 81548UL + e_eax * 4)))); /* 0x00418F3C,0x00418F3E,0x00418F44,0x00418F47,0x00418F4D */
+    e_eax = (0u); e_edx = (D4V_TBL_45AFC4_32(&c->st, 0)); e_eax = ((e_eax & ~0xFFu) | ((*(unsigned char *)d4v_ptr(c, (unsigned long)(e_ebx + 0x1u))))); e_edx = ((e_edx) & (0xF0u)); e_eax = (d4v_t433E8C[(unsigned int)(e_eax) & 0xFFU]); /* 0x00418F3C,0x00418F3E,0x00418F44,0x00418F47,0x00418F4D */
     e_eax = ((e_eax) + (e_edx)); /* cmp (*(unsigned char *)d4v_ptr(c, (unsigned long)(0x45C67Fu))), 0x0u (flags folded into jz @0x00418F5D below) */; /* 0x00418F54,0x00418F56 */
     if ((D4V_CTX_B_45C67F_8(&c->st)) == (0x0u)) goto L_419021; /* jz, unsigned=True */ /* 0x00418F5D */
     e_edx = (D4V_TBL_45AFC4_32(&c->st, 0)); e_edx = ((e_edx) >> 11); e_edx = ((e_edx) & (0xCu)); /* 0x00418F63,0x00418F69,0x00418F6C */
