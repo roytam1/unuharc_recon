@@ -513,13 +513,17 @@ Left:
    arena port would have read a zero byte of its 64 MB buffer.  The
    unbounded expressions are the price table's
    (`word_437968[(eax & 0xFFFF) * 2]` and one `* 2` with a full 32-bit
-   index), so a damaged archive can reach it.  The 281 raw accesses now
-   go through `d4v_fx()`, which clamps the offset the same way and
-   lands on a per-context gap byte - the clean port's stand-in for the
-   arena's zero gap between the globals and the model blocks.  That
-   matches the arena exactly for every offset that stays below the
-   model blocks; only the absurd ones that reach the model differ
-   (the arena would read model bytes there).
+   index), so a damaged archive can reach it.  The raw accesses now go
+   through `d4v_fx()`, which maps the offset the way the arena's macros
+   do: the address is computed in 32 bits (so an index that runs past
+   the globals wraps back into the arena) and clamped at `V4_ARENA-8`.
+   The globals, the model blocks and the I/O buffers are then reached
+   where the arena would reach them, and the rest lands on the
+   per-context gap byte - the clean port's stand-in for the arena's zero
+   gap.  So the port reads the same bytes as the arena for *every*
+   offset, including the absurd ones that wrap into the model blocks.
+   (The 0.3 port's mapper always did: it takes an absolute address
+   that the caller has already truncated to 32 bits.)
 
    **The layout has to stay byte-identical to the arena's.**  A read
    past a table lands on whatever follows it in the arena - the next

@@ -144,20 +144,28 @@ typedef struct dec4v_ctx {
 } dec4v_ctx;
 
 /* The arena port reaches every cell through M8/M16/M32, which clamp the
- * address to the end of its 64 MB buffer (V4O).  The fixed region sits
- * well below that cap, so an offset past the fixed region lands in the
- * arena's zero gap between the globals and the model blocks.  The typed
- * port works on the state's own globals array, so the same offset has
- * to be clamped here as well - otherwise it reads out of bounds.
- * c->fx_gap stands in for that zero gap. */
+ * address to the end of its 64 MB buffer (V4O).  The address itself is
+ * computed in 32 bits, so an index that runs past the globals wraps
+ * back into the arena - and into the model blocks, which hold live
+ * data.  The typed port has to wrap and clamp the same way to read the
+ * same bytes; c->fx_gap stands in for the arena's zero gap. */
 static unsigned char *d4v_fx(dec4v_ctx *c, unsigned long off)
 {
-    /* off is relative to D4V_FIXED_BASE. */
-    if (off < D4V_FIXED_SIZE) {
-        unsigned long addr = D4V_FIXED_BASE + off;
-        if (addr >= D4V_GLOBALS_BASE && addr < D4V_GLOBALS_END)
-            return c->st.fx_42E000 + (addr - D4V_GLOBALS_BASE);
-    }
+    /* off is relative to D4V_FIXED_BASE.  The arena computes the
+     * address in 32 bits (the macro casts the offset to unsigned) and
+     * clamps it at V4_ARENA-8, so an index that runs past the globals
+     * wraps back into the arena - and into the model blocks, which hold
+     * live data.  The port has to wrap the same way to read the same
+     * bytes. */
+    unsigned long addr = (D4V_FIXED_BASE + off) & 0xFFFFFFFFUL;
+    if (addr > (0x04000000UL - 8UL))
+        return &c->fx_gap; /* the arena's tail is zero */
+    if (addr >= D4V_GLOBALS_BASE && addr < D4V_GLOBALS_END)
+        return c->st.fx_42E000 + (addr - D4V_GLOBALS_BASE);
+    if (addr >= D4V_MODEL_BASE && addr < D4V_MODEL_BASE + D4V_MODEL_SIZE)
+        return c->model_mem + (addr - D4V_MODEL_BASE);
+    if (addr < D4V_IO_SIZE)
+        return c->io_mem + addr;
     return &c->fx_gap;
 }
 
