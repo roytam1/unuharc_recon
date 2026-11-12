@@ -4882,14 +4882,14 @@ L_419A8F:
     if ((eax & 0xFFUL) != 0U) goto L_419C55; /* 0x00419ABE 0x00419AC0 */
 L_419AC6:
     esi = (ebx >> 8) & 0xFFUL; /* 0x00419AC6 */
-    ecx = (*(unsigned int *)(void *)(d4v_fx(c, 236448UL + esi * 4UL))); /* 0x00419AC9 */
+    ecx = (unsigned long)D4V_TBL_459BA0_32(&c->st, esi * 4UL); /* 0x00419AC9 */
     eax = ecx; /* 0x00419AD0 */
     eax = eax << 5; /* 0x00419AD2 */
     eax = eax - ecx; /* 0x00419AD5 */
     ecx = D4V_TBL_45AF74_32(&c->st, 0); /* 0x00419AD7 */
     eax = eax >> 5; /* 0x00419ADD */
     eax = eax + ecx; /* 0x00419AE0 */
-    (*(unsigned int *)(void *)(d4v_fx(c, 236448UL + esi * 4UL))) = eax; /* 0x00419AE2 */
+    D4V_TBL_459BA0_32(&c->st, esi * 4UL) = eax; /* 0x00419AE2 */
     eax = (eax & 0xFFFFFF00UL) | (ebx & 0xFFUL); /* 0x00419AE9 */
     /* add esp,8; pop ebp/edi/esi/ecx/ebx (frame only) */
     return (unsigned char)(eax & 0xFFUL); /* 0x00419AEB 0x00419AF3 */
@@ -6751,7 +6751,7 @@ l_4177B8:
     /* 0x004177CB */ eax |= (ecx & 0xFFUL); /* mov al,cl */
     /* 0x004177CD */ edx = (eax * 4) & U32MASK; /* lea edx,ds:0[eax*4] */
     /* 0x004177D4 */ eax = (unsigned long)D4V_DICT_CURSOR_32(&c->st, 0); /* mov eax,ds:dword_45BA34 */
-    /* 0x004177D9 */ esi = (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 234400UL + edx))); /* mov esi,ds:dword_4593A0[edx] */
+    /* 0x004177D9 */ esi = (unsigned long)(unsigned long)D4V_TBL_4593A0_32(&c->st, edx); /* mov esi,ds:dword_4593A0[edx] */
     /* 0x004177DF */ edi = (unsigned long)D4V_DICT_MASK_32(&c->st, 0); /* mov edi,ds:dword_45BA3C */
     /* 0x004177E5 */ eax = (eax - esi) & U32MASK; /* sub eax,esi */
     /* 0x004177E7 */ eax = (eax & edi) & U32MASK; /* and eax,edi */
@@ -6762,7 +6762,7 @@ l_4177B8:
     /* 0x004177F4 */ eax &= 0xFFUL; /* and eax,0FFh */
     /* 0x004177F9 */ edx = (eax * 4) & U32MASK; /* lea edx,ds:0[eax*4] */
     /* 0x00417800 */ eax = (unsigned long)D4V_DICT_CURSOR_32(&c->st, 0); /* mov eax,ds:dword_45BA34 */
-    /* 0x00417805 */ eax = (eax - (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 234400UL + edx)))) & U32MASK; /* sub eax,ds:dword_4593A0[edx] */
+    /* 0x00417805 */ eax = (eax - (unsigned long)(unsigned long)D4V_TBL_4593A0_32(&c->st, edx)) & U32MASK; /* sub eax,ds:dword_4593A0[edx] */
     /* 0x0041780B */ eax = (eax & edi) & U32MASK; /* and eax,edi */
     /* 0x0041780D cmp eax,100h */;
     /* 0x00417812 jb */ if (eax < 0x100UL) goto l_417831; /* unsigned */
@@ -6771,17 +6771,17 @@ l_4177B8:
     /* 0x00417818 */ eax &= 0xFFUL; /* and eax,0FFh */
     /* 0x0041781D */ edx = (eax * 4) & U32MASK; /* lea edx,ds:0[eax*4] */
     /* 0x00417824 */ eax = (unsigned long)D4V_DICT_CURSOR_32(&c->st, 0); /* mov eax,ds:dword_45BA34 */
-    /* 0x00417829 */ eax = (eax - (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 234400UL + edx)))) & U32MASK; /* sub eax,ds:dword_4593A0[edx] */
+    /* 0x00417829 */ eax = (eax - (unsigned long)(unsigned long)D4V_TBL_4593A0_32(&c->st, edx)) & U32MASK; /* sub eax,ds:dword_4593A0[edx] */
     /* 0x0041782F */ eax = (eax & edi) & U32MASK; /* and eax,edi */
 l_417831:
     /* 0x00417831 test eax,eax */;
     /* 0x00417833 jz */ if (eax == 0) goto l_4178C8; /* equality */
     /* 0x00417839 cmp eax,100h */;
     /* 0x0041783E jnb */ if (eax >= 0x100UL) goto l_4178C8; /* unsigned */
-    /* 0x00417844 */ ebp = (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 231320UL + eax * 4))); /* mov ebp,ds:dword_458798[eax*4] */
+    /* 0x00417844 */ ebp = (unsigned long)(unsigned long)D4V_TBL_458798_32(&c->st, eax * 4); /* mov ebp,ds:dword_458798[eax*4] */
     /* 0x0041784B */ ebp = (ebp + 1) & U32MASK; /* inc ebp */
     /* 0x0041784C */ edx = (unsigned long)D4V_TBL_45AF98_32(&c->st, 0); /* mov edx,ds:dword_45AF98 */
-    /* 0x00417852 */ (*(unsigned int *)(void *)(d4v_fx(c, 231320UL + eax * 4))) = (unsigned int)ebp; /* mov ds:dword_458798[eax*4],ebp */
+    /* 0x00417852 */ D4V_TBL_458798_32(&c->st, eax * 4) = (unsigned int)ebp; /* mov ds:dword_458798[eax*4],ebp */
     /* 0x00417859 cmp eax,edx */;
     /* 0x0041785B jz */ if (eax == edx) goto l_4178C8; /* equality */
     /* 0x0041785D */ edx = (unsigned long)D4V_DICT_CURSOR_32(&c->st, 0); /* mov edx,ds:dword_45BA34 */
@@ -6793,15 +6793,15 @@ l_417831:
     /* 0x00417879 cmp cl,[edx+esi] */;
     /* 0x0041787C jnz */ if ((ecx & 0xFFUL) != (unsigned long)(c->blk00_dict[((edx + esi) & U32MASK) - c->blk00_base])) goto l_417B42; /* equality */
     /* 0x00417882 */ edx = (unsigned long)D4V_TBL_45AF98_32(&c->st, 0); /* mov edx,ds:dword_45AF98 */
-    /* 0x00417888 */ (*(unsigned int *)(void *)(d4v_fx(c, 231320UL + edx * 4))) = (*(unsigned int *)(void *)(d4v_fx(c, 231320UL + edx * 4))) + 1; /* inc ds:dword_458798[edx*4] */
+    /* 0x00417888 */ D4V_TBL_458798_32(&c->st, edx * 4) = D4V_TBL_458798_32(&c->st, edx * 4) + 1; /* inc ds:dword_458798[edx*4] */
 l_41788F:
     /* 0x0041788F */ edx = (unsigned long)D4V_TBL_45AF94_32(&c->st, 0); /* mov edx,ds:dword_45AF94 */
     /* 0x00417895 cmp eax,edx */;
     /* 0x00417897 jnz */ if (eax != edx) goto l_417B48; /* equality */
     /* 0x0041789D */ esi = (unsigned long)D4V_TBL_45AF98_32(&c->st, 0); /* mov esi,ds:dword_45AF98 */
-    /* 0x004178A3 */ edx = (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 231320UL + edx * 4))); /* mov edx,ds:dword_458798[edx*4] */
+    /* 0x004178A3 */ edx = (unsigned long)(unsigned long)D4V_TBL_458798_32(&c->st, edx * 4); /* mov edx,ds:dword_458798[edx*4] */
     /* 0x004178AA cmp edx,ds:dword_458798[esi*4] */;
-    /* 0x004178B1 jb */ if (edx < (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 231320UL + esi * 4)))) goto l_4178C8; /* unsigned */
+    /* 0x004178B1 jb */ if (edx < (unsigned long)(unsigned long)D4V_TBL_458798_32(&c->st, esi * 4)) goto l_4178C8; /* unsigned */
     /* 0x004178B3 */ D4V_TBL_45AF94_32(&c->st, 0) = (unsigned int)esi; /* mov ds:dword_45AF94,esi */
     /* 0x004178B9 */ D4V_TBL_45AF98_32(&c->st, 0) = (unsigned int)eax; /* mov ds:dword_45AF98,eax */
     /* 0x004178BE cmp eax,1 */;
@@ -6818,11 +6818,11 @@ l_4178C8:
     /* 0x004178D9 */ eax = 0; /* xor eax,eax */
     /* 0x004178DB */ D4V_TBL_45879C_32(&c->st, 0) = (unsigned int)ebp; /* mov ds:dword_45879C,ebp */
 l_4178E1:
-    /* 0x004178E1 */ edx = (unsigned long)(*(unsigned int *)(void *)(d4v_fx(c, 231320UL + eax))); /* mov edx,ds:dword_458798[eax] */
+    /* 0x004178E1 */ edx = (unsigned long)(unsigned long)D4V_TBL_458798_32(&c->st, eax); /* mov edx,ds:dword_458798[eax] */
     /* 0x004178E7 */ edx >>= 1; /* shr edx,1 */
     /* 0x004178E9 */ eax = (eax + 4) & U32MASK; /* add eax,4 */
     /* 0x004178EC */ ebx = (ebx + edx) & U32MASK; /* add ebx,edx */
-    /* 0x004178EE */ (*(unsigned int *)(void *)(d4v_fx(c, 231316UL + eax))) = (unsigned int)edx; /* mov ds:dword_458794[eax],edx (post-increment eax) */
+    /* 0x004178EE */ D4V_TBL_458794_32(&c->st, eax) = (unsigned int)edx; /* mov ds:dword_458794[eax],edx (post-increment eax) */
     /* 0x004178F4 cmp eax,400h */;
     /* 0x004178F9 jnz */ if (eax != 0x400UL) goto l_4178E1; /* equality */
 l_4178FB:
@@ -10217,7 +10217,7 @@ s540_a6b: /* 0x41DA6B loc_41DA6B (order-0 model update) */
     eax = 0; /* 0x41DA7C xor eax,eax */
     eax = chb; /* 0x41DA7E mov al,ch (eax was zero) */
     edx = v20; /* 0x41DA80 mov edx,[var_20] */
-    esi = (*(unsigned int *)(void *)(d4v_fx(c, 235424UL + eax * 4U))); /* 0x41DA84 */
+    esi = (unsigned long)D4V_TBL_458F98_32(&c->st, eax * 4U); /* 0x41DA84 */
     eax = edx; /* 0x41DA8B mov eax,edx */
     edi = D4V_DICT_MASK_32(&c->st, 0); /* 0x41DA8D */
     eax -= esi; /* 0x41DA93 sub eax,esi */
@@ -10226,7 +10226,7 @@ s540_a6b: /* 0x41DA6B loc_41DA6B (order-0 model update) */
     alb = chb; /* 0x41DA9E mov al,ch */
     alb--; /* 0x41DAA0 dec al */
     eax = alb; /* 0x41DAA2 and eax,0FFh (eax high is stale; al lane only) */
-    esi = (*(unsigned int *)(void *)(d4v_fx(c, 235424UL + eax * 4U))); /* 0x41DAA7 */
+    esi = (unsigned long)D4V_TBL_458F98_32(&c->st, eax * 4U); /* 0x41DAA7 */
     eax = edx; /* 0x41DAAE mov eax,edx */
     eax -= esi; /* 0x41DAB0 sub eax,esi */
     eax &= edi; /* 0x41DAB2 and eax,edi */
@@ -10234,17 +10234,17 @@ s540_a6b: /* 0x41DA6B loc_41DA6B (order-0 model update) */
     alb = chb; /* 0x41DABB mov al,ch */
     alb++; /* 0x41DABD inc al */
     eax = alb; /* 0x41DABF and eax,0FFh (eax high is stale; al lane only) */
-    esi = (*(unsigned int *)(void *)(d4v_fx(c, 235424UL + eax * 4U))); /* 0x41DAC4 */
+    esi = (unsigned long)D4V_TBL_458F98_32(&c->st, eax * 4U); /* 0x41DAC4 */
     eax = edx; /* 0x41DACB mov eax,edx */
     eax -= esi; /* 0x41DACD sub eax,esi */
     eax &= edi; /* 0x41DACF and eax,edi */
 s540_ad1: /* 0x41DAD1 loc_41DAD1 */
     if (eax == 0) goto s540_b53; /* 0x41DAD1 test eax,eax; 0x41DAD3 jz */
     if (eax >= 0x100U) goto s540_b53; /* 0x41DAD9 cmp eax,100h; 0x41DADE jnb (unsigned) */
-    edx = (*(unsigned int *)(void *)(d4v_fx(c, 232344UL + eax * 4U))); /* 0x41DAE0 */
+    edx = (unsigned long)D4V_TBL_458B98_32(&c->st, eax * 4U); /* 0x41DAE0 */
     edx++; /* 0x41DAE7 inc edx */
     esi = D4V_TBL_45AF5C_32(&c->st, 0); /* 0x41DAE8 */
-    (*(unsigned int *)(void *)(d4v_fx(c, 232344UL + eax * 4U))) = edx; /* 0x41DAEE */
+    D4V_TBL_458B98_32(&c->st, eax * 4U) = edx; /* 0x41DAEE */
     if (eax == esi) goto s540_b53; /* 0x41DAF5 cmp eax,esi; 0x41DAF7 jz */
     edx = v44; /* 0x41DAF9 mov edx,[var_44] */
     edx -= esi; /* 0x41DAFD sub edx,esi */
@@ -10274,17 +10274,17 @@ s540_b53: /* 0x41DB53 loc_41DB53 */
     D4V_TBL_458B9C_32(&c->st, 0) = eax; /* 0x41DB63 */
     eax = 0; /* 0x41DB68 xor eax,eax */
     do { /* 0x41DB6A loc_41DB6A (halve 0x100 counters) */
-        esi = (*(unsigned int *)(void *)(d4v_fx(c, 232344UL + eax))); /* 0x41DB6A mov esi,dword_458B98[eax] */
+        esi = (unsigned long)D4V_TBL_458B98_32(&c->st, eax); /* 0x41DB6A mov esi,dword_458B98[eax] */
         esi >>= 1; /* 0x41DB70 shr esi,1 */
         eax += 4; /* 0x41DB72 add eax,4 */
         ebp += esi; /* 0x41DB75 add ebp,esi */
-        (*(unsigned int *)(void *)(d4v_fx(c, 232340UL + eax))) = esi; /* 0x41DB77 mov dword_458B94[eax],esi */
+        D4V_TBL_458B94_32(&c->st, eax) = esi; /* 0x41DB77 mov dword_458B94[eax],esi */
     } while (eax != 0x400U); /* 0x41DB7D cmp eax,400h; 0x41DB82 jnz */
 s540_b84: /* 0x41DB84 loc_41DB84 */
     eax = 0; /* 0x41DB84 xor eax,eax */
     eax = chb; /* 0x41DB86 mov al,ch (eax was zero) */
     edx = v20; /* 0x41DB88 mov edx,[var_20] */
-    (*(unsigned int *)(void *)(d4v_fx(c, 235424UL + eax * 4U))) = edx; /* 0x41DB8C */
+    D4V_TBL_458F98_32(&c->st, eax * 4U) = edx; /* 0x41DB8C */
     goto s540_901; /* 0x41DB93 jmp */
 s540_b98: /* 0x41DB98 loc_41DB98 */
     edx = v20; /* 0x41DB98 mov edx,[var_20] */
