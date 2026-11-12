@@ -141,6 +141,11 @@ typedef struct dec4v_ctx {
     unsigned char *blkord[8];
     unsigned long blkord_base[8];
     d4v_state st;   /* typed model state */
+    /* The raw accesses read and write dwords straight into the globals
+     * array, so a dword at its very last byte would run past it.  The
+     * pad takes that read; the arena's bytes there are zero, and so
+     * are these. */
+    unsigned char fx_pad[8];
 } dec4v_ctx;
 
 /* The arena port reaches every cell through M8/M16/M32, which clamp the

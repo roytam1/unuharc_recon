@@ -100,6 +100,11 @@ typedef struct dec3w_ctx {
     unsigned long in_buf;
     unsigned long out_buf;
     d3u_state st;   /* typed model state */
+    /* The raw accesses read and write words straight into the globals
+     * array, so a word at its very last byte would run past it.  The
+     * pad takes that read; the arena's bytes there are zero, and so
+     * are these. */
+    unsigned char fx_pad[8];
 } dec3w_ctx;
 
 static unsigned int d3w_o(unsigned int o)
