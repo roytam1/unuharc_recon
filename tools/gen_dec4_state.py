@@ -38,7 +38,7 @@ def parse_header(path):
     return defs
 
 
-def parse_uses(path):
+def parse_uses(path, defs=None, regions=None):
     """address -> Counter of access widths, and the set of names used."""
     widths = {}
     dynamic = set()
@@ -50,6 +50,28 @@ def parse_uses(path):
     # as an array, so its size matters more than its width.
     for m in re.finditer(r'\b[GM](?:8|16|32)\s*\(\s*(\w+)\s*[+\-]', src):
         dynamic.add(m.group(1))
+    if defs:
+        # The typed port spells an access two more ways: the accessors the
+        # generator itself emits (D4V_X_32(&c->st, off)) and the
+        # byte-wise helpers that stand in for the arena's macros
+        # (d3u_ld32(c, D4V_X)).  A cell the arena port never names can
+        # still be used by the typed port, so both spellings count.
+        #
+        # Only the cells inside a layout region are taken from the typed
+        # port: there the accessor's byte array and the port's own
+        # storage are the same bytes.  A cell in the image keeps the
+        # arena port's widths, because its bytes are the image copy in
+        # the arena buffer and not the state's member.
+        for name in sorted(defs, key=len, reverse=True):
+            a = defs[name]
+            if not any(b <= a < e for b, e in regions):
+                continue
+            for w in (8, 16, 32):
+                if re.search(r'\b%s_%d\s*\(\s*&c->st' % (re.escape(name), w), src):
+                    widths.setdefault(name, Counter())[("t", w)] += 1
+                if re.search(r'\bd[34][a-z]*u_(?:ld|st)(8|16|32)\s*\(\s*c\s*,\s*'
+                             r'\(unsigned long\)\(\s*%s\b' % re.escape(name), src):
+                    widths.setdefault(name, Counter())[("t", w)] += 1
     return widths, dynamic
 
 
@@ -76,10 +98,19 @@ def main():
     hdr_path, src_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
     prefix = sys.argv[4] if len(sys.argv) > 4 else "d4v"
     layout_path = sys.argv[5] if len(sys.argv) > 5 else None
+    extra_path = sys.argv[6] if len(sys.argv) > 6 else None
     regions = parse_layout(layout_path)
 
     defs = parse_header(hdr_path)
-    widths, dynamic = parse_uses(src_path)
+    widths, dynamic = parse_uses(src_path, defs, regions)
+    if extra_path:
+        # The typed port reaches cells the arena port never names, so its
+        # uses are merged in: a cell only the typed port uses still needs
+        # an accessor.
+        w2, d2 = parse_uses(extra_path, defs, regions)
+        for name, c in w2.items():
+            widths.setdefault(name, Counter()).update(c)
+        dynamic |= d2
     used = {n for n in widths if n in defs}
 
     # size of each cell: the distance to the next higher used address
