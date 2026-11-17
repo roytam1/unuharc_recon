@@ -122,6 +122,41 @@
  * Return codes: 0 ok, 1 bad args, 2 nomem, 3 input short, 4 output error,
  * 7 data error.
  */
+
+/* ------------------------------------------------------------------------
+ * Semantic name map (reading aid; no identifier is renamed).
+ *
+ * 0.4 core 5 (methods 40..87) is the direct ancestor of 0.6 core 5 (ALZ).
+ * The concepts are the same; the names below are the 0.4 DGROUP/register
+ * spellings, with the equivalent 0.6 / seb3773 ALZ name on the right.
+ *
+ *   code, range, ct, clo, chi       range coder: code/range and the current
+ *                                    interval [clo,chi) of total `ct`
+ *                                    (== 0.6 low/range, f_lo/f_hi/f_total)
+ *   fen, cnt, ext, escctx           literal PPM model: Fenwick tree, counts,
+ *                                    escape weight, escape/secondary context
+ *   s913, s914                      single-byte exclusion flag / symbol
+ *                                    (== 0.6 fc2/fc3, alz bm_flag/bm_predb)
+ *   litm[], mode, st911             decision model (5 symbols), last decision
+ *                                    and decision-history state
+ *                                    (== 0.6 state[]/fb1, token class)
+ *   group, s910, s90f               escape selector 0..10 (== 0.6 fb8),
+ *                                    "selector changed" flag, channel shift
+ *   fam                             method family -m1/-m2/-m3 (method/16)
+ *   rep, c905, mdist                repeat count, match length, match
+ *                                    distance (== 0.6 e84)
+ *   mru[], c901                     recent-distance ring, MRU update selector
+ *   dprob                           distance-tree probability
+ *   c906, s90e, c87c, s90a,
+ *   s909, s90d, c8e8[], e8e0[]      multimedia side predictor: predicted
+ *                                    byte, sign, rate/channel, slot, crossover
+ *                                    flag and saved state (== 0.6 fb7/fbE/p43)
+ *   p880, p88c, p890, p894, seq898  running probability->cost accounting
+ *                                    (== 0.6 f80a, alz_score_cum)
+ *   hist4, pos, wpos, prevb/hasprev byte history, output/window positions,
+ *                                    previous byte
+ * ------------------------------------------------------------------------ */
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -1867,26 +1902,26 @@ typedef struct d5v_s {
     unsigned char *wcnt;         /* 4312DC */
     unsigned short litm[396 * 6];/* 44C0F8 */
     unsigned long mru[12];       /* 433734 */
-    unsigned long mdist;         /* 44C844 */
-    unsigned long dprob;         /* 44C848 */
+    unsigned long mdist;         /* 44C844: current match distance */
+    unsigned long dprob;         /* 44C848: distance-tree probability */
 
     /* state flags */
-    unsigned char fam;           /* 44D902 */
-    unsigned char group;         /* 44D907 */
-    unsigned char mode;          /* 44D904 */
-    unsigned char c901;          /* 44D901 */
-    unsigned char c905;          /* 44D905 */
-    unsigned char c906;          /* 44D906 */
-    unsigned char s90e;          /* 44D90E */
-    unsigned char s90f;          /* 44D90F */
-    unsigned char s910;          /* 44D910 */
-    unsigned char st911;         /* 44D911 */
-    unsigned char s913;          /* 44D913 */
-    unsigned char s914;          /* 44D914 */
-    unsigned long rep;           /* 44C8D8 (dword: may grow past 255) */
-    unsigned char s909;          /* 44D909 */
-    unsigned char s90a;          /* 44D90A */
-    unsigned char s90d;          /* 44D90D */
+    unsigned char fam;           /* 44D902: method family -m1/-m2/-m3 */
+    unsigned char group;         /* 44D907: escape selector / group 0..10 */
+    unsigned char mode;          /* 44D904: last 5-way decision/token class */
+    unsigned char c901;          /* 44D901: MRU update selector */
+    unsigned char c905;          /* 44D905: match length */
+    unsigned char c906;          /* 44D906: side predictor predicted byte */
+    unsigned char s90e;          /* 44D90E: side predictor sign/direction */
+    unsigned char s90f;          /* 44D90F: history shift for channel */
+    unsigned char s910;          /* 44D910: selector-changed flag */
+    unsigned char st911;         /* 44D911: decision-history state */
+    unsigned char s913;          /* 44D913: single-byte exclusion flag */
+    unsigned char s914;          /* 44D914: excluded byte */
+    unsigned long rep;           /* 44C8D8: repeat count (dword) */
+    unsigned char s909;          /* 44D909: predictor crossover flag */
+    unsigned char s90a;          /* 44D90A: predictor slot index */
+    unsigned char s90d;          /* 44D90D: saved predictor sign */
     unsigned char c8e8[6];       /* 44C8E8 */
     unsigned long ctx878;        /* 44C878 */
     unsigned long rate884;       /* 44C884 */
@@ -1918,7 +1953,7 @@ typedef struct d5v_s {
     unsigned long seq898;        /* 44C898 */
     unsigned long hist410[256];  /* 44C410 */
 
-    unsigned long escctx;        /* 44C8D4 */
+    unsigned long escctx;        /* 44C8D4: escape/secondary PPM context */
     unsigned long blockend;      /* 44C8A8 */
     const unsigned long *cum;    /* 44C8D0: container file-end table */
     unsigned long ncum;          /* table length */
@@ -2101,6 +2136,10 @@ static void d5v_update(d5v *d, unsigned sym, unsigned ctx)
 }
 
 /* sub_410440: decode one symbol from context 'ctx' (PPM with escape) */
+/* The ALZ literal byte model, equivalent to 0.6 d5_ppmdec() / seb3773
+ * alz_bm_decode_literal().  A non-zero s913 excludes symbol s914; on an
+ * escape the symbol is re-decoded in the secondary context `escctx` with
+ * the symbols of `ctx` excluded. */
 static unsigned d5v_sym(d5v *d, unsigned ctx)
 {
     unsigned short *fen = d->fen + (size_t)ctx * 256u;
@@ -2740,6 +2779,10 @@ static void d5v_pred_predict(d5v *d)
 }
 
 /* group selection shared by the decision escape and the block start */
+/* sub_40EB70-adjacent: apply a new escape selector / group (0..10). */
+/* Group 0 is pure order-0, 1..4 are per-position literal contexts, 5..9
+ * engage the byte predictor, 10 means "reset, then use group 0".  `group`
+ * here is the 0.6 `fb8` escape_selector of seb3773's ALZ model. */
 static void d5v_group_switch(d5v *d, unsigned ng)
 {
     unsigned i;
@@ -2769,6 +2812,9 @@ static void d5v_group_switch(d5v *d, unsigned ng)
 }
 
 /* sub_40FDB0: decode the 5-way decision (0 = escape -> group switch) */
+/* Top of the ALZ stream loop (== 0.6 d5_step, seb3773 alz_decode_token_class).
+ * Returns 4 for a literal, 1..3 for a match, or 0 after an escape which
+ * switches the group via an 11-way uniform selector. */
 static unsigned d5v_decision(d5v *d, unsigned ctx)
 {
     unsigned short *e = d->litm + (size_t)ctx * 6u;
@@ -2993,6 +3039,9 @@ store:
 }
 
 /* sub_410010: decode and emit one literal */
+/* Routes the literal through the side predictor's context when a group
+ * 5..9 is active (== 0.6 d5_litdec / seb3773 alz_side_decode_literal),
+ * otherwise through d5v_sym()/d5v_lit() of the plain byte model. */
 static void d5v_literal(d5v *d)
 {
     unsigned sym;
@@ -3037,6 +3086,9 @@ static void d5v_literal(d5v *d)
 /* ------------------------------------------------------------------ */
 
 /* sub_40F580: decode distance and length of a match */
+/* Walks the 12-bit distance tree (dprob, mru[], dbase/drange/dbase12) into
+ * `mdist`, then the length model into `c905`.  Equivalent to 0.6
+ * d5_matchdist() plus its length decode. */
 static void d5v_match(d5v *d)
 {
     unsigned sym = 0;
@@ -3205,6 +3257,10 @@ static void d5v_match(d5v *d)
 }
 
 /* sub_40FB80: one coded step (match or literal) */
+/* sub_40FB80: one step — decode the decision and emit a match, or report
+ * a literal for the caller to decode with d5v_literal().  Returns 1 for a
+ * match, 0 for a literal.  `s913`/`s914` carry the following literal's
+ * excluded byte (0.6 fc2/fc3). */
 static unsigned d5v_step(d5v *d)
 {
     unsigned ctx;

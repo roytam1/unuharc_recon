@@ -40,6 +40,39 @@
  * Return codes: 0 ok, 1 bad args, 2 nomem, 3 input short, 4 output short,
  * 7 data error (corrupt stream).
  */
+
+/* ------------------------------------------------------------------------
+ * Semantic name map (reading aid; no identifier is renamed).
+ *
+ * 0.3 core 5 (methods 36..79) is NOT the ALZ codec of 0.4/0.6 — it uses a
+ * bit-stiched range coder, a 3-way decision model and six context groups.
+ * seb3773-uharc has no equivalent of this codec; the names below are
+ * explained from this port's own control flow.
+ *
+ *   unit, code, rng, cur           range coder: `unit` = rng/total, `code`
+ *                                    is the value, `cur` is the last input
+ *                                    byte whose LSB stitches the next code
+ *                                    byte (7 data bits + 1 carry bit)
+ *   fen[6], raw[6], cfen, craw     six PPM context models and the currently
+ *                                    selected one (chosen by d5_switch)
+ *   litm[32], lhist                3-way decision model (8 states x 4 words)
+ *                                    and its history state
+ *   group, lag, sub, psub          select context model 0..5, delta-lag byte
+ *                                    and sub-order 1..4 (d5_switch); psub is
+ *                                    the previous sub-order
+ *   sign                           sign toggle for the delta transform
+ *   lit0mode, lithmode             literal path: uniform 8-bit / half-context
+ *                                    / full-context PPM model
+ *   lag4                           rolling last-4-bytes history used as the
+ *                                    delta predictor basis (`lag` selects)
+ *   dmode, dval, length            derived model symbol, distance, run length
+ *   distsym/length/longm/sdist/smald
+ *                                  61-symbol distance, 22-symbol length,
+ *                                  16-symbol long-run and short-distance
+ *                                  models
+ *   mru[], mru_n, mru_max          recent-distance list and its bounds
+ * ------------------------------------------------------------------------ */
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -217,10 +250,10 @@ typedef struct dec5u_s {
     int err;
 
     /* range coder (4450F0..4450FC) */
-    unsigned long unit;
-    unsigned long code;
-    unsigned long rng;
-    unsigned cur;
+    unsigned long unit;        /* rng / total for the current decision */
+    unsigned long code;        /* range coder value */
+    unsigned long rng;         /* range coder range */
+    unsigned cur;              /* last input byte; LSB stitches next code byte */
 
     /* window / output state */
     unsigned char *dict;       /* 428F74 */
@@ -238,19 +271,19 @@ typedef struct dec5u_s {
     unsigned long ctx;         /* 436FC4 */
 
     /* context selection state */
-    unsigned char group;       /* 437097 */
-    unsigned char lag;         /* 437089 */
-    unsigned char sub;         /* 43708C */
-    unsigned char psub;        /* 43708F */
-    unsigned char lit0mode;    /* 437094 */
-    unsigned char lithmode;    /* 437096 */
-    unsigned char sign;        /* 437098 */
-    unsigned char dmode;       /* 4370A6 */
-    unsigned char length;      /* 4370A7 */
-    unsigned long lag4;        /* 436F40 */
+    unsigned char group;       /* 437097: context model 0..5 / delta enable */
+    unsigned char lag;         /* 437089: delta-lag byte selector (0..3) */
+    unsigned char sub;         /* 43708C: sub-order 1..4 */
+    unsigned char psub;        /* 43708F: previous sub-order */
+    unsigned char lit0mode;    /* 437094: uniform 8-bit literal path */
+    unsigned char lithmode;    /* 437096: half-context literal path */
+    unsigned char sign;        /* 437098: delta transform sign toggle */
+    unsigned char dmode;       /* 4370A6: derived model symbol for match bytes */
+    unsigned char length;      /* 4370A7: current length value */
+    unsigned long lag4;        /* 436F40: rolling last-4-bytes delta basis */
     unsigned long fe4;         /* 436FE4 */
     unsigned long fe8;         /* 436FE8 */
-    unsigned long dval;        /* 43701C */
+    unsigned long dval;        /* 43701C: distance value */
 
     /* recent distance list (42968C) and its limits */
     unsigned long *mru;
@@ -332,6 +365,8 @@ static void d5_renorm(dec5u *d)
     }
 }
 
+/* sub_423188: return the decoded point in [0,total); stores the per-decision
+ * step `unit = rng/total` for d5_narrow(). */
 static unsigned d5_point(dec5u *d, unsigned total)
 {
     unsigned long unit, p;
@@ -460,6 +495,7 @@ static void d5_update(dec5u *d, unsigned sym)
 /* ---- symbol decoders ---- */
 
 /* sub_40FAEC: decode a symbol in the current PPM context */
+/* sub_40FAEC: decode one symbol from the full PPM context `ctx`. */
 static unsigned d5_sym(dec5u *d, unsigned ctx)
 {
     unsigned short *base = d->cfen + ctx * 256u;
@@ -532,7 +568,9 @@ static void d5_litm_update(dec5u *d, unsigned sym)
     d->lhist = (unsigned char)((sym + 2u * (unsigned)d->lhist - 1u) & 7u);
 }
 
-/* sub_40FC2C: decode the 3-way decision */
+/* sub_40FC2C: decode the 3-way decision (switch / match / literal). */
+/* 0 = escape -> d5_switch(), 1..2 = match/literal class.  The 8-state model
+ * lives in litm[32], indexed by the rolling 3-bit history `lhist`. */
 static unsigned d5_decision(dec5u *d)
 {
     unsigned short *e = d->litm + 4u * (unsigned)d->lhist;
@@ -560,7 +598,9 @@ static unsigned d5_decision(dec5u *d)
 
 /* ---- literals ---- */
 
-/* sub_40EEFC: output one literal symbol (delta transform + dict write) */
+/* sub_40EEFC: output one literal symbol (delta transform + dict write).
+ * With a non-zero `group`, the byte is delta-coded against the `lag` byte of
+ * `lag4` with a toggling `sign`, mirroring d5_out_byte() for match bytes. */
 static unsigned d5_out_sym(dec5u *d, unsigned sym)
 {
     unsigned v = (~sym) & 0xFFu;
@@ -592,7 +632,9 @@ static void d5_out_byte(dec5u *d, unsigned b)
     d5_put1(d, b);
 }
 
-/* sub_40FEF8: decode and emit one literal */
+/* sub_40FEF8: decode and emit one literal.  Chooses between the uniform
+ * (lit0mode), half-context (lithmode) and full PPM model, then applies the
+ * delta transform in d5_out_sym() before writing to the window. */
 static void d5_literal(dec5u *d)
 {
     unsigned sym;
@@ -671,7 +713,9 @@ static void d5_dist_rescue(dec5u *d, unsigned sym)
         p[i] = (unsigned short)(p[i] + p[i - 1]);
 }
 
-/* sub_40F828: decode the distance symbol; returns 0..60 */
+/* sub_40F828: decode a 61-symbol distance class into `dval` (base distance
+ * from d5_dbase[]), returning the class index 0..60.  Class 60 is the long
+ * run handled by d5_longrun(). */
 static unsigned d5_distsym(dec5u *d)
 {
     unsigned short *p = d->dist61;
@@ -753,7 +797,8 @@ static unsigned d5_distsym(dec5u *d)
     return idx_d;
 }
 
-/* sub_40F748: decode the match length symbol */
+/* sub_40F748: decode the match length from lenA or lenB, selected by
+ * `dmode`, and fold in the extra bits from d5_lenbits[]. */
 static unsigned d5_length(dec5u *d)
 {
     unsigned short *p = (d->dmode == 0) ? d->lenA : d->lenB;
@@ -855,6 +900,9 @@ static void d5_sdist_update(dec5u *d, unsigned sym)
 /* ---- model switch ---- */
 
 /* sub_40FCF0: decode and apply a model-switch symbol (uniform 0..11) */
+/* sub_40FCF0: 12-way escape selector.  Codes 0..5 pick a context model and
+ * delta lag, 6..9 change the sub-order, 10/11 toggle the uniform / half-
+ * context literal paths. */
 static void d5_switch(dec5u *d)
 {
     unsigned total = 12;
@@ -996,7 +1044,10 @@ static void d5_longrun(dec5u *d)
 
 /* ---- match (decision 1) ---- */
 
-/* sub_40FFB4: decode and copy a match */
+/* sub_40FFB4: decode and copy a match.  Distance comes from d5_distsym()
+ * (MRU slots or d5_dbase[] plus offset), length from d5_length(); class 60
+ * delegates to d5_longrun().  Copied bytes are re-fed through d5_out_byte()
+ * and the context model. */
 static void d5_match(dec5u *d)
 {
     unsigned sym, cls, len, b;

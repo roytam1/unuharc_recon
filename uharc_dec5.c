@@ -74,6 +74,46 @@
  * - 06_m0 (STORE) extract and D3X.UHA listing (45 files) are unchanged.
  */
 
+/* ------------------------------------------------------------------------
+ * Semantic name map (reading aid; no identifier is renamed).
+ *
+ * 0.6 "core 5" is the ALZ decoder, methods 40..87 (-m1/-m2/-m3).  The
+ * identifiers here are the original 16-bit DGROUP/register names from
+ * UNUHARC06.lst.  The right-hand column is the equivalent concept in the
+ * clean C99 ALZ implementation (seb3773-uharc/src/alz*.c and its FORMAT.md,
+ * "ALZ codec" section).  This is only documentation: the byte-exact port
+ * below keeps every original identifier.
+ *
+ *   low, range, f_total, f_lo, f_hi   range coder `code`/`range` and the
+ *                                     current symbol interval [f_lo,f_hi)
+ *                                     out of f_total (sub_419A4D)
+ *   dict, dictsize, dictmask          sliding-window history ring
+ *   fen, cnt, tot                     literal byte model: Fenwick tree,
+ *                                     raw counts, per-context totals
+ *   fac                               fallback (escape) byte-model context
+ *   fc2, fc3                          single-byte exclusion flag / symbol
+ *                                     (== alz bm_flag / bm_predb)
+ *   state[], fb1                      token-class model (16 bytes/state)
+ *                                     and decoded token: 0 escape,
+ *                                     4 literal, 1..3 match
+ *   fb0                               binary / text mode flag
+ *   fb8, fc0                          escape selector (group 0..10) and
+ *                                     "selector changed" flag
+ *   use_ppm, e94, ec0[0], fb7, fbE    multimedia side model: active,
+ *                                     secondary context, predictor context,
+ *                                     predicted byte, per-channel bias
+ *   fb9, e78, e80, cctx[]             side predictor replay queue
+ *   e84, mru[], fb3                   match distance, recent-distance ring,
+ *                                     MRU slot index
+ *   la20[], lec4[], banks[][]         match-distance tree probabilities
+ *   p29c4[], pbc4[]..pbd8, p43[]      multimedia linear/delta predictor
+ *   f80a                              accumulated probability -> cost sum
+ *   f94, fa0, fa4                     output position, rolling order-0
+ *                                     context, window write position
+ *   dec5_price[]                      probability -> cost table
+ *                                     (== alz_score_cum[] in seb3773)
+ * ------------------------------------------------------------------------ */
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -2699,15 +2739,15 @@ struct uharc_dec5 {
     int group;
     unsigned long dictsize;
     unsigned long dictmask;
-    unsigned long low;
-    unsigned long range;
-    unsigned long f_total;
-    unsigned long f_lo;
+    unsigned long low;          /* range coder code (sub_419A4D) */
+    unsigned long range;        /* range coder range */
+    unsigned long f_total;      /* current symbol total */
+    unsigned long f_lo;         /* selected interval [f_lo, f_hi) */
     unsigned long f_hi;
-    unsigned char *dict;
-    unsigned short *fen;
-    unsigned short *cnt;
-    unsigned short *tot;
+    unsigned char *dict;        /* sliding-window history ring */
+    unsigned short *fen;        /* literal model Fenwick tree */
+    unsigned short *cnt;        /* literal model raw counts */
+    unsigned short *tot;        /* literal model per-context totals */
     unsigned char *lastctx;
     unsigned char *win2;
     unsigned char *aux1;
@@ -2725,46 +2765,46 @@ struct uharc_dec5 {
     /* la50 is dword_471A50 = dword_471A4C + 1 (same array, 32-bit
      * elements): index i aliases la4c[i + 1]. */
     long lec4[64];
-    unsigned char state[1056];
+    unsigned char state[1056];  /* token-class model, 16 bytes per state */
     unsigned char prevb;
     int has_prev;
     unsigned char hist[8];
     long h466[6];
     long lastidx;
-    unsigned fac;
+    unsigned fac;               /* fallback byte-model context */
     unsigned f70;
     long f78s;
-    long f80a;
+    long f80a;                  /* accumulated probability->cost sum */
     long f84;
-    unsigned f94;
-    unsigned long fa0;
-    unsigned fa4;
-    unsigned fb0;
-    long e84;
-    int fb3;
+    unsigned f94;               /* output position counter */
+    unsigned long fa0;          /* rolling order-0 context (last bytes) */
+    unsigned fa4;               /* window write position */
+    unsigned fb0;               /* binary / text mode flag */
+    long e84;                   /* current match distance */
+    int fb3;                    /* recent-distance MRU slot */
     unsigned char fb6;
-    unsigned char fb1;
+    unsigned char fb1;          /* decoded token: 0 esc, 4 lit, 1..3 match */
     unsigned char fb2;
     unsigned char fb5;
-    unsigned char fb7;
-    unsigned char fb8;
-    unsigned char fb9;
+    unsigned char fb7;          /* side-model predicted byte */
+    unsigned char fb8;          /* escape selector / group id (0..10) */
+    unsigned char fb9;          /* side predictor replay flag */
     unsigned char fbA;
     unsigned char fbB;
     unsigned char fbC;
     unsigned char fbD;
     unsigned char fbE;
     unsigned char fbF;
-    unsigned char fc0;
+    unsigned char fc0;          /* "escape selector changed" flag */
     unsigned char fc1;
-    unsigned char fc2;
-    unsigned char fc3;
+    unsigned char fc2;          /* single-byte exclusion flag */
+    unsigned char fc3;          /* excluded byte (bm_predb) */
     unsigned e78;
     unsigned e80;
     long e88;
     long e8c;
-    long e90;
-    long e94;
+    long e90;                   /* side predictor channel index */
+    long e94;                   /* side model secondary context base */
     long e64;
     int p7a8;
     int p7ac;
@@ -2784,11 +2824,11 @@ struct uharc_dec5 {
      * followed by dword_462BC4 == pbc4[0]). */
     long p29c4[128];
     long p2bdc[1542];
-    long banks[8][1024];
+    long banks[8][1024];        /* distance-tree probability banks */
     long e45[4096];
-    long p43[160];
+    long p43[160];              /* multimedia predictor history block */
     unsigned char p45e4[256];
-    int use_ppm;
+    int use_ppm;                /* side (multimedia) model active */
     long f90u;
     long f88u;
     long fb4u;
@@ -3896,9 +3936,15 @@ static void d5_smcount(uharc_dec5_t *d, unsigned ctx, unsigned sym)
     }
 }
 
-/* -------- 415B1D: PPM symbol decode in one context ------------------- */
+/* -------- 415B1D: ALZ literal byte model, one context ----------------- */
 /* (the incoming edx/a2 is dead: the callee overwrites it with the table
- * total, confirmed in asm; the function effectively takes only ctx) */
+ * total, confirmed in asm; the function effectively takes only ctx)
+ *
+ * Decodes one byte with the Fenwick literal model at `ctx` (a2 = known
+ * symbol mass).  If the code point falls past a2 it is an escape: the
+ * escape interval is committed first, then the symbol is re-decoded in
+ * the fallback context `fac` with the symbols of `ctx` excluded.  This is
+ * the equivalent of seb3773's alz_bm_decode_literal() + bm_flag/bm_predb. */
 
 static unsigned d5_ppmdec(uharc_dec5_t *d, unsigned ctx)
 {
@@ -4088,6 +4134,11 @@ label24:
     }
 }
 
+/* -------- 4157AE/415B1D: literal with side-model selection ----------- */
+/* Chooses the literal path for the current group: with an active
+ * multimedia side model (fb8 != 0) it uses the side predictor's context;
+ * otherwise the plain byte model d5_ppmdec().  Equivalent to seb3773's
+ * `escape_selector ? alz_side_decode_literal() : alz_decode_literal()`. */
 static unsigned d5_litdec(uharc_dec5_t *d, unsigned ctx, unsigned gx)
 {
     unsigned v2 = ctx;
@@ -4263,7 +4314,27 @@ store:
     }
 }
 
-/* -------- 4150CF: match distance/length decode ------------------------ */
+/* -------- 4150CF: match distance decode (sub_4150CF) ------------------- */
+/* Walks the binary distance tree (la20/lec4 nodes, banks[][] SEE tables)
+ * to produce `e84`, the distance of the current match.  Each node is a
+ * 12-bit probability decision; the tree selects a class, then a direct
+ * or scaled offset.  Equivalent to seb3773's alz_match_distance decode.
+ */
+
+/* Binary range decision for the match-distance tree.  The caller has
+ * already applied `range >>= 12`, so on every valid stream
+ *   low < (range << 12)   and   low / range  is a 12-bit value [0,4096).
+ * Comparing `low >= range * prob` (range <= 0xFFFFF, prob <= 4096, so the
+ * product fits in 32 bits) replaces the integer divide at each tree node.
+ * Damaged streams can break the invariant; they keep the original division
+ * path so the wrapped 16-bit behaviour of the initial port is preserved. */
+static int d5_bit_ge(uharc_dec5_t *d, unsigned long prob)
+{
+    unsigned long r = d->range;
+    if (d->low < (r << 12))
+        return d->low >= r * prob;
+    return ((unsigned)(d->low / r) & 0xFFFFu) >= (unsigned)prob;
+}
 
 static int d5_matchdist(uharc_dec5_t *d)
 {
@@ -4287,7 +4358,6 @@ static int d5_matchdist(uharc_dec5_t *d)
             v1 = 11;
         }
         for (;;) {
-            unsigned bit;
             long *slot;
             unsigned long span;
             unsigned long base;
@@ -4305,8 +4375,7 @@ static int d5_matchdist(uharc_dec5_t *d)
              * before updating the node, so capture it first. */
             {
                 long oldslot = *slot;
-                bit = (unsigned)(d->low / d->range) & 0xFFFFu;
-                if (bit >= (unsigned)oldslot) {
+                if (d5_bit_ge(d, (unsigned long)(unsigned)oldslot)) {
                     *slot -= oldslot >> 6;
                     base = (unsigned long)(unsigned)oldslot;
                     span = d->range * (4096UL - base);
@@ -4343,7 +4412,7 @@ static int d5_matchdist(uharc_dec5_t *d)
                 dist_a = (long)d->f94 - dec5_dist_b[v8] + 1L;
             }
             if (dist_a >= 4L) {
-                unsigned bit;
+                int hi;
                 unsigned v48;
                 unsigned v52;
                 long nv;
@@ -4352,9 +4421,9 @@ static int d5_matchdist(uharc_dec5_t *d)
                     d->err = 4;
                     return 0;
                 }
-                bit = (unsigned)(d->low / d->range) & 0xFFFFu;
-                v61 = (bit >= (unsigned)d->e88) ? 1L : 0L;
-                if (bit < (unsigned)d->e88) {
+                hi = d5_bit_ge(d, (unsigned long)(unsigned)d->e88);
+                v61 = hi ? 1L : 0L;
+                if (!hi) {
                     v48 = 0;
                     v52 = (unsigned)d->e88;
                     nv = (4096L - d->e88) >> 6;
@@ -4505,7 +4574,7 @@ lend:
                     return 0;
                 }
                 p = (unsigned long)(unsigned)*e;
-                if ((unsigned)(d->low / d->range) >= (unsigned)p) {
+                if (d5_bit_ge(d, p)) {
                     hi = 4096UL;
                     lo = p;
                     *e = (long)d5_wrap32((unsigned long)*e - (p >> 5));
@@ -4544,7 +4613,9 @@ lend:
 }
 
 /* -------- 415666: escape: decode new group id ------------------------ */
-
+/* Reads an 11-way uniform escape selector (uha_rc_uniform(...,11) in
+ * seb3773).  A new group may switch the multimedia side model on/off and
+ * reinitialises its predictor (d5_pred_init).  fb8 is the group id. */
 static void d5_escape(uharc_dec5_t *d)
 {
     unsigned v1;
@@ -4607,6 +4678,11 @@ static void d5_stput(uharc_dec5_t *d, unsigned b, unsigned off, unsigned v)
         (unsigned char)((v >> 8) & 0xFFu);
 }
 
+/* -------- 414D8C: decode one step (token class) ----------------------- */
+/* Decodes the next token class `fb1` from the state model: 0 = escape
+ * (then d5_escape picks a new group), 4 = literal, 1..3 = match.  The
+ * token-class weights are bumped by +88 after use (sub_414D8C).  This is
+ * the top of seb3773's alz_decode_stream() loop. */
 static int d5_step(uharc_dec5_t *d)
 {
     unsigned char state_byte;
