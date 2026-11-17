@@ -15,14 +15,33 @@
  *  dword_422B98/9C etc -> inb/outb streaming buffers (local to decode)
  * Progress sub_40819B is stubbed (no-op).
  */
+
+/* ------------------------------------------------------------------------
+ * Semantic name map (reading aid; no identifier is renamed).
+ *
+ * 0.6 core 2 (methods 2..7) is the LZ78 codec, seb3773-uharc/src/lz78.c
+ * (uha_lz78_decode, -mw).  Its trie nodes are 5-byte records:
+ *
+ *   tree[i].w0                 sibling/parent link (u16, LE)
+ *   tree[i].w2                 child link (u16, LE)
+ *   tree[i+4]                  label byte of the edge into node i
+ *   b                          trie size / maximum code (== max_code)
+ *   nextFree                   next code to allocate (== next_code)
+ *   prev, flag, bits           last node, variable-width escape state and
+ *                               current codeword width (== tail / width /
+ *                               mask of the clean implementation)
+ *   tmp[]                      reverse path buffer for trie walks
+ *   dec2_prune()               dictionary reset when the trie is full
+ * ------------------------------------------------------------------------ */
+
 #include <stdlib.h>
 #include <string.h>
 #include "uharc_dec.h"
 
 typedef struct uharc_dec2_ctx_s {
-    unsigned b;
-    unsigned char *tree;
-    unsigned char *tmp;
+    unsigned b;              /* trie size / maximum codeword */
+    unsigned char *tree;     /* 5-byte nodes: w0 link, w2 child, label byte */
+    unsigned char *tmp;      /* reverse path buffer for trie walks */
 } uharc_dec2_ctx;
 
 /* ---- tree access (little-endian, 5-byte stride) ---- */

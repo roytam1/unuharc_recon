@@ -1,6 +1,45 @@
 /* UHARC 0.6 core 4 (PPM) - clean typed implementation (C89).
  * See uharc_dec4_clean.h for status. Port of uharc-rs ppm.rs.
  */
+
+/* ------------------------------------------------------------------------
+ * Semantic name map (reading aid; no identifier is renamed).
+ *
+ * 0.6 core 4 (methods 24..39) is the PPM-II / LZP codec.  The clean C99
+ * implementation in seb3773-uharc/src/ppm*.c documents the same concepts
+ * with descriptive names; the right-hand column gives the equivalents.
+ *
+ *   code, range, rc_t              range coder value/range and the current
+ *                                    decision total (== ppm r.code/r.range)
+ *   dict, pos, dictsize/mask       sliding window / write position
+ *                                    (== ppm window / win_pos)
+ *   o1t[][2][]                     order-1/2 Fenwick CUM and FRQ tables
+ *                                    (== ppm cum / freq)
+ *   esc[]                          per-context escape mass (== esc_mass)
+ *   inc_u[], inc_b[]               count increments for uniform / binary
+ *                                    contexts (== tstep / tstep2)
+ *   see[]                          secondary symbol estimation probabilities
+ *                                    (== sse_prob / sse2, SEE tables)
+ *   mru_s[], mru_n[]                most-recent symbol and its count/recency
+ *                                    (== last_sym / recency)
+ *   recent[], lastpos[], per[]     symbol recency, last position, period
+ *                                    estimates (== recency, age, rank_*)
+ *   excl[], nex                    excluded-symbol map and count (== excl)
+ *   ring[], avg_a/b[]              probability ring and running averages
+ *   g6b8[], g45c6xx                order-model accumulators / costs
+ *   binmode, sw_pos                text -> binary model switch
+ *                                    (== byte_class / DETR transition)
+ *   mmtype, mmctx, mmper, channel,
+ *   mm.*                           multimedia side model: type, context,
+ *                                    period, channel and predictor state
+ *                                    (== ppm mm6/mm7, cls3_*, mm_coef)
+ *   mh1/mh2, mlen, mchk, x698      match-finder hash tables and length/check
+ *                                    arrays (== ht1/ht2, len_tab/link_tab)
+ *   o2, delta, o4                  order-2 / delta / order-4 records
+ *                                    (== rec2s / rec1s, match-model records)
+ *   qfb[], qctx[], qsym[]          queued contexts and symbols
+ * ------------------------------------------------------------------------ */
+
 #include <stdlib.h>
 #include <string.h>
 #include "uharc_dec4_clean.h"
@@ -85,22 +124,22 @@ typedef struct dec4c_ctx_s {
         unsigned char sgn[4];
     } mm;
     /* Order-1 tables (0x40cdd1): 0x301 contexts */
-    unsigned short esc[0x400];   /* 0x4236c8 escape counts */
-    unsigned short inc_u[0x400]; /* 0x45d768 */
-    unsigned short inc_b[0x400]; /* 0x45d166 */
-    unsigned long ba3c[0x400];   /* 0x45ba3c */
-    unsigned long ae38[0x400];   /* 0x45ae38 */
-    unsigned char mru_s[0x400];  /* 0x45e086 */
-    unsigned char mru_n[0x400];  /* 0x45dd85 */
+    unsigned short esc[0x400];   /* 0x4236c8: escape mass per context */
+    unsigned short inc_u[0x400]; /* 0x45d768: uniform-context increment */
+    unsigned short inc_b[0x400]; /* 0x45d166: binary-context increment */
+    unsigned long ba3c[0x400];   /* 0x45ba3c: model accumulator */
+    unsigned long ae38[0x400];   /* 0x45ae38: model accumulator */
+    unsigned char mru_s[0x400];  /* 0x45e086: most-recent symbol */
+    unsigned char mru_n[0x400];  /* 0x45dd85: most-recent symbol count */
     /* SEE tables (0x40dbc5): one array, indexed by SI() */
-    unsigned long see[DEC4C_SEE_LEN];
+    unsigned long see[DEC4C_SEE_LEN]; /* secondary symbol estimation probs */
     /* Segment state (0x40deb6) */
     unsigned short o1t[0x310][2][256]; /* CUM=0, FRQ=1 per context */
     unsigned short mflag[0x400];       /* 0x445db4 */
     unsigned char pair[0x80];          /* 0x45ad64 delta pairs */
     unsigned long g6b8[0x400];         /* 0x45c6b8/0x45ccd4 */
-    unsigned long recent[256], lastpos[256], per[256];
-    unsigned long ring[256], avg_a[2], avg_b[2];
+    unsigned long recent[256], lastpos[256], per[256]; /* recency/period */
+    unsigned long ring[256], avg_a[2], avg_b[2];       /* probability ring */
     unsigned long qfb[4], qctx[4];      /* 0x444584/94 queued contexts */
     unsigned char qsym[4];             /* 0x45ae34 queued symbols */
     unsigned long g45c6b0, g45c6ac, g45c6a0, g45c6b4, g45c68c, g45c688;
@@ -110,8 +149,8 @@ typedef struct dec4c_ctx_s {
     unsigned long g45d104, g45d120, g45d124, g45d130, g45d134, g45d138, g45d140;
     unsigned long nbytes, c0, c1, c2;  /* 0x45d0f8/fc/100 last symbols */
     unsigned long pend, mchk_p, pair_p; /* 0x45d11c/148/14c, 0xFFFFFFFF=none */
-    unsigned long *mh1, *mh2;           /* 0x423688/8c hashes, 0x80000 each */
-    unsigned char *mlen, *mchk, *x698; /* 0x423690/94/98, 0x40000 each */
+    unsigned long *mh1, *mh2;           /* match-finder hash tables */
+    unsigned char *mlen, *mchk, *x698; /* match length/check arrays */
     unsigned long x698p[4];             /* 0x45d150.. */
     unsigned char dd6a[2], dd6c[2];     /* 0x45dd6a/c */
     unsigned char ty3[8], cnt3[8];      /* 0x45d160/0x44316c */
@@ -889,7 +928,11 @@ static void dec4c_put_byte(dec4c_ctx *c, unsigned char b)
     c->out_pos = (c->out_pos + 1UL) & 0xFFFFFFFFUL;
 }
 
-/* 0x40fffd: text transform (symbols are complemented bytes). */
+/* 0x40fffd: per-byte driver of the PPM cascade.  Decodes one symbol with
+ * dec4c_decode_symbol(), applies the DETR-style text transform and the
+ * multimedia/exe filters, copies matches from the window, and feeds every
+ * emitted byte back through the order-1/2/4 updates.  This is the top of
+ * seb3773's ppm_decode_stream() loop. */
 static void dec4c_output(dec4c_ctx *c, unsigned char alo)
 {
     unsigned dlo = (unsigned char)(~alo);
@@ -1481,7 +1524,10 @@ static void dec4c_mm_adapt_weights(unsigned long r[31])
     r[D4W(wk)] = (unsigned long)((long)r[D4W(wk)] + d);
     #undef D4W
 }
-/* 0x412ffa */
+/* 0x412ffa: update the multimedia side predictor and produce the next
+ * prediction byte in g_e38b.  Types 5/6 are the short linear predictor,
+ * 7..9 the long SSE variant with interleaved rate contexts — the same
+ * roles as ppm_mm6 / ppm_mm7 in seb3773's PPM model. */
 static void dec4c_mm_predict(dec4c_ctx *c)
 {
     unsigned long n = c->nbytes;
@@ -1835,7 +1881,10 @@ static unsigned long dec4c_dv(unsigned long a, unsigned long b)
     return a / b;
 }
 
-/* 0x40f9d0: match model; returns true when bytes were copied. */
+/* 0x40f9d0: LZP match model.  Probes the hash tables (mh1/mh2) via the
+ * recent context bytes, decides match vs literal with SEE probabilities,
+ * and copies a length/distance pair from the window when it hits.  Returns
+ * true when bytes were copied (== ppm_matchfinder_decode in seb3773). */
 static int dec4c_match_model(dec4c_ctx *c)
 {
     unsigned long c0 = c->c0, c1 = c->c1, c2 = c->c2;
@@ -4085,7 +4134,8 @@ static void dec4c_o1_update(dec4c_ctx *c, unsigned char sym, unsigned long ctx)
 }
 
 /* 0x41030f: decode one symbol (order-4 -> order-2/delta -> order-1).
- * Orchestration matches Rust lit.rs decode_symbol. */
+ * Orchestration matches Rust lit.rs decode_symbol and seb3773's 5-stage
+ * literal cascade (CR_ORDER1_HIT ... CR_C550) in ppm_cascade.c. */
 static void dec4c_decode_symbol(dec4c_ctx *c)
 {
     unsigned long l10c, c6a4, o2i, lfc;

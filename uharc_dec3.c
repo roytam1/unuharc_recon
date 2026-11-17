@@ -66,6 +66,33 @@
  * Return codes: 0 ok, 1 bad args, 2 nomem, 3 input short, 4 output short,
  * 7 data error (corrupt stream; mirrors UHARC06_ERR_DATA).
  */
+
+/* ------------------------------------------------------------------------
+ * Semantic name map (reading aid; no identifier is renamed).
+ *
+ * 0.6 core 3 (methods 8..23) is the LZP codec.  It corresponds to
+ * seb3773-uharc/src/lzp.c (uha_lzp_decode, -mz); the right-hand column gives
+ * that implementation's names for the same concepts.
+ *
+ *   htab, hval, mval, ord    hash table with position/context, hash value,
+ *                             match value and last-position-per-context
+ *                             (== lzp hash / hash_seen entries)
+ *   dict, dict_pos           sliding window and write position
+ *   freq[], raw[]            literal context model: Fenwick BIT and raw
+ *                             counts, 319 contexts (== uha_ctxmodel
+ *                             tree/freq)
+ *   escw[]                   escape weight per context (== escape_weight)
+ *   freq318/raw318 (ctx 318) escape-context model with prev-byte exclusion
+ *                             (== model_decode_excluded_escape)
+ *   litm[50][4]              match/literal decision model (== rank_prob)
+ *   prob[5121]               10 groups x 512 length probabilities
+ *                             (== match length / rank paths)
+ *   ctx, excl                current context byte and excluded byte
+ *   match_pos, last_dist     current match position and its distance
+ *                             (== last_match_distance)
+ *   run_len                  current match run length (== match_run_count)
+ * ------------------------------------------------------------------------ */
+
 #include <stdlib.h>
 #include <string.h>
 #ifdef D3_TRACE
@@ -98,11 +125,11 @@ typedef struct dec3_s {
     unsigned char *mval;      /* 65536 bytes */
     unsigned long *ord;       /* 65536 u32 last-pos per 16-bit ctx */
     unsigned char *dict;      /* dict_sz + 256 ring + mirror */
-    unsigned short *freq;     /* 81664 BIT words, 319 contexts */
-    unsigned short *raw;      /* 81664 raw words, 319 contexts */
-    unsigned short *escw;     /* 318 escape weights */
-    unsigned short litm[50][4];
-    unsigned long prob[5121]; /* 10 groups x 512 u32 + 1 (orig writes idx 5120) */
+    unsigned short *freq;     /* literal model Fenwick BIT, 319 contexts */
+    unsigned short *raw;      /* literal model raw counts, 319 contexts */
+    unsigned short *escw;     /* escape weight per context */
+    unsigned short litm[50][4]; /* match / literal decision model */
+    unsigned long prob[5121]; /* 10 groups x 512 match-length probabilities */
     unsigned long dict_sz;
     unsigned long dict_mask;
     unsigned long dict_pos;
@@ -466,7 +493,12 @@ static void d3_update(dec3 *d, unsigned ctxidx, unsigned sym)
     if (t >= 0x4000) d3_rescale(d, ctxidx);
 }
 
-/* ---- literal decode (sub_40C35C); returns byte, sets err 7 on bad data */
+/* ---- literal decode (sub_40C35C); returns byte, sets err 7 on bad data
+ *
+ * LZP literal from the Fenwick context model: a known symbol is selected
+ * within [0,total), otherwise the escape path re-decodes in context 318
+ * with the previous byte excluded (== seb3773 model_decode_from_context /
+ * model_decode_excluded_escape). */
 static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
 {
     unsigned short *f;
@@ -640,6 +672,11 @@ static unsigned d3_dec_sym(dec3 *d, unsigned ctxidx)
 
 /* ---- match/literal decision + match copy (sub_40C805) ----
  * returns 1 when match bytes were copied, 0 when a literal is needed.
+ *
+ * Probes the LZP hash table (htab/hval/mval/ord) with the current context,
+ * uses litm to decide match vs literal, decodes the length from prob[], and
+ * copies from the window (re-inverting bytes).  The counterpart of seb3773
+ * lzp.c hash lookup + match length decode.
  */
 static int d3_match(dec3 *d)
 {
