@@ -9,35 +9,31 @@
 #include "uha02_mm.h"
 #include "uhcrypt04.h"
 /* typed-state core-4 port (uha03_dec4_clean.c / uha04_dec4_clean.c) */
-int uharc_dec4vc_set_flags2(unsigned char flags2);
+void uharc_dec4v_set_flags2(unsigned char flags2);
 
 
-static unsigned long crc_tab[256];
-static int crc_init = 0;
-
-static void crc_make(void)
+static void crc_make(uint32_t tab[256])
 {
     unsigned i, j;
-    unsigned long c;
-    if (crc_init) return;
+    uint32_t c;
     for (i = 0; i < 256; i++) {
         c = i;
         for (j = 0; j < 8; j++) {
             if (c & 1) c = 0xEDB88320UL ^ (c >> 1);
             else c >>= 1;
         }
-        crc_tab[i] = c;
+        tab[i] = c;
     }
-    crc_init = 1;
 }
 
-unsigned long uha04_crc32(const unsigned char *buf, unsigned len,
-                          unsigned long crc)
+uint32_t uha04_crc32(const unsigned char *buf, unsigned len,
+                          uint32_t crc)
 {
+    uint32_t tab[256];
     unsigned i;
-    crc_make();
+    crc_make(tab);
     for (i = 0; i < len; i++)
-        crc = crc_tab[(unsigned char)(crc ^ buf[i])] ^ (crc >> 8);
+        crc = tab[(unsigned char)(crc ^ buf[i])] ^ (crc >> 8);
     return crc;
 }
 
@@ -56,30 +52,31 @@ static unsigned rd16le(const unsigned char *p)
     return (unsigned)(p[0] | (p[1] << 8));
 }
 
-static unsigned long rd24le(const unsigned char *p)
+static uint32_t rd24le(const unsigned char *p)
 {
-    return (unsigned long)(p[0] | (p[1] << 8) | (p[2] << 16));
+    return (uint32_t)(p[0] | (p[1] << 8) | (p[2] << 16));
 }
 
-static unsigned long rd32le(const unsigned char *p)
+static uint32_t rd32le(const unsigned char *p)
 {
-    return (unsigned long)(p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24));
+    return (uint32_t)(p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24));
 }
 
 int uha04_header_parse(const unsigned char raw[44],
                        uha04_header *h)
 {
     unsigned char b[44];
-    unsigned long crc;
+    uint32_t crc;
+    uint32_t tab[256];
     unsigned i;
     memcpy(b, raw, 44);
     if (!(b[0] == 0x55 && b[1] == 0x48 && b[2] == 0x41 && b[3] == 0x04))
         return UHA04_ERR_MAGIC;
     uha04_header_decrypt(b);
-    crc_make();
+    crc_make(tab);
     crc = 0xFFFFFFFFUL;
     for (i = 4; i < 4 + 36; i++)
-        crc = crc_tab[(unsigned char)(crc ^ b[i])] ^ (crc >> 8);
+        crc = tab[(unsigned char)(crc ^ b[i])] ^ (crc >> 8);
     if (((unsigned)(~crc & 0xFFFFUL)) != rd16le(b + 42))
         return UHA04_ERR_CRC;
     h->magic = 0x04414855UL;
@@ -107,7 +104,7 @@ struct uha04_s {
     FILE *fp;
     char *path;
     uha04_header hdr;
-    unsigned long nfiles;
+    uint32_t nfiles;
     uha04_entry *entries;
     char *strpool;
     long data_start;
@@ -136,7 +133,7 @@ const char *uha04_strerror(int code)
 
 typedef struct fr_s {
     FILE *fp;
-    unsigned long left;
+    uint32_t left;
 } fr_t;
 
 static int fr_read(void *ctx, unsigned char *buf, unsigned want)
@@ -146,15 +143,15 @@ static int fr_read(void *ctx, unsigned char *buf, unsigned want)
     if (f->left == 0) return 0;
     if (want > f->left) want = (unsigned)f->left;
     n = fread(buf, 1, want, f->fp);
-    f->left -= (unsigned long)n;
+    f->left -= (uint32_t)n;
     return (int)n;
 }
 
 typedef struct mw_s {
     unsigned char *buf;
-    unsigned long cap;
-    unsigned long pos;
-    unsigned long crc;
+    uint32_t cap;
+    uint32_t pos;
+    uint32_t crc;
 } mw_t;
 
 static int mw_write(void *ctx, const unsigned char *buf, unsigned len)
@@ -169,14 +166,14 @@ static int mw_write(void *ctx, const unsigned char *buf, unsigned len)
 
 typedef struct mr_s {
     const unsigned char *buf;
-    unsigned long len;
-    unsigned long pos;
+    uint32_t len;
+    uint32_t pos;
 } mr_t;
 
 static int mr_read(void *ctx, unsigned char *buf, unsigned want)
 {
     mr_t *m = (mr_t *)ctx;
-    unsigned long avail = m->len - m->pos;
+    uint32_t avail = m->len - m->pos;
     if (avail == 0) return 0;
     if (want > avail) want = (unsigned)avail;
     memcpy(buf, m->buf + m->pos, want);
@@ -186,15 +183,15 @@ static int mr_read(void *ctx, unsigned char *buf, unsigned want)
 
 /* TODO 0.4 CRC accumulation across tab0+tab1 like 0.6? Currently
  * standalone per table; validate once 0.4 core3/2 decode. */
-static int decode_table(FILE *fp, long off, unsigned long cmp_len,
+static int decode_table(FILE *fp, long off, uint32_t cmp_len,
                         int method, unsigned char *out,
-                        unsigned long dec_len, unsigned long crc_seed,
-                        unsigned long *crc_out, const char *pwd)
+                        uint32_t dec_len, uint32_t crc_seed,
+                        uint32_t *crc_out, const char *pwd)
 {
     mr_t mr;
     mw_t mw;
     unsigned char *cmp = 0;
-    unsigned long clen;
+    uint32_t clen;
     uhcrypt04_t *cr = 0;
     int rc;
     size_t got;
@@ -236,12 +233,12 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     return UHA04_OK;
 }
 
-unsigned long uha04_nfiles(uha04_t *h)
+uint32_t uha04_nfiles(uha04_t *h)
 {
     return h ? h->nfiles : 0;
 }
 
-const uha04_entry *uha04_entry_get(uha04_t *h, unsigned long idx)
+const uha04_entry *uha04_entry_get(uha04_t *h, uint32_t idx)
 {
     if (!h || idx >= h->nfiles) return 0;
     return &h->entries[idx];
@@ -265,10 +262,10 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
     uha04_t *h;
     int rc;
     long tab0_off, tab1_off, tab2_off, tab3_off;
-    unsigned long nfiles, ndirs;
+    uint32_t nfiles, ndirs;
     unsigned char *tab0 = 0, *tab1 = 0, *tab2 = 0, *tab3 = 0;
-    unsigned long crc;
-    unsigned long i;
+    uint32_t crc;
+    uint32_t i;
     int have_pw;
     int use_pw;
     const char *tpwd;
@@ -406,10 +403,10 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
         return UHA04_ERR_NOMEM;
     }
     {
-        unsigned long p1 = 0, p2 = 0;
-        unsigned long dirs_total = 0, strs_total = 0;
+        uint32_t p1 = 0, p2 = 0;
+        uint32_t dirs_total = 0, strs_total = 0;
         unsigned k;
-        unsigned long *dir_offs = 0;
+        uint32_t *dir_offs = 0;
         char *strp = 0;
 
         for (k = 0; k < ndirs; k++) {
@@ -434,7 +431,7 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
             uha04_close(h);
             return UHA04_ERR_NOMEM;
         }
-        dir_offs = (unsigned long *)malloc(sizeof(unsigned long) * (ndirs ? ndirs : 1));
+        dir_offs = (uint32_t *)malloc(sizeof(uint32_t) * (ndirs ? ndirs : 1));
         if (!dir_offs && ndirs) {
             free(tab0); free(tab1); free(tab2); free(tab3);
             uha04_close(h);
@@ -453,7 +450,7 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
             uha04_entry *e = &h->entries[i];
             unsigned dd, tt, w0;
             unsigned char m;
-            unsigned long sz, c32;
+            uint32_t sz, c32;
             /* NOTE 0.4 tab2 plane order is dates-first (unlike 0.6
              * time-first). First N u16 = dosdate, next N u16 = dostime.
              * TODO verify against decoded tables once core2 works
@@ -464,12 +461,12 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
             tt = (unsigned)(tab2[2 * nfiles + 2 * i] |
                             (tab2[2 * nfiles + 2 * i + 1] << 8));
             w0 = (unsigned)(tab3[i] | (tab3[nfiles + i] << 8));
-            sz = (unsigned long)(tab3[2 * nfiles + i] |
+            sz = (uint32_t)(tab3[2 * nfiles + i] |
                                  (tab3[3 * nfiles + i] << 8) |
                                  (tab3[4 * nfiles + i] << 16) |
                                  (tab3[5 * nfiles + i] << 24));
             m = tab3[6 * nfiles + i];
-            c32 = (unsigned long)(tab0[4 * i] | (tab0[4 * i + 1] << 8) |
+            c32 = (uint32_t)(tab0[4 * i] | (tab0[4 * i + 1] << 8) |
                                   (tab0[4 * i + 2] << 16) |
                                   (tab0[4 * i + 3] << 24));
             e->time = tt; e->date = dd;
@@ -484,18 +481,18 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
          * Recover sizes iteratively: size_0 = -var_0,
          * size_i = size_{i-1} - var_i (32-bit wrap). */
         {
-            unsigned long k2;
-            unsigned long prev_sz = 0;
+            uint32_t k2;
+            uint32_t prev_sz = 0;
             for (k2 = 0; k2 < nfiles; k2++) {
-                unsigned long var = h->entries[k2].size & 0xFFFFFFFFUL;
-                unsigned long sz2;
+                uint32_t var = h->entries[k2].size & 0xFFFFFFFFUL;
+                uint32_t sz2;
                 if (k2 == 0) sz2 = (0UL - var) & 0xFFFFFFFFUL;
                 else sz2 = (prev_sz - var) & 0xFFFFFFFFUL;
                 h->entries[k2].size = sz2;
                 prev_sz = sz2;
             }
             {
-                unsigned long off2 = 0;
+                uint32_t off2 = 0;
                 for (k2 = 0; k2 < nfiles; k2++) {
                     h->entries[k2].offset = off2;
                     off2 = (off2 + h->entries[k2].size) & 0xFFFFFFFFUL;
@@ -503,7 +500,7 @@ int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd)
             }
         }
         {
-            unsigned long q = 0;
+            uint32_t q = 0;
             unsigned kk;
             for (kk = 0; kk < ndirs; kk++) {
                 unsigned l = tab1[q++];
@@ -565,13 +562,13 @@ void uha04_close(uha04_t *h)
 
 typedef struct u4_mr_s {
     const unsigned char *b;
-    unsigned long n, p;
+    uint32_t n, p;
 } u4_mr;
 
 static int u4_read(void *ctx, unsigned char *buf, unsigned want)
 {
     u4_mr *m = (u4_mr *)ctx;
-    unsigned long avail = m->n - m->p;
+    uint32_t avail = m->n - m->p;
     if (!avail) return 0;
     if (want > avail) want = (unsigned)avail;
     memcpy(buf, m->b + m->p, want);
@@ -580,20 +577,24 @@ static int u4_read(void *ctx, unsigned char *buf, unsigned want)
 }
 
 /* header +9 flags_filt: bit0 EXE, bit1 multimedia, bit7 fax
- * (size 0x7D4C0).  Decode order fax, else EXE then multimedia. */
-static int g_uha04_exe;
-static int g_uha04_mm;
-static int g_uha04_fax;
+ * (size 0x7D4C0).  Decode order fax, else EXE then multimedia.
+ * The flags travel with the call, not in a static. */
+typedef struct u4_filt_s {
+    int exe;
+    int mm;
+    int fax;
+} u4_filt;
 
-static void uha04_unfilter(unsigned char *buf, unsigned long len)
+static void uha04_unfilter(unsigned char *buf, unsigned long len, void *ctx)
 {
-    if (g_uha04_fax && len == 513216UL) {
+    u4_filt *f = (u4_filt *)ctx;
+    if (f->fax && len == 513216UL) {
         uharc_filter_fax(buf, len);
         return;
     }
-    if (g_uha04_exe)
+    if (f->exe)
         uharc_filter_exe(buf, len, 4, 0);
-    if (g_uha04_mm)
+    if (f->mm)
         uha02_mm_unfilter(buf, len);
 }
 
@@ -603,7 +604,7 @@ int uha04_extract(uha04_t *h, const char *outdir,
     unsigned char *packed = 0;
     uharc_split_entry *se = 0;
     u4_mr mr;
-    unsigned long i, total = 0;
+    uint32_t i, total = 0;
     size_t got;
     int rc;
     uhcrypt04_t *scr = 0;
@@ -646,19 +647,22 @@ int uha04_extract(uha04_t *h, const char *outdir,
         total += se[i].size;
     }
     mr.b = packed; mr.n = h->hdr.base_e01; mr.p = 0;
-    g_uha04_exe = (h->hdr.flags_filt & 1) ? 1 : 0;
-    g_uha04_mm = (h->hdr.flags_filt & 2) ? 1 : 0;
-    g_uha04_fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
+    {
+    u4_filt filt;
+    filt.exe = (h->hdr.flags_filt & 1) ? 1 : 0;
+    filt.mm = (h->hdr.flags_filt & 2) ? 1 : 0;
+    filt.fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
 #if defined(DEC4_ARENA)
+    /* The arena port still keeps this flag in a static. The typed port
+     * receives it on the split call and stores it on the decode context. */
     uharc_dec4v_set_flags2((unsigned char)h->hdr.flags_filt);
-#else
-    /* the typed-state core-4 port has its own copy of the flag */
-    uharc_dec4vc_set_flags2((unsigned char)h->hdr.flags_filt);
 #endif
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 4,
-                         (g_uha04_exe || g_uha04_mm || g_uha04_fax) ? uha04_unfilter : 0,
-                         u4_read, &mr, total);
+                         (filt.exe || filt.mm || filt.fax) ? uha04_unfilter : 0,
+                         &filt, u4_read, &mr, total,
+                         (unsigned char)h->hdr.flags_filt);
+    }
     free(packed);
     free(se);
     switch (rc) {

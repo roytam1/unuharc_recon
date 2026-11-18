@@ -20,11 +20,13 @@ int main(int argc, char **argv)
     if (rc != 0) return 1;
     printf("flags_pw=%02X flags_filt=%02X unk_dfa=%02X ndirs=%lu unk_dfd=%lu\n",
         h.flags_pw, h.flags_filt, h.unk_dfa, (unsigned long)h.ndirs,
-        h.unk_dfd);
+        (unsigned long)h.unk_dfd);
     printf("base_e01=%lu nfiles=%lu names_len=%lu\n",
-        h.base_e01, h.nfiles, h.names_len);
+        (unsigned long)h.base_e01, (unsigned long)h.nfiles,
+        (unsigned long)h.names_len);
     printf("cmp1=%lu cmp2=%lu cmp3=%lu crc1=%04X crc2=%04X crc3=%04X hdr=%04X\n",
-        h.cmp_sz1, h.cmp_sz2, h.cmp_sz3,
+        (unsigned long)h.cmp_sz1, (unsigned long)h.cmp_sz2,
+        (unsigned long)h.cmp_sz3,
         h.crc1, h.crc2, h.crc3, h.hdr_crc);
     printf("time=%04X date=%04X\n", h.dostime, h.dosdate);
     return 0;

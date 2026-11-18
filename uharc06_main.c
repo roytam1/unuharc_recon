@@ -192,7 +192,7 @@ int main(int argc, char **argv)
             arc, hh->unk_dfa, n, total);
         for (i = 0; i < n; i++) {
             const uha04_entry *e = uha04_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
+            if (e) printf("  %s (%lu bytes)\n", e->path, (unsigned long)e->size);
         }
         if (list_only) {
             uha04_close(h);

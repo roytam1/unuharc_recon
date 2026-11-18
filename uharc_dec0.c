@@ -280,6 +280,7 @@ int uharc_dec4vc_decode_b(void *ctx,
                          uharc_dec_write_cb wcb, void *wctx,
                          unsigned long out_len);
 void uharc_dec4vc_free(void *ctx);
+void uharc_dec4vc_set_flags2(void *ctx, unsigned char flags2);
 struct uharc_dec5;
 typedef struct uharc_dec5 uharc_dec5_t;
 uharc_dec5_t *uharc_dec5_init(int method);
@@ -355,7 +356,7 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
                        const unsigned long *cum, unsigned long ncum,
                        uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
-                       unsigned long out_len)
+                       unsigned long out_len, unsigned char flags2)
 {
     dec_state s;
     unsigned char *inb;
@@ -363,6 +364,7 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
     unsigned in_cap, out_cap;
     int core, ret;
 
+    (void)flags2;
     if (out_len == 0) return 0;
     if (!rcb || !wcb) return 1;
     if (method < 0 || method > 87) return 1;
@@ -470,6 +472,7 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
             /* typed-state port; the arena port stays behind -DDEC4_ARENA */
             ret = uharc_dec4vc_init(&c4, method);
             if (ret == 0) {
+                uharc_dec4vc_set_flags2(c4, flags2);
                 ret = uharc_dec4vc_decode_b(c4, cum, ncum, rcb, rctx, wcb,
                                             wctx, out_len);
                 uharc_dec4vc_free(c4);
@@ -565,7 +568,7 @@ int uharc_dec_decode_v(int method, int core2_lsb, int ver,
                        unsigned long out_len)
 {
     return uharc_dec_decode_b(method, core2_lsb, ver, 0, 0UL,
-                              rcb, rctx, wcb, wctx, out_len);
+                              rcb, rctx, wcb, wctx, out_len, 0);
 }
 
 /* MSB-first (0.6) entry point kept for existing callers */

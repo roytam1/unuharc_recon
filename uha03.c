@@ -591,8 +591,9 @@ static int g_uha03_exe;
 static int g_uha03_mm;
 static int g_uha03_fax;
 
-static void uha03_unfilter(unsigned char *buf, unsigned long len)
+static void uha03_unfilter(unsigned char *buf, unsigned long len, void *ctx)
 {
+    (void)ctx;
     if (g_uha03_fax && len == 513216UL) {
         uharc_filter_fax(buf, len);
         return;
@@ -664,7 +665,8 @@ int uha03_extract(uha03_t *h, const char *outdir,
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 3,
                          (g_uha03_exe || g_uha03_mm || g_uha03_fax) ? uha03_unfilter : 0,
-                         u3_read, &mr, total);
+                         0, u3_read, &mr, total,
+                         (unsigned char)h->hdr.flags_filt);
     free(packed);
     free(se);
     switch (rc) {

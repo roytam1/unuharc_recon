@@ -25,7 +25,8 @@ import re
 import sys
 from collections import Counter
 
-HDR = re.compile(r'#define\s+(\w+)\s+(0x[0-9A-Fa-f]+)UL')
+HDR = re.compile(
+    r'#define\s+(\w+)\s+(?:\(\(uint32_t\))?(0x[0-9A-Fa-f]+)(?:u|UL)?\)?')
 USE = re.compile(r'\b(G|M)(8|16|32)\s*\(\s*(\w+)\s*\)')
 
 
@@ -72,7 +73,7 @@ def parse_uses(path, defs=None, regions=None):
             # the byte-wise helpers spell the cell as an absolute address,
             # and the width is the one in the helper's name
             for m2 in re.finditer(r'\bd[34][a-z]*u_(?:ld|st)(8|16|32)\s*\(\s*c\s*,\s*'
-                                  r'\(unsigned long\)\(\s*%s\b' % re.escape(name), src):
+                                  r'\((?:unsigned long|uint32_t)\)\(\s*%s\b' % re.escape(name), src):
                 widths.setdefault(name, Counter())[("t", int(m2.group(1)))] += 1
     return widths, dynamic
 
@@ -134,12 +135,14 @@ def main():
     lines.append("#ifndef %s_STATE_H" % prefix.upper())
     lines.append("#define %s_STATE_H" % prefix.upper())
     lines.append("")
+    lines.append("#include \"uha_types.h\"")
+    lines.append("")
     lines.append("typedef struct %s_state {" % prefix)
-    lines.append("    unsigned char *mem;")
+    lines.append("    uint8_t *mem;")
     raws = []
     aliases = {}
     for b, e in regions:
-        lines.append("    unsigned char fx_%06X[%d];   /* 0x%06X..0x%06X */"
+        lines.append("    uint8_t fx_%06X[%d];   /* 0x%06X..0x%06X */"
                      % (b, e - b, b, e))
     for name in sorted(used, key=lambda n: defs[n]):
         a = defs[name]
@@ -155,12 +158,12 @@ def main():
             continue
         if len(ws) > 1 or name in dynamic:
             raws.append(name)
-            lines.append("    unsigned char %s_raw[%d];   /* 0x%06X, %s */"
+            lines.append("    uint8_t %s_raw[%d];   /* 0x%06X, %s */"
                          % (name.lower(), size[a], a,
                             "+".join(str(w) for w in ws) + " bit"))
         else:
-            ctype = {8: "unsigned char", 16: "unsigned short",
-                     32: "unsigned int"}[ws[0]]
+            ctype = {8: "uint8_t", 16: "uint16_t",
+                     32: "uint32_t"}[ws[0]]
             lines.append("    %s %s;   /* 0x%06X */" % (ctype, name.lower(), a))
     lines.append("} %s_state;" % prefix)
     lines.append("")
@@ -170,11 +173,11 @@ def main():
     for name in sorted(used, key=lambda n: defs[n]):
         if name in aliases:
             base, off, isdyn = aliases[name]
-            arr = "((unsigned char *)(s)->fx_%06X + %dUL)" % (base, off)
+            arr = "((uint8_t *)(s)->fx_%06X + %du)" % (base, off)
             ws = sorted(set(w for (_k, w) in widths[name]))
             for w in ws:
-                ctype = {8: "unsigned char", 16: "unsigned short",
-                         32: "unsigned int"}[w]
+                ctype = {8: "uint8_t", 16: "uint16_t",
+                         32: "uint32_t"}[w]
                 if True:
                     lines.append("#define %s_%d(s, a) (*(%s *)(void *)(%s + (a)))"
                                  % (name, w, ctype, arr))
@@ -184,15 +187,15 @@ def main():
             continue
         if name in raws:
             base = "(s)->%s_raw" % name.lower()
-            lines.append("#define %s_8(s, a)  ((unsigned char *)%s)[(a)]" % (name, base))
-            lines.append("#define %s_16(s, a) (*(unsigned short *)(void *)((unsigned char *)%s + (a)))"
+            lines.append("#define %s_8(s, a)  ((uint8_t *)%s)[(a)]" % (name, base))
+            lines.append("#define %s_16(s, a) (*(uint16_t *)(void *)((uint8_t *)%s + (a)))"
                          % (name, base))
-            lines.append("#define %s_32(s, a) (*(unsigned int *)(void *)((unsigned char *)%s + (a)))"
+            lines.append("#define %s_32(s, a) (*(uint32_t *)(void *)((uint8_t *)%s + (a)))"
                          % (name, base))
         else:
             w = sorted(set(w for (_k, w) in widths[name]))[0]
-            ctype = {8: "unsigned char", 16: "unsigned short",
-                     32: "unsigned int"}[w]
+            ctype = {8: "uint8_t", 16: "uint16_t",
+                     32: "uint32_t"}[w]
             # the field keeps the dominant width; the narrower views are
             # read-only narrowings (the original never writes them).
             lines.append("#define %s_%d(s) ((s)->%s)" % (name, w, name.lower()))

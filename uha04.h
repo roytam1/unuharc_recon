@@ -6,6 +6,8 @@
 #ifndef UHA04_H
 #define UHA04_H
 
+#include "uha_types.h"
+
 #define UHA04_OK 0
 #define UHA04_ERR_IO 1
 #define UHA04_ERR_NOMEM 2
@@ -19,31 +21,31 @@
 typedef struct uha04_entry_s {
     unsigned dir_index;
     unsigned char method;
-    unsigned long size;
-    unsigned long crc;
+    uint32_t size;
+    uint32_t crc;
     unsigned date;
     unsigned time;
     char *dir;
     char *name;
     char *path;
-    unsigned long offset;
+    uint32_t offset;
 } uha04_entry;
 
 typedef struct uha04_header_s {
-    unsigned long magic;
+    uint32_t magic;
     unsigned dostime;
     unsigned dosdate;
     unsigned char flags_pw;
     unsigned char flags_filt;
     unsigned char unk_dfa;
     unsigned ndirs;
-    unsigned long unk_dfd;
-    unsigned long base_e01;
-    unsigned long nfiles;
-    unsigned long names_len;
-    unsigned long cmp_sz1;
-    unsigned long cmp_sz2;
-    unsigned long cmp_sz3;
+    uint32_t unk_dfd;
+    uint32_t base_e01;
+    uint32_t nfiles;
+    uint32_t names_len;
+    uint32_t cmp_sz1;
+    uint32_t cmp_sz2;
+    uint32_t cmp_sz3;
     unsigned crc1;
     unsigned crc2;
     unsigned crc3;
@@ -62,16 +64,16 @@ int uha04_open(const char *path, uha04_t **ph);
  * like uha04_open; a protected archive without a password fails with
  * UHA04_ERR_PASSWORD. */
 int uha04_open_pw(const char *path, uha04_t **ph, const char *pwd);
-unsigned long uha04_nfiles(uha04_t *h);
-const uha04_entry *uha04_entry_get(uha04_t *h, unsigned long idx);
+uint32_t uha04_nfiles(uha04_t *h);
+const uha04_entry *uha04_entry_get(uha04_t *h, uint32_t idx);
 const uha04_header *uha04_header_get(uha04_t *h);
 int uha04_extract(uha04_t *h, const char *outdir,
                   int with_paths, int test_only);
 void uha04_close(uha04_t *h);
 const char *uha04_strerror(int code);
 
-unsigned long uha04_crc32(const unsigned char *buf, unsigned len,
-                          unsigned long crc);
+uint32_t uha04_crc32(const unsigned char *buf, unsigned len,
+                     uint32_t crc);
 void uha04_header_decrypt(unsigned char hdr[44]);
 int uha04_header_parse(const unsigned char raw[44],
                        uha04_header *h);

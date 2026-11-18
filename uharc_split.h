@@ -30,9 +30,10 @@ typedef struct uharc_split_entry_s {
 int uharc_split_run(const char *outdir, int with_paths, int test_only,
                     const uharc_split_entry *ents, unsigned long nfiles,
                     int method, int ver,
-                    void (*unfilter)(unsigned char *, unsigned long),
+                    void (*unfilter)(unsigned char *, unsigned long, void *),
+                    void *unfilter_ctx,
                     uharc_dec_read_cb rcb, void *rctx,
-                    unsigned long out_expected);
+                    unsigned long out_expected, unsigned char flags2);
 
 /* error codes (subset, mirrors containers) */
 #define USPLIT_OK 0
