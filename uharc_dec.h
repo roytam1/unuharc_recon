@@ -47,7 +47,18 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
                        const unsigned long *cum, unsigned long ncum,
                        uharc_dec_read_cb rcb, void *rctx,
                        uharc_dec_write_cb wcb, void *wctx,
-                       unsigned long out_len);
+                       unsigned long out_len, unsigned char flags2);
+
+/* Decode one 0.4 core-4 block (methods 24..39) from callbacks.
+ * flags2 is archive header byte +9. cum is the cumulative unpacked
+ * file-end table, or NULL for a single block. The element width of
+ * cum stays unsigned long. Returns 0, or 1 bad args, 2 nomem,
+ * 3 short input, 4 short output. */
+int uharc_dec4_mem(int method, unsigned char flags2,
+                   const unsigned long *cum, unsigned long ncum,
+                   uharc_dec_read_cb rcb, void *rctx,
+                   uharc_dec_write_cb wcb, void *wctx,
+                   unsigned long out_len);
 
 /* version-aware core selector (-1 = unknown method) */
 int uharc_dec_core_v(int method, int ver);

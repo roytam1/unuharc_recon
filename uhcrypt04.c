@@ -26,6 +26,7 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#include "uha_types.h"
 #include "uhcrypt04.h"
 
 struct uhcrypt04 {
@@ -34,10 +35,10 @@ struct uhcrypt04 {
     unsigned char mix;
 };
 
-static void uh04_crc_tab(unsigned long tab[256])
+static void uh04_crc_tab(uint32_t tab[256])
 {
     unsigned i, j;
-    unsigned long c;
+    uint32_t c;
     for (i = 0; i < 256; i++) {
         c = i;
         for (j = 0; j < 8; j++) {
@@ -48,7 +49,7 @@ static void uh04_crc_tab(unsigned long tab[256])
     }
 }
 
-static unsigned long uh04_crc32(unsigned long tab[256], unsigned long crc,
+static uint32_t uh04_crc32(uint32_t tab[256], uint32_t crc,
     const unsigned char *d, unsigned n)
 {
     unsigned i;
@@ -61,9 +62,9 @@ static uhcrypt04_t *uhcrypt04_init_with(const char *pwd, unsigned pwdlen)
 {
     uhcrypt04_t *c;
     unsigned char sb[256];
-    unsigned long tab[256];
+    uint32_t tab[256];
     unsigned var4, ecx, off, k;
-    unsigned long crc;
+    uint32_t crc;
     c = (uhcrypt04_t *)malloc(sizeof(*c));
     if (!c) return 0;
     var4 = pwdlen;

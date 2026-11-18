@@ -1015,7 +1015,7 @@ int uharc06_extract(uharc06_t *h, const char *outdir,
 #endif
     drc = uharc_dec_decode_b((int)h->hdr.method, 0, 6, cum, h->nfiles,
                              mr_read, &mr, uharc06_split_write, 0,
-                             h->hdr.total_size);
+                             h->hdr.total_size, 0);
     if (g_sp_crc_err) rc = UHARC06_ERR_CRC;
     else if (drc == 2) rc = UHARC06_ERR_NOMEM;
     else if (drc != 0) rc = UHARC06_ERR_DATA;

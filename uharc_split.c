@@ -22,7 +22,8 @@ typedef struct split_ctx_s {
     const char *outdir;
     int with_paths;
     int test_only;
-    void (*unfilter)(unsigned char *, unsigned long);
+    void (*unfilter)(unsigned char *, unsigned long, void *);
+    void *unfilter_ctx;
     FILE *cur;
     unsigned long crc;
     unsigned char *fbuf;       /* whole-file buffer when filtering */
@@ -170,7 +171,7 @@ static int split_write(void *ctx, const unsigned char *buf, unsigned len)
             unsigned long ci = s->idx;
             if (s->factive) {
                 unsigned long sz = s->ents[ci].size & 0xFFFFFFFFUL;
-                s->unfilter(s->fbuf, s->fpos);
+                s->unfilter(s->fbuf, s->fpos, s->unfilter_ctx);
                 if (!s->test_only && s->cur) {
                     size_t w = fwrite(s->fbuf, 1, (size_t)s->fpos, s->cur);
                     if (w != (size_t)s->fpos) {
@@ -210,9 +211,10 @@ static int split_write(void *ctx, const unsigned char *buf, unsigned len)
 int uharc_split_run(const char *outdir, int with_paths, int test_only,
                     const uharc_split_entry *ents, unsigned long nfiles,
                     int method, int ver,
-                    void (*unfilter)(unsigned char *, unsigned long),
+                    void (*unfilter)(unsigned char *, unsigned long, void *),
+                    void *unfilter_ctx,
                     uharc_dec_read_cb rcb, void *rctx,
-                    unsigned long out_expected)
+                    unsigned long out_expected, unsigned char flags2)
 {
     split_ctx s;
     unsigned long *cum = 0;
@@ -226,6 +228,7 @@ int uharc_split_run(const char *outdir, int with_paths, int test_only,
     s.with_paths = with_paths;
     s.test_only = test_only;
     s.unfilter = unfilter;
+    s.unfilter_ctx = unfilter_ctx;
     s.crc = 0xFFFFFFFFUL;
 
     /* leading empty files */
@@ -269,7 +272,7 @@ int uharc_split_run(const char *outdir, int with_paths, int test_only,
     }
 
     rc = uharc_dec_decode_b(method, 1, ver, cum, ncum, rcb, rctx,
-                            split_write, &s, out_expected);
+                            split_write, &s, out_expected, flags2);
     if (cum) free(cum);
     if (s.cur) { fclose(s.cur); s.cur = 0; }
     free(s.fbuf);
