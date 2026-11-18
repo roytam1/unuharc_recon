@@ -29,7 +29,9 @@ only correct when translated from the listing.
 | **0.6** | complete | yes | yes | yes (MSB) | yes (8–23) | **yes** | yes (40–87) | 24–39 yes |
 
 "Container" means header decryption, CRC, directory tables, listing, solid
-stream split and per-file CRC verification.
+stream split and per-file CRC verification. The codec column headers are
+the project's historical core labels; see **Codec names** below for how
+they map to the archiver's public names (ALZ / PPM / LZP / LZ78).
 
 0.6 core 4 is byte-exact against the native oracle on every archived
 sample present: method 27 (`06_mx`), method 34 (`D3X.UHA`, 45/45 files)
@@ -129,8 +131,15 @@ gcc -std=c89 -Wall -Wextra -O2 -o uharc06_unpack.exe ^
   uhcrypt06.c uhcrypt04.c uharc_split.c uharc_filter.c uha02_mm.c ^
   uharc_dec0.c uharc_dec2.c uharc_dec2_lsb.c uharc_dec3.c ^
   uha02_dec3.c uha03_dec3.c uha04_dec3.c ^
-  uharc_dec4.c uharc_dec5.c uha03_dec5.c uha04_dec5.c
+  uha03_dec5.c uha04_dec5.c uharc_dec5.c ^
+  uharc_dec4_clean.c ^
+  uha03_dec4_dg.c uha03_dec4_clean.c ^
+  uha04_dec4_seed.c uha04_dec4_clean.c uha04_dec4_lzp.c ^
+  uha04_dec4_ppm.c uha04_dec4_rc.c
 ```
+
+This is the production build: it links the typed core-4 ports, not the
+arena reference (`uharc_dec4.c`, `uha03_dec4.c`, `uha04_dec4.c`).
 
 `make` also builds the header and decoder test programs (`hdrtest*.exe`,
 `test_tab.exe`, `test_dec3.exe`) and the two core-4 self-tests:
@@ -214,12 +223,15 @@ uharc06_main.c                 CLI: version detect + dispatch
    ├─ uha02_dec3.c             0.2 core 3
    ├─ uharc_dec4_clean.c       0.6 core 4 — production decoder (typed port)
    ├─ uharc_dec4.c             0.6 core 4 — arena reference port
-   ├─ uha04_dec4_clean.c       0.4 core 4 — production decoder (typed port)
+   ├─ uha04_dec4_seed.c        0.4 core 4 — live DGROUP slices + typed state
+   ├─ uha04_dec4_clean.c       ┐
+   ├─ uha04_dec4_lzp.c         ├ 0.4 core 4 — production decoder (typed port)
+   ├─ uha04_dec4_ppm.c         │
+   ├─ uha04_dec4_rc.c          ┘
    ├─ uha04_dec4.c             0.4 core 4 — arena reference port
+   ├─ uha03_dec4_dg.c          0.3 core 4 — DGROUP image slice
    ├─ uha03_dec4_clean.c       0.3 core 4 — production decoder (typed port)
    ├─ uha03_dec4.c             0.3 core 4 — arena reference port
-   ├─ uha04_dec4.c             0.4 core 4 (methods 24–39) + DGROUP image
-   │                            (`uha04_dec4_dg.c`, copied into the arena)
    ├─ uharc_dec5.c             0.6 core 5
    ├─ uha03_dec5.c             0.3 core 5
    └─ uha04_dec5.c             0.4 core 5
@@ -270,6 +282,15 @@ Dictionary size is `1 << (((method - base) % span) + 10)`:
 | 0.3 | `base 8, span 14` | `base 22, span 14` | `base 36, span 14` |
 | 0.4 | `base 8, span 16` | `base 24, span 16` | `base 40, span 16` |
 | 0.6 | `base 8, span 16` | `base 24, span 16` | `base 40, span 16` |
+
+**Codec names.** The archiver's public names are ALZ (`-m1`/`-m2`/`-m3`,
+methods 40–87), PPM (`-mx`, methods 24–39), LZP (`-mz`, methods 8–23) and
+LZ78 (`-mw`, methods 2–7). The "core N" labels in the tables above are the
+project's historical names for these decoders and do not always line up
+with the public ones. The semantic name maps in the core sources use the
+public names: `uharc_dec5.c` documents core 5 as ALZ, `uharc_dec4_clean.c`
+as PPM, `uharc_dec3.c` as LZP and `uharc_dec2.c` as LZ78, following the
+independent clean C99 implementation in [`seb3773-uharc/`](seb3773-uharc/).
 
 ## Test corpus
 
@@ -405,6 +426,13 @@ the 0.6 arena reference, which is kept as the oracle for differential
 debugging. `tools/rename_local.py` renames one local at a time inside
 the function that declares it.
 
+On top of that, each hand-written core port carries a **semantic name map**
+in its header comment: the original DGROUP/register identifiers are paired
+with the equivalent concepts in `seb3773-uharc`'s clean C99 codecs (LZ78,
+LZP, PPM, ALZ). These are reading aids only — no identifier is renamed, so
+the byte-exact ports are untouched. The generated typed core-4 ports do not
+carry them, since `tools/port_to_typed.py` would drop hand-written comments.
+
 ### Core 4 implementation notes
 
 All three versions have two core-4 decoders:
@@ -490,3 +518,6 @@ counts live in `c->ppm_tot`, the per-symbol "last position" table is
 * [`FORMAT.md`](FORMAT.md) — on-disk format reference for all four versions.
 * [`UHCLS_CREATE.md`](UHCLS_CREATE.md) — the 0.3 CLASS edition, its
   `CLS\xFF` signature, and `patch_uhcls.py`.
+* [`seb3773-uharc/`](seb3773-uharc/) — independent clean C99 reimplementation
+  of UHARC 0.6b (compressor + decompressor). Used here only as a
+  cross-reference for codec concepts and semantic naming; no code is shared.
