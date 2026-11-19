@@ -239,7 +239,7 @@ int main(int argc, char **argv)
             arc, hh->unk_dfa, n, total);
         for (i = 0; i < n; i++) {
             const uha03_entry *e = uha03_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
+            if (e) printf("  %s (%lu bytes)\n", e->path, (unsigned long)e->size);
         }
         if (list_only) {
             uha03_close(h);
@@ -275,10 +275,10 @@ int main(int argc, char **argv)
         hh = uha02_header_get(h);
         n = uha02_nfiles(h);
         printf("Processing archive \"%s\" (UHA 0.2, method %u, %lu files, %lu bytes).\n",
-            arc, hh->method, n, hh->total_size);
+            arc, hh->method, n, (unsigned long)hh->total_size);
         for (i = 0; i < n; i++) {
             const uha02_entry *e = uha02_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
+            if (e) printf("  %s (%lu bytes)\n", e->path, (unsigned long)e->size);
         }
         if (list_only) {
             uha02_close(h);
