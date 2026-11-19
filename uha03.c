@@ -17,16 +17,16 @@
 int uharc_dec4uc_set_flags2(unsigned char flags2);
 
 
-static unsigned long crc_tab[256];
+static uint32_t crc_tab[256];
 static int crc_init = 0;
 
 static void crc_make(void)
 {
     unsigned i, j;
-    unsigned long c;
+    uint32_t c;
     if (crc_init) return;
     for (i = 0; i < 256; i++) {
-        c = i;
+        c = (uint32_t)i;
         for (j = 0; j < 8; j++) {
             if (c & 1) c = 0xEDB88320UL ^ (c >> 1);
             else c >>= 1;
@@ -36,8 +36,8 @@ static void crc_make(void)
     crc_init = 1;
 }
 
-unsigned long uha03_crc32(const unsigned char *buf, unsigned len,
-                          unsigned long crc)
+uint32_t uha03_crc32(const unsigned char *buf, unsigned len,
+                     uint32_t crc)
 {
     unsigned i;
     crc_make();
@@ -61,21 +61,22 @@ static unsigned rd16le(const unsigned char *p)
     return (unsigned)(p[0] | (p[1] << 8));
 }
 
-static unsigned long rd24le(const unsigned char *p)
+static uint32_t rd24le(const unsigned char *p)
 {
-    return (unsigned long)(p[0] | (p[1] << 8) | (p[2] << 16));
+    return (uint32_t)(p[0] | (p[1] << 8) | (p[2] << 16));
 }
 
-static unsigned long rd32le(const unsigned char *p)
+static uint32_t rd32le(const unsigned char *p)
 {
-    return (unsigned long)(p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24));
+    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) |
+           ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
 int uha03_header_parse(const unsigned char raw[44],
                        uha03_header *h)
 {
     unsigned char b[44];
-    unsigned long crc;
+    uint32_t crc;
     unsigned i;
     memcpy(b, raw, 44);
     if (!(b[0] == 0x55 && b[1] == 0x48 && b[2] == 0x41 && b[3] == 0x03))
@@ -112,7 +113,7 @@ struct uha03_s {
     FILE *fp;
     char *path;
     uha03_header hdr;
-    unsigned long nfiles;
+    uint32_t nfiles;
     uha03_entry *entries;
     char *strpool;
     long data_start;
@@ -241,12 +242,12 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_len,
     return UHA03_OK;
 }
 
-unsigned long uha03_nfiles(uha03_t *h)
+uint32_t uha03_nfiles(uha03_t *h)
 {
     return h ? h->nfiles : 0;
 }
 
-const uha03_entry *uha03_entry_get(uha03_t *h, unsigned long idx)
+const uha03_entry *uha03_entry_get(uha03_t *h, uint32_t idx)
 {
     if (!h || idx >= h->nfiles) return 0;
     return &h->entries[idx];
@@ -414,7 +415,7 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
         unsigned long p1 = 0, p2 = 0;
         unsigned long dirs_total = 0, strs_total = 0;
         unsigned k;
-        unsigned long *dir_offs = 0;
+        uint32_t *dir_offs = 0;
         char *strp = 0;
 
         for (k = 0; k < ndirs; k++) {
@@ -439,7 +440,7 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
             uha03_close(h);
             return UHA03_ERR_NOMEM;
         }
-        dir_offs = (unsigned long *)malloc(sizeof(unsigned long) * (ndirs ? ndirs : 1));
+        dir_offs = (uint32_t *)malloc(sizeof(uint32_t) * (ndirs ? ndirs : 1));
         if (!dir_offs && ndirs) {
             free(tab0); free(tab1); free(tab2); free(tab3);
             uha03_close(h);
@@ -458,7 +459,7 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
             uha03_entry *e = &h->entries[i];
             unsigned dd, tt, w0;
             unsigned char m;
-            unsigned long sz, c32;
+            uint32_t sz, c32;
             /* NOTE 0.3 tab2 plane order is dates-first (unlike 0.6
              * time-first). First N u16 = dosdate, next N u16 = dostime.
              * TODO verify against decoded tables once core2 works
@@ -469,19 +470,20 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
             tt = (unsigned)(tab2[2 * nfiles + 2 * i] |
                             (tab2[2 * nfiles + 2 * i + 1] << 8));
             w0 = (unsigned)(tab3[i] | (tab3[nfiles + i] << 8));
-            sz = (unsigned long)(tab3[2 * nfiles + i] |
-                                 (tab3[3 * nfiles + i] << 8) |
-                                 (tab3[4 * nfiles + i] << 16) |
-                                 (tab3[5 * nfiles + i] << 24));
+            sz = (uint32_t)tab3[2 * nfiles + i] |
+                 ((uint32_t)tab3[3 * nfiles + i] << 8) |
+                 ((uint32_t)tab3[4 * nfiles + i] << 16) |
+                 ((uint32_t)tab3[5 * nfiles + i] << 24);
             m = tab3[6 * nfiles + i];
-            c32 = (unsigned long)(tab0[4 * i] | (tab0[4 * i + 1] << 8) |
-                                  (tab0[4 * i + 2] << 16) |
-                                  (tab0[4 * i + 3] << 24));
+            c32 = (uint32_t)tab0[4 * i] |
+                  ((uint32_t)tab0[4 * i + 1] << 8) |
+                  ((uint32_t)tab0[4 * i + 2] << 16) |
+                  ((uint32_t)tab0[4 * i + 3] << 24);
             e->time = tt; e->date = dd;
             e->dir_index = w0; e->method = m;
             /* raw var (negative cumulative, like 0.6 sub_403C28).
              * Converted to sizes below via differences. */
-            e->size = sz & 0xFFFFFFFFUL; e->crc = c32;
+            e->size = sz; e->crc = c32;
             e->offset = 0;
             e->dir = ""; e->name = ""; e->path = "";
         }
@@ -489,21 +491,21 @@ int uha03_open_pw(const char *path, uha03_t **ph, const char *pwd)
          * Recover sizes iteratively: size_0 = -var_0,
          * size_i = size_{i-1} - var_i (32-bit wrap). */
         {
-            unsigned long k2;
-            unsigned long prev_sz = 0;
+            uint32_t k2;
+            uint32_t prev_sz = 0;
             for (k2 = 0; k2 < nfiles; k2++) {
-                unsigned long var = h->entries[k2].size & 0xFFFFFFFFUL;
-                unsigned long sz2;
-                if (k2 == 0) sz2 = (0UL - var) & 0xFFFFFFFFUL;
-                else sz2 = (prev_sz - var) & 0xFFFFFFFFUL;
+                uint32_t var = h->entries[k2].size;
+                uint32_t sz2;
+                if (k2 == 0) sz2 = 0U - var;
+                else sz2 = prev_sz - var;
                 h->entries[k2].size = sz2;
                 prev_sz = sz2;
             }
             {
-                unsigned long off2 = 0;
+                uint32_t off2 = 0;
                 for (k2 = 0; k2 < nfiles; k2++) {
                     h->entries[k2].offset = off2;
-                    off2 = (off2 + h->entries[k2].size) & 0xFFFFFFFFUL;
+                    off2 = off2 + h->entries[k2].size;
                 }
             }
         }

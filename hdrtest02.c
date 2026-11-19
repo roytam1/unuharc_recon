@@ -21,10 +21,12 @@ int main(int argc, char **argv)
     printf("reserved=%02X method=%u ndirs=%lu\n",
         h.reserved, h.method, (unsigned long)h.ndirs);
     printf("nfiles=%lu total=%lu data_len=%lu names_len=%lu\n",
-        h.nfiles, h.total_size, h.data_len, h.names_len);
+        (unsigned long)h.nfiles, (unsigned long)h.total_size,
+        (unsigned long)h.data_len, (unsigned long)h.names_len);
     printf("cmp1=%lu cmp2=%lu cmp3=%lu contents=%08lX hdr=%08lX\n",
-        h.cmp_sz1, h.cmp_sz2, h.cmp_sz3,
-        h.contents_crc, h.hdr_crc);
+        (unsigned long)h.cmp_sz1, (unsigned long)h.cmp_sz2,
+        (unsigned long)h.cmp_sz3,
+        (unsigned long)h.contents_crc, (unsigned long)h.hdr_crc);
     printf("time=%04X date=%04X\n", h.dostime, h.dosdate);
     return 0;
 }
