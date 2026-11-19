@@ -81,6 +81,7 @@
 #include <string.h>
 
 #include "uharc_dec.h"
+#include "uha_types.h"
 
 /* public API (see uharc_dec.h for the callback typedefs) */
 int uharc_dec3u_init(void **pctx, int method);
@@ -134,7 +135,7 @@ typedef struct dec3u_s {
     /* model */
     unsigned char *htab;   /* 0x200000: 262144 x {u32 pos, u32 ctx} */
     unsigned char *hval;   /* 0x40000 */
-    unsigned long *ord;    /* 0x40000: 65536 u32 */
+    uint32_t *ord;         /* 0x40000: 65536 u32 */
     unsigned char *dict;   /* dict_sz + 256 */
     unsigned short *freq;  /* 328 x 256 */
     unsigned short *raw;   /* 328 x 256 */
@@ -562,17 +563,17 @@ static void u3_literal(dec3u *d)
 static int u3_match(dec3u *d)
 {
     unsigned long h, mpos, mpos0, dist, pos;
-    unsigned long *he;
+    uint32_t *he;
     unsigned al, idx, bit, ln, n;
     unsigned long mcx, mdp, mmp;
     unsigned b;
     if (d->err) return 0;
     pos = d->dict_pos;
     h = (d->ctx ^ (d->ctx >> 13)) & 0x3FFFFUL;
-    he = (unsigned long *)(void *)(d->htab + h * 8UL);
+    he = (uint32_t *)(void *)(d->htab + h * 8UL);
     mpos = he[0];
     d->match_pos = -1;
-    if (mpos != U3_M32 && d->ctx == he[1]) {
+    if (mpos != (uint32_t)U3_M32 && (uint32_t)d->ctx == he[1]) {
         al = 1;
     } else {
         al = 0;
@@ -591,16 +592,16 @@ static int u3_match(dec3u *d)
                 al = 9;
         }
         if (al == 0) {
-            unsigned long o = d->ord[d->ctx & 0xFFFFUL];
-            if (o != U3_M32) {
+            uint32_t o = d->ord[d->ctx & 0xFFFFUL];
+            if (o != (uint32_t)U3_M32) {
                 mpos = o;
                 al = 0x11u;
             }
         }
     }
-    he[0] = pos;
-    he[1] = d->ctx;
-    d->ord[d->ctx & 0xFFFFUL] = pos;
+    he[0] = (uint32_t)pos;
+    he[1] = (uint32_t)d->ctx;
+    d->ord[d->ctx & 0xFFFFUL] = (uint32_t)pos;
     if (al == 0) return 0;
     if (((mpos - pos) & d->dict_mask) < 0x100UL) return 0;
     al = al - 1u;
@@ -663,7 +664,7 @@ int uharc_dec3u_init(void **pctx, int method)
     memset(d, 0, sizeof(*d));
     d->htab = (unsigned char *)malloc(0x200000UL);
     d->hval = (unsigned char *)malloc(0x40000UL);
-    d->ord = (unsigned long *)malloc(0x40000UL);
+    d->ord = (uint32_t *)malloc(0x40000UL);
     d->dict = (unsigned char *)calloc((size_t)(dictsz + 256UL), 1);
     d->freq = (unsigned short *)malloc(U3_NCTX * 256u * sizeof(unsigned short));
     d->raw = (unsigned short *)malloc(U3_NCTX * 256u * sizeof(unsigned short));
