@@ -324,6 +324,18 @@ UHARC06.EXE a -d0 -y+ -o+ -p- -mw lzw.uha files...
 Vary the dictionary with `-md1`, `-md8`, `-md64`, `-md1024` to move the LZW
 method ID across 2–7.
 
+The `seb3773-uharc/` checkout also ships independent 0.2 (`corpus/archives_02/`,
+32 archives) and 0.4 (`corpus/archives_04/`, 68 archives) sets, produced by
+that project's own encoder. All 100 pass `t` here byte-exact (`pw*` archives
+need `-pwsecret`); they can be run as extra oracles with:
+
+```bat
+python tools/run_corpus.py --exe uharc06_unpack.exe ^
+  --arc-dir seb3773-uharc/corpus/archives_02 --no-src --label seb-02
+python tools/run_corpus.py --exe uharc06_unpack.exe ^
+  --arc-dir seb3773-uharc/corpus/archives_04 --no-src --label seb-04
+```
+
 ## Remaining work
 
 1. **0.6 core 4** — done and byte-exact on all samples present
