@@ -31,7 +31,7 @@ HEX_RE = re.compile(r"0[xX][0-9a-fA-F]+")
 # (label, port, image, base)
 PORTS = [
     ("0.4", "uha04_dec4_clean.c", "uha04_dec4_dg.c", 0x42E000),
-    ("0.3", "uha03_dec4_clean.c", "uha03_dec4_dg.c", 0x428000),
+    ("0.3", "uha03_dec4_seed.c", "uha03_dec4_dgroup.c", 0x428000),
 ]
 
 
@@ -78,8 +78,8 @@ def find_tables(path):
     out = []
     pat = re.compile(
         r"/\*.*?Const table lifted from (?:the )?DGROUP (?:image|slice)\s+(0[xX][0-9a-fA-F]+)"
-        r"\s*\((\d+)\s*(u32|byte).*?\*/\s*"
-        r"static\s+const\s+unsigned\s+(int|char)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*=",
+        r"\s*\((\d+)\s*(u32|bytes?).*?\*/\s*"
+        r"(?:static\s+)?const\s+unsigned\s+(int|char)\s+(\w+)\s*\[\s*(\d+)\s*\]\s*=",
         re.S)
     for m in pat.finditer(text):
         addr = int(m.group(1), 16)
@@ -95,7 +95,7 @@ def find_tables(path):
         if unit == "u32" and width != 4:
             raise SystemExit("%s: comment says u32 but the type is %s"
                              % (name, ctype))
-        if unit == "byte" and width != 1:
+        if unit.startswith("byte") and width != 1:
             raise SystemExit("%s: comment says byte but the type is %s"
                              % (name, ctype))
         if decl != count:
@@ -117,7 +117,7 @@ def check(label, port, image, base):
     bad = 0
     for name, addr, count, values, unit in sorted(tables, key=lambda t: t[1]):
         off = addr - base
-        width = 4 if unit == "u32" else 1
+        width = 4 if unit == "u32" else 1  # unit is u32 or byte(s)
         if off < 0 or off + count * width > len(img):
             print("FAIL %s %-16s 0x%08X is outside the image" % (label, name, addr))
             bad += 1

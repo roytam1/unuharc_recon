@@ -136,7 +136,7 @@ typedef struct fr_s {
     uint32_t left;
 } fr_t;
 
-static int fr_read(void *ctx, unsigned char *buf, unsigned want)
+static __attribute__((unused)) int fr_read(void *ctx, unsigned char *buf, unsigned want)
 {
     fr_t *f = (fr_t *)ctx;
     size_t n;

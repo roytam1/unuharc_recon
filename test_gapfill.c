@@ -18,6 +18,7 @@
  * Build:  gcc -std=c89 -Wall -Wextra -O2 -I. test_gapfill.c \
  *             uha03_dec4_dg.o uha04_dec4_dg.o -o test_gapfill.exe
  */
+#include <stdio.h>
 #include "uha03_dec4_clean.c"
 #include "uha04_dec4_clean.c"
 

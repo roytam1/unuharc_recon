@@ -8,8 +8,8 @@ CFLAGS=-std=c89 -Wall -Wextra -O2
 # -DDEC4_ARENA, which is what tools/diff_fuzz.py compares against.
 ARENA_PORTS=uha04_dec4.o uha03_dec4.o uharc_dec4.o
 
-OBJS=uharc06_main.o uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4_seed.o uha04_dec4_clean.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4_clean.o uharc_dec5.o
-DECOBJS=uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4_seed.o uha04_dec4_clean.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o uha03_dec4_dg.o uha03_dec4_clean.o uharc_dec4_clean.o uharc_dec5.o
+OBJS=uharc06_main.o uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4_seed.o uha04_dec4_clean.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o uha03_dec4_seed.o uha03_dec4_dgroup.o uha03_dec4_clean.o uha03_dec4_lzp.o uha03_dec4_ppm.o uha03_dec4_rc.o uharc_dec4_clean.o uharc_dec5.o
+DECOBJS=uharc06.o uha04.o uha03.o uha02.o uhcrypt06.o uhcrypt04.o uharc_dec0.o uharc_dec2.o uharc_dec2_lsb.o uharc_split.o uharc_filter.o uha02_mm.o uharc_dec3.o uha03_dec3.o uha02_dec3.o uha04_dec3.o uha03_dec5.o uha04_dec5.o uha04_dec4_seed.o uha04_dec4_clean.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o uha03_dec4_seed.o uha03_dec4_dgroup.o uha03_dec4_clean.o uha03_dec4_lzp.o uha03_dec4_ppm.o uha03_dec4_rc.o uharc_dec4_clean.o uharc_dec5.o
 
 # The arena build keeps its objects in their own directory: they are
 # compiled with -DDEC4_ARENA and must not be mixed with the production
@@ -29,9 +29,9 @@ all: $(TARGETS)
 # The tests and the typed ports include generated headers and port
 # sources directly, so they have to be rebuilt when those change - the
 # pattern rule above only knows about the target's own .c file.
-test_gapfill.o: uha03_dec4_clean.c uha04_dec4_clean.c uha04_dec4_int.h uha03_dec4_state.h uha04_dec4_state.h uha03_dec4_addr.h uha04_dec4_addr.h
+test_gapfill.o: uha03_dec4_clean.c uha04_dec4_clean.c uha03_dec4_int.h uha04_dec4_int.h uha03_dec4_state.h uha04_dec4_state.h uha03_dec4_addr.h uha04_dec4_addr.h
 test_dec4state.o: uha03_dec4_state.h uha04_dec4_state.h
-uha03_dec4_clean.o: uha03_dec4_state.h uha03_dec4_addr.h
+uha03_dec4_clean.o uha03_dec4_lzp.o uha03_dec4_ppm.o uha03_dec4_rc.o: uha03_dec4_int.h uha03_dec4_state.h uha03_dec4_addr.h
 uha04_dec4_clean.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o: uha04_dec4_int.h uha04_dec4_state.h uha04_dec4_addr.h
 uharc_dec4_clean.o: dec4c_rom2.h
 
@@ -46,7 +46,7 @@ $(ARENA_DIR)/uha04_dec4.o: uha04_dec4_addr.h
 $(ARENA_DIR)/uha03_dec4.o: uha03_dec4_addr.h
 $(ARENA_DIR)/uharc_dec4.o: uharc_dec4_addr.h
 $(ARENA_DIR)/uha04_dec4_clean.o $(ARENA_DIR)/uha04_dec4_lzp.o $(ARENA_DIR)/uha04_dec4_ppm.o $(ARENA_DIR)/uha04_dec4_rc.o: uha04_dec4_int.h uha04_dec4_state.h uha04_dec4_addr.h
-$(ARENA_DIR)/uha03_dec4_clean.o: uha03_dec4_state.h uha03_dec4_addr.h
+$(ARENA_DIR)/uha03_dec4_clean.o $(ARENA_DIR)/uha03_dec4_lzp.o $(ARENA_DIR)/uha03_dec4_ppm.o $(ARENA_DIR)/uha03_dec4_rc.o: uha03_dec4_int.h uha03_dec4_state.h uha03_dec4_addr.h
 $(ARENA_DIR)/uharc_dec4_clean.o: dec4c_rom2.h
 
 arena: uharc06_arena.exe
@@ -54,10 +54,12 @@ arena: uharc06_arena.exe
 # The arena reference still copies the full DGROUP image.  Production
 # links only the two live slices in uha04_dec4_seed.c.
 uharc06_arena.exe: $(ARENA_OBJS) $(ARENA_DIR)/uha04_dec4_dg.o
-	$(CC) -o $@ $(ARENA_OBJS) $(ARENA_DIR)/uha04_dec4_dg.o
+	$(CC) $(LDFLAGS) -o $@ $(ARENA_OBJS) $(ARENA_DIR)/uha04_dec4_dg.o
+
+LDFLAGS=
 
 uharc06_unpack.exe: $(OBJS)
-	$(CC) -o $@ $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS)
 
 hdrtest.exe: hdrtest.o $(DECOBJS)
 	$(CC) -o $@ hdrtest.o $(DECOBJS)
@@ -83,12 +85,17 @@ test_dec4state.exe: test_dec4state.o
 
 # Self-test for the core-4 fills: they must stop at the stand-in for
 # the arena's zero gap (0.3 and 0.4).
-test_gapfill.exe: test_gapfill.o uha03_dec4_dg.o uha04_dec4_seed.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o
-	$(CC) -o $@ test_gapfill.o uha03_dec4_dg.o uha04_dec4_seed.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o
+test_gapfill.exe: test_gapfill.o uha03_dec4_seed.o uha03_dec4_dgroup.o uha03_dec4_lzp.o uha03_dec4_ppm.o uha03_dec4_rc.o uha04_dec4_seed.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o
+	$(CC) -o $@ test_gapfill.o uha03_dec4_seed.o uha03_dec4_dgroup.o uha03_dec4_lzp.o uha03_dec4_ppm.o uha03_dec4_rc.o uha04_dec4_seed.o uha04_dec4_lzp.o uha04_dec4_ppm.o uha04_dec4_rc.o
 
 # 0.4 corpus gate.  The shared reference tree uharc-rs/testdata/src is not
 # part of this checkout, so the check is the container CRC plus a byte
 # compare of the typed port against the arena port (make arena).
+test-03: uharc06_unpack.exe uharc06_arena.exe
+	python3 tools/run_corpus.py --exe ./uharc06_unpack.exe --arc-dir uharc-rs-03/arc --no-src --label test-03
+	python3 tools/run_corpus.py --exe ./uharc06_arena.exe --arc-dir uharc-rs-03/arc --no-src --label test-03-arena
+	python3 tools/diff_corpus.py ./uharc06_unpack.exe ./uharc06_arena.exe uharc-rs-03/arc
+
 test-04: uharc06_unpack.exe uharc06_arena.exe
 	python3 tools/run_corpus.py --exe ./uharc06_unpack.exe --arc-dir uharc-rs-04/arc --no-src --label test-04
 	python3 tools/run_corpus.py --exe ./uharc06_arena.exe --arc-dir uharc-rs-04/arc --no-src --label test-04-arena

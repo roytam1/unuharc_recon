@@ -101,9 +101,13 @@ int main(int argc, char **argv)
     }
 
     if (!detect_version(arc, &ver)) {
-        if (strlen(arc) + 5 < sizeof(arcbuf)) {
-            sprintf(arcbuf, "%s.uha", arc);
-            if (detect_version(arcbuf, &ver)) arc = arcbuf;
+        {
+            size_t alen = strlen(arc);
+            if (alen + 4 < sizeof(arcbuf)) {
+                memcpy(arcbuf, arc, alen);
+                memcpy(arcbuf + alen, ".uha", 5);
+                if (detect_version(arcbuf, &ver)) arc = arcbuf;
+            }
         }
     }
     if (!detect_version(arc, &ver)) {
@@ -118,11 +122,15 @@ int main(int argc, char **argv)
         const uharc06_header *hh;
         rc = uharc06_open_pw(arc, &h, pwd);
         if (rc != UHARC06_OK && rc == UHARC06_ERR_IO) {
-            if (strlen(arc) + 5 < sizeof(arcbuf)) {
-                sprintf(arcbuf, "%s.uha", arc);
-                if (detect_version(arcbuf, &ver) && ver == 0x06) {
-                    rc = uharc06_open_pw(arcbuf, &h, pwd);
-                    if (rc == UHARC06_OK) arc = arcbuf;
+            {
+                size_t alen = strlen(arc);
+                if (alen + 4 < sizeof(arcbuf)) {
+                    memcpy(arcbuf, arc, alen);
+                    memcpy(arcbuf + alen, ".uha", 5);
+                    if (detect_version(arcbuf, &ver) && ver == 0x06) {
+                        rc = uharc06_open_pw(arcbuf, &h, pwd);
+                        if (rc == UHARC06_OK) arc = arcbuf;
+                    }
                 }
             }
         }
@@ -239,7 +247,7 @@ int main(int argc, char **argv)
             arc, hh->unk_dfa, n, total);
         for (i = 0; i < n; i++) {
             const uha03_entry *e = uha03_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
+            if (e) printf("  %s (%lu bytes)\n", e->path, (unsigned long)e->size);
         }
         if (list_only) {
             uha03_close(h);
@@ -275,10 +283,10 @@ int main(int argc, char **argv)
         hh = uha02_header_get(h);
         n = uha02_nfiles(h);
         printf("Processing archive \"%s\" (UHA 0.2, method %u, %lu files, %lu bytes).\n",
-            arc, hh->method, n, hh->total_size);
+            arc, hh->method, n, (unsigned long)hh->total_size);
         for (i = 0; i < n; i++) {
             const uha02_entry *e = uha02_entry_get(h, i);
-            if (e) printf("  %s (%lu bytes)\n", e->path, e->size);
+            if (e) printf("  %s (%lu bytes)\n", e->path, (unsigned long)e->size);
         }
         if (list_only) {
             uha02_close(h);

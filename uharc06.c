@@ -141,7 +141,7 @@ typedef struct file_reader_s {
     unsigned char crypt_tab[256]; /* byte_433150 */
 } file_reader;
 
-static int fr_read(void *ctx, unsigned char *buf, unsigned want)
+static __attribute__((unused)) int fr_read(void *ctx, unsigned char *buf, unsigned want)
 {
     file_reader *fr = (file_reader *)ctx;
     unsigned n, i;
@@ -304,7 +304,6 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
         n = fread(mz, 1, 64, fp);
         if (n >= 64 && mz[0] == 'M' && mz[1] == 'Z') {
             unsigned long e_lfanew;
-            unsigned long pe_off;
             unsigned char pe[8];
             e_lfanew = (unsigned long)(mz[0x3C] | (mz[0x3D] << 8) |
                                        (mz[0x3E] << 16) | (mz[0x3F] << 24));
@@ -443,6 +442,7 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
     /* rebuild 19-byte entries */
     {
         unsigned char *dirs = 0;
+        (void)dirs;
         unsigned long dirs_total = 0;
         unsigned long strs_total = 0;
         unsigned long p1 = 0, p2 = 0;
@@ -514,7 +514,7 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
          */
         {
             unsigned char *b = tab2;
-            unsigned long off = 0;
+            unsigned long off = 0; (void)off;
             char *name_pool;
             unsigned k;
             /* sizes plane is at 6N..10N, method at 10N */
@@ -573,6 +573,7 @@ int uharc06_open_pw(const char *path, uharc06_t **ph, const char *pwd)
                     (void)kk;
                     (void)qq;
                     l = 0; /* placeholder, fixed below */
+                    (void)l;
                 }
                 e->dir = "";
                 e->name = "";

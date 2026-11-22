@@ -35,16 +35,16 @@
  * Kept static in this file: no new crypt files. */
 
 /* ---------- CRC32 (IEEE) ---------- */
-static unsigned long crc_tab[256];
+static uint32_t crc_tab[256];
 static int crc_tab_init = 0;
 
 static void crc_init_tab(void)
 {
     unsigned i, j;
-    unsigned long c;
+    uint32_t c;
     if (crc_tab_init) return;
     for (i = 0; i < 256; i++) {
-        c = i;
+        c = (uint32_t)i;
         for (j = 0; j < 8; j++) {
             if (c & 1) c = 0xEDB88320UL ^ (c >> 1);
             else c >>= 1;
@@ -54,8 +54,8 @@ static void crc_init_tab(void)
     crc_tab_init = 1;
 }
 
-unsigned long uha02_crc32(const unsigned char *buf, unsigned len,
-                          unsigned long crc)
+uint32_t uha02_crc32(const unsigned char *buf, unsigned len,
+                     uint32_t crc)
 {
     unsigned i;
     crc_init_tab();
@@ -120,17 +120,17 @@ static unsigned rd16le(const unsigned char *p)
     return (unsigned)(p[0] | (p[1] << 8));
 }
 
-static unsigned long rd32le(const unsigned char *p)
+static uint32_t rd32le(const unsigned char *p)
 {
-    return (unsigned long)(p[0] | (p[1] << 8) |
-                           (p[2] << 16) | (p[3] << 24));
+    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) |
+           ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
 int uha02_header_parse(const unsigned char raw[48],
                        uha02_header *h)
 {
     unsigned char b[48];
-    unsigned long crc;
+    uint32_t crc;
     unsigned i;
     memcpy(b, raw, 48);
     if (!(b[0] == 0x55 && b[1] == 0x48 && b[2] == 0x41 && b[3] == 0x02))
@@ -165,7 +165,7 @@ struct uha02_s {
     FILE *fp;
     char *path;
     uha02_header hdr;
-    unsigned long nfiles;
+    uint32_t nfiles;
     uha02_entry *entries;
     char *strpool; /* dir + name strings */
     long tab0_off;
@@ -283,12 +283,12 @@ static int decode_table(FILE *fp, long off, unsigned long cmp_size,
     return UHA02_OK;
 }
 
-unsigned long uha02_nfiles(uha02_t *h)
+uint32_t uha02_nfiles(uha02_t *h)
 {
     return h ? h->nfiles : 0;
 }
 
-const uha02_entry *uha02_entry_get(uha02_t *h, unsigned long idx)
+const uha02_entry *uha02_entry_get(uha02_t *h, uint32_t idx)
 {
     if (!h || idx >= h->nfiles) return 0;
     return &h->entries[idx];
@@ -420,7 +420,7 @@ int uha02_open(const char *path, uha02_t **ph)
         unsigned long p1 = 0, p2 = 0;
         unsigned long dirs_total = 0, strs_total = 0;
         unsigned k;
-        unsigned long *dir_offs = 0;
+        uint32_t *dir_offs = 0;
         char *strp = 0;
 
         for (k = 0; k < ndirs; k++) {
@@ -446,8 +446,8 @@ int uha02_open(const char *path, uha02_t **ph)
             uha02_close(h);
             return UHA02_ERR_NOMEM;
         }
-        dir_offs = (unsigned long *)malloc(sizeof(unsigned long) *
-                                           (ndirs ? ndirs : 1));
+        dir_offs = (uint32_t *)malloc(sizeof(uint32_t) *
+                                      (ndirs ? ndirs : 1));
         if (!dir_offs && ndirs) {
             free(tab0); free(tab1); free(tab2); free(tab3);
             uha02_close(h);
@@ -466,7 +466,7 @@ int uha02_open(const char *path, uha02_t **ph)
             uha02_entry *e = &h->entries[i];
             unsigned dd, tt, w0;
             unsigned char m;
-            unsigned long sz, c32;
+            uint32_t sz, c32;
             /* tab2 plane order (verified in Uharc02.c: compress side
              * writes entry+13 first, entry+11 second; extract side
              * stores first plane to +13, second to +11; +13 is time
@@ -483,19 +483,14 @@ int uha02_open(const char *path, uha02_t **ph)
              * 0/528/362/353 = EMPTY.BIN/REPEAT.TXT/T1.TXT/T2.TXT sizes. */
             w0 = (unsigned)(tab3[4 * nfiles + i] |
                             (tab3[5 * nfiles + i] << 8));
-            sz = (unsigned long)(tab3[4 * i] |
-                                 (tab3[4 * i + 1] << 8) |
-                                 (tab3[4 * i + 2] << 16) |
-                                 (tab3[4 * i + 3] << 24));
+            sz = rd32le(tab3 + 4 * i);
             m = tab3[6 * nfiles + i];
-            c32 = (unsigned long)(tab0[4 * i] | (tab0[4 * i + 1] << 8) |
-                                  (tab0[4 * i + 2] << 16) |
-                                  (tab0[4 * i + 3] << 24));
+            c32 = rd32le(tab0 + 4 * i);
             e->time = tt; e->date = dd;
             e->dir_index = w0; e->method = m;
             /* raw var (negative cumulative, like 0.6/0.4).
              * Converted to sizes below via differences. */
-            e->size = sz & 0xFFFFFFFFUL; e->crc = c32;
+            e->size = sz; e->crc = c32;
             e->offset = 0;
             e->dir = ""; e->name = ""; e->path = "";
         }
@@ -505,21 +500,21 @@ int uha02_open(const char *path, uha02_t **ph)
          * cumulatively. NOTE: sum need not equal total_size exactly
          * (filters/padding); open stays permissive on mismatch. */
         {
-            unsigned long k2;
-            unsigned long prev_sz = 0;
+            uint32_t k2;
+            uint32_t prev_sz = 0;
             for (k2 = 0; k2 < nfiles; k2++) {
-                unsigned long var = h->entries[k2].size & 0xFFFFFFFFUL;
-                unsigned long sz2;
-                if (k2 == 0) sz2 = (0UL - var) & 0xFFFFFFFFUL;
-                else sz2 = (prev_sz - var) & 0xFFFFFFFFUL;
+                uint32_t var = h->entries[k2].size;
+                uint32_t sz2;
+                if (k2 == 0) sz2 = 0U - var;
+                else sz2 = prev_sz - var;
                 h->entries[k2].size = sz2;
                 prev_sz = sz2;
             }
             {
-                unsigned long off2 = 0;
+                uint32_t off2 = 0;
                 for (k2 = 0; k2 < nfiles; k2++) {
                     h->entries[k2].offset = off2;
-                    off2 = (off2 + h->entries[k2].size) & 0xFFFFFFFFUL;
+                    off2 = off2 + h->entries[k2].size;
                 }
             }
         }
@@ -905,5 +900,10 @@ done:
     if (packed) free(packed);
     if (cur) { fclose(cur); cur = 0; }
     g_sp_h = 0;
+    g_sp_pidx = 0;
+    g_sp_prem = 0;
+    g_sp_pcur = 0;
+    g_sp_pcrc = 0;
+    g_sp_curpath = 0;
     return rc;
 }
