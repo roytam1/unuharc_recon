@@ -44,7 +44,7 @@ static int mw_write(void *ctx, const unsigned char *buf, unsigned len)
     return 0;
 }
 
-static unsigned crc16_of(const unsigned char *p, unsigned long n)
+static __attribute__((unused)) unsigned crc16_of(const unsigned char *p, unsigned long n)
 {
     unsigned long c = uharc06_crc32(p, (unsigned)n, 0xFFFFFFFFUL);
     return (unsigned)(c & 0xFFFFUL);

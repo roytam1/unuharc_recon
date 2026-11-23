@@ -101,9 +101,13 @@ int main(int argc, char **argv)
     }
 
     if (!detect_version(arc, &ver)) {
-        if (strlen(arc) + 5 < sizeof(arcbuf)) {
-            sprintf(arcbuf, "%s.uha", arc);
-            if (detect_version(arcbuf, &ver)) arc = arcbuf;
+        {
+            size_t alen = strlen(arc);
+            if (alen + 4 < sizeof(arcbuf)) {
+                memcpy(arcbuf, arc, alen);
+                memcpy(arcbuf + alen, ".uha", 5);
+                if (detect_version(arcbuf, &ver)) arc = arcbuf;
+            }
         }
     }
     if (!detect_version(arc, &ver)) {
@@ -118,11 +122,15 @@ int main(int argc, char **argv)
         const uharc06_header *hh;
         rc = uharc06_open_pw(arc, &h, pwd);
         if (rc != UHARC06_OK && rc == UHARC06_ERR_IO) {
-            if (strlen(arc) + 5 < sizeof(arcbuf)) {
-                sprintf(arcbuf, "%s.uha", arc);
-                if (detect_version(arcbuf, &ver) && ver == 0x06) {
-                    rc = uharc06_open_pw(arcbuf, &h, pwd);
-                    if (rc == UHARC06_OK) arc = arcbuf;
+            {
+                size_t alen = strlen(arc);
+                if (alen + 4 < sizeof(arcbuf)) {
+                    memcpy(arcbuf, arc, alen);
+                    memcpy(arcbuf + alen, ".uha", 5);
+                    if (detect_version(arcbuf, &ver) && ver == 0x06) {
+                        rc = uharc06_open_pw(arcbuf, &h, pwd);
+                        if (rc == UHARC06_OK) arc = arcbuf;
+                    }
                 }
             }
         }

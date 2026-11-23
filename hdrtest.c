@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         }
         return 1;
     }
-    printf("method=%u ndirs=%lu nfiles=%lu total=%lu data_off=%lu\n",
+    printf("method=%u ndirs=%u nfiles=%lu total=%lu data_off=%lu\n",
         h.method, h.ndirs, h.nfiles, h.total_size, h.data_off);
     printf("tab1 dec=%lu cmp=%lu crc=%04X\n",
         h.tab1_dec_size, h.tab1_cmp_size, h.tab1_crc);

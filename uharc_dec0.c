@@ -264,6 +264,7 @@ int uharc_dec4uc_decode_b(void *ctx,
                          uharc_dec_write_cb wcb, void *wctx,
                          unsigned long out_len);
 void uharc_dec4uc_free(void *ctx);
+void uharc_dec4uc_set_flags2(void *ctx, unsigned char flags2);
 /* 0.4 core4 (methods 24..39) */
 int uharc_dec4v_init(void **pctx, int method);
 int uharc_dec4v_decode_b(void *ctx,
@@ -492,6 +493,7 @@ int uharc_dec_decode_b(int method, int core2_lsb, int ver,
             /* typed-state port; the arena port stays behind -DDEC4_ARENA */
             ret = uharc_dec4uc_init(&c4, method);
             if (ret == 0) {
+                uharc_dec4uc_set_flags2(c4, flags2);
                 ret = uharc_dec4uc_decode_b(c4, cum, ncum, rcb, rctx, wcb,
                                             wctx, out_len);
                 uharc_dec4uc_free(c4);

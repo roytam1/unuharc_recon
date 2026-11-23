@@ -447,7 +447,9 @@ static D4V_AINLINE void d4v_mst32(dec4v_ctx *c, unsigned char *m,
 }
 
 
+#ifndef U32MASK
 #define U32MASK 0xFFFFFFFFUL
+#endif
 #define ADD8_LO(r,v) ((r) = ((r) & 0xFFFFFF00UL) | (((r) + (v)) & 0xFFUL))
 #define SUB8_LO(r,v) ((r) = ((r) & 0xFFFFFF00UL) | (((r) - (v)) & 0xFFUL))
 #define DECB_LO(r) ((r) = ((r) & 0xFFFFFF00UL) | (((r) - 1) & 0xFFUL))

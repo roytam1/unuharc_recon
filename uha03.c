@@ -14,7 +14,7 @@
  * split to uhcrypt03.* if divergence found). */
 #include "uhcrypt04.h"
 /* typed-state core-4 port (uha03_dec4_clean.c / uha04_dec4_clean.c) */
-int uharc_dec4uc_set_flags2(unsigned char flags2);
+void uharc_dec4uc_set_flags2(void *ctx, unsigned char flags2);
 
 
 static uint32_t crc_tab[256];
@@ -145,7 +145,7 @@ typedef struct fr_s {
     unsigned long left;
 } fr_t;
 
-static int fr_read(void *ctx, unsigned char *buf, unsigned want)
+static __attribute__((unused)) int fr_read(void *ctx, unsigned char *buf, unsigned want)
 {
     fr_t *f = (fr_t *)ctx;
     size_t n;
@@ -660,9 +660,6 @@ int uha03_extract(uha03_t *h, const char *outdir,
     g_uha03_fax = (h->hdr.flags_filt & 0x80) ? 1 : 0;
 #if defined(DEC4_ARENA)
     uharc_dec4u_set_flags2((unsigned char)h->hdr.flags_filt);
-#else
-    /* the typed-state core-4 port has its own copy of the flag */
-    uharc_dec4uc_set_flags2((unsigned char)h->hdr.flags_filt);
 #endif
     rc = uharc_split_run(outdir, with_paths, test_only, se, h->nfiles,
                          (int)h->hdr.unk_dfa, 3,
